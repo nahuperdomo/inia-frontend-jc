@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react"
 import { Button } from "@/components/ui/button"
-import { Leaf, Plus, Settings, LogOut } from "lucide-react"
+import { Leaf, Plus, List, BarChart3, Settings, LogOut } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -11,7 +11,11 @@ interface DashboardLayoutProps {
   children: ReactNode
 }
 
-const navigation = [{ name: "Registro", href: "/registro", icon: Plus }]
+const navigation = [
+  { name: "Registro", href: "/registro", icon: Plus },
+  { name: "Listado", href: "/listado", icon: List },
+  { name: "Reportes", href: "/reportes", icon: BarChart3 },
+]
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()

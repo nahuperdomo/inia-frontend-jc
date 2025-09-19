@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Package, FileText, Users, Beaker, Plus, Clock } from "lucide-react"
+import { Package, Users, Beaker, Plus, Clock, Building2 } from "lucide-react"
 import Link from "next/link"
 
 export default function RegistroPage() {
@@ -16,20 +16,20 @@ export default function RegistroPage() {
       bgColor: "bg-emerald-50",
     },
     {
-      title: "Registro de Cliente",
-      description: "Registrar nuevo cliente en el sistema",
-      icon: Users,
-      href: "/registro/empresa",
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
-    },
-    {
-      title: "Solicitud de Análisis",
-      description: "Solicitar análisis de pureza para lotes existentes",
+      title: "Registro de análisis a un lote existente",
+      description: "Registrar análisis",
       icon: Beaker,
       href: "/registro/analisis",
       color: "text-purple-600",
       bgColor: "bg-purple-50",
+    },
+    {
+      title: "Registro de Cliente",
+      description: "Registrar nuevo cliente en el sistema",
+      icon: Building2,
+      href: "/registro/empresa",
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
     },
     {
       title: "Registro de Usuario",
@@ -39,7 +39,6 @@ export default function RegistroPage() {
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
-
   ]
 
   const recentRegistrations = [

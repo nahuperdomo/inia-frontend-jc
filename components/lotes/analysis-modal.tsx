@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertTriangle } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface AnalysisModalProps {
   isOpen: boolean
@@ -88,8 +89,8 @@ export function AnalysisModal({ isOpen, onClose, lot, onSave, mode = "create", e
                 />
               </svg>
             </div>
-            {mode === "view" ? "Pureza física" : "Pureza"}
-            {mode === "view" && <span className="text-sm text-gray-500 ml-2">02/04/2025</span>}
+            {mode === "view" ? "Pureza" : "Pureza"}
+            {mode === "view" && <span className="text-sm text-gray-500 ml-2">Fecha: 02/09/2025</span>}
             <div className="ml-auto flex gap-2">
               {mode === "view" && !isEditMode && (
                 <Button variant="outline" size="sm" className="bg-transparent" onClick={handleEdit}>
@@ -148,259 +149,99 @@ export function AnalysisModal({ isOpen, onClose, lot, onSave, mode = "create", e
                   </div>
                 </div>
               ) : (
-                <Tabs value={formData.unidad} onValueChange={(value) => handleInputChange("unidad", value)}>
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="g">g</TabsTrigger>
-                    <TabsTrigger value="%">%</TabsTrigger>
-                    <TabsTrigger value="%redondeado">%redondeado</TabsTrigger>
-                  </TabsList>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div className="text-2xl font-bold">9</div>
+                    <div className="text-sm text-gray-500">%redondeado</div>
+                  </div>
 
-                  <TabsContent value="g" className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="peso-inicial">Peso inicial</Label>
-                        <Input
-                          id="peso-inicial"
-                          type="number"
-                          placeholder="0"
-                          value={formData.pesoInicial}
-                          onChange={(e) => handleInputChange("pesoInicial", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="semilla-pura">Semilla pura</Label>
-                        <Input
-                          id="semilla-pura"
-                          type="number"
-                          placeholder="0"
-                          value={formData.semillaPura}
-                          onChange={(e) => handleInputChange("semillaPura", e.target.value)}
-                        />
-                      </div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="peso-inicial">Peso inicial</Label>
+                      <Input
+                        id="peso-inicial"
+                        type="number"
+                        placeholder="0"
+                        value={formData.pesoInicial}
+                        onChange={(e) => handleInputChange("pesoInicial", e.target.value)}
+                      />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="materia-inerte">Materia inerte</Label>
-                        <Input
-                          id="materia-inerte"
-                          type="number"
-                          placeholder="0"
-                          value={formData.materiaInerte}
-                          onChange={(e) => handleInputChange("materiaInerte", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="otros-cultivos">Otros cultivos</Label>
-                        <Input
-                          id="otros-cultivos"
-                          type="number"
-                          placeholder="0"
-                          value={formData.otrosCultivos}
-                          onChange={(e) => handleInputChange("otrosCultivos", e.target.value)}
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="semilla-pura">Semilla pura</Label>
+                      <Input
+                        id="semilla-pura"
+                        type="number"
+                        placeholder="0"
+                        value={formData.semillaPura}
+                        onChange={(e) => handleInputChange("semillaPura", e.target.value)}
+                      />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="malezas">Malezas</Label>
-                        <Input
-                          id="malezas"
-                          type="number"
-                          placeholder="0"
-                          value={formData.malezas}
-                          onChange={(e) => handleInputChange("malezas", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="malezas-toleradas">Malezas toleradas</Label>
-                        <Input
-                          id="malezas-toleradas"
-                          type="number"
-                          placeholder="0"
-                          value={formData.malezasToleradas}
-                          onChange={(e) => handleInputChange("malezasToleradas", e.target.value)}
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="materia-inerte">Materia inerte</Label>
+                      <Input
+                        id="materia-inerte"
+                        type="number"
+                        placeholder="0"
+                        value={formData.materiaInerte}
+                        onChange={(e) => handleInputChange("materiaInerte", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="otros-cultivos">Otros cultivos</Label>
+                      <Input
+                        id="otros-cultivos"
+                        type="number"
+                        placeholder="0"
+                        value={formData.otrosCultivos}
+                        onChange={(e) => handleInputChange("otrosCultivos", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="malezas">Malezas</Label>
+                      <Input
+                        id="malezas"
+                        type="number"
+                        placeholder="0"
+                        value={formData.malezas}
+                        onChange={(e) => handleInputChange("malezas", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="malezas-toleradas">Malezas toleradas</Label>
+                      <Input
+                        id="malezas-toleradas"
+                        type="number"
+                        placeholder="0"
+                        value={formData.malezasToleradas}
+                        onChange={(e) => handleInputChange("malezasToleradas", e.target.value)}
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="peso-total">Peso total</Label>
-                      <Input
-                        id="peso-total"
-                        type="number"
-                        placeholder="0"
+                      <Select
                         value={formData.pesoTotal}
-                        onChange={(e) => handleInputChange("pesoTotal", e.target.value)}
-                      />
+                        onValueChange={(value) => handleInputChange("pesoTotal", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar peso total" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">0</SelectItem>
+                          <SelectItem value="5">5</SelectItem>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="15">15</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  </TabsContent>
-
-                  <TabsContent value="%" className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="peso-inicial-pct">Peso inicial</Label>
-                        <Input
-                          id="peso-inicial-pct"
-                          type="number"
-                          placeholder="0"
-                          value={formData.pesoInicial}
-                          onChange={(e) => handleInputChange("pesoInicial", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="semilla-pura-pct">Semilla pura</Label>
-                        <Input
-                          id="semilla-pura-pct"
-                          type="number"
-                          placeholder="0"
-                          value={formData.semillaPura}
-                          onChange={(e) => handleInputChange("semillaPura", e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="materia-inerte-pct">Materia inerte</Label>
-                        <Input
-                          id="materia-inerte-pct"
-                          type="number"
-                          placeholder="0"
-                          value={formData.materiaInerte}
-                          onChange={(e) => handleInputChange("materiaInerte", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="otros-cultivos-pct">Otros cultivos</Label>
-                        <Input
-                          id="otros-cultivos-pct"
-                          type="number"
-                          placeholder="0"
-                          value={formData.otrosCultivos}
-                          onChange={(e) => handleInputChange("otrosCultivos", e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="malezas-pct">Malezas</Label>
-                        <Input
-                          id="malezas-pct"
-                          type="number"
-                          placeholder="0"
-                          value={formData.malezas}
-                          onChange={(e) => handleInputChange("malezas", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="malezas-toleradas-pct">Malezas toleradas</Label>
-                        <Input
-                          id="malezas-toleradas-pct"
-                          type="number"
-                          placeholder="0"
-                          value={formData.malezasToleradas}
-                          onChange={(e) => handleInputChange("malezasToleradas", e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="peso-total-pct">Peso total</Label>
-                      <Input
-                        id="peso-total-pct"
-                        type="number"
-                        placeholder="0"
-                        value={formData.pesoTotal}
-                        onChange={(e) => handleInputChange("pesoTotal", e.target.value)}
-                      />
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="%redondeado" className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="peso-inicial-red">Peso inicial</Label>
-                        <Input
-                          id="peso-inicial-red"
-                          type="number"
-                          placeholder="0"
-                          value={formData.pesoInicial}
-                          onChange={(e) => handleInputChange("pesoInicial", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="semilla-pura-red">Semilla pura</Label>
-                        <Input
-                          id="semilla-pura-red"
-                          type="number"
-                          placeholder="0"
-                          value={formData.semillaPura}
-                          onChange={(e) => handleInputChange("semillaPura", e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="materia-inerte-red">Materia inerte</Label>
-                        <Input
-                          id="materia-inerte-red"
-                          type="number"
-                          placeholder="0"
-                          value={formData.materiaInerte}
-                          onChange={(e) => handleInputChange("materiaInerte", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="otros-cultivos-red">Otros cultivos</Label>
-                        <Input
-                          id="otros-cultivos-red"
-                          type="number"
-                          placeholder="0"
-                          value={formData.otrosCultivos}
-                          onChange={(e) => handleInputChange("otrosCultivos", e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="malezas-red">Malezas</Label>
-                        <Input
-                          id="malezas-red"
-                          type="number"
-                          placeholder="0"
-                          value={formData.malezas}
-                          onChange={(e) => handleInputChange("malezas", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="malezas-toleradas-red">Malezas toleradas</Label>
-                        <Input
-                          id="malezas-toleradas-red"
-                          type="number"
-                          placeholder="0"
-                          value={formData.malezasToleradas}
-                          onChange={(e) => handleInputChange("malezasToleradas", e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="peso-total-red">Peso total</Label>
-                      <Input
-                        id="peso-total-red"
-                        type="number"
-                        placeholder="0"
-                        value={formData.pesoTotal}
-                        onChange={(e) => handleInputChange("pesoTotal", e.target.value)}
-                      />
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                  </div>
+                </div>
               )}
             </TabsContent>
 
@@ -440,259 +281,99 @@ export function AnalysisModal({ isOpen, onClose, lot, onSave, mode = "create", e
                   </div>
                 </div>
               ) : (
-                <Tabs value={formData.unidad} onValueChange={(value) => handleInputChange("unidad", value)}>
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="g">g</TabsTrigger>
-                    <TabsTrigger value="%">%</TabsTrigger>
-                    <TabsTrigger value="%redondeado">%redondeado</TabsTrigger>
-                  </TabsList>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div className="text-2xl font-bold">9</div>
+                    <div className="text-sm text-gray-500">%redondeado</div>
+                  </div>
 
-                  <TabsContent value="g" className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="peso-inicial-inase">Peso inicial</Label>
-                        <Input
-                          id="peso-inicial-inase"
-                          type="number"
-                          placeholder="0"
-                          value={formData.pesoInicial}
-                          onChange={(e) => handleInputChange("pesoInicial", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="semilla-pura-inase">Semilla pura</Label>
-                        <Input
-                          id="semilla-pura-inase"
-                          type="number"
-                          placeholder="0"
-                          value={formData.semillaPura}
-                          onChange={(e) => handleInputChange("semillaPura", e.target.value)}
-                        />
-                      </div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="peso-inicial-inase">Peso inicial</Label>
+                      <Input
+                        id="peso-inicial-inase"
+                        type="number"
+                        placeholder="0"
+                        value={formData.pesoInicial}
+                        onChange={(e) => handleInputChange("pesoInicial", e.target.value)}
+                      />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="materia-inerte-inase">Materia inerte</Label>
-                        <Input
-                          id="materia-inerte-inase"
-                          type="number"
-                          placeholder="0"
-                          value={formData.materiaInerte}
-                          onChange={(e) => handleInputChange("materiaInerte", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="otros-cultivos-inase">Otros cultivos</Label>
-                        <Input
-                          id="otros-cultivos-inase"
-                          type="number"
-                          placeholder="0"
-                          value={formData.otrosCultivos}
-                          onChange={(e) => handleInputChange("otrosCultivos", e.target.value)}
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="semilla-pura-inase">Semilla pura</Label>
+                      <Input
+                        id="semilla-pura-inase"
+                        type="number"
+                        placeholder="0"
+                        value={formData.semillaPura}
+                        onChange={(e) => handleInputChange("semillaPura", e.target.value)}
+                      />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="malezas-inase">Malezas</Label>
-                        <Input
-                          id="malezas-inase"
-                          type="number"
-                          placeholder="0"
-                          value={formData.malezas}
-                          onChange={(e) => handleInputChange("malezas", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="malezas-toleradas-inase">Malezas toleradas</Label>
-                        <Input
-                          id="malezas-toleradas-inase"
-                          type="number"
-                          placeholder="0"
-                          value={formData.malezasToleradas}
-                          onChange={(e) => handleInputChange("malezasToleradas", e.target.value)}
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="materia-inerte-inase">Materia inerte</Label>
+                      <Input
+                        id="materia-inerte-inase"
+                        type="number"
+                        placeholder="0"
+                        value={formData.materiaInerte}
+                        onChange={(e) => handleInputChange("materiaInerte", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="otros-cultivos-inase">Otros cultivos</Label>
+                      <Input
+                        id="otros-cultivos-inase"
+                        type="number"
+                        placeholder="0"
+                        value={formData.otrosCultivos}
+                        onChange={(e) => handleInputChange("otrosCultivos", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="malezas-inase">Malezas</Label>
+                      <Input
+                        id="malezas-inase"
+                        type="number"
+                        placeholder="0"
+                        value={formData.malezas}
+                        onChange={(e) => handleInputChange("malezas", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="malezas-toleradas-inase">Malezas toleradas</Label>
+                      <Input
+                        id="malezas-toleradas-inase"
+                        type="number"
+                        placeholder="0"
+                        value={formData.malezasToleradas}
+                        onChange={(e) => handleInputChange("malezasToleradas", e.target.value)}
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="peso-total-inase">Peso total</Label>
-                      <Input
-                        id="peso-total-inase"
-                        type="number"
-                        placeholder="0"
+                      <Select
                         value={formData.pesoTotal}
-                        onChange={(e) => handleInputChange("pesoTotal", e.target.value)}
-                      />
+                        onValueChange={(value) => handleInputChange("pesoTotal", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar peso total" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">0</SelectItem>
+                          <SelectItem value="5">5</SelectItem>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="15">15</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  </TabsContent>
-
-                  <TabsContent value="%" className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="peso-inicial-inase-pct">Peso inicial</Label>
-                        <Input
-                          id="peso-inicial-inase-pct"
-                          type="number"
-                          placeholder="0"
-                          value={formData.pesoInicial}
-                          onChange={(e) => handleInputChange("pesoInicial", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="semilla-pura-inase-pct">Semilla pura</Label>
-                        <Input
-                          id="semilla-pura-inase-pct"
-                          type="number"
-                          placeholder="0"
-                          value={formData.semillaPura}
-                          onChange={(e) => handleInputChange("semillaPura", e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="materia-inerte-inase-pct">Materia inerte</Label>
-                        <Input
-                          id="materia-inerte-inase-pct"
-                          type="number"
-                          placeholder="0"
-                          value={formData.materiaInerte}
-                          onChange={(e) => handleInputChange("materiaInerte", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="otros-cultivos-inase-pct">Otros cultivos</Label>
-                        <Input
-                          id="otros-cultivos-inase-pct"
-                          type="number"
-                          placeholder="0"
-                          value={formData.otrosCultivos}
-                          onChange={(e) => handleInputChange("otrosCultivos", e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="malezas-inase-pct">Malezas</Label>
-                        <Input
-                          id="malezas-inase-pct"
-                          type="number"
-                          placeholder="0"
-                          value={formData.malezas}
-                          onChange={(e) => handleInputChange("malezas", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="malezas-toleradas-inase-pct">Malezas toleradas</Label>
-                        <Input
-                          id="malezas-toleradas-inase-pct"
-                          type="number"
-                          placeholder="0"
-                          value={formData.malezasToleradas}
-                          onChange={(e) => handleInputChange("malezasToleradas", e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="peso-total-inase-pct">Peso total</Label>
-                      <Input
-                        id="peso-total-inase-pct"
-                        type="number"
-                        placeholder="0"
-                        value={formData.pesoTotal}
-                        onChange={(e) => handleInputChange("pesoTotal", e.target.value)}
-                      />
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="%redondeado" className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="peso-inicial-inase-red">Peso inicial</Label>
-                        <Input
-                          id="peso-inicial-inase-red"
-                          type="number"
-                          placeholder="0"
-                          value={formData.pesoInicial}
-                          onChange={(e) => handleInputChange("pesoInicial", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="semilla-pura-inase-red">Semilla pura</Label>
-                        <Input
-                          id="semilla-pura-inase-red"
-                          type="number"
-                          placeholder="0"
-                          value={formData.semillaPura}
-                          onChange={(e) => handleInputChange("semillaPura", e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="materia-inerte-inase-red">Materia inerte</Label>
-                        <Input
-                          id="materia-inerte-inase-red"
-                          type="number"
-                          placeholder="0"
-                          value={formData.materiaInerte}
-                          onChange={(e) => handleInputChange("materiaInerte", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="otros-cultivos-inase-red">Otros cultivos</Label>
-                        <Input
-                          id="otros-cultivos-inase-red"
-                          type="number"
-                          placeholder="0"
-                          value={formData.otrosCultivos}
-                          onChange={(e) => handleInputChange("otrosCultivos", e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="malezas-inase-red">Malezas</Label>
-                        <Input
-                          id="malezas-inase-red"
-                          type="number"
-                          placeholder="0"
-                          value={formData.malezas}
-                          onChange={(e) => handleInputChange("malezas", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="malezas-toleradas-inase-red">Malezas toleradas</Label>
-                        <Input
-                          id="malezas-toleradas-inase-red"
-                          type="number"
-                          placeholder="0"
-                          value={formData.malezasToleradas}
-                          onChange={(e) => handleInputChange("malezasToleradas", e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="peso-total-inase-red">Peso total</Label>
-                      <Input
-                        id="peso-total-inase-red"
-                        type="number"
-                        placeholder="0"
-                        value={formData.pesoTotal}
-                        onChange={(e) => handleInputChange("pesoTotal", e.target.value)}
-                      />
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                  </div>
+                </div>
               )}
             </TabsContent>
           </Tabs>
@@ -702,7 +383,7 @@ export function AnalysisModal({ isOpen, onClose, lot, onSave, mode = "create", e
           <AlertTriangle className="h-4 w-4 text-orange-600" />
           <AlertDescription className="text-orange-800">
             <div className="flex items-center justify-between">
-              <span>Diferencia de peso: &lt;5%</span>
+              <span>Atención - Diferencia de peso: &lt;5%</span>
               <Button size="sm" variant="outline" className="ml-4 bg-transparent">
                 Aceptar
               </Button>

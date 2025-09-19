@@ -1,7 +1,7 @@
 import type React from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
 
-export default function MuestrasLayout({
+export default function ListadoLayout({
   children,
 }: {
   children: React.ReactNode
