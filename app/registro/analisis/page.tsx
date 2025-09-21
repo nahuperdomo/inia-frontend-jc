@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Search, TestTube, Sprout, Scale, Microscope } from "lucide-react"
 import Link from "next/link"
 
+import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
+
 // Mock data for lotes
 const mockLotes = [
   { id: "L001", codigo: "TRIGO-2024-001", especie: "Trigo", variedad: "Klein Guerrero", ubicacion: "Sector A-1" },
@@ -63,6 +65,7 @@ export default function RegistroAnalisisPage() {
     responsable: "",
     prioridad: "",
     observaciones: "",
+
     // Campos específicos de pureza física
     pesoInicial: "",
     semillaPura: "",
@@ -71,6 +74,22 @@ export default function RegistroAnalisisPage() {
     malezas: "",
     malezasToleridas: "",
     pesoTotal: "",
+
+    // Campos específicos - DOSN (INIA)
+    iniaFecha: "",
+    iniaGramos: "",
+    iniaCompleto: false,
+    iniaReducido: false,
+    iniaLimitado: false,
+    iniaReducidoLimitado: false,
+
+    // Campos específicos - DOSN (INASE)
+    inaseFecha: "",
+    inaseGramos: "",
+    inaseCompleto: false,
+    inaseReducido: false,
+    inaseLimitado: false,
+    inaseReducidoLimitado: false,
   })
 
   const handleInputChange = (field: string, value: string) => {
@@ -338,6 +357,10 @@ export default function RegistroAnalisisPage() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+            {selectedAnalysisType === "dosn" && (
+            <DosnFields formData={formData} handleInputChange={handleInputChange} />
           )}
 
           <div className="flex gap-4 pt-4">
