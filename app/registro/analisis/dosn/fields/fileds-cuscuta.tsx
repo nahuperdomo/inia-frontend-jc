@@ -14,7 +14,6 @@ export default function CuscutaSection() {
   })
 
   const updateField = (field: keyof typeof data, value: string) => {
-    // Si selecciona "no-contiene", limpiamos los demás
     if (field === "cumple" && value === "no-contiene") {
       setData({ gramos: "", numero: "", cumple: "no-contiene" })
     } else {
@@ -24,15 +23,18 @@ export default function CuscutaSection() {
 
   return (
     <Card className="border-blue-200 bg-gray-50">
-      <CardHeader>
-        <CardTitle className="text-blue-800">Determinación de Cuscuta spp.</CardTitle>
+      <CardHeader className="p-3 sm:p-4">
+        <CardTitle className="text-blue-800 text-base sm:text-lg lg:text-xl">
+          Determinación de Cuscuta spp.
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {/* (g) */}
           <div>
-            <Label>(g)</Label>
+            <Label className="text-sm sm:text-base">(g)</Label>
             <Input
+              className="text-sm sm:text-base"
               placeholder="Ej: 5"
               type="number"
               value={data.gramos}
@@ -43,8 +45,9 @@ export default function CuscutaSection() {
 
           {/* N° */}
           <div>
-            <Label>N°</Label>
+            <Label className="text-sm sm:text-base">N°</Label>
             <Input
+              className="text-sm sm:text-base"
               placeholder="Ej: 789"
               value={data.numero}
               onChange={(e) => updateField("numero", e.target.value)}
@@ -54,12 +57,12 @@ export default function CuscutaSection() {
 
           {/* ¿Cumple con el estándar? */}
           <div>
-            <Label>¿Cumple con el estándar?</Label>
+            <Label className="text-sm sm:text-base">¿Cumple con el estándar?</Label>
             <Select
               value={data.cumple}
               onValueChange={(val) => updateField("cumple", val)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="text-sm sm:text-base">
                 <SelectValue placeholder="Seleccionar" />
               </SelectTrigger>
               <SelectContent>

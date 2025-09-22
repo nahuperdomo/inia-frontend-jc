@@ -29,7 +29,6 @@ export default function OtrosCultivosFields() {
   const updateCultivo = (index: number, field: keyof Cultivo, value: string) => {
     const updated = [...cultivos]
 
-    // Si selecciona "no-contiene", limpiamos los otros valores
     if (field === "cultivo" && value === "no-contiene") {
       updated[index] = { cultivo: "no-contiene", listado: "", entidad: "", numero: "" }
     } else {
@@ -41,23 +40,25 @@ export default function OtrosCultivosFields() {
 
   return (
     <Card className="border-blue-200 bg-gray-50">
-      <CardHeader>
-        <CardTitle className="text-blue-800">Otros Cultivos</CardTitle>
+      <CardHeader className="p-3 sm:p-4">
+        <CardTitle className="text-blue-800 text-base sm:text-lg lg:text-xl">
+          Otros Cultivos
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
         {cultivos.map((cultivo, index) => (
           <div
             key={index}
-            className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end"
           >
             {/* Seleccionar Cultivo */}
             <div>
-              <Label>Tipo de Cultivo</Label>
+              <Label className="text-sm sm:text-base">Tipo de Cultivo</Label>
               <Select
                 value={cultivo.cultivo}
                 onValueChange={(val) => updateCultivo(index, "cultivo", val)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-sm sm:text-base">
                   <SelectValue placeholder="Seleccionar cultivo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -73,8 +74,9 @@ export default function OtrosCultivosFields() {
 
             {/* Listado */}
             <div>
-              <Label>Listado</Label>
+              <Label className="text-sm sm:text-base">Listado</Label>
               <Input
+                className="text-sm sm:text-base"
                 placeholder="Escribir especie..."
                 value={cultivo.listado}
                 onChange={(e) => updateCultivo(index, "listado", e.target.value)}
@@ -84,13 +86,13 @@ export default function OtrosCultivosFields() {
 
             {/* INIA / INASE */}
             <div>
-              <Label>INIA / INASE</Label>
+              <Label className="text-sm sm:text-base">INIA / INASE</Label>
               <Select
                 value={cultivo.entidad}
                 onValueChange={(val) => updateCultivo(index, "entidad", val)}
                 disabled={cultivo.cultivo === "no-contiene"}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-sm sm:text-base">
                   <SelectValue placeholder="Seleccionar entidad" />
                 </SelectTrigger>
                 <SelectContent>
@@ -102,8 +104,9 @@ export default function OtrosCultivosFields() {
 
             {/* N° */}
             <div>
-              <Label>N°</Label>
+              <Label className="text-sm sm:text-base">N°</Label>
               <Input
+                className="text-sm sm:text-base"
                 placeholder="Ej: 789"
                 value={cultivo.numero}
                 onChange={(e) => updateCultivo(index, "numero", e.target.value)}
@@ -117,7 +120,7 @@ export default function OtrosCultivosFields() {
           <Button
             onClick={addCultivo}
             variant="outline"
-            className="border-blue-600 text-blue-600 hover:bg-blue-700"
+            className="border-blue-600 text-blue-600 hover:bg-blue-700 w-full sm:w-auto text-sm sm:text-base"
           >
             + Agregar registro
           </Button>

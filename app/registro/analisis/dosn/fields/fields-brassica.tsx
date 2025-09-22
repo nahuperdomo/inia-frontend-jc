@@ -29,7 +29,6 @@ export default function BrassicaSection() {
   const updateBrassica = (index: number, field: keyof Brassica, value: string) => {
     const updated = [...brassicas]
 
-    // Si eligen "no-contiene", limpiamos todo lo demás
     if (field === "estado" && value === "no-contiene") {
       updated[index] = { estado: "no-contiene", listado: "", entidad: "", numero: "" }
     } else {
@@ -41,23 +40,25 @@ export default function BrassicaSection() {
 
   return (
     <Card className="border-blue-200 bg-gray-50">
-      <CardHeader>
-        <CardTitle className="text-blue-800">Determinación de Brassica spp.</CardTitle>
+      <CardHeader className="p-3 sm:p-4">
+        <CardTitle className="text-blue-800 text-base sm:text-lg lg:text-xl">
+          Determinación de Brassica spp.
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
         {brassicas.map((brassica, index) => (
           <div
             key={index}
-            className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end"
           >
-            {/* Estado: contiene / no contiene */}
+            {/* Estado */}
             <div>
-              <Label>Estado</Label>
+              <Label className="text-sm sm:text-base">Estado</Label>
               <Select
                 value={brassica.estado}
                 onValueChange={(val) => updateBrassica(index, "estado", val)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-sm sm:text-base">
                   <SelectValue placeholder="Seleccionar estado" />
                 </SelectTrigger>
                 <SelectContent>
@@ -69,26 +70,25 @@ export default function BrassicaSection() {
 
             {/* Listado */}
             <div>
-              <Label>Listado</Label>
+              <Label className="text-sm sm:text-base">Listado</Label>
               <Input
+                className="text-sm sm:text-base"
                 placeholder="Escribir especie..."
                 value={brassica.listado}
-                onChange={(e) =>
-                  updateBrassica(index, "listado", e.target.value)
-                }
+                onChange={(e) => updateBrassica(index, "listado", e.target.value)}
                 disabled={brassica.estado === "no-contiene"}
               />
             </div>
 
             {/* INIA / INASE */}
             <div>
-              <Label>INIA / INASE</Label>
+              <Label className="text-sm sm:text-base">INIA / INASE</Label>
               <Select
                 value={brassica.entidad}
                 onValueChange={(val) => updateBrassica(index, "entidad", val)}
                 disabled={brassica.estado === "no-contiene"}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-sm sm:text-base">
                   <SelectValue placeholder="Seleccionar entidad" />
                 </SelectTrigger>
                 <SelectContent>
@@ -100,13 +100,12 @@ export default function BrassicaSection() {
 
             {/* N° */}
             <div>
-              <Label>N°</Label>
+              <Label className="text-sm sm:text-base">N°</Label>
               <Input
+                className="text-sm sm:text-base"
                 placeholder="Ej: 456"
                 value={brassica.numero}
-                onChange={(e) =>
-                  updateBrassica(index, "numero", e.target.value)
-                }
+                onChange={(e) => updateBrassica(index, "numero", e.target.value)}
                 disabled={brassica.estado === "no-contiene"}
               />
             </div>
@@ -117,7 +116,7 @@ export default function BrassicaSection() {
           <Button
             onClick={addBrassica}
             variant="outline"
-            className="border-blue-600 text-blue-600 hover:bg-blue-700"
+            className="border-blue-600 text-blue-600 hover:bg-blue-700 w-full sm:w-auto text-sm sm:text-base"
           >
             + Agregar registro
           </Button>

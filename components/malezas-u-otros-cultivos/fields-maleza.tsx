@@ -38,23 +38,25 @@ export default function MalezaFields({ titulo }: Props) {
 
   return (
     <Card className="border-blue-200 bg-gray-50">
-      <CardHeader>
-        <CardTitle className="text-blue-800">{titulo}</CardTitle>
+      <CardHeader className="p-3 sm:p-4">
+        <CardTitle className="text-blue-800 text-base sm:text-lg lg:text-xl">
+          {titulo}
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
         {malezas.map((maleza, index) => (
           <div
             key={index}
-            className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end"
           >
             {/* Tipo de maleza */}
             <div>
-              <Label>Tipo de Maleza</Label>
+              <Label className="text-sm sm:text-base">Tipo de Maleza</Label>
               <Select
                 value={maleza.tipoMaleza}
                 onValueChange={(val) => updateMaleza(index, "tipoMaleza", val)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-sm sm:text-base">
                   <SelectValue placeholder="Seleccionar tipo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -68,8 +70,9 @@ export default function MalezaFields({ titulo }: Props) {
 
             {/* Listado */}
             <div>
-              <Label>Listado</Label>
+              <Label className="text-sm sm:text-base">Listado</Label>
               <Input
+                className="text-sm sm:text-base"
                 placeholder="Escribir o seleccionar..."
                 value={maleza.listado}
                 onChange={(e) =>
@@ -81,13 +84,13 @@ export default function MalezaFields({ titulo }: Props) {
 
             {/* INIA / INASE */}
             <div>
-              <Label>INIA / INASE</Label>
+              <Label className="text-sm sm:text-base">INIA / INASE</Label>
               <Select
                 value={maleza.entidad}
                 onValueChange={(val) => updateMaleza(index, "entidad", val)}
                 disabled={maleza.tipoMaleza === "no-contiene"}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-sm sm:text-base">
                   <SelectValue placeholder="Seleccionar entidad" />
                 </SelectTrigger>
                 <SelectContent>
@@ -99,8 +102,9 @@ export default function MalezaFields({ titulo }: Props) {
 
             {/* N° */}
             <div>
-              <Label>N°</Label>
+              <Label className="text-sm sm:text-base">N°</Label>
               <Input
+                className="text-sm sm:text-base"
                 placeholder="Ej: 123"
                 value={maleza.numero}
                 onChange={(e) =>
@@ -116,7 +120,7 @@ export default function MalezaFields({ titulo }: Props) {
           <Button
             onClick={addMaleza}
             variant="outline"
-            className="border-blue-600 text-blue-600 hover:bg-blue-700"
+            className="border-blue-600 text-blue-600 hover:bg-blue-700 w-full sm:w-auto text-sm sm:text-base"
           >
             + Agregar registro
           </Button>

@@ -20,44 +20,56 @@ type Props = {
 export default function DosnFields({ formData, handleInputChange }: Props) {
   return (
     <Card className="border-blue-200 bg-blue-50">
-      <CardHeader>
-        <CardTitle className="text-blue-800 text-lg font-bold">
+      <CardHeader className="p-3 sm:p-4">
+        <CardTitle className="text-blue-800 text-base sm:text-lg lg:text-xl font-bold">
           Determinación de Otras Semillas en Número (DOSN)
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 sm:p-6">
         <Tabs defaultValue="generales" className="w-full">
-          {/* Barra de pestañas estilo shadcn */}
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="generales">Datos generales</TabsTrigger>
-            <TabsTrigger value="registros">Registros</TabsTrigger>
+          {/* Barra de pestañas */}
+          <TabsList className="flex flex-wrap w-full gap-2">
+            <TabsTrigger
+              value="generales"
+              className="flex-1 min-w-[120px] text-sm sm:text-base"
+            >
+              Datos generales
+            </TabsTrigger>
+            <TabsTrigger
+              value="registros"
+              className="flex-1 min-w-[120px] text-sm sm:text-base"
+            >
+              Registros
+            </TabsTrigger>
           </TabsList>
 
           {/* --- TAB: Datos generales --- */}
-          <TabsContent value="generales" className="space-y-10 mt-6">
+          <TabsContent value="generales" className="space-y-6 sm:space-y-10 mt-6">
             {/* INIA */}
             <section>
-              <h3 className="font-semibold text-md mb-4">INIA</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <h3 className="font-semibold text-sm sm:text-md mb-4">INIA</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
                 {/* Columna izquierda */}
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="iniaFecha">Fecha</Label>
+                    <Label className="text-sm sm:text-base" htmlFor="iniaFecha">Fecha</Label>
                     <Input
                       id="iniaFecha"
                       type="date"
                       value={formData.iniaFecha || ""}
                       onChange={(e) => handleInputChange("iniaFecha", e.target.value)}
+                      className="text-sm sm:text-base"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="iniaGramos">Gramos analizados</Label>
+                    <Label className="text-sm sm:text-base" htmlFor="iniaGramos">Gramos analizados</Label>
                     <Input
                       id="iniaGramos"
                       type="number"
                       step="0.01"
                       value={formData.iniaGramos || ""}
                       onChange={(e) => handleInputChange("iniaGramos", e.target.value)}
+                      className="text-sm sm:text-base"
                     />
                   </div>
                 </div>
@@ -65,19 +77,19 @@ export default function DosnFields({ formData, handleInputChange }: Props) {
                 {/* Columna derecha */}
                 <div>
                   <h4 className="font-semibold text-sm mb-3">Tipo de análisis</h4>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     {[
                       { key: "Completo", field: "iniaCompleto" },
                       { key: "Reducido", field: "iniaReducido" },
                       { key: "Limitado", field: "iniaLimitado" },
                       { key: "Reducido - Limitado", field: "iniaReducidoLimitado" },
                     ].map(({ key, field }) => (
-                      <label key={field} className="flex items-center gap-2">
+                      <label key={field} className="flex items-center gap-2 text-sm sm:text-base">
                         <Checkbox
                           id={field}
                           checked={formData[field] || false}
                           onCheckedChange={(checked) => handleInputChange(field, checked)}
-                          className="border-1 border-gray-400 rounded-sm shadow-sm data-[state=checked]:bg-blue-700"
+                          className="border border-gray-400 rounded-sm shadow-sm data-[state=checked]:bg-blue-700"
                         />
                         <span>{key}</span>
                       </label>
@@ -89,27 +101,29 @@ export default function DosnFields({ formData, handleInputChange }: Props) {
 
             {/* INASE */}
             <section>
-              <h3 className="font-semibold text-md mb-4">INASE</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <h3 className="font-semibold text-sm sm:text-md mb-4">INASE</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
                 {/* Columna izquierda */}
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="inaseFecha">Fecha</Label>
+                    <Label className="text-sm sm:text-base" htmlFor="inaseFecha">Fecha</Label>
                     <Input
                       id="inaseFecha"
                       type="date"
                       value={formData.inaseFecha || ""}
                       onChange={(e) => handleInputChange("inaseFecha", e.target.value)}
+                      className="text-sm sm:text-base"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="inaseGramos">Gramos analizados</Label>
+                    <Label className="text-sm sm:text-base" htmlFor="inaseGramos">Gramos analizados</Label>
                     <Input
                       id="inaseGramos"
                       type="number"
                       step="0.01"
                       value={formData.inaseGramos || ""}
                       onChange={(e) => handleInputChange("inaseGramos", e.target.value)}
+                      className="text-sm sm:text-base"
                     />
                   </div>
                 </div>
@@ -117,19 +131,19 @@ export default function DosnFields({ formData, handleInputChange }: Props) {
                 {/* Columna derecha */}
                 <div>
                   <h4 className="font-semibold text-sm mb-3">Tipo de análisis</h4>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     {[
                       { key: "Completo", field: "inaseCompleto" },
                       { key: "Reducido", field: "inaseReducido" },
                       { key: "Limitado", field: "inaseLimitado" },
                       { key: "Reducido - Limitado", field: "inaseReducidoLimitado" },
                     ].map(({ key, field }) => (
-                      <label key={field} className="flex items-center gap-2">
+                      <label key={field} className="flex items-center gap-2 text-sm sm:text-base">
                         <Checkbox
                           id={field}
                           checked={formData[field] || false}
                           onCheckedChange={(checked) => handleInputChange(field, checked)}
-                          className="border-1 border-gray-400 rounded-sm shadow-sm data-[state=checked]:bg-blue-700"
+                          className="border border-gray-400 rounded-sm shadow-sm data-[state=checked]:bg-blue-700"
                         />
                         <span>{key}</span>
                       </label>
@@ -148,27 +162,30 @@ export default function DosnFields({ formData, handleInputChange }: Props) {
             <CuscutaFields />
 
             <Card className="border-blue-200 bg-gray-50 mt-6">
-              <CardHeader>
-                <CardTitle className="text-blue-800">Cumplimiento del Estándar</CardTitle>
+              <CardHeader className="p-3 sm:p-4">
+                <CardTitle className="text-blue-800 text-base sm:text-lg lg:text-xl">
+                  Cumplimiento del Estándar
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="cumpleFecha">Fecha</Label>
+                    <Label className="text-sm sm:text-base" htmlFor="cumpleFecha">Fecha</Label>
                     <Input
                       id="cumpleFecha"
                       type="date"
                       value={formData.cumpleFecha || ""}
                       onChange={(e) => handleInputChange("cumpleFecha", e.target.value)}
+                      className="text-sm sm:text-base"
                     />
                   </div>
                   <div>
-                    <Label>Cumple con el estándar</Label>
+                    <Label className="text-sm sm:text-base">Cumple con el estándar</Label>
                     <Select
                       value={formData.cumpleEstandar || ""}
                       onValueChange={(val) => handleInputChange("cumpleEstandar", val)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="text-sm sm:text-base">
                         <SelectValue placeholder="Seleccionar..." />
                       </SelectTrigger>
                       <SelectContent>
