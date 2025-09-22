@@ -19,13 +19,15 @@ type Props = {
 }
 
 export default function MalezaFields({ titulo }: Props) {
-  // 👇 Inicializamos con un registro vacío en lugar de []
   const [malezas, setMalezas] = useState<Maleza[]>([
     { tipoMaleza: "", listado: "", entidad: "", numero: "" },
   ])
 
   const addMaleza = () => {
-    setMalezas([...malezas, { tipoMaleza: "", listado: "", entidad: "", numero: "" }])
+    setMalezas([
+      ...malezas,
+      { tipoMaleza: "no-contiene", listado: "", entidad: "", numero: "" },
+    ])
   }
 
   const updateMaleza = (index: number, field: keyof Maleza, value: string) => {
@@ -35,13 +37,16 @@ export default function MalezaFields({ titulo }: Props) {
   }
 
   return (
-    <Card className="border-green-200 bg-green-50">
+    <Card className="border-blue-200 bg-gray-50">
       <CardHeader>
-        <CardTitle className="text-green-800">{titulo}</CardTitle>
+        <CardTitle className="text-blue-800">{titulo}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {malezas.map((maleza, index) => (
-          <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div
+            key={index}
+            className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
+          >
             {/* Tipo de maleza */}
             <div>
               <Label>Tipo de Maleza</Label>
@@ -56,6 +61,7 @@ export default function MalezaFields({ titulo }: Props) {
                   <SelectItem value="tolerancia-cero">Tolerancia cero</SelectItem>
                   <SelectItem value="comunes">Comunes</SelectItem>
                   <SelectItem value="con-tolerancia">Con tolerancia</SelectItem>
+                  <SelectItem value="no-contiene">No contiene</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -66,7 +72,10 @@ export default function MalezaFields({ titulo }: Props) {
               <Input
                 placeholder="Escribir o seleccionar..."
                 value={maleza.listado}
-                onChange={(e) => updateMaleza(index, "listado", e.target.value)}
+                onChange={(e) =>
+                  updateMaleza(index, "listado", e.target.value)
+                }
+                disabled={maleza.tipoMaleza === "no-contiene"}
               />
             </div>
 
@@ -76,6 +85,7 @@ export default function MalezaFields({ titulo }: Props) {
               <Select
                 value={maleza.entidad}
                 onValueChange={(val) => updateMaleza(index, "entidad", val)}
+                disabled={maleza.tipoMaleza === "no-contiene"}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar entidad" />
@@ -93,18 +103,24 @@ export default function MalezaFields({ titulo }: Props) {
               <Input
                 placeholder="Ej: 123"
                 value={maleza.numero}
-                onChange={(e) => updateMaleza(index, "numero", e.target.value)}
+                onChange={(e) =>
+                  updateMaleza(index, "numero", e.target.value)
+                }
+                disabled={maleza.tipoMaleza === "no-contiene"}
               />
             </div>
           </div>
         ))}
 
-        <Button
-          onClick={addMaleza}
-          className="w-full bg-green-600 hover:bg-green-700"
-        >
-          + Agregar Registro
-        </Button>
+        <div className="flex justify-end">
+          <Button
+            onClick={addMaleza}
+            variant="outline"
+            className="border-blue-600 text-blue-600 hover:bg-blue-700"
+          >
+            + Agregar registro
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

@@ -98,11 +98,7 @@ export default function RegistroAnalisisPage() {
 
   const getAnalysisTypeColor = (color: string) => {
     const colors = {
-      blue: "border-blue-200 bg-blue-50 hover:border-blue-300",
-      green: "border-green-200 bg-green-50 hover:border-green-300",
-      purple: "border-purple-200 bg-purple-50 hover:border-purple-300",
-      orange: "border-orange-200 bg-orange-50 hover:border-orange-300",
-      red: "border-red-200 bg-red-50 hover:border-red-300",
+      blue: "border-blue-200 bg-blue-50 hover:border-blue-300"
     }
     return colors[color as keyof typeof colors] || colors.blue
   }
@@ -134,21 +130,23 @@ export default function RegistroAnalisisPage() {
             {analysisTypes.map((type) => {
               const IconComponent = type.icon
               const isSelected = selectedAnalysisType === type.id
+
               return (
                 <div
                   key={type.id}
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
-                    isSelected
-                      ? `${getAnalysisTypeColor(type.color)} border-${type.color}-400`
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${isSelected
+                    ? `border-blue-400 bg-blue-50`
+                    : "border-gray-200 hover:border-gray-300"
+                    }`}
                   onClick={() => setSelectedAnalysisType(type.id)}
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <IconComponent className={`h-5 w-5 ${isSelected ? `text-${type.color}-600` : "text-gray-500"}`} />
+                    <IconComponent
+                      className={`h-5 w-5 ${isSelected ? "text-blue-600" : "text-gray-500"}`}
+                    />
                     <h3 className="font-semibold">{type.name}</h3>
                     {isSelected && (
-                      <span className={`text-xs px-2 py-1 rounded-full bg-${type.color}-100 text-${type.color}-700`}>
+                      <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
                         Seleccionado
                       </span>
                     )}
@@ -157,6 +155,7 @@ export default function RegistroAnalisisPage() {
                 </div>
               )
             })}
+
           </div>
         </CardContent>
       </Card>
@@ -359,15 +358,16 @@ export default function RegistroAnalisisPage() {
             </Card>
           )}
 
-            {selectedAnalysisType === "dosn" && (
+          {selectedAnalysisType === "dosn" && (
             <DosnFields formData={formData} handleInputChange={handleInputChange} />
           )}
 
           <div className="flex gap-4 pt-4">
-            <Button className="flex-1 bg-green-600 hover:bg-green-700">Registrar Análisis</Button>
             <Button variant="outline" className="flex-1 bg-transparent">
               Guardar como Borrador
             </Button>
+            <Button className="flex-1 bg-green-700 hover:bg-green-700">Registrar Análisis</Button>
+
           </div>
         </CardContent>
       </Card>
