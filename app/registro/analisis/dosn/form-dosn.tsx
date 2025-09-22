@@ -77,7 +77,7 @@ export default function DosnFields({ formData, handleInputChange }: Props) {
                           id={field}
                           checked={formData[field] || false}
                           onCheckedChange={(checked) => handleInputChange(field, checked)}
-                          className="border-2 border-gray-400 rounded-sm shadow-sm data-[state=checked]:bg-blue-700"
+                          className="border-1 border-gray-400 rounded-sm shadow-sm data-[state=checked]:bg-blue-700"
                         />
                         <span>{key}</span>
                       </label>
@@ -129,7 +129,7 @@ export default function DosnFields({ formData, handleInputChange }: Props) {
                           id={field}
                           checked={formData[field] || false}
                           onCheckedChange={(checked) => handleInputChange(field, checked)}
-                          className="border-2 border-gray-400 rounded-sm shadow-sm data-[state=checked]:bg-blue-700"
+                          className="border-1 border-gray-400 rounded-sm shadow-sm data-[state=checked]:bg-blue-700"
                         />
                         <span>{key}</span>
                       </label>
