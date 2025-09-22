@@ -48,109 +48,111 @@ export default function DosnFields({ formData, handleInputChange }: Props) {
             {/* INIA */}
             <section>
               <h3 className="font-semibold text-sm sm:text-md mb-4">INIA</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
-                {/* Columna izquierda */}
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm sm:text-base" htmlFor="iniaFecha">Fecha</Label>
-                    <Input
-                      id="iniaFecha"
-                      type="date"
-                      value={formData.iniaFecha || ""}
-                      onChange={(e) => handleInputChange("iniaFecha", e.target.value)}
-                      className="text-sm sm:text-base"
-                    />
+              <div className="border border-blue-200 rounded-md bg-gray-50 p-4 sm:p-6 shadow-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
+                  {/* Columna izquierda */}
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-sm sm:text-base" htmlFor="iniaFecha">Fecha</Label>
+                      <Input
+                        id="iniaFecha"
+                        type="date"
+                        value={formData.iniaFecha || ""}
+                        onChange={(e) => handleInputChange("iniaFecha", e.target.value)}
+                        className="text-sm sm:text-base"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm sm:text-base" htmlFor="iniaGramos">Gramos analizados</Label>
+                      <Input
+                        id="iniaGramos"
+                        type="number"
+                        step="0.01"
+                        value={formData.iniaGramos || ""}
+                        onChange={(e) => handleInputChange("iniaGramos", e.target.value)}
+                        className="text-sm sm:text-base"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label className="text-sm sm:text-base" htmlFor="iniaGramos">Gramos analizados</Label>
-                    <Input
-                      id="iniaGramos"
-                      type="number"
-                      step="0.01"
-                      value={formData.iniaGramos || ""}
-                      onChange={(e) => handleInputChange("iniaGramos", e.target.value)}
-                      className="text-sm sm:text-base"
-                    />
-                  </div>
-                </div>
 
-                {/* Columna derecha */}
-                <div>
-                  <h4 className="font-semibold text-sm mb-3">Tipo de análisis</h4>
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                    {[
-                      { key: "Completo", field: "iniaCompleto" },
-                      { key: "Reducido", field: "iniaReducido" },
-                      { key: "Limitado", field: "iniaLimitado" },
-                      { key: "Reducido - Limitado", field: "iniaReducidoLimitado" },
-                    ].map(({ key, field }) => (
-                      <label key={field} className="flex items-center gap-2 text-sm sm:text-base">
-                        <Checkbox
-                          id={field}
-                          checked={formData[field] || false}
-                          onCheckedChange={(checked) => handleInputChange(field, checked)}
-                          className="border border-gray-400 rounded-sm shadow-sm data-[state=checked]:bg-blue-700"
-                        />
-                        <span>{key}</span>
-                      </label>
-                    ))}
+                  {/* Columna derecha */}
+                  <div>
+                    <h4 className="font-semibold text-sm mb-3">Tipo de análisis</h4>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      {[
+                        { key: "Completo", field: "iniaCompleto" },
+                        { key: "Reducido", field: "iniaReducido" },
+                        { key: "Limitado", field: "iniaLimitado" },
+                        { key: "Reducido - Limitado", field: "iniaReducidoLimitado" },
+                      ].map(({ key, field }) => (
+                        <label key={field} className="flex items-center gap-2 text-sm sm:text-base">
+                          <Checkbox
+                            id={field}
+                            checked={formData[field] || false}
+                            onCheckedChange={(checked) => handleInputChange(field, checked)}
+                            className="border border-gray-400 rounded-sm shadow-sm data-[state=checked]:bg-blue-700"
+                          />
+                          <span>{key}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </div>
+                </div></div>
             </section>
 
             {/* INASE */}
             <section>
               <h3 className="font-semibold text-sm sm:text-md mb-4">INASE</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
-                {/* Columna izquierda */}
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm sm:text-base" htmlFor="inaseFecha">Fecha</Label>
-                    <Input
-                      id="inaseFecha"
-                      type="date"
-                      value={formData.inaseFecha || ""}
-                      onChange={(e) => handleInputChange("inaseFecha", e.target.value)}
-                      className="text-sm sm:text-base"
-                    />
+              <div className="border border-blue-200 rounded-md bg-gray-50 p-4 sm:p-6 shadow-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
+                  {/* Columna izquierda */}
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-sm sm:text-base" htmlFor="inaseFecha">Fecha</Label>
+                      <Input
+                        id="inaseFecha"
+                        type="date"
+                        value={formData.inaseFecha || ""}
+                        onChange={(e) => handleInputChange("inaseFecha", e.target.value)}
+                        className="text-sm sm:text-base"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm sm:text-base" htmlFor="inaseGramos">Gramos analizados</Label>
+                      <Input
+                        id="inaseGramos"
+                        type="number"
+                        step="0.01"
+                        value={formData.inaseGramos || ""}
+                        onChange={(e) => handleInputChange("inaseGramos", e.target.value)}
+                        className="text-sm sm:text-base"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label className="text-sm sm:text-base" htmlFor="inaseGramos">Gramos analizados</Label>
-                    <Input
-                      id="inaseGramos"
-                      type="number"
-                      step="0.01"
-                      value={formData.inaseGramos || ""}
-                      onChange={(e) => handleInputChange("inaseGramos", e.target.value)}
-                      className="text-sm sm:text-base"
-                    />
-                  </div>
-                </div>
 
-                {/* Columna derecha */}
-                <div>
-                  <h4 className="font-semibold text-sm mb-3">Tipo de análisis</h4>
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                    {[
-                      { key: "Completo", field: "inaseCompleto" },
-                      { key: "Reducido", field: "inaseReducido" },
-                      { key: "Limitado", field: "inaseLimitado" },
-                      { key: "Reducido - Limitado", field: "inaseReducidoLimitado" },
-                    ].map(({ key, field }) => (
-                      <label key={field} className="flex items-center gap-2 text-sm sm:text-base">
-                        <Checkbox
-                          id={field}
-                          checked={formData[field] || false}
-                          onCheckedChange={(checked) => handleInputChange(field, checked)}
-                          className="border border-gray-400 rounded-sm shadow-sm data-[state=checked]:bg-blue-700"
-                        />
-                        <span>{key}</span>
-                      </label>
-                    ))}
+                  {/* Columna derecha */}
+                  <div>
+                    <h4 className="font-semibold text-sm mb-3">Tipo de análisis</h4>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      {[
+                        { key: "Completo", field: "inaseCompleto" },
+                        { key: "Reducido", field: "inaseReducido" },
+                        { key: "Limitado", field: "inaseLimitado" },
+                        { key: "Reducido - Limitado", field: "inaseReducidoLimitado" },
+                      ].map(({ key, field }) => (
+                        <label key={field} className="flex items-center gap-2 text-sm sm:text-base">
+                          <Checkbox
+                            id={field}
+                            checked={formData[field] || false}
+                            onCheckedChange={(checked) => handleInputChange(field, checked)}
+                            className="border border-gray-400 rounded-sm shadow-sm data-[state=checked]:bg-blue-700"
+                          />
+                          <span>{key}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </div>
+                </div></div>
             </section>
           </TabsContent>
 
@@ -185,16 +187,16 @@ export default function DosnFields({ formData, handleInputChange }: Props) {
                       value={formData.cumpleEstandar || ""}
                       onValueChange={(val) => handleInputChange("cumpleEstandar", val)}
                     >
-                      <SelectTrigger className="text-sm sm:text-base">
+                      <SelectTrigger className="w-full text-sm sm:text-base shadow-sm rounded-md border px-3 py-2">
                         <SelectValue placeholder="Seleccionar..." />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="si">Sí</SelectItem>
                         <SelectItem value="no">No</SelectItem>
-                        <SelectItem value="no-contiene">No contiene</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+
                 </div>
               </CardContent>
             </Card>

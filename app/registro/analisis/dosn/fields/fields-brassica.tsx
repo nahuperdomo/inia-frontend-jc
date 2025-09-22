@@ -38,6 +38,14 @@ export default function BrassicaSection() {
     setBrassicas(updated)
   }
 
+  // Opciones de ejemplo para listado
+  const opcionesBrassicas = [
+    "Brassica napus (Colza)",
+    "Brassica rapa (Nabo)",
+    "Brassica juncea (Mostaza parda)",
+    "Brassica oleracea (Col)",
+  ]
+
   return (
     <Card className="border-blue-200 bg-gray-50">
       <CardHeader className="p-3 sm:p-4">
@@ -45,11 +53,12 @@ export default function BrassicaSection() {
           Determinación de Brassica spp.
         </CardTitle>
       </CardHeader>
+
       <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
         {brassicas.map((brassica, index) => (
           <div
             key={index}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end"
+            className="border rounded-md p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
           >
             {/* Estado */}
             <div>
@@ -58,7 +67,7 @@ export default function BrassicaSection() {
                 value={brassica.estado}
                 onValueChange={(val) => updateBrassica(index, "estado", val)}
               >
-                <SelectTrigger className="text-sm sm:text-base">
+                <SelectTrigger className="w-full h-10 px-3 text-sm sm:text-base">
                   <SelectValue placeholder="Seleccionar estado" />
                 </SelectTrigger>
                 <SelectContent>
@@ -71,13 +80,22 @@ export default function BrassicaSection() {
             {/* Listado */}
             <div>
               <Label className="text-sm sm:text-base">Listado</Label>
-              <Input
-                className="text-sm sm:text-base"
-                placeholder="Escribir especie..."
+              <Select
                 value={brassica.listado}
-                onChange={(e) => updateBrassica(index, "listado", e.target.value)}
+                onValueChange={(val) => updateBrassica(index, "listado", val)}
                 disabled={brassica.estado === "no-contiene"}
-              />
+              >
+                <SelectTrigger className="w-full h-10 px-3 text-sm sm:text-base">
+                  <SelectValue placeholder="Seleccionar especie" />
+                </SelectTrigger>
+                <SelectContent>
+                  {opcionesBrassicas.map((opcion) => (
+                    <SelectItem key={opcion} value={opcion}>
+                      {opcion}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* INIA / INASE */}
@@ -88,7 +106,7 @@ export default function BrassicaSection() {
                 onValueChange={(val) => updateBrassica(index, "entidad", val)}
                 disabled={brassica.estado === "no-contiene"}
               >
-                <SelectTrigger className="text-sm sm:text-base">
+                <SelectTrigger className="w-full h-10 px-3 text-sm sm:text-base">
                   <SelectValue placeholder="Seleccionar entidad" />
                 </SelectTrigger>
                 <SelectContent>
@@ -102,7 +120,7 @@ export default function BrassicaSection() {
             <div>
               <Label className="text-sm sm:text-base">N°</Label>
               <Input
-                className="text-sm sm:text-base"
+                className="w-full h-10 px-3 text-sm sm:text-base"
                 placeholder="Ej: 456"
                 value={brassica.numero}
                 onChange={(e) => updateBrassica(index, "numero", e.target.value)}

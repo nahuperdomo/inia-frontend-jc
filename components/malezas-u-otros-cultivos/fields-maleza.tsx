@@ -18,6 +18,14 @@ type Props = {
   titulo: string
 }
 
+const opcionesMalezas = [
+  "Cenchrus echinatus",
+  "Sorghum halepense",
+  "Cyperus rotundus",
+  "Amaranthus spp.",
+  "Chenopodium album",
+]
+
 export default function MalezaFields({ titulo }: Props) {
   const [malezas, setMalezas] = useState<Maleza[]>([
     { tipoMaleza: "", listado: "", entidad: "", numero: "" },
@@ -43,11 +51,12 @@ export default function MalezaFields({ titulo }: Props) {
           {titulo}
         </CardTitle>
       </CardHeader>
+
       <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
         {malezas.map((maleza, index) => (
           <div
             key={index}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end"
+            className="border rounded-md p-4  grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
           >
             {/* Tipo de maleza */}
             <div>
@@ -56,7 +65,7 @@ export default function MalezaFields({ titulo }: Props) {
                 value={maleza.tipoMaleza}
                 onValueChange={(val) => updateMaleza(index, "tipoMaleza", val)}
               >
-                <SelectTrigger className="text-sm sm:text-base">
+                <SelectTrigger className="w-full text-sm sm:text-base">
                   <SelectValue placeholder="Seleccionar tipo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -71,15 +80,22 @@ export default function MalezaFields({ titulo }: Props) {
             {/* Listado */}
             <div>
               <Label className="text-sm sm:text-base">Listado</Label>
-              <Input
-                className="text-sm sm:text-base"
-                placeholder="Escribir o seleccionar..."
+              <Select
                 value={maleza.listado}
-                onChange={(e) =>
-                  updateMaleza(index, "listado", e.target.value)
-                }
+                onValueChange={(val) => updateMaleza(index, "listado", val)}
                 disabled={maleza.tipoMaleza === "no-contiene"}
-              />
+              >
+                <SelectTrigger className="w-full text-sm sm:text-base">
+                  <SelectValue placeholder="Seleccionar maleza" />
+                </SelectTrigger>
+                <SelectContent>
+                  {opcionesMalezas.map((opcion) => (
+                    <SelectItem key={opcion} value={opcion}>
+                      {opcion}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* INIA / INASE */}
@@ -90,7 +106,7 @@ export default function MalezaFields({ titulo }: Props) {
                 onValueChange={(val) => updateMaleza(index, "entidad", val)}
                 disabled={maleza.tipoMaleza === "no-contiene"}
               >
-                <SelectTrigger className="text-sm sm:text-base">
+                <SelectTrigger className="w-full text-sm sm:text-base">
                   <SelectValue placeholder="Seleccionar entidad" />
                 </SelectTrigger>
                 <SelectContent>
@@ -104,12 +120,10 @@ export default function MalezaFields({ titulo }: Props) {
             <div>
               <Label className="text-sm sm:text-base">N°</Label>
               <Input
-                className="text-sm sm:text-base"
+                className="w-full text-sm sm:text-base"
                 placeholder="Ej: 123"
                 value={maleza.numero}
-                onChange={(e) =>
-                  updateMaleza(index, "numero", e.target.value)
-                }
+                onChange={(e) => updateMaleza(index, "numero", e.target.value)}
                 disabled={maleza.tipoMaleza === "no-contiene"}
               />
             </div>

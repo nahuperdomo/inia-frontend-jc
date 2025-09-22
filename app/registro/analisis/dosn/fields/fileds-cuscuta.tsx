@@ -34,7 +34,7 @@ export default function CuscutaSection() {
           <div>
             <Label className="text-sm sm:text-base">(g)</Label>
             <Input
-              className="text-sm sm:text-base"
+              className="w-full h-10 px-3 text-sm sm:text-base shadow-sm"
               placeholder="Ej: 5"
               type="number"
               value={data.gramos}
@@ -47,7 +47,7 @@ export default function CuscutaSection() {
           <div>
             <Label className="text-sm sm:text-base">N°</Label>
             <Input
-              className="text-sm sm:text-base"
+              className="w-full h-10 px-3 text-sm sm:text-base shadow-sm"
               placeholder="Ej: 789"
               value={data.numero}
               onChange={(e) => updateField("numero", e.target.value)}
@@ -62,7 +62,7 @@ export default function CuscutaSection() {
               value={data.cumple}
               onValueChange={(val) => updateField("cumple", val)}
             >
-              <SelectTrigger className="text-sm sm:text-base">
+              <SelectTrigger className="w-full h-10 px-3 text-sm sm:text-base border rounded-md shadow-sm">
                 <SelectValue placeholder="Seleccionar" />
               </SelectTrigger>
               <SelectContent>
