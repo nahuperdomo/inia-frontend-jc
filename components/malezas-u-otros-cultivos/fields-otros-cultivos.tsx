@@ -16,13 +16,13 @@ type Cultivo = {
 
 export default function OtrosCultivosFields() {
   const [cultivos, setCultivos] = useState<Cultivo[]>([
-    { cultivo: "no-contiene", listado: "", entidad: "", numero: "" },
+    { cultivo: "", listado: "", entidad: "", numero: "" },
   ])
 
   const addCultivo = () => {
     setCultivos([
       ...cultivos,
-      { cultivo: "no-contiene", listado: "", entidad: "", numero: "" },
+      { cultivo: "", listado: "", entidad: "", numero: "" },
     ])
   }
 

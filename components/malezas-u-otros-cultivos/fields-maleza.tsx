@@ -26,7 +26,7 @@ export default function MalezaFields({ titulo }: Props) {
   const addMaleza = () => {
     setMalezas([
       ...malezas,
-      { tipoMaleza: "no-contiene", listado: "", entidad: "", numero: "" },
+      { tipoMaleza: "", listado: "", entidad: "", numero: "" },
     ])
   }
 

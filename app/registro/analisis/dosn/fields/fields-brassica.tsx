@@ -16,13 +16,13 @@ type Brassica = {
 
 export default function BrassicaSection() {
   const [brassicas, setBrassicas] = useState<Brassica[]>([
-    { estado: "no-contiene", listado: "", entidad: "", numero: "" },
+    { estado: "", listado: "", entidad: "", numero: "" },
   ])
 
   const addBrassica = () => {
     setBrassicas([
       ...brassicas,
-      { estado: "no-contiene", listado: "", entidad: "", numero: "" },
+      { estado: "", listado: "", entidad: "", numero: "" },
     ])
   }
 

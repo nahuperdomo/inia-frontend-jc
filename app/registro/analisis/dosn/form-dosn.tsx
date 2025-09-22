@@ -7,10 +7,10 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Select, SelectTrigger, SelectContent, SelectValue, SelectItem } from "@/components/ui/select"
 
-import MalezaFields from "@/components/malezas-y-otros-cultivos/fields-maleza"
+import MalezaFields from "@/components/malezas-u-otros-cultivos/fields-maleza"
 import BrassicaFields from "@/app/registro/analisis/dosn/fields/fields-brassica"
 import CuscutaFields from "@/app/registro/analisis/dosn/fields/fileds-cuscuta"
-import OtrosCultivosFields from "../../../../components/malezas-y-otros-cultivos/fields-otros-cultivos"
+import OtrosCultivosFields from "../../../../components/malezas-u-otros-cultivos/fields-otros-cultivos"
 
 type Props = {
   formData: any
