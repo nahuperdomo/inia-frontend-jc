@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Trash2, Plus, Sprout, XCircle } from "lucide-react"
 
 type Brassica = {
   estado: string
@@ -20,25 +22,25 @@ export default function BrassicaSection() {
   ])
 
   const addBrassica = () => {
-    setBrassicas([
-      ...brassicas,
-      { estado: "", listado: "", entidad: "", numero: "" },
-    ])
+    setBrassicas([...brassicas, { estado: "", listado: "", entidad: "", numero: "" }])
+  }
+
+  const removeBrassica = (index: number) => {
+    if (brassicas.length > 1) {
+      setBrassicas(brassicas.filter((_, i) => i !== index))
+    }
   }
 
   const updateBrassica = (index: number, field: keyof Brassica, value: string) => {
     const updated = [...brassicas]
-
     if (field === "estado" && value === "no-contiene") {
       updated[index] = { estado: "no-contiene", listado: "", entidad: "", numero: "" }
     } else {
       updated[index][field] = value
     }
-
     setBrassicas(updated)
   }
 
-  // Opciones de ejemplo para listado
   const opcionesBrassicas = [
     "Brassica napus (Colza)",
     "Brassica rapa (Nabo)",
@@ -47,98 +49,135 @@ export default function BrassicaSection() {
   ]
 
   return (
-    <Card className="border-blue-200 bg-gray-50">
-      <CardHeader className="p-3 sm:p-4">
-        <CardTitle className="text-blue-800 text-base sm:text-lg lg:text-xl">
+    <Card className="border-border/50 bg-background shadow-sm">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-foreground text-xl font-semibold flex items-center gap-2">
+          <Sprout className="h-5 w-5 text-primary" />
           Determinación de Brassica spp.
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
-        {brassicas.map((brassica, index) => (
-          <div
-            key={index}
-            className="border rounded-md p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
-          >
-            {/* Estado */}
-            <div>
-              <Label className="text-sm sm:text-base">Estado</Label>
-              <Select
-                value={brassica.estado}
-                onValueChange={(val) => updateBrassica(index, "estado", val)}
-              >
-                <SelectTrigger className="w-full h-10 px-3 text-sm sm:text-base">
-                  <SelectValue placeholder="Seleccionar estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="contiene">Contiene</SelectItem>
-                  <SelectItem value="no-contiene">No contiene</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <CardContent className="space-y-6">
+        {brassicas.map((brassica, index) => {
+          const isDisabled = brassica.estado === "no-contiene"
 
-            {/* Listado */}
-            <div>
-              <Label className="text-sm sm:text-base">Listado</Label>
-              <Select
-                value={brassica.listado}
-                onValueChange={(val) => updateBrassica(index, "listado", val)}
-                disabled={brassica.estado === "no-contiene"}
-              >
-                <SelectTrigger className="w-full h-10 px-3 text-sm sm:text-base">
-                  <SelectValue placeholder="Seleccionar especie" />
-                </SelectTrigger>
-                <SelectContent>
-                  {opcionesBrassicas.map((opcion) => (
-                    <SelectItem key={opcion} value={opcion}>
-                      {opcion}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          return (
+            <Card key={index} className="bg-background border shadow-sm transition-all duration-200">
+              <CardContent className="p-4">
+                {/* Header de cada registro */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Sprout className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium text-sm">Registro {index + 1}</span>
+                    {brassica.estado && <Badge>{brassica.estado}</Badge>}
+                  </div>
+                  {brassicas.length > 1 && (
+                    <Button
+                      onClick={() => removeBrassica(index)}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
 
-            {/* INIA / INASE */}
-            <div>
-              <Label className="text-sm sm:text-base">INIA / INASE</Label>
-              <Select
-                value={brassica.entidad}
-                onValueChange={(val) => updateBrassica(index, "entidad", val)}
-                disabled={brassica.estado === "no-contiene"}
-              >
-                <SelectTrigger className="w-full h-10 px-3 text-sm sm:text-base">
-                  <SelectValue placeholder="Seleccionar entidad" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="inia">INIA</SelectItem>
-                  <SelectItem value="inase">INASE</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                {/* Campos */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Estado */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-foreground">Estado</Label>
+                    <Select value={brassica.estado} onValueChange={(val) => updateBrassica(index, "estado", val)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Seleccionar estado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="contiene">Contiene</SelectItem>
+                        <SelectItem value="no-contiene">
+                          <div className="flex items-center gap-2">
+                            <XCircle className="h-4 w-4 text-slate-500" />
+                            No contiene
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            {/* N° */}
-            <div>
-              <Label className="text-sm sm:text-base">N°</Label>
-              <Input
-                className="w-full h-10 px-3 text-sm sm:text-base"
-                placeholder="Ej: 456"
-                value={brassica.numero}
-                onChange={(e) => updateBrassica(index, "numero", e.target.value)}
-                disabled={brassica.estado === "no-contiene"}
-              />
-            </div>
-          </div>
-        ))}
+                  {/* Listado */}
+                  <div className="space-y-2">
+                    <Label className={`text-sm font-medium ${isDisabled ? "text-muted-foreground" : "text-foreground"}`}>
+                      Listado
+                    </Label>
+                    <Select
+                      value={brassica.listado}
+                      onValueChange={(val) => updateBrassica(index, "listado", val)}
+                      disabled={isDisabled}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Seleccionar especie" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {opcionesBrassicas.map((opcion) => (
+                          <SelectItem key={opcion} value={opcion}>
+                            {opcion}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-        <div className="flex justify-end">
+                  {/* INIA / INASE */}
+                  <div className="space-y-2">
+                    <Label className={`text-sm font-medium ${isDisabled ? "text-muted-foreground" : "text-foreground"}`}>
+                      INIA / INASE
+                    </Label>
+                    <Select
+                      value={brassica.entidad}
+                      onValueChange={(val) => updateBrassica(index, "entidad", val)}
+                      disabled={isDisabled}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Seleccionar entidad" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="inia">INIA</SelectItem>
+                        <SelectItem value="inase">INASE</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Número */}
+                  <div className="space-y-2">
+                    <Label className={`text-sm font-medium ${isDisabled ? "text-muted-foreground" : "text-foreground"}`}>
+                      Número
+                    </Label>
+                    <Input
+                      className="w-full"
+                      placeholder="Ej: 456"
+                      value={brassica.numero}
+                      onChange={(e) => updateBrassica(index, "numero", e.target.value)}
+                      disabled={isDisabled}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+
+        <div className="flex justify-center sm:justify-end pt-2">
           <Button
             onClick={addBrassica}
             variant="outline"
-            className="border-blue-600 text-blue-600 hover:bg-blue-700 w-full sm:w-auto text-sm sm:text-base"
+            className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent 
+               text-sm px-2 py-1 [@media(max-width:350px)]:text-xs [@media(max-width:350px)]:px-1"
           >
-            + Agregar registro
+            <Plus className="h-3 w-3 mr-1 [@media(max-width:350px)]:h-2.5 [@media(max-width:350px)]:w-2.5" />
+            Agregar registro
           </Button>
         </div>
+
       </CardContent>
     </Card>
   )

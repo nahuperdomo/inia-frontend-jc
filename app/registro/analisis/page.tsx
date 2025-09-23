@@ -361,14 +361,15 @@ export default function RegistroAnalisisPage() {
           {selectedAnalysisType === "dosn" && (
             <DosnFields formData={formData} handleInputChange={handleInputChange} />
           )}
-
-          <div className="flex gap-4 pt-4">
-            <Button variant="outline" className="flex-1 bg-transparent">
+          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <Button variant="outline" className="w-full sm:flex-1 bg-transparent">
               Guardar como Borrador
             </Button>
-            <Button className="flex-1 bg-green-700 hover:bg-green-700">Registrar Análisis</Button>
-
+            <Button className="w-full sm:flex-1 bg-green-700 hover:bg-green-700">
+              Registrar Análisis
+            </Button>
           </div>
+
         </CardContent>
       </Card>
     </div>

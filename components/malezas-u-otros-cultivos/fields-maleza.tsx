@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Trash2, Plus, Leaf, AlertTriangle, CheckCircle, XCircle } from "lucide-react"
 
 type Maleza = {
   tipoMaleza: string
@@ -38,6 +40,12 @@ export default function MalezaFields({ titulo }: Props) {
     ])
   }
 
+  const removeMaleza = (index: number) => {
+    if (malezas.length > 1) {
+      setMalezas(malezas.filter((_, i) => i !== index))
+    }
+  }
+
   const updateMaleza = (index: number, field: keyof Maleza, value: string) => {
     const updated = [...malezas]
     updated[index][field] = value
@@ -45,100 +53,153 @@ export default function MalezaFields({ titulo }: Props) {
   }
 
   return (
-    <Card className="border-blue-200 bg-gray-50">
-      <CardHeader className="p-3 sm:p-4">
-        <CardTitle className="text-blue-800 text-base sm:text-lg lg:text-xl">
+    <Card className="border-border/50 bg-background shadow-sm">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-foreground text-xl font-semibold flex items-center gap-2">
+          <Leaf className="h-5 w-5 text-primary" />
           {titulo}
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
-        {malezas.map((maleza, index) => (
-          <div
-            key={index}
-            className="border rounded-md p-4  grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
-          >
-            {/* Tipo de maleza */}
-            <div>
-              <Label className="text-sm sm:text-base">Tipo de Maleza</Label>
-              <Select
-                value={maleza.tipoMaleza}
-                onValueChange={(val) => updateMaleza(index, "tipoMaleza", val)}
-              >
-                <SelectTrigger className="w-full text-sm sm:text-base">
-                  <SelectValue placeholder="Seleccionar tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="tolerancia-cero">Tolerancia cero</SelectItem>
-                  <SelectItem value="comunes">Comunes</SelectItem>
-                  <SelectItem value="con-tolerancia">Con tolerancia</SelectItem>
-                  <SelectItem value="no-contiene">No contiene</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <CardContent className="space-y-6">
+        {malezas.map((maleza, index) => {
+          const isDisabled = maleza.tipoMaleza === "no-contiene"
 
-            {/* Listado */}
-            <div>
-              <Label className="text-sm sm:text-base">Listado</Label>
-              <Select
-                value={maleza.listado}
-                onValueChange={(val) => updateMaleza(index, "listado", val)}
-                disabled={maleza.tipoMaleza === "no-contiene"}
-              >
-                <SelectTrigger className="w-full text-sm sm:text-base">
-                  <SelectValue placeholder="Seleccionar maleza" />
-                </SelectTrigger>
-                <SelectContent>
-                  {opcionesMalezas.map((opcion) => (
-                    <SelectItem key={opcion} value={opcion}>
-                      {opcion}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          return (
+            <Card key={index} className="bg-background border shadow-sm transition-all duration-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Leaf className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium text-sm">Registro {index + 1}</span>
+                    {maleza.tipoMaleza && <Badge>{maleza.tipoMaleza}</Badge>}
+                  </div>
+                  {malezas.length > 1 && (
+                    <Button
+                      onClick={() => removeMaleza(index)}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
 
-            {/* INIA / INASE */}
-            <div>
-              <Label className="text-sm sm:text-base">INIA / INASE</Label>
-              <Select
-                value={maleza.entidad}
-                onValueChange={(val) => updateMaleza(index, "entidad", val)}
-                disabled={maleza.tipoMaleza === "no-contiene"}
-              >
-                <SelectTrigger className="w-full text-sm sm:text-base">
-                  <SelectValue placeholder="Seleccionar entidad" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="inia">INIA</SelectItem>
-                  <SelectItem value="inase">INASE</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Tipo de maleza */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-foreground">Tipo de Maleza</Label>
+                    <Select
+                      value={maleza.tipoMaleza}
+                      onValueChange={(val) => updateMaleza(index, "tipoMaleza", val)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Seleccionar tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="tolerancia-cero">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4 text-red-500" />
+                            Tolerancia cero
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="comunes">
+                          <div className="flex items-center gap-2">
+                            <Leaf className="h-4 w-4 text-amber-500" />
+                            Comunes
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="con-tolerancia">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            Con tolerancia
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="no-contiene">
+                          <div className="flex items-center gap-2">
+                            <XCircle className="h-4 w-4 text-slate-500" />
+                            No contiene
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            {/* N° */}
-            <div>
-              <Label className="text-sm sm:text-base">N°</Label>
-              <Input
-                className="w-full text-sm sm:text-base"
-                placeholder="Ej: 123"
-                value={maleza.numero}
-                onChange={(e) => updateMaleza(index, "numero", e.target.value)}
-                disabled={maleza.tipoMaleza === "no-contiene"}
-              />
-            </div>
-          </div>
-        ))}
+                  {/* Listado */}
+                  <div className="space-y-2">
+                    <Label className={`text-sm font-medium ${isDisabled ? "text-muted-foreground" : "text-foreground"}`}>
+                      Especie
+                    </Label>
+                    <Select
+                      value={maleza.listado}
+                      onValueChange={(val) => updateMaleza(index, "listado", val)}
+                      disabled={isDisabled}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Seleccionar especie" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {opcionesMalezas.map((opcion) => (
+                          <SelectItem key={opcion} value={opcion}>
+                            <span className="italic">{opcion}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-        <div className="flex justify-end">
+                  {/* INIA / INASE */}
+                  <div className="space-y-2">
+                    <Label className={`text-sm font-medium ${isDisabled ? "text-muted-foreground" : "text-foreground"}`}>
+                      Entidad
+                    </Label>
+                    <Select
+                      value={maleza.entidad}
+                      onValueChange={(val) => updateMaleza(index, "entidad", val)}
+                      disabled={isDisabled}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Seleccionar entidad" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="inia">INIA</SelectItem>
+                        <SelectItem value="inase">INASE</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Número */}
+                  <div className="space-y-2">
+                    <Label className={`text-sm font-medium ${isDisabled ? "text-muted-foreground" : "text-foreground"}`}>
+                      Número
+                    </Label>
+                    <Input
+                      className="w-full"
+                      placeholder="Ej: 123"
+                      value={maleza.numero}
+                      onChange={(e) => updateMaleza(index, "numero", e.target.value)}
+                      disabled={isDisabled}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+
+        <div className="flex justify-center sm:justify-end pt-2">
           <Button
             onClick={addMaleza}
             variant="outline"
-            className="border-blue-600 text-blue-600 hover:bg-blue-700 w-full sm:w-auto text-sm sm:text-base"
+            className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent 
+               text-sm px-2 py-1 [@media(max-width:350px)]:text-xs [@media(max-width:350px)]:px-1"
           >
-            + Agregar registro
+            <Plus className="h-3 w-3 mr-1 [@media(max-width:350px)]:h-2.5 [@media(max-width:350px)]:w-2.5" />
+            Agregar registro
           </Button>
         </div>
+
       </CardContent>
     </Card>
   )

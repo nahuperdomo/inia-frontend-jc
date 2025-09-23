@@ -1,15 +1,45 @@
 "use client"
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import type React from "react"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Select, SelectTrigger, SelectContent, SelectValue, SelectItem } from "@/components/ui/select"
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui/tabs"
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectValue,
+  SelectItem,
+} from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
+import {
+  Microscope,
+  Calendar,
+  Weight,
+  FileText,
+  Building2,
+  CheckCircle2,
+  XCircle,
+  ClipboardList,
+} from "lucide-react"
 
+// Subcomponentes de registros
 import MalezaFields from "@/components/malezas-u-otros-cultivos/fields-maleza"
 import BrassicaFields from "@/app/registro/analisis/dosn/fields/fields-brassica"
 import CuscutaFields from "@/app/registro/analisis/dosn/fields/fileds-cuscuta"
+import CumplimientoEstandarFields from "@/app/registro/analisis/dosn/fields/fields-cumplio-estandar"
 import OtrosCultivosFields from "../../../../components/malezas-u-otros-cultivos/fields-otros-cultivos"
 
 type Props = {
@@ -17,143 +47,171 @@ type Props = {
   handleInputChange: (field: string, value: any) => void
 }
 
-export default function DosnFields({ formData, handleInputChange }: Props) {
+export default function DosnUnified({ formData, handleInputChange }: Props) {
+  const analysisTypes = [
+    { key: "Completo", field: "Completo", description: "Análisis exhaustivo de todas las categorías" },
+    { key: "Reducido", field: "Reducido", description: "Análisis de categorías principales" },
+    { key: "Limitado", field: "Limitado", description: "Análisis básico de categorías críticas" },
+    { key: "Reducido - Limitado", field: "ReducidoLimitado", description: "Análisis híbrido optimizado" },
+  ]
+
+  const renderInstitutionSection = (
+    institution: "INIA" | "INASE",
+    icon: React.ReactNode,
+    color: string
+  ) => {
+    const prefix = institution.toLowerCase()
+
+    return (
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${color}`}>
+              {icon}
+            </div>
+            <div>
+              <CardTitle className="text-lg font-semibold">{institution}</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {institution === "INIA"
+                  ? "Instituto Nacional de Investigación Agropecuaria"
+                  : "Instituto Nacional de Semillas"}
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Datos básicos */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label
+                  htmlFor={`${prefix}Fecha`}
+                  className="text-sm font-medium flex items-center gap-2"
+                >
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  Fecha de análisis
+                </Label>
+                <Input
+                  id={`${prefix}Fecha`}
+                  type="date"
+                  value={formData[`${prefix}Fecha`] || ""}
+                  onChange={(e) =>
+                    handleInputChange(`${prefix}Fecha`, e.target.value)
+                  }
+                  className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor={`${prefix}Gramos`}
+                  className="text-sm font-medium flex items-center gap-2"
+                >
+                  <Weight className="h-4 w-4 text-muted-foreground" />
+                  Gramos analizados
+                </Label>
+                <Input
+                  id={`${prefix}Gramos`}
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={formData[`${prefix}Gramos`] || ""}
+                  onChange={(e) =>
+                    handleInputChange(`${prefix}Gramos`, e.target.value)
+                  }
+                  className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+            </div>
+
+            {/* Tipos de análisis */}
+            <div className="space-y-4">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <ClipboardList className="h-4 w-4 text-muted-foreground" />
+                Tipo de análisis
+              </Label>
+              <div className="space-y-3">
+                {analysisTypes.map(({ key, field, description }) => {
+                  const fieldName = `${prefix}${field}`
+                  return (
+                    <div
+                      key={field}
+                      className="flex items-start space-x-3 p-3 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors"
+                    >
+                      <Checkbox
+                        id={fieldName}
+                        checked={formData[fieldName] || false}
+                        onCheckedChange={(checked) =>
+                          handleInputChange(fieldName, checked)
+                        }
+                        className="mt-1 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <label
+                          htmlFor={fieldName}
+                          className="text-sm font-medium cursor-pointer"
+                        >
+                          {key}
+                        </label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {description}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
-    <Card className="border-blue-200 bg-blue-50">
-      <CardHeader className="p-3 sm:p-4">
-        <CardTitle className="text-blue-800 text-base sm:text-lg lg:text-xl font-bold">
-          Determinación de Otras Semillas en Número (DOSN)
-        </CardTitle>
+    <Card className="border-0 shadow-sm bg-card">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+            <Microscope className="h-6 w-6 text-primary" />
+          </div>
+          <div className="flex-1">
+            <CardTitle className="text-xl font-semibold text-foreground">
+              Determinación de Otras Semillas en Número (DOSN)
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Análisis cuantitativo de semillas no deseadas en muestras
+            </p>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="p-3 sm:p-6">
+
+      <CardContent>
         <Tabs defaultValue="generales" className="w-full">
-          {/* Barra de pestañas */}
-          <TabsList className="flex flex-wrap w-full gap-2">
-            <TabsTrigger
-              value="generales"
-              className="flex-1 min-w-[120px] text-sm sm:text-base"
-            >
+          <TabsList className="flex flex-wrap gap-2 w-full mb-6">
+            <TabsTrigger value="generales" className="flex items-center gap-2 px-3 py-2 text-sm">
+              <FileText className="h-4 w-4" />
               Datos generales
             </TabsTrigger>
-            <TabsTrigger
-              value="registros"
-              className="flex-1 min-w-[120px] text-sm sm:text-base"
-            >
+            <TabsTrigger value="registros" className="flex items-center gap-2 px-3 py-2 text-sm">
+              <ClipboardList className="h-4 w-4" />
               Registros
             </TabsTrigger>
           </TabsList>
 
           {/* --- TAB: Datos generales --- */}
-          <TabsContent value="generales" className="space-y-6 sm:space-y-10 mt-6">
-            {/* INIA */}
-            <section>
-              <h3 className="font-semibold text-sm sm:text-md mb-4">INIA</h3>
-              <div className="border border-blue-200 rounded-md bg-gray-50 p-4 sm:p-6 shadow-sm">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
-                  {/* Columna izquierda */}
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-sm sm:text-base" htmlFor="iniaFecha">Fecha</Label>
-                      <Input
-                        id="iniaFecha"
-                        type="date"
-                        value={formData.iniaFecha || ""}
-                        onChange={(e) => handleInputChange("iniaFecha", e.target.value)}
-                        className="text-sm sm:text-base"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-sm sm:text-base" htmlFor="iniaGramos">Gramos analizados</Label>
-                      <Input
-                        id="iniaGramos"
-                        type="number"
-                        step="0.01"
-                        value={formData.iniaGramos || ""}
-                        onChange={(e) => handleInputChange("iniaGramos", e.target.value)}
-                        className="text-sm sm:text-base"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Columna derecha */}
-                  <div>
-                    <h4 className="font-semibold text-sm mb-3">Tipo de análisis</h4>
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                      {[
-                        { key: "Completo", field: "iniaCompleto" },
-                        { key: "Reducido", field: "iniaReducido" },
-                        { key: "Limitado", field: "iniaLimitado" },
-                        { key: "Reducido - Limitado", field: "iniaReducidoLimitado" },
-                      ].map(({ key, field }) => (
-                        <label key={field} className="flex items-center gap-2 text-sm sm:text-base">
-                          <Checkbox
-                            id={field}
-                            checked={formData[field] || false}
-                            onCheckedChange={(checked) => handleInputChange(field, checked)}
-                            className="border border-gray-400 rounded-sm shadow-sm data-[state=checked]:bg-blue-700"
-                          />
-                          <span>{key}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div></div>
-            </section>
-
-            {/* INASE */}
-            <section>
-              <h3 className="font-semibold text-sm sm:text-md mb-4">INASE</h3>
-              <div className="border border-blue-200 rounded-md bg-gray-50 p-4 sm:p-6 shadow-sm">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
-                  {/* Columna izquierda */}
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-sm sm:text-base" htmlFor="inaseFecha">Fecha</Label>
-                      <Input
-                        id="inaseFecha"
-                        type="date"
-                        value={formData.inaseFecha || ""}
-                        onChange={(e) => handleInputChange("inaseFecha", e.target.value)}
-                        className="text-sm sm:text-base"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-sm sm:text-base" htmlFor="inaseGramos">Gramos analizados</Label>
-                      <Input
-                        id="inaseGramos"
-                        type="number"
-                        step="0.01"
-                        value={formData.inaseGramos || ""}
-                        onChange={(e) => handleInputChange("inaseGramos", e.target.value)}
-                        className="text-sm sm:text-base"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Columna derecha */}
-                  <div>
-                    <h4 className="font-semibold text-sm mb-3">Tipo de análisis</h4>
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                      {[
-                        { key: "Completo", field: "inaseCompleto" },
-                        { key: "Reducido", field: "inaseReducido" },
-                        { key: "Limitado", field: "inaseLimitado" },
-                        { key: "Reducido - Limitado", field: "inaseReducidoLimitado" },
-                      ].map(({ key, field }) => (
-                        <label key={field} className="flex items-center gap-2 text-sm sm:text-base">
-                          <Checkbox
-                            id={field}
-                            checked={formData[field] || false}
-                            onCheckedChange={(checked) => handleInputChange(field, checked)}
-                            className="border border-gray-400 rounded-sm shadow-sm data-[state=checked]:bg-blue-700"
-                          />
-                          <span>{key}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div></div>
-            </section>
+          <TabsContent value="generales" className="space-y-6">
+            {renderInstitutionSection(
+              "INIA",
+              <Building2 className="h-5 w-5 text-emerald-600" />,
+              "bg-emerald-50"
+            )}
+            {renderInstitutionSection(
+              "INASE",
+              <Building2 className="h-5 w-5 text-blue-600" />,
+              "bg-blue-50"
+            )}
           </TabsContent>
 
           {/* --- TAB: Registros --- */}
@@ -162,44 +220,10 @@ export default function DosnFields({ formData, handleInputChange }: Props) {
             <OtrosCultivosFields />
             <BrassicaFields />
             <CuscutaFields />
+            <Separator />
 
-            <Card className="border-blue-200 bg-gray-50 mt-6">
-              <CardHeader className="p-3 sm:p-4">
-                <CardTitle className="text-blue-800 text-base sm:text-lg lg:text-xl">
-                  Cumplimiento del Estándar
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <Label className="text-sm sm:text-base" htmlFor="cumpleFecha">Fecha</Label>
-                    <Input
-                      id="cumpleFecha"
-                      type="date"
-                      value={formData.cumpleFecha || ""}
-                      onChange={(e) => handleInputChange("cumpleFecha", e.target.value)}
-                      className="text-sm sm:text-base"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm sm:text-base">Cumple con el estándar</Label>
-                    <Select
-                      value={formData.cumpleEstandar || ""}
-                      onValueChange={(val) => handleInputChange("cumpleEstandar", val)}
-                    >
-                      <SelectTrigger className="w-full text-sm sm:text-base shadow-sm rounded-md border px-3 py-2">
-                        <SelectValue placeholder="Seleccionar..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="si">Sí</SelectItem>
-                        <SelectItem value="no">No</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+            <CumplimientoEstandarFields formData={formData} handleInputChange={handleInputChange} />
 
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </CardContent>
