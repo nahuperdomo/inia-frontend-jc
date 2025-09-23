@@ -12,21 +12,35 @@ import { Leaf } from "lucide-react"
 
 export default function LoginPage() {
   const [credentials, setCredentials] = useState({
-    email: "",
+    usuario: "",
     password: "",
   })
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
+  // Servicio de login
+  async function login(usuario: string, password: string) {
+    const response = await fetch(`http://localhost:8080/api/v1/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario, password }),
+    })
+    if (!response.ok) throw new Error(await response.text())
+    return response.json() // Debe devolver { token: "..." }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
-    // Simulate authentication
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const data = await login(credentials.usuario, credentials.password)
+      localStorage.setItem("token", data.token) // Ajusta si tu backend devuelve el token con otro nombre
       router.push("/dashboard")
-    }, 1000)
+    } catch (error) {
+      alert("Credenciales incorrectas")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -46,13 +60,13 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Correo electrónico</Label>
+              <Label htmlFor="usuario">Usuario</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="usuario@inia.org.uy"
-                value={credentials.email}
-                onChange={(e) => setCredentials((prev) => ({ ...prev, email: e.target.value }))}
+                id="usuario"
+                type="text"
+                placeholder="usuario"
+                value={credentials.usuario}
+                onChange={(e) => setCredentials((prev) => ({ ...prev, usuario: e.target.value }))}
                 required
               />
             </div>
