@@ -13,28 +13,29 @@ import { LotList } from "@/components/lotes/lot-list"
 import { LotDetailsModal } from "@/components/lotes/lot-details-modal"
 import { AnalysisModal } from "@/components/lotes/analysis-modal"
 
+import { createLote } from "@/app/services/lotes-service"
+
 interface LoteFormData {
-  numeroReferencia: string
-  numeroFicha: string
+  numeroFicha: number | ""
   ficha: string
-  lote: string
-  cultivar: string
+  cultivarID: number | ""
   tipo: string
-  especie: string
-  origen: string
-  empresa: string
-  cliente: string
+  empresaID: number | ""
+  clienteID: number | ""
   codigoCC: string
   codigoFF: string
   fechaEntrega: string
   fechaRecibo: string
-  depositoAsignado: string
+  depositoID: number | ""
   unidadEmbalado: string
-  resultados: string
+  remitente: string
   observaciones: string
-  kilosBrutos: string
-  humedad: string
-  catSeed: string
+  kilosLimpios: number | ""
+  datosHumedad: Array<{
+    tipoHumedadID: number | ""
+    valor: number | ""
+  }>
+  // Agrega aquí otros campos según el backend (numeroArticuloID, cantidad, origen, estado, fechaCosecha, etc.)
 }
 
 export default function RegistroLotesPage() {
@@ -46,27 +47,32 @@ export default function RegistroLotesPage() {
   const [showAnalysisModal, setShowAnalysisModal] = useState(false)
 
   const [formData, setFormData] = useState<LoteFormData>({
-    numeroReferencia: "",
     numeroFicha: "",
     ficha: "",
-    lote: "",
-    cultivar: "",
+    cultivarID: "",
     tipo: "",
-    especie: "",
-    origen: "",
-    empresa: "",
-    cliente: "",
+    empresaID: "",
+    clienteID: "",
     codigoCC: "",
     codigoFF: "",
     fechaEntrega: "",
     fechaRecibo: "",
-    depositoAsignado: "",
+    depositoID: "",
     unidadEmbalado: "",
-    resultados: "",
+    remitente: "",
     observaciones: "",
-    kilosBrutos: "",
-    humedad: "",
-    catSeed: "",
+    kilosLimpios: "",
+    datosHumedad: [
+      {
+        tipoHumedadID: "",
+        valor: "",
+      },
+    ],
+    numeroArticuloID: "",
+    cantidad: "",
+    origen: "",
+    estado: "",
+    fechaCosecha: "",
   })
 
   const recentLots = [
@@ -95,74 +101,25 @@ export default function RegistroLotesPage() {
       catSeed: "CS-001",
       estado: "Activo",
       hasAnalysis: false,
-    },
-    {
-      id: "2",
-      lote: "MAI-2024-002",
-      numeroReferencia: "REF-002",
-      numeroFicha: "F-002",
-      ficha: "002",
-      cultivar: "Pioneer 30F35",
-      tipo: "Híbrido",
-      especie: "Maíz",
-      origen: "Importado",
-      empresa: "Semillas del Sur",
-      cliente: "Estancia La Pampa",
-      codigoCC: "CC-002",
-      codigoFF: "FF-002",
-      fechaEntrega: "2024-01-08",
-      fechaRecibo: "2024-01-10",
-      depositoAsignado: "Depósito B",
-      unidadEmbalado: "Big Bags",
-      resultados: "En proceso",
-      observaciones: "Pendiente análisis de humedad",
-      kilosBrutos: "2500",
-      humedad: "14.2",
-      catSeed: "CS-002",
-      estado: "En proceso",
-      hasAnalysis: true,
-    },
-    {
-      id: "3",
-      lote: "TRI-2024-003",
-      numeroReferencia: "REF-003",
-      numeroFicha: "F-003",
-      ficha: "003",
-      cultivar: "Klein Guerrero",
-      tipo: "Comercial",
-      especie: "Trigo",
-      origen: "Nacional",
-      empresa: "Cereales Unidos",
-      cliente: "Molino Central",
-      codigoCC: "CC-003",
-      codigoFF: "FF-003",
-      fechaEntrega: "2024-01-05",
-      fechaRecibo: "2024-01-07",
-      depositoAsignado: "Depósito C",
-      unidadEmbalado: "Granel",
-      resultados: "Completado",
-      observaciones: "Análisis completo realizado",
-      kilosBrutos: "5000",
-      humedad: "11.8",
-      catSeed: "CS-003",
-      estado: "Completado",
-      hasAnalysis: true,
-    },
+    }
   ]
 
-  const handleInputChange = (field: keyof LoteFormData, value: string) => {
+  const handleInputChange = (field: keyof LoteFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      await createLote(formData)
       router.push("/registro")
-    }, 2000)
+    } catch (error) {
+      // Maneja el error (puedes mostrar un toast, alerta, etc.)
+      console.error("Error al registrar lote:", error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleViewDetails = (lot: any) => {
