@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,62 +11,63 @@ import { ArrowLeft, Search, TestTube, Sprout, Scale, Microscope } from "lucide-r
 import Link from "next/link"
 
 import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
+import { obtenerLotesActivos, LoteSimple } from "@/app/services/lote-service"
+import { registrarAnalisis } from "@/app/services/analisis-service"
 
-// Mock data for lotes
-const mockLotes = [
-  { id: "L001", codigo: "TRIGO-2024-001", especie: "Trigo", variedad: "Klein Guerrero", ubicacion: "Sector A-1" },
-  { id: "L002", codigo: "SOJA-2024-002", especie: "Soja", variedad: "DM 4670", ubicacion: "Sector B-2" },
-  { id: "L003", codigo: "MAIZ-2024-003", especie: "Maíz", variedad: "AX 7721", ubicacion: "Sector C-1" },
-]
+type AnalysisFormData = {
+  loteid: string
+  fechaInicio: string
+  fechaFin: string
+  responsable: string
+  prioridad: string
+  observaciones: string
+
+  // Pureza
+  pesoInicial: string
+  semillaPura: string
+  materiaInerte: string
+  otrosCultivos: string
+  malezas: string
+  malezasToleridas: string
+  pesoTotal: string
+
+  // DOSN (INIA)
+  iniaFecha: string
+  iniaGramos: string
+  iniaCompleto: boolean
+  iniaReducido: boolean
+  iniaLimitado: boolean
+  iniaReducidoLimitado: boolean
+
+  // DOSN (INASE)
+  inaseFecha: string
+  inaseGramos: string
+  inaseCompleto: boolean
+  inaseReducido: boolean
+  inaseLimitado: boolean
+  inaseReducidoLimitado: boolean
+}
 
 const analysisTypes = [
-  {
-    id: "pureza",
-    name: "Pureza Física",
-    description: "Análisis de pureza física de semillas",
-    icon: Search,
-    color: "blue",
-  },
-  {
-    id: "germinacion",
-    name: "Germinación",
-    description: "Ensayos de germinación estándar",
-    icon: Sprout,
-    color: "green",
-  },
-  {
-    id: "pms",
-    name: "Peso de Mil Semillas",
-    description: "Determinación del peso de mil semillas",
-    icon: Scale,
-    color: "purple",
-  },
-  {
-    id: "tetrazolio",
-    name: "Tetrazolio",
-    description: "Ensayo de viabilidad y vigor",
-    icon: TestTube,
-    color: "orange",
-  },
-  {
-    id: "dosn",
-    name: "DOSN",
-    description: "Determinación de otras semillas nocivas",
-    icon: Microscope,
-    color: "red",
-  },
+  { id: "pureza", name: "Pureza Física", description: "Análisis de pureza física de semillas", icon: Search, color: "blue" },
+  { id: "germinacion", name: "Germinación", description: "Ensayos de germinación estándar", icon: Sprout, color: "green" },
+  { id: "pms", name: "Peso de Mil Semillas", description: "Determinación del peso de mil semillas", icon: Scale, color: "purple" },
+  { id: "tetrazolio", name: "Tetrazolio", description: "Ensayo de viabilidad y vigor", icon: TestTube, color: "orange" },
+  { id: "dosn", name: "DOSN", description: "Determinación de otras semillas nocivas", icon: Microscope, color: "red" },
 ]
 
 export default function RegistroAnalisisPage() {
   const [selectedAnalysisType, setSelectedAnalysisType] = useState("")
   const [selectedLote, setSelectedLote] = useState("")
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AnalysisFormData>({
+    loteid: "",
     fechaInicio: "",
+    fechaFin: "",
     responsable: "",
     prioridad: "",
     observaciones: "",
 
-    // Campos específicos de pureza física
+    // Pureza
     pesoInicial: "",
     semillaPura: "",
     materiaInerte: "",
@@ -75,7 +76,7 @@ export default function RegistroAnalisisPage() {
     malezasToleridas: "",
     pesoTotal: "",
 
-    // Campos específicos - DOSN (INIA)
+    // DOSN (INIA)
     iniaFecha: "",
     iniaGramos: "",
     iniaCompleto: false,
@@ -83,7 +84,7 @@ export default function RegistroAnalisisPage() {
     iniaLimitado: false,
     iniaReducidoLimitado: false,
 
-    // Campos específicos - DOSN (INASE)
+    // DOSN (INASE)
     inaseFecha: "",
     inaseGramos: "",
     inaseCompleto: false,
@@ -92,18 +93,86 @@ export default function RegistroAnalisisPage() {
     inaseReducidoLimitado: false,
   })
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+  // Tipado correcto (clave del form propio, no el del DOM)
+  const handleInputChange = (field: keyof AnalysisFormData, value: string | number | boolean) => {
+    setFormData((prev) => ({ ...prev, [field]: value as any }))
   }
 
-  const getAnalysisTypeColor = (color: string) => {
-    const colors = {
-      blue: "border-blue-200 bg-blue-50 hover:border-blue-300"
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+
+  // Normaliza números (si querés que viajen como number)
+  const toNum = (v: string) => (v === "" ? undefined : Number(v))
+
+  const handleSubmit = async () => {
+    setLoading(true)
+    setError(null)
+    setSuccess(false)
+
+    if (!selectedAnalysisType) {
+      setLoading(false)
+      setError("Selecciona el tipo de análisis.")
+      return
     }
-    return colors[color as keyof typeof colors] || colors.blue
+    if (!formData.loteid) {
+      setLoading(false)
+      setError("Selecciona un lote.")
+      return
+    }
+    if (!formData.fechaInicio) {
+      setLoading(false)
+      setError("Ingresa la fecha de inicio.")
+      return
+    }
+
+    // Armar payload con nombres correctos para backend
+    const payload: any = {
+      ...formData,
+      idLote: formData.loteid,
+      comentarios: formData.observaciones,
+      // Pureza a number si viene
+      pesoInicial: toNum(formData.pesoInicial),
+      semillaPura: toNum(formData.semillaPura),
+      materiaInerte: toNum(formData.materiaInerte),
+      otrosCultivos: toNum(formData.otrosCultivos),
+      malezas: toNum(formData.malezas),
+      // DOSN a number si viene
+      iniaGramos: toNum(formData.iniaGramos),
+      inaseGramos: toNum(formData.inaseGramos),
+    }
+
+    try {
+      await registrarAnalisis(payload, selectedAnalysisType)
+      setSuccess(true)
+    } catch (err: any) {
+      setError(err?.message || "Error al registrar análisis")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const selectedLoteInfo = selectedLote ? mockLotes.find((lote) => lote.id === selectedLote) : null
+  const [lotes, setLotes] = useState<LoteSimple[]>([])
+  const [lotesLoading, setLotesLoading] = useState(true)
+  const [lotesError, setLotesError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchLotes = async () => {
+      setLotesLoading(true)
+      setLotesError(null)
+      try {
+        const data = await obtenerLotesActivos()
+        setLotes(data)
+      } catch {
+        setLotesError("Error al cargar lotes")
+      } finally {
+        setLotesLoading(false)
+      }
+    }
+    fetchLotes()
+  }, [])
+
+  const selectedLoteInfo = selectedLote ? lotes.find((l) => l.loteID.toString() === selectedLote) : null
 
   return (
     <div className="p-6 space-y-6">
@@ -130,32 +199,25 @@ export default function RegistroAnalisisPage() {
             {analysisTypes.map((type) => {
               const IconComponent = type.icon
               const isSelected = selectedAnalysisType === type.id
-
               return (
                 <div
                   key={type.id}
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${isSelected
-                    ? `border-blue-400 bg-blue-50`
-                    : "border-gray-200 hover:border-gray-300"
-                    }`}
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
+                    isSelected ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
                   onClick={() => setSelectedAnalysisType(type.id)}
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <IconComponent
-                      className={`h-5 w-5 ${isSelected ? "text-blue-600" : "text-gray-500"}`}
-                    />
+                    <IconComponent className={`h-5 w-5 ${isSelected ? "text-blue-600" : "text-gray-500"}`} />
                     <h3 className="font-semibold">{type.name}</h3>
                     {isSelected && (
-                      <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
-                        Seleccionado
-                      </span>
+                      <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">Seleccionado</span>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">{type.description}</p>
                 </div>
               )
             })}
-
           </div>
         </CardContent>
       </Card>
@@ -170,14 +232,22 @@ export default function RegistroAnalisisPage() {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="lote">Lote a Analizar</Label>
-                <Select value={selectedLote} onValueChange={setSelectedLote}>
+                <Select
+                  value={selectedLote}
+                  onValueChange={(value) => {
+                    setSelectedLote(value)
+                    handleInputChange("loteid", value)
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar lote existente" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockLotes.map((lote) => (
-                      <SelectItem key={lote.id} value={lote.id}>
-                        {lote.codigo} - {lote.especie} {lote.variedad}
+                    {lotesLoading && <SelectItem value="loading" disabled>Cargando lotes...</SelectItem>}
+                    {lotesError && <SelectItem value="error" disabled>{lotesError}</SelectItem>}
+                    {!lotesLoading && !lotesError && lotes.map((lote) => (
+                      <SelectItem key={lote.loteID} value={lote.loteID.toString()}>
+                        {lote.ficha} (ID: {lote.loteID})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -195,36 +265,40 @@ export default function RegistroAnalisisPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="responsable">Responsable</Label>
-                  <Select
-                    value={formData.responsable}
-                    onValueChange={(value) => handleInputChange("responsable", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar responsable" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="juan.perez">Juan Pérez</SelectItem>
-                      <SelectItem value="maria.garcia">María García</SelectItem>
-                      <SelectItem value="carlos.rodriguez">Carlos Rodríguez</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="fechaFin">Fecha de Fin</Label>
+                  <Input
+                    id="fechaFin"
+                    type="date"
+                    value={formData.fechaFin}
+                    onChange={(e) => handleInputChange("fechaFin", e.target.value)}
+                  />
                 </div>
+              </div>
+
+              {/* Opcional: si usás estos campos en backend, habilitalos */}
+              {/* <div>
+                <Label htmlFor="responsable">Responsable</Label>
+                <Select value={formData.responsable} onValueChange={(v) => handleInputChange("responsable", v)}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar responsable" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="juan.perez">Juan Pérez</SelectItem>
+                    <SelectItem value="maria.garcia">María García</SelectItem>
+                    <SelectItem value="carlos.rodriguez">Carlos Rodríguez</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <Label htmlFor="prioridad">Prioridad</Label>
-                <Select value={formData.prioridad} onValueChange={(value) => handleInputChange("prioridad", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar prioridad" />
-                  </SelectTrigger>
+                <Select value={formData.prioridad} onValueChange={(v) => handleInputChange("prioridad", v)}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar prioridad" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="alta">Alta</SelectItem>
                     <SelectItem value="media">Media</SelectItem>
                     <SelectItem value="baja">Baja</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
             </div>
 
             <div className="space-y-4">
@@ -235,20 +309,20 @@ export default function RegistroAnalisisPage() {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Código:</span>
-                      <span className="font-medium">{selectedLoteInfo.codigo}</span>
+                      <span className="text-muted-foreground">Ficha:</span>
+                      <span className="font-medium">{selectedLoteInfo.ficha}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Especie:</span>
-                      <span>{selectedLoteInfo.especie}</span>
+                      <span className="text-muted-foreground">ID:</span>
+                      <span>{selectedLoteInfo.loteID}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Variedad:</span>
-                      <span>{selectedLoteInfo.variedad}</span>
+                      <span className="text-muted-foreground">Número Ficha:</span>
+                      <span>{selectedLoteInfo.numeroFicha}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Ubicación:</span>
-                      <span>{selectedLoteInfo.ubicacion}</span>
+                      <span className="text-muted-foreground">Activo:</span>
+                      <span>{selectedLoteInfo.activo ? "Sí" : "No"}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -341,7 +415,7 @@ export default function RegistroAnalisisPage() {
                 </div>
                 <div>
                   <Label htmlFor="pesoTotal">Peso Total</Label>
-                  <Select value={formData.pesoTotal} onValueChange={(value) => handleInputChange("pesoTotal", value)}>
+                  <Select value={formData.pesoTotal} onValueChange={(v) => handleInputChange("pesoTotal", v)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar peso total" />
                     </SelectTrigger>
@@ -361,15 +435,22 @@ export default function RegistroAnalisisPage() {
           {selectedAnalysisType === "dosn" && (
             <DosnFields formData={formData} handleInputChange={handleInputChange} />
           )}
+
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <Button variant="outline" className="w-full sm:flex-1 bg-transparent">
+            <Button variant="outline" className="w-full sm:flex-1 bg-transparent" disabled={loading}>
               Guardar como Borrador
             </Button>
-            <Button className="w-full sm:flex-1 bg-green-700 hover:bg-green-700">
-              Registrar Análisis
+            <Button
+              className="w-full sm:flex-1 bg-green-700 hover:bg-green-700"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? "Registrando..." : "Registrar Análisis"}
             </Button>
           </div>
 
+          {error && <div className="text-red-600 mt-2">{error}</div>}
+          {success && <div className="text-green-600 mt-2">¡Análisis registrado exitosamente!</div>}
         </CardContent>
       </Card>
     </div>
