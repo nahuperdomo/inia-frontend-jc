@@ -1,3 +1,7 @@
+// Obtener análisis DOSN por lote
+export async function obtenerDosnPorLote(loteID: string) {
+  return apiFetch(`/api/dosn/lote/${loteID}`);
+}
 import { apiFetch } from "./api";
 
 export interface AnalisisPayload {
@@ -7,6 +11,10 @@ export interface AnalisisPayload {
   fechaFin?: string;
   cumpleEstandar?: boolean;
   comentarios?: string;
+}
+
+export async function obtenerDosnPorId(id: string) {
+  return apiFetch(`/api/dosn/${id}`);
 }
 
 export async function registrarAnalisis(payload: AnalisisPayload, tipo: string) {

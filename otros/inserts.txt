@@ -1,0 +1,62 @@
+INSERT INTO public.lote (
+    loteid,
+    estadoid,
+    numero_articuloid,
+    origenid,
+    codigocc,
+    codigoff,
+    ficha,
+    observaciones,
+    remitente,
+    unidad_embolsado,
+    activo,
+    cantidad,
+    fecha_cosecha,
+    fecha_entrega,
+    fecha_recibo,
+    kilos_limpios,
+    numero_ficha,
+    tipo,
+    clienteid,
+    cultivarid,
+    depositoid,
+    empresaid
+)
+VALUES (
+    1, -- loteid
+    NULL, -- estadoid
+    NULL, -- numero_articuloid
+    NULL, -- origenid
+    'CC123', -- codigocc
+    'FF456', -- codigoff
+    'Ficha001', -- ficha
+    'Sin observaciones', -- observaciones
+    'RemitenteX', -- remitente
+    'Unidad1', -- unidad_embolsado
+    TRUE, -- activo
+    1500.75, -- cantidad
+    '2025-09-20', -- fecha_cosecha
+    '2025-09-21', -- fecha_entrega
+    '2025-09-22', -- fecha_recibo
+    1499.50, -- kilos_limpios
+    101, -- numero_ficha
+    1, -- tipo
+    NULL, -- clienteid
+    NULL, -- cultivarid
+    NULL, -- depositoid
+    NULL  -- empresaid
+);
+
+INSERT INTO public.malezasycultivos (catalogoid, activo, maleza, nombre_cientifico, nombre_comun) VALUES
+(1, true, true, 'Amaranthus quitensis', 'Yuyo colorado'),
+(2, true, true, 'Sorghum halepense', 'Sorgo de Alepo'),
+(3, true, true, 'Conyza bonariensis', 'Rama negra'),
+(4, true, true, 'Cyperus rotundus', 'Cebollín'),
+(5, true, true, 'Echinochloa crus-galli', 'Capín o Pasto cuaresma');
+
+INSERT INTO public.malezasycultivos (catalogoid, activo, maleza, nombre_cientifico, nombre_comun) VALUES
+(100, true, false, 'Zea mays', 'Maíz'),
+(101, true, false, 'Glycine max', 'Soja'),
+(102, true, false, 'Triticum aestivum', 'Trigo'),
+(103, true, false, 'Oryza sativa', 'Arroz'),
+(104, true, false, 'Hordeum vulgare', 'Cebada');

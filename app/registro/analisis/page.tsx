@@ -14,7 +14,7 @@ import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
 import { obtenerLotesActivos, LoteSimple } from "@/app/services/lote-service"
 import { registrarAnalisis } from "@/app/services/analisis-service"
 
-type AnalysisFormData = {
+export type AnalysisFormData = {
   loteid: string
   fechaInicio: string
   fechaFin: string
@@ -98,6 +98,14 @@ export default function RegistroAnalisisPage() {
     setFormData((prev) => ({ ...prev, [field]: value as any }))
   }
 
+  type Props = {
+    formData?: any;
+    handleInputChange: (field: string, value: any) => void;
+    dosn?: any;
+    modoDetalle?: boolean;
+  };
+
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -126,20 +134,47 @@ export default function RegistroAnalisisPage() {
       return
     }
 
-    // Armar payload con nombres correctos para backend
-    const payload: any = {
+    let payload: any = {
       ...formData,
       idLote: formData.loteid,
       comentarios: formData.observaciones,
-      // Pureza a number si viene
-      pesoInicial: toNum(formData.pesoInicial),
-      semillaPura: toNum(formData.semillaPura),
-      materiaInerte: toNum(formData.materiaInerte),
-      otrosCultivos: toNum(formData.otrosCultivos),
-      malezas: toNum(formData.malezas),
-      // DOSN a number si viene
-      iniaGramos: toNum(formData.iniaGramos),
-      inaseGramos: toNum(formData.inaseGramos),
+      estado: "REGISTRADO",
+    };
+
+    if (selectedAnalysisType === "dosn") {
+      // Datos generales DOSN para backend
+      // Helper para mapear a enum backend
+      const mapTipoDosn = (obj: any, prefix: string) => [
+        obj[`${prefix}Completo`] ? "COMPLETO" : null,
+        obj[`${prefix}Reducido`] ? "REDUCIDO" : null,
+        obj[`${prefix}Limitado`] ? "LIMITADO" : null,
+        obj[`${prefix}ReducidoLimitado`] ? "REDUCIDO_LIMITADO" : null,
+      ].filter(Boolean);
+
+      payload = {
+        idLote: formData.loteid,
+        fechaInicio: formData.fechaInicio,
+        fechaFin: formData.fechaFin,
+        comentarios: formData.observaciones,
+        estado: "REGISTRADO",
+        // INIA
+        fechaINIA: formData.iniaFecha || null,
+        gramosAnalizadosINIA: toNum(formData.iniaGramos),
+        tipoINIA: mapTipoDosn(formData, "inia"),
+        // INASE
+        fechaINASE: formData.inaseFecha || null,
+        gramosAnalizadosINASE: toNum(formData.inaseGramos),
+        tipoINASE: mapTipoDosn(formData, "inase"),
+      };
+    } else if (selectedAnalysisType === "pureza") {
+      payload = {
+        ...payload,
+        pesoInicial: toNum(formData.pesoInicial),
+        semillaPura: toNum(formData.semillaPura),
+        materiaInerte: toNum(formData.materiaInerte),
+        otrosCultivos: toNum(formData.otrosCultivos),
+        malezas: toNum(formData.malezas),
+      };
     }
 
     try {
@@ -202,9 +237,8 @@ export default function RegistroAnalisisPage() {
               return (
                 <div
                   key={type.id}
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
-                    isSelected ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:border-gray-300"
-                  }`}
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${isSelected ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                    }`}
                   onClick={() => setSelectedAnalysisType(type.id)}
                 >
                   <div className="flex items-center gap-3 mb-2">
@@ -273,6 +307,16 @@ export default function RegistroAnalisisPage() {
                     onChange={(e) => handleInputChange("fechaFin", e.target.value)}
                   />
                 </div>
+                <div>
+                  <Label htmlFor="observaciones">Observaciones</Label>
+                  <Textarea
+                    id="observaciones"
+                    placeholder="Observaciones adicionales sobre el análisis..."
+                    value={formData.observaciones}
+                    onChange={(e) => handleInputChange("observaciones", e.target.value)}
+                    rows={4}
+                  />
+                </div>
               </div>
 
               {/* Opcional: si usás estos campos en backend, habilitalos */}
@@ -328,16 +372,7 @@ export default function RegistroAnalisisPage() {
                 </Card>
               )}
 
-              <div>
-                <Label htmlFor="observaciones">Observaciones</Label>
-                <Textarea
-                  id="observaciones"
-                  placeholder="Observaciones adicionales sobre el análisis..."
-                  value={formData.observaciones}
-                  onChange={(e) => handleInputChange("observaciones", e.target.value)}
-                  rows={4}
-                />
-              </div>
+
             </div>
           </div>
 
@@ -431,11 +466,12 @@ export default function RegistroAnalisisPage() {
               </CardContent>
             </Card>
           )}
-
           {selectedAnalysisType === "dosn" && (
-            <DosnFields formData={formData} handleInputChange={handleInputChange} />
+            <DosnFields
+              formData={formData}
+              handleInputChange={handleInputChange as (field: string, value: any) => void}
+            />
           )}
-
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Button variant="outline" className="w-full sm:flex-1 bg-transparent" disabled={loading}>
               Guardar como Borrador

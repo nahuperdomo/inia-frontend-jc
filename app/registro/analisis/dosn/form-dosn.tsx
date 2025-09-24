@@ -42,12 +42,18 @@ import CuscutaFields from "@/app/registro/analisis/dosn/fields/fileds-cuscuta"
 import CumplimientoEstandarFields from "@/app/registro/analisis/dosn/fields/fields-cumplio-estandar"
 import OtrosCultivosFields from "../../../../components/malezas-u-otros-cultivos/fields-otros-cultivos"
 
-type Props = {
-  formData: any
-  handleInputChange: (field: string, value: any) => void
-}
 
-export default function DosnUnified({ formData, handleInputChange }: Props) {
+type Props = {
+  formData: any;
+  handleInputChange: (field: string, value: any) => void;
+  dosn?: any;
+  modoDetalle?: boolean;
+};
+
+export default function DosnFields({ formData, handleInputChange, dosn, modoDetalle }: Props) {
+  // Si hay dosn, usarlo como fuente de datos
+  const data = dosn || formData || {};
+  const isReadOnly = !!modoDetalle;
   const analysisTypes = [
     { key: "Completo", field: "Completo", description: "Análisis exhaustivo de todas las categorías" },
     { key: "Reducido", field: "Reducido", description: "Análisis de categorías principales" },
@@ -95,11 +101,10 @@ export default function DosnUnified({ formData, handleInputChange }: Props) {
                 <Input
                   id={`${prefix}Fecha`}
                   type="date"
-                  value={formData[`${prefix}Fecha`] || ""}
-                  onChange={(e) =>
-                    handleInputChange(`${prefix}Fecha`, e.target.value)
-                  }
-                  className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                  value={data[`${prefix}Fecha`] || ""}
+                  onChange={isReadOnly ? undefined : (e) => handleInputChange && handleInputChange(`${prefix}Fecha`, e.target.value)}
+                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20${isReadOnly ? ' bg-gray-100 cursor-not-allowed' : ''}`}
+                  readOnly={isReadOnly}
                 />
               </div>
 
@@ -116,11 +121,10 @@ export default function DosnUnified({ formData, handleInputChange }: Props) {
                   type="number"
                   step="0.01"
                   placeholder="0.00"
-                  value={formData[`${prefix}Gramos`] || ""}
-                  onChange={(e) =>
-                    handleInputChange(`${prefix}Gramos`, e.target.value)
-                  }
-                  className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                  value={data[`${prefix}Gramos`] || ""}
+                  onChange={isReadOnly ? undefined : (e) => handleInputChange && handleInputChange(`${prefix}Gramos`, e.target.value)}
+                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20${isReadOnly ? ' bg-gray-100 cursor-not-allowed' : ''}`}
+                  readOnly={isReadOnly}
                 />
               </div>
             </div>
@@ -141,10 +145,9 @@ export default function DosnUnified({ formData, handleInputChange }: Props) {
                     >
                       <Checkbox
                         id={fieldName}
-                        checked={formData[fieldName] || false}
-                        onCheckedChange={(checked) =>
-                          handleInputChange(fieldName, checked)
-                        }
+                        checked={data[fieldName] || false}
+                        onCheckedChange={isReadOnly ? undefined : (checked) => handleInputChange && handleInputChange(fieldName, checked)}
+                        disabled={isReadOnly}
                         className="mt-1 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                       />
                       <div className="flex-1 min-w-0">
@@ -222,7 +225,7 @@ export default function DosnUnified({ formData, handleInputChange }: Props) {
             <CuscutaFields />
             <Separator />
 
-            <CumplimientoEstandarFields formData={formData} handleInputChange={handleInputChange} />
+            <CumplimientoEstandarFields formData={formData} handleInputChange={handleInputChange ?? (() => {})} />
 
           </TabsContent>
         </Tabs>
