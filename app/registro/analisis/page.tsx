@@ -16,8 +16,6 @@ import { registrarAnalisis } from "@/app/services/analisis-service"
 
 export type AnalysisFormData = {
   loteid: string
-  fechaInicio: string
-  fechaFin: string
   responsable: string
   prioridad: string
   observaciones: string
@@ -26,7 +24,13 @@ export type AnalysisFormData = {
   pesoInicial: string
   semillaPura: string
   materiaInerte: string
+
+  // Otros Cultivos
   otrosCultivos: string
+  otrosCultivosInsti: string
+  otrosCultivosNum: string
+  otrosCultivosIdCatalogo: string
+
   malezas: string
   malezasToleridas: string
   pesoTotal: string
@@ -57,60 +61,48 @@ const analysisTypes = [
 ]
 
 export default function RegistroAnalisisPage() {
-  const [selectedAnalysisType, setSelectedAnalysisType] = useState("")
-  const [selectedLote, setSelectedLote] = useState("")
+  const [selectedAnalysisType, setSelectedAnalysisType] = useState("");
+  const [selectedLote, setSelectedLote] = useState("");
+  // Estados para listados de malezas y cultivos
+  const [malezasList, setMalezasList] = useState<any[]>([]);
+  const [cultivosList, setCultivosList] = useState<any[]>([]);
   const [formData, setFormData] = useState<AnalysisFormData>({
     loteid: "",
-    fechaInicio: "",
-    fechaFin: "",
     responsable: "",
     prioridad: "",
     observaciones: "",
-
-    // Pureza
     pesoInicial: "",
     semillaPura: "",
     materiaInerte: "",
     otrosCultivos: "",
+    otrosCultivosInsti: "",
+    otrosCultivosNum: "",
+    otrosCultivosIdCatalogo: "",
     malezas: "",
     malezasToleridas: "",
     pesoTotal: "",
-
-    // DOSN (INIA)
     iniaFecha: "",
     iniaGramos: "",
     iniaCompleto: false,
     iniaReducido: false,
     iniaLimitado: false,
     iniaReducidoLimitado: false,
-
-    // DOSN (INASE)
     inaseFecha: "",
     inaseGramos: "",
     inaseCompleto: false,
     inaseReducido: false,
     inaseLimitado: false,
     inaseReducidoLimitado: false,
-  })
+  });
 
-  // Tipado correcto (clave del form propio, no el del DOM)
   const handleInputChange = (field: keyof AnalysisFormData, value: string | number | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value as any }))
   }
-
-  type Props = {
-    formData?: any;
-    handleInputChange: (field: string, value: any) => void;
-    dosn?: any;
-    modoDetalle?: boolean;
-  };
-
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  // Normaliza números (si querés que viajen como number)
   const toNum = (v: string) => (v === "" ? undefined : Number(v))
 
   const handleSubmit = async () => {
@@ -128,11 +120,6 @@ export default function RegistroAnalisisPage() {
       setError("Selecciona un lote.")
       return
     }
-    if (!formData.fechaInicio) {
-      setLoading(false)
-      setError("Ingresa la fecha de inicio.")
-      return
-    }
 
     let payload: any = {
       ...formData,
@@ -142,8 +129,6 @@ export default function RegistroAnalisisPage() {
     };
 
     if (selectedAnalysisType === "dosn") {
-      // Datos generales DOSN para backend
-      // Helper para mapear a enum backend
       const mapTipoDosn = (obj: any, prefix: string) => [
         obj[`${prefix}Completo`] ? "COMPLETO" : null,
         obj[`${prefix}Reducido`] ? "REDUCIDO" : null,
@@ -151,10 +136,44 @@ export default function RegistroAnalisisPage() {
         obj[`${prefix}ReducidoLimitado`] ? "REDUCIDO_LIMITADO" : null,
       ].filter(Boolean);
 
+      // Agregar otrosCultivos
+      let cultivosListWithOtros = [...cultivosList];
+      if (formData.otrosCultivos && formData.otrosCultivos !== "") {
+        cultivosListWithOtros.push({
+          listadoTipo: "OTROS",
+          listadoInsti: formData.otrosCultivosInsti || "INIA",
+          listadoNum: Number(formData.otrosCultivosNum) || 1,
+          idCatalogo: formData.otrosCultivosIdCatalogo || null
+        });
+      }
+
+      // mapeo de malezas
+      const mapMalezaTipo = (m: any) => {
+        switch (m.tipoMaleza) {
+          case "tolerancia-cero":
+            return "MAL_TOLERANCIA_CERO";
+          case "con-tolerancia":
+            return "MAL_TOLERANCIA";
+          case "comunes":
+            return "MAL_COMUNES";
+          case "no-contiene":
+            return "MAL_COMUNES";
+          default:
+            return "MAL_COMUNES";
+        }
+      };
+
+      const listados = [
+        ...malezasList.map((m) => ({
+          ...m,
+          listadoTipo: mapMalezaTipo(m),
+          listadoNum: m.numero ? Number(m.numero) : 0, // si no hay valor → 0
+        })),
+        ...cultivosListWithOtros.map((c) => ({ ...c, listadoTipo: "OTROS" })),
+      ];
+
       payload = {
         idLote: formData.loteid,
-        fechaInicio: formData.fechaInicio,
-        fechaFin: formData.fechaFin,
         comentarios: formData.observaciones,
         estado: "REGISTRADO",
         // INIA
@@ -165,6 +184,8 @@ export default function RegistroAnalisisPage() {
         fechaINASE: formData.inaseFecha || null,
         gramosAnalizadosINASE: toNum(formData.inaseGramos),
         tipoINASE: mapTipoDosn(formData, "inase"),
+        // Listados
+        listados,
       };
     } else if (selectedAnalysisType === "pureza") {
       payload = {
@@ -289,24 +310,6 @@ export default function RegistroAnalisisPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="fechaInicio">Fecha de Inicio</Label>
-                  <Input
-                    id="fechaInicio"
-                    type="date"
-                    value={formData.fechaInicio}
-                    onChange={(e) => handleInputChange("fechaInicio", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="fechaFin">Fecha de Fin</Label>
-                  <Input
-                    id="fechaFin"
-                    type="date"
-                    value={formData.fechaFin}
-                    onChange={(e) => handleInputChange("fechaFin", e.target.value)}
-                  />
-                </div>
                 <div>
                   <Label htmlFor="observaciones">Observaciones</Label>
                   <Textarea
@@ -470,6 +473,8 @@ export default function RegistroAnalisisPage() {
             <DosnFields
               formData={formData}
               handleInputChange={handleInputChange as (field: string, value: any) => void}
+              onChangeListadosMalezas={setMalezasList}
+              onChangeListadosCultivos={setCultivosList}
             />
           )}
           <div className="flex flex-col sm:flex-row gap-4 pt-4">

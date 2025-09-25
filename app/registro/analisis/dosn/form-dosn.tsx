@@ -48,9 +48,11 @@ type Props = {
   handleInputChange: (field: string, value: any) => void;
   dosn?: any;
   modoDetalle?: boolean;
+  onChangeListadosMalezas?: (list: any[]) => void;
+  onChangeListadosCultivos?: (list: any[]) => void;
 };
 
-export default function DosnFields({ formData, handleInputChange, dosn, modoDetalle }: Props) {
+export default function DosnFields({ formData, handleInputChange, dosn, modoDetalle, onChangeListadosMalezas, onChangeListadosCultivos }: Props) {
   // Si hay dosn, usarlo como fuente de datos
   const data = dosn || formData || {};
   const isReadOnly = !!modoDetalle;
@@ -59,7 +61,20 @@ export default function DosnFields({ formData, handleInputChange, dosn, modoDeta
     { key: "Reducido", field: "Reducido", description: "Análisis de categorías principales" },
     { key: "Limitado", field: "Limitado", description: "Análisis básico de categorías críticas" },
     { key: "Reducido - Limitado", field: "ReducidoLimitado", description: "Análisis híbrido optimizado" },
-  ]
+  ];
+
+  // Separar listados en malezas y cultivos
+  const listados = dosn?.listados || [];
+  // Separar listados en malezas y cultivos
+  const malezas = listados.filter(
+    (l: any) =>
+      l.listadoTipo === "MAL_TOLERANCIA_CERO" ||
+      l.listadoTipo === "MAL_TOLERANCIA" ||
+      l.listadoTipo === "MAL_COMUNES"
+  );
+
+  const cultivos = listados.filter((l: any) => l.listadoTipo === "OTROS");
+
 
   const renderInstitutionSection = (
     institution: "INIA" | "INASE",
@@ -219,14 +234,20 @@ export default function DosnFields({ formData, handleInputChange, dosn, modoDeta
 
           {/* --- TAB: Registros --- */}
           <TabsContent value="registros" className="space-y-6 mt-6">
-            <MalezaFields titulo="Malezas" />
-            <OtrosCultivosFields />
+            <MalezaFields
+              titulo="Malezas"
+              registros={malezas}
+              onChangeListados={onChangeListadosMalezas}
+            />
+            <OtrosCultivosFields
+              registros={cultivos}
+              onChangeListados={onChangeListadosCultivos}
+            />
             <BrassicaFields />
             <CuscutaFields />
             <Separator />
 
-            <CumplimientoEstandarFields formData={formData} handleInputChange={handleInputChange ?? (() => {})} />
-
+            <CumplimientoEstandarFields formData={formData} handleInputChange={handleInputChange ?? (() => { })} />
           </TabsContent>
         </Tabs>
       </CardContent>
