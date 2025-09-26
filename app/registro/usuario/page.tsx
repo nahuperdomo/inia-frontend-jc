@@ -67,8 +67,6 @@ export default function RegistroUsuarioPage() {
     }, 2000)
   }
 
-  const nombreCompleto = `${formData.nombres} ${formData.apellidos}`.trim()
-
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -91,298 +89,159 @@ export default function RegistroUsuarioPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Form */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Personal Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Información Personal</CardTitle>
-                <CardDescription>Datos personales del usuario</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="nombre">Nombre de Usuario *</Label>
-                    <Input
-                      id="nombre"
-                      placeholder="nombre.usuario"
-                      value={formData.nombre}
-                      onChange={(e) => handleInputChange("nombre", e.target.value)}
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">Nombre único para iniciar sesión</p>
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="usuario@inia.org.uy"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="nombres">Nombres *</Label>
-                    <Input
-                      id="nombres"
-                      placeholder="Juan Carlos"
-                      value={formData.nombres}
-                      onChange={(e) => handleInputChange("nombres", e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="apellidos">Apellidos *</Label>
-                    <Input
-                      id="apellidos"
-                      placeholder="García López"
-                      value={formData.apellidos}
-                      onChange={(e) => handleInputChange("apellidos", e.target.value)}
-                      required
-                    />
-                  </div>
+        <div className="max-w-4xl space-y-6">
+          {/* Personal Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Información Personal</CardTitle>
+              <CardDescription>Datos personales del usuario</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="nombre">Nombre de Usuario *</Label>
+                  <Input
+                    id="nombre"
+                    placeholder="nombre.usuario"
+                    value={formData.nombre}
+                    onChange={(e) => handleInputChange("nombre", e.target.value)}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Nombre único para iniciar sesión</p>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* System Access */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Acceso al Sistema</CardTitle>
-                <CardDescription>Configuración de rol y permisos</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="rol">Rol del Usuario *</Label>
-                    <Select value={formData.rol} onValueChange={(value) => handleInputChange("rol", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar rol" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="analista">Analista</SelectItem>
-                        <SelectItem value="administrador">Administrador</SelectItem>
-                        <SelectItem value="observador">Observador</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formData.rol === "analista" && "Puede registrar muestras y cargar resultados"}
-                      {formData.rol === "administrador" && "Acceso completo al sistema"}
-                      {formData.rol === "observador" && "Solo puede ver resultados y reportes"}
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="estado">Estado del Usuario *</Label>
-                    <Select value={formData.estado} onValueChange={(value) => handleInputChange("estado", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar estado" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="activo">Activo</SelectItem>
-                        <SelectItem value="inactivo">Inactivo</SelectItem>
-                        <SelectItem value="pendiente">Pendiente</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="activo"
-                        checked={formData.activo}
-                        onCheckedChange={(checked) => handleInputChange("activo", checked)}
-                      />
-                      <Label htmlFor="activo">Usuario activo</Label>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Los usuarios inactivos no pueden acceder al sistema
-                    </p>
-                  </div>
+                <div>
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="usuario@inia.org.uy"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    required
+                  />
                 </div>
-              </CardContent>
-            </Card>
+                <div>
+                  <Label htmlFor="nombres">Nombres *</Label>
+                  <Input
+                    id="nombres"
+                    placeholder="Juan Carlos"
+                    value={formData.nombres}
+                    onChange={(e) => handleInputChange("nombres", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="apellidos">Apellidos *</Label>
+                  <Input
+                    id="apellidos"
+                    placeholder="García López"
+                    value={formData.apellidos}
+                    onChange={(e) => handleInputChange("apellidos", e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Password Setup */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Configuración de Contraseña</CardTitle>
-                <CardDescription>Establece la contraseña inicial del usuario</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="password">Contraseña *</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Mínimo 6 caracteres"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange("password", e.target.value)}
-                      required
+          {/* System Access */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Acceso al Sistema</CardTitle>
+              <CardDescription>Configuración de rol y permisos</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="rol">Rol del Usuario *</Label>
+                  <Select value={formData.rol} onValueChange={(value) => handleInputChange("rol", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar rol" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="analista">Analista</SelectItem>
+                      <SelectItem value="administrador">Administrador</SelectItem>
+                      <SelectItem value="observador">Observador</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formData.rol === "analista" && "Puede registrar muestras y cargar resultados"}
+                    {formData.rol === "administrador" && "Acceso completo al sistema"}
+                    {formData.rol === "observador" && "Solo puede ver resultados y reportes"}
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="estado">Estado del Usuario *</Label>
+                  <Select value={formData.estado} onValueChange={(value) => handleInputChange("estado", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="activo">Activo</SelectItem>
+                      <SelectItem value="inactivo">Inactivo</SelectItem>
+                      <SelectItem value="pendiente">Pendiente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="md:col-span-2">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="activo"
+                      checked={formData.activo}
+                      onCheckedChange={(checked) => handleInputChange("activo", checked)}
                     />
+                    <Label htmlFor="activo">Usuario activo</Label>
                   </div>
-                  <div>
-                    <Label htmlFor="confirmPassword">Confirmar Contraseña *</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Repetir contraseña"
-                      value={formData.confirmPassword}
-                      onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                      required
-                    />
-                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Los usuarios inactivos no pueden acceder al sistema
+                  </p>
                 </div>
-                {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                  <p className="text-sm text-destructive">Las contraseñas no coinciden</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Form Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Resumen</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Usuario:</span>
-                    <span className="font-medium">{formData.nombre || "-"}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Nombre:</span>
-                    <span className="font-medium">{nombreCompleto || "-"}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Email:</span>
-                    <span className="font-medium text-xs">{formData.email || "-"}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Rol:</span>
-                    <span className="font-medium capitalize">{formData.rol || "-"}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Estado:</span>
-                    <span className="font-medium capitalize">{formData.estado || "-"}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Activo:</span>
-                    <span className="font-medium">{formData.activo ? "Sí" : "No"}</span>
-                  </div>
+          {/* Password Setup */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Configuración de Contraseña</CardTitle>
+              <CardDescription>Establece la contraseña inicial del usuario</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="password">Contraseña *</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Mínimo 6 caracteres"
+                    value={formData.password}
+                    onChange={(e) => handleInputChange("password", e.target.value)}
+                    required
+                  />
                 </div>
-              </CardContent>
-            </Card>
+                <div>
+                  <Label htmlFor="confirmPassword">Confirmar Contraseña *</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="Repetir contraseña"
+                    value={formData.confirmPassword}
+                    onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                <p className="text-sm text-destructive">Las contraseñas no coinciden</p>
+              )}
+            </CardContent>
+          </Card>
 
-            {/* Role Permissions */}
-            {formData.rol && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Permisos del Rol</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    {formData.rol === "analista" && (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                          <span>Registrar muestras</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                          <span>Asociar análisis</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                          <span>Cargar resultados</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                          <span>Ver tareas pendientes</span>
-                        </div>
-                      </>
-                    )}
-                    {formData.rol === "administrador" && (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                          <span>Acceso completo</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                          <span>Gestionar usuarios</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                          <span>Validar lotes</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                          <span>Generar reportes</span>
-                        </div>
-                      </>
-                    )}
-                    {formData.rol === "observador" && (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-orange-500 rounded-full" />
-                          <span>Ver resultados</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-orange-500 rounded-full" />
-                          <span>Descargar reportes</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-orange-500 rounded-full" />
-                          <span>Ver historial</span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Acciones</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {isLoading ? "Registrando..." : "Registrar Usuario"}
-                </Button>
-                <Button type="button" variant="outline" className="w-full bg-transparent">
-                  Guardar como Borrador
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full"
-                  onClick={() =>
-                    setFormData({
-                      nombre: "",
-                      nombres: "",
-                      apellidos: "",
-                      email: "",
-                      rol: "",
-                      estado: "",
-                      activo: true,
-                      password: "",
-                      confirmPassword: "",
-                    })
-                  }
-                >
-                  Limpiar Formulario
-                </Button>
-              </CardContent>
-            </Card>
+          <div className="flex justify-end">
+            <Button type="submit" disabled={isLoading}>
+              <Save className="h-4 w-4 mr-2" />
+              {isLoading ? "Guardando..." : "Guardar Usuario"}
+            </Button>
           </div>
         </div>
       </form>
