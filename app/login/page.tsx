@@ -18,6 +18,12 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
+  // Función helper para manejar cookies
+  function setCookie(name: string, value: string, days: number = 1) {
+    const maxAge = days * 24 * 60 * 60; // Convertir días a segundos
+    document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; secure; samesite=strict`;
+  }
+
   // Servicio de login
   async function login(usuario: string, password: string) {
     const response = await fetch(`http://localhost:8080/api/v1/auth/login`, {
@@ -26,7 +32,7 @@ export default function LoginPage() {
       body: JSON.stringify({ usuario, password }),
     })
     if (!response.ok) throw new Error(await response.text())
-    return response.json() // Debe devolver { token: "..." }
+    return response.json()
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,7 +40,13 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       const data = await login(credentials.usuario, credentials.password)
-      localStorage.setItem("token", data.token) // Ajusta si tu backend devuelve el token con otro nombre
+
+      // Guardar en localStorage (para uso en el cliente)
+      localStorage.setItem("token", data.token)
+
+      // Guardar en cookies (para que funcione con el middleware)
+      setCookie("token", data.token, 1) // Cookie válida por 1 día
+
       router.push("/dashboard")
     } catch (error) {
       alert("Credenciales incorrectas")

@@ -1,23 +1,58 @@
 import { apiFetch } from "./api";
 
-const TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGhvcml0aWVzIjpbIlJPTEVfQURNSU4iXSwidXNlcklkIjoxLCJlbWFpbCI6ImFkbWluQGluaWEuZ3ViLnV5Iiwibm9tYnJlcyI6IkFkbWluaXN0cmFkb3IiLCJhcGVsbGlkb3MiOiJkZWwgU2lzdGVtYSIsImlhdCI6MTc1ODYzMTI2NiwiZXhwIjoxNzU4NzE3NjY2fQ.OAWsWYSmggpTRn6_lWCU6AiF_9p6u4eS_T9tsX_nRaY";
+interface LoteData {
+    numeroFicha: number
+    ficha: string
+    cultivarID: number
+    tipo: string
+    empresaID: number
+    clienteID: number
+    codigoCC: string
+    codigoFF: string
+    fechaEntrega: string
+    fechaRecibo: string
+    depositoID: number
+    unidadEmbolsado: string
+    remitente: string
+    observaciones: string
+    kilosLimpios: number
+    datosHumedad: Array<{
+        tipoHumedadID: number
+        valor: number
+    }>
+    numeroArticuloID: number
+    cantidad: number
+    origenID: number
+    estadoID: number
+    fechaCosecha: string
+}
 
 export const getLotes = async () => {
-    const response = await apiFetch("/lotes", {
-        headers: {
-            Authorization: `Bearer ${TOKEN}`,
-        },
-    });
-    return response.data;
+    const response = await apiFetch("/api/lotes/activos");
+    return response.lotes || []; // Devolvemos el array de lotes o un array vacío si no hay datos
 };
 
-export const createLote = async (loteData: any) => {
+export const getLoteById = async (id: string) => {
+    const response = await apiFetch(`/api/lotes/${id}`);
+    return response;
+};
+
+export const createLote = async (loteData: LoteData) => {
     return apiFetch("/api/lotes", {
         method: "POST",
         body: JSON.stringify(loteData),
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${TOKEN}`,
-        },
+    });
+};
+
+export const updateLote = async (id: string, loteData: Partial<LoteData>) => {
+    return apiFetch(`/api/lotes/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(loteData),
+    });
+};
+
+export const deleteLote = async (id: string) => {
+    return apiFetch(`/api/lotes/${id}`, {
+        method: "DELETE",
     });
 };

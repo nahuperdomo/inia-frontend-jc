@@ -8,14 +8,20 @@ import { Badge } from "@/components/ui/badge"
 import { Package, Search, Calendar, Building2, Wheat } from "lucide-react"
 
 interface Lot {
-  id: string
-  lote: string
-  numeroReferencia: string
-  especie: string
-  cultivar: string
-  empresa: string
+  loteID: number
+  numeroFicha: number
+  ficha: string
+  tipo: string
+  empresaNombre: string
+  clienteNombre: string
+  codigoCC: string
+  codigoFF: string
+  fechaEntrega: string
   fechaRecibo: string
-  estado: string
+  cultivarNombre: string
+  especieNombre: string
+  observaciones: string
+  activo: boolean
 }
 
 interface LotListProps {
@@ -23,7 +29,7 @@ interface LotListProps {
   onViewDetails: (lot: Lot) => void
 }
 
-export function LotList({ lots, onViewDetails }: LotListProps) {
+export function LotList({ lots = [], onViewDetails }: LotListProps) {
   const [searchTerm, setSearchTerm] = useState("")
 
   const getStatusColor = (estado: string) => {
@@ -39,13 +45,13 @@ export function LotList({ lots, onViewDetails }: LotListProps) {
     }
   }
 
-  const filteredLots = lots.filter(
+  const filteredLots = Array.isArray(lots) ? lots.filter(
     (lot) =>
-      lot.lote.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lot.especie.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lot.cultivar.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lot.empresa.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      lot.ficha?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lot.especieNombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lot.cultivarNombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lot.empresaNombre?.toLowerCase().includes(searchTerm.toLowerCase()),
+  ) : []
 
   return (
     <Card>
@@ -82,7 +88,7 @@ export function LotList({ lots, onViewDetails }: LotListProps) {
             <div className="grid gap-4">
               {filteredLots.map((lot) => (
                 <div
-                  key={lot.id}
+                  key={lot.loteID}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-4">
@@ -91,19 +97,19 @@ export function LotList({ lots, onViewDetails }: LotListProps) {
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <h4 className="font-medium">{lot.lote}</h4>
+                        <h4 className="font-medium">Ficha #{lot.numeroFicha}</h4>
                         <Badge variant="outline" className="text-xs">
-                          {lot.numeroReferencia}
+                          {lot.ficha}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Wheat className="h-3 w-3" />
-                          {lot.especie} - {lot.cultivar}
+                          {lot.especieNombre} - {lot.cultivarNombre}
                         </span>
                         <span className="flex items-center gap-1">
                           <Building2 className="h-3 w-3" />
-                          {lot.empresa}
+                          {lot.empresaNombre}
                         </span>
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
@@ -113,7 +119,7 @@ export function LotList({ lots, onViewDetails }: LotListProps) {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Badge className={getStatusColor(lot.estado)}>{lot.estado}</Badge>
+                    <Badge className={getStatusColor(lot.activo ? "Activo" : "Inactivo")}>{lot.activo ? "Activo" : "Inactivo"}</Badge>
                     <Button variant="ghost" size="sm" onClick={() => onViewDetails(lot)}>
                       Ver detalles
                     </Button>

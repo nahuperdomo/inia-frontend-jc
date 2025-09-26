@@ -2,18 +2,19 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Package } from "lucide-react"
 import Link from "next/link"
+import { Toaster, toast } from 'sonner'
 
 import { LotFormTabs } from "@/components/lotes/lot-form-tabs"
 import { LotList } from "@/components/lotes/lot-list"
 import { LotDetailsModal } from "@/components/lotes/lot-details-modal"
 import { AnalysisModal } from "@/components/lotes/analysis-modal"
 
-import { createLote } from "@/app/services/lotes-service"
+import { createLote, getLotes } from "@/app/services/lotes-service"
 
 interface LoteFormData {
   numeroFicha: number | ""
@@ -27,7 +28,7 @@ interface LoteFormData {
   fechaEntrega: string
   fechaRecibo: string
   depositoID: number | ""
-  unidadEmbalado: string
+  unidadEmbolsado: string
   remitente: string
   observaciones: string
   kilosLimpios: number | ""
@@ -35,7 +36,11 @@ interface LoteFormData {
     tipoHumedadID: number | ""
     valor: number | ""
   }>
-  // Agrega aquí otros campos según el backend (numeroArticuloID, cantidad, origen, estado, fechaCosecha, etc.)
+  numeroArticuloID: number | ""
+  cantidad: number | ""
+  origenID: number | ""
+  estadoID: number | ""
+  fechaCosecha: string
 }
 
 export default function RegistroLotesPage() {
@@ -50,7 +55,7 @@ export default function RegistroLotesPage() {
     numeroFicha: "",
     ficha: "",
     cultivarID: "",
-    tipo: "",
+    tipo: "INTERNO",
     empresaID: "",
     clienteID: "",
     codigoCC: "",
@@ -58,7 +63,7 @@ export default function RegistroLotesPage() {
     fechaEntrega: "",
     fechaRecibo: "",
     depositoID: "",
-    unidadEmbalado: "",
+    unidadEmbolsado: "",
     remitente: "",
     observaciones: "",
     kilosLimpios: "",
@@ -70,39 +75,26 @@ export default function RegistroLotesPage() {
     ],
     numeroArticuloID: "",
     cantidad: "",
-    origen: "",
-    estado: "",
+    origenID: "",
+    estadoID: "",
     fechaCosecha: "",
   })
 
-  const recentLots = [
-    {
-      id: "1",
-      lote: "SOJ-2024-001",
-      numeroReferencia: "REF-001",
-      numeroFicha: "F-001",
-      ficha: "001",
-      cultivar: "DM 4670",
-      tipo: "Comercial",
-      especie: "Soja",
-      origen: "Nacional",
-      empresa: "AgroSemillas SA",
-      cliente: "Cooperativa Norte",
-      codigoCC: "CC-001",
-      codigoFF: "FF-001",
-      fechaEntrega: "2024-01-10",
-      fechaRecibo: "2024-01-12",
-      depositoAsignado: "Depósito A",
-      unidadEmbalado: "Bolsas",
-      resultados: "Aprobado",
-      observaciones: "Lote en excelente estado",
-      kilosBrutos: "1000",
-      humedad: "12.5",
-      catSeed: "CS-001",
-      estado: "Activo",
-      hasAnalysis: false,
+  const [recentLots, setRecentLots] = useState<any[]>([])
+
+  useEffect(() => {
+    loadRecentLots()
+  }, [])
+
+  const loadRecentLots = async () => {
+    try {
+      const response = await getLotes()
+      setRecentLots(response)
+      console.log("Lotes recientes cargados:", response)
+    } catch (error) {
+      console.error('Error al cargar lotes:', error)
     }
-  ]
+  }
 
   const handleInputChange = (field: keyof LoteFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -112,10 +104,68 @@ export default function RegistroLotesPage() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      await createLote(formData)
-      router.push("/registro")
+      // Transformar los datos del formulario al formato esperado por el backend
+      const loteData = {
+        ...formData,
+        numeroFicha: Number(formData.numeroFicha),
+        cultivarID: Number(formData.cultivarID),
+        empresaID: Number(formData.empresaID),
+        clienteID: Number(formData.clienteID),
+        depositoID: Number(formData.depositoID),
+        kilosLimpios: Number(formData.kilosLimpios),
+        numeroArticuloID: Number(formData.numeroArticuloID),
+        cantidad: Number(formData.cantidad),
+        origenID: Number(formData.origenID),
+        estadoID: Number(formData.estadoID),
+        fechaEntrega: formData.fechaEntrega,
+        fechaRecibo: formData.fechaRecibo,
+        fechaCosecha: formData.fechaCosecha,
+        datosHumedad: formData.datosHumedad.map(h => ({
+          tipoHumedadID: Number(h.tipoHumedadID),
+          valor: Number(h.valor)
+        }))
+      }
+      const response = await createLote(loteData)
+      toast.success('Lote registrado exitosamente', {
+        description: `Se ha creado el lote con número de ficha ${formData.numeroFicha}`,
+      })
+      // Limpiamos el formulario
+      setFormData({
+        numeroFicha: "",
+        ficha: "",
+        cultivarID: "",
+        tipo: "INTERNO",
+        empresaID: "",
+        clienteID: "",
+        codigoCC: "",
+        codigoFF: "",
+        fechaEntrega: "",
+        fechaRecibo: "",
+        depositoID: "",
+        unidadEmbolsado: "",
+        remitente: "",
+        observaciones: "",
+        kilosLimpios: "",
+        datosHumedad: [
+          {
+            tipoHumedadID: "",
+            valor: "",
+          },
+        ],
+        numeroArticuloID: "",
+        cantidad: "",
+        origenID: "",
+        estadoID: "",
+        fechaCosecha: "",
+      })
+      // Regresamos a la primera pestaña
+      setActiveTab("datos")
+      // Recargamos la lista de lotes
+      await loadRecentLots()
     } catch (error) {
-      // Maneja el error (puedes mostrar un toast, alerta, etc.)
+      toast.error('Error al registrar el lote', {
+        description: 'Por favor, verifica los datos e intenta nuevamente',
+      })
       console.error("Error al registrar lote:", error)
     } finally {
       setIsLoading(false)
@@ -192,7 +242,12 @@ export default function RegistroLotesPage() {
         </div>
       </form>
 
-      <LotList lots={recentLots} onViewDetails={handleViewDetails} />
+      <Toaster richColors />
+
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Últimos lotes registrados</h2>
+        <LotList lots={recentLots} onViewDetails={handleViewDetails} />
+      </div>
 
       <LotDetailsModal
         isOpen={isModalOpen}

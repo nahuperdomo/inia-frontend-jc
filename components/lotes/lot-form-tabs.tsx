@@ -113,11 +113,19 @@ export function LotFormTabs({ formData, onInputChange, activeTab, onTabChange }:
               </div>
               <div>
                 <Label htmlFor="tipo">Tipo</Label>
-                <Input
-                  id="tipo"
+                <Select
                   value={formData.tipo}
-                  onChange={e => onInputChange("tipo", e.target.value)}
-                />
+                  onValueChange={value => onInputChange("tipo", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="INTERNO">Interno</SelectItem>
+                    <SelectItem value="OTROS_CENTROS_COSTOS">Otros Centros de Costos</SelectItem>
+                    <SelectItem value="EXTERNOS">Externos</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </TabsContent>
