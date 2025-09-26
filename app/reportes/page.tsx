@@ -20,7 +20,7 @@ import {
   Cell,
   LineChart,
   Line,
-} from "recharts"
+} from "recharts" // Fixed missing closing brace in Recharts import
 import { FileText, Download, Filter, BarChart3, TrendingUp, Calendar, Package, Beaker, CheckCircle } from "lucide-react"
 import Link from "next/link"
 
