@@ -533,33 +533,35 @@ export default function RegistroAnalisisPage() {
               <CardHeader>
                 <CardTitle className="text-green-800">Campos Específicos - Germinación</CardTitle>
                 <p className="text-sm text-green-700">
-                  Configura los parámetros básicos para el análisis de germinación
+                  Configura los parámetros básicos para el análisis de germinación según GerminacionRequestDTO
                 </p>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="fechaInicioGerm">Fecha Inicio Germinación</Label>
+                    <Label htmlFor="fechaInicioGerm">Fecha Inicio Germinación *</Label>
                     <Input
                       id="fechaInicioGerm"
                       type="date"
                       value={formData.fechaInicioGerm}
                       onChange={(e) => handleInputChange("fechaInicioGerm", e.target.value)}
+                      required
                     />
-                    <p className="text-xs text-muted-foreground mt-1">Fecha de inicio del ensayo</p>
+                    <p className="text-xs text-muted-foreground mt-1">Fecha de inicio del ensayo (requerida)</p>
                   </div>
                   <div>
-                    <Label htmlFor="fechaUltConteo">Fecha Último Conteo</Label>
+                    <Label htmlFor="fechaUltConteo">Fecha Último Conteo *</Label>
                     <Input
                       id="fechaUltConteo"
                       type="date"
                       value={formData.fechaUltConteo}
                       onChange={(e) => handleInputChange("fechaUltConteo", e.target.value)}
+                      required
                     />
-                    <p className="text-xs text-muted-foreground mt-1">Fecha del último conteo programado</p>
+                    <p className="text-xs text-muted-foreground mt-1">Fecha del último conteo programado (requerida)</p>
                   </div>
                   <div>
-                    <Label htmlFor="numeroRepeticiones">Número de Repeticiones</Label>
+                    <Label htmlFor="numeroRepeticiones">Número de Repeticiones *</Label>
                     <Select
                       value={formData.numeroRepeticiones}
                       onValueChange={(v) => handleInputChange("numeroRepeticiones", v)}
@@ -573,45 +575,54 @@ export default function RegistroAnalisisPage() {
                         <SelectItem value="8">8 repeticiones</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground mt-1">Controla cuántas RepGerm crear</p>
+                    <p className="text-xs text-muted-foreground mt-1">Controla cuántas RepGerm crear &gt; 0</p>
                   </div>
                   <div>
-                    <Label htmlFor="numeroConteos">Número de Conteos</Label>
-                    <Select value={formData.numeroConteos} onValueChange={(v) => handleInputChange("numeroConteos", v)}>
+                    <Label htmlFor="numeroConteos">Número de Conteos *</Label>
+                    <Select
+                      value={formData.numeroConteos}
+                      onValueChange={(v) => {
+                        handleInputChange("numeroConteos", v)
+                        const newFechas = Array(Number.parseInt(v) || 0).fill("")
+                        handleInputChange("fechaConteos", newFechas)
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Seleccionar conteos" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="3">3 conteos</SelectItem>
                         <SelectItem value="5">5 conteos</SelectItem>
                         <SelectItem value="7">7 conteos</SelectItem>
                         <SelectItem value="10">10 conteos</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground mt-1">Controla el tamaño del array normales[]</p>
+                    <p className="text-xs text-muted-foreground mt-1">Controla el tamaño del array normales[] &gt; 0</p>
                   </div>
                   <div>
-                    <Label htmlFor="numDias">Número de Días</Label>
+                    <Label htmlFor="numDias">Número de Días *</Label>
                     <Input
                       id="numDias"
                       type="text"
                       placeholder="ej: 7, 14, 21"
                       value={formData.numDias}
                       onChange={(e) => handleInputChange("numDias", e.target.value)}
+                      required
                     />
-                    <p className="text-xs text-muted-foreground mt-1">Duración total del ensayo</p>
+                    <p className="text-xs text-muted-foreground mt-1">Duración total del ensayo (requerido)</p>
                   </div>
                 </div>
 
                 <div>
-                  <Label>Fechas de Conteo</Label>
+                  <Label>Fechas de Conteo * (Array no-null)</Label>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Define las fechas específicas para cada conteo (array no-null)
+                    Define las fechas específicas para cada conteo. Todas las fechas son obligatorias.
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                     {Array.from({ length: Number.parseInt(formData.numeroConteos) || 7 }, (_, i) => (
                       <div key={i}>
                         <Label htmlFor={`fechaConteo-${i}`} className="text-sm">
-                          Conteo {i + 1}
+                          Conteo {i + 1} *
                         </Label>
                         <Input
                           id={`fechaConteo-${i}`}
@@ -622,9 +633,18 @@ export default function RegistroAnalisisPage() {
                             newFechas[i] = e.target.value
                             handleInputChange("fechaConteos", newFechas)
                           }}
+                          required
                         />
                       </div>
                     ))}
+                  </div>
+                  <div className="mt-2">
+                    {formData.fechaConteos.filter((f) => f !== "").length > 0 && (
+                      <p className="text-xs text-green-600">
+                        ✓ {formData.fechaConteos.filter((f) => f !== "").length} de {formData.numeroConteos} fechas
+                        completadas
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -636,8 +656,24 @@ export default function RegistroAnalisisPage() {
                     <ul className="space-y-1">
                       <li>• Se crearán {formData.numeroRepeticiones} repeticiones automáticamente</li>
                       <li>• Cada repetición tendrá un array normales[] de {formData.numeroConteos} posiciones</li>
-                      <li>• Las fechas de conteo son obligatorias para el proceso</li>
-                      <li>• Después del registro, podrás acceder al flujo de trabajo completo</li>
+                      <li>• Las fechas de conteo son obligatorias (array no-null)</li>
+                      <li>• Después del registro, podrás gestionar tablas y repeticiones en el flujo completo</li>
+                      <li>• Los campos marcados con * son requeridos por el GerminacionRequestDTO</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-blue-50 border-blue-200">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-blue-800 text-sm">Próximos Pasos</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm text-blue-700">
+                    <p>Una vez registrado el análisis, podrás acceder al flujo completo que incluye:</p>
+                    <ul className="mt-2 space-y-1">
+                      <li>• Gestión de Tablas de Germinación (TablaGermRequestDTO)</li>
+                      <li>• Sistema de Repeticiones por Tabla (RepGermRequestDTO)</li>
+                      <li>• Cálculos automáticos y validaciones</li>
+                      <li>• Seguimiento del progreso paso a paso</li>
                     </ul>
                   </CardContent>
                 </Card>
