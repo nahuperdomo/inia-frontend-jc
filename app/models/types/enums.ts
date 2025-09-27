@@ -17,3 +17,5 @@ export type TipoEspecie = 'CULTIVADA' | 'MALEZA' | 'OTRA';
 export type EstadoLote = 'ACTIVO' | 'INACTIVO' | 'COMPLETADO';
 
 export type TipoAnalisis = 'PUREZA' | 'GERMINACION' | 'PMS' | 'TETRAZOLIO' | 'DOSN';
+
+export type TipoContacto = 'CLIENTE' | 'EMPRESA';

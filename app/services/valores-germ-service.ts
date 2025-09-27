@@ -1,29 +1,5 @@
 import { apiFetch } from "./api";
-
-
-export interface ValoresGermDTO {
-  valoresGermID: number;
-  instituto: 'INIA' | 'INASE';
-  normales: number;
-  anormales: number;
-  duras: number;
-  frescas: number;
-  muertas: number;
-  total: number;
-  tablaGerm?: {
-    tablaGermID: number;
-  };
-}
-
-export interface ValoresGermRequestDTO {
-  instituto: 'INIA' | 'INASE';
-  normales: number;
-  anormales: number;
-  duras: number;
-  frescas: number;
-  muertas: number;
-  total: number;
-}
+import { ValoresGermDTO, ValoresGermRequestDTO } from "../models";
 
 // Funciones de ValoresGerm
 export async function obtenerValoresPorId(

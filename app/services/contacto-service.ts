@@ -1,24 +1,5 @@
 import { apiFetch } from "./api";
-
-export interface ContactoDTO {
-  contactoID: number;
-  nombre: string;
-  telefono?: string;
-  email?: string;
-  direccion?: string;
-  tipoContacto: 'CLIENTE' | 'EMPRESA';
-  activo: boolean;
-  fechaCreacion: string;
-  fechaModificacion?: string;
-}
-
-export interface ContactoRequestDTO {
-  nombre: string;
-  telefono?: string;
-  email?: string;
-  direccion?: string;
-  tipoContacto: 'CLIENTE' | 'EMPRESA';
-}
+import { ContactoDTO, ContactoRequestDTO } from "../models";
 
 // Funciones de contacto
 export async function obtenerTodosLosContactos(): Promise<ContactoDTO[]> {
