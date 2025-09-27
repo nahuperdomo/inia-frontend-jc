@@ -10,6 +10,7 @@ import { ArrowLeft, Calendar, User, Thermometer, Droplets, Save, CheckCircle, Al
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { GerminacionWorkflow } from "@/components/germinacion/germinacion-workflow"
+import { AnalysisStateProvider } from "@/components/germinacion/analysis-state-provider"
 
 // Interfaces basadas en la arquitectura descrita
 interface GerminacionAnalysis {
@@ -188,220 +189,227 @@ export default function GerminacionAnalysisPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/listado/analisis/germinacion">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver al Listado
+    <AnalysisStateProvider analysisId={analysisId}>
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/listado/analisis/germinacion">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Volver al Listado
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold text-balance">Análisis de Germinación</h1>
+              <p className="text-muted-foreground text-pretty">
+                ID: {analysis?.id || analysisId} - {analysis?.loteName || "Cargando..."}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline">
+              <Save className="h-4 w-4 mr-2" />
+              Guardar Progreso
             </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-balance">Análisis de Germinación</h1>
-            <p className="text-muted-foreground text-pretty">
-              ID: {analysis.id} - {analysis.loteName}
-            </p>
+            <Button>
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Finalizar Análisis
+            </Button>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Save className="h-4 w-4 mr-2" />
-            Guardar Progreso
-          </Button>
-          <Button>
-            <CheckCircle className="h-4 w-4 mr-2" />
-            Finalizar Análisis
-          </Button>
-        </div>
-      </div>
 
-      {/* Progress Indicator */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
-            Progreso del Análisis
-          </CardTitle>
-          <CardDescription>
-            Estado actual: <Badge variant={getEstadoBadgeVariant(analysis.estado)}>{analysis.estado}</Badge>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Progress value={getStepProgress()} className="w-full" />
-            <div className="grid grid-cols-8 gap-2 text-xs">
-              <div className="text-center">
-                <div className="font-medium">Paso 1</div>
-                <div className="text-muted-foreground">Registro</div>
-              </div>
-              <div className="text-center">
-                <div className="font-medium">Paso 2</div>
-                <div className="text-muted-foreground">Tablas</div>
-              </div>
-              <div className="text-center">
-                <div className="font-medium">Paso 3</div>
-                <div className="text-muted-foreground">Repeticiones</div>
-              </div>
-              <div className="text-center">
-                <div className="font-medium">Paso 4</div>
-                <div className="text-muted-foreground">Cálculos</div>
-              </div>
-              <div className="text-center">
-                <div className="font-medium">Paso 5</div>
-                <div className="text-muted-foreground">Porcentajes</div>
-              </div>
-              <div className="text-center">
-                <div className="font-medium">Paso 6</div>
-                <div className="text-muted-foreground">Finalizar</div>
-              </div>
-              <div className="text-center">
-                <div className="font-medium">Paso 7</div>
-                <div className="text-muted-foreground">Institutos</div>
-              </div>
-              <div className="text-center">
-                <div className="font-medium">Paso 8</div>
-                <div className="text-muted-foreground">Aprobación</div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Analysis Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Progress Indicator */}
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Lote</p>
-                <p className="text-2xl font-bold">{analysis.loteId}</p>
-                <p className="text-sm text-muted-foreground">{analysis.loteName}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Condiciones</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <Thermometer className="h-4 w-4 text-red-500" />
-                  <span className="text-sm">{analysis.temperatura}</span>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Progreso del Análisis
+            </CardTitle>
+            <CardDescription>
+              Estado actual:{" "}
+              <Badge variant={getEstadoBadgeVariant(analysis?.estado || "REGISTRADO")}>
+                {analysis?.estado || "REGISTRADO"}
+              </Badge>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Progress value={getStepProgress()} className="w-full" />
+              <div className="grid grid-cols-8 gap-2 text-xs">
+                <div className="text-center">
+                  <div className="font-medium">Paso 1</div>
+                  <div className="text-muted-foreground">Registro</div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Droplets className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm">{analysis.humedad}</span>
+                <div className="text-center">
+                  <div className="font-medium">Paso 2</div>
+                  <div className="text-muted-foreground">Tablas</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-medium">Paso 3</div>
+                  <div className="text-muted-foreground">Repeticiones</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-medium">Paso 4</div>
+                  <div className="text-muted-foreground">Cálculos</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-medium">Paso 5</div>
+                  <div className="text-muted-foreground">Porcentajes</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-medium">Paso 6</div>
+                  <div className="text-muted-foreground">Finalizar</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-medium">Paso 7</div>
+                  <div className="text-muted-foreground">Institutos</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-medium">Paso 8</div>
+                  <div className="text-muted-foreground">Aprobación</div>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Configuración</p>
-                <p className="text-lg font-bold">{analysis.numeroRepeticiones} repeticiones</p>
-                <p className="text-sm text-muted-foreground">{analysis.numeroConteos} conteos</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Analista</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <User className="h-4 w-4" />
-                  <span className="text-sm font-medium">{analysis.analyst}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span className="text-sm">{new Date(analysis.fechaInicio).toLocaleDateString("es-ES")}</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="workflow" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="workflow">Flujo de Trabajo</TabsTrigger>
-          <TabsTrigger value="tables">Gestión de Tablas</TabsTrigger>
-          <TabsTrigger value="results">Resultados</TabsTrigger>
-          <TabsTrigger value="history">Historial</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="workflow" className="space-y-4">
-          <GerminacionWorkflow
-            analysisId={analysisId}
-            initialStep={1}
-            onStepChange={(step) => console.log("[v0] Step changed to:", step)}
-            onSave={(data) => console.log("[v0] Workflow data saved:", data)}
-          />
-        </TabsContent>
-
-        <TabsContent value="tables" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestión de Tablas de Germinación</CardTitle>
-              <CardDescription>Administra las tablas y repeticiones del análisis</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
-                  El sistema de gestión de tablas se implementará en el siguiente paso.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="results" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Resultados del Análisis</CardTitle>
-              <CardDescription>Visualiza los resultados finales y valores por instituto</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Los resultados se mostrarán una vez completado el análisis.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="history" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Historial de Cambios</CardTitle>
-              <CardDescription>Registro de todas las modificaciones realizadas al análisis</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Análisis creado</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(analysis.fechaInicio).toLocaleString("es-ES")} - {analysis.analyst}
-                    </p>
+        {/* Analysis Info Cards */}
+        {analysis && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Lote</p>
+                    <p className="text-2xl font-bold">{analysis.loteId}</p>
+                    <p className="text-sm text-muted-foreground">{analysis.loteName}</p>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Condiciones</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Thermometer className="h-4 w-4 text-red-500" />
+                      <span className="text-sm">{analysis.temperatura}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Droplets className="h-4 w-4 text-blue-500" />
+                      <span className="text-sm">{analysis.humedad}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Configuración</p>
+                    <p className="text-lg font-bold">{analysis.numeroRepeticiones} repeticiones</p>
+                    <p className="text-sm text-muted-foreground">{analysis.numeroConteos} conteos</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Analista</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <User className="h-4 w-4" />
+                      <span className="text-sm font-medium">{analysis.analyst}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span className="text-sm">{new Date(analysis.fechaInicio).toLocaleDateString("es-ES")}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="workflow" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="workflow">Flujo de Trabajo</TabsTrigger>
+            <TabsTrigger value="tables">Gestión de Tablas</TabsTrigger>
+            <TabsTrigger value="results">Resultados</TabsTrigger>
+            <TabsTrigger value="history">Historial</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="workflow" className="space-y-4">
+            <GerminacionWorkflow
+              analysisId={analysisId}
+              initialStep={1}
+              onStepChange={(step) => setCurrentStep(step)}
+              onSave={(data) => console.log("[v0] Workflow data saved:", data)}
+            />
+          </TabsContent>
+
+          <TabsContent value="tables" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestión de Tablas de Germinación</CardTitle>
+                <CardDescription>Administra las tablas y repeticiones del análisis</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">
+                    El sistema de gestión de tablas se implementará en el siguiente paso.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="results" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Resultados del Análisis</CardTitle>
+                <CardDescription>Visualiza los resultados finales y valores por instituto</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Los resultados se mostrarán una vez completado el análisis.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="history" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Historial de Cambios</CardTitle>
+                <CardDescription>Registro de todas las modificaciones realizadas al análisis</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-3 border rounded-lg">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Análisis creado</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(analysis.fechaInicio).toLocaleString("es-ES")} - {analysis.analyst}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </AnalysisStateProvider>
   )
 }

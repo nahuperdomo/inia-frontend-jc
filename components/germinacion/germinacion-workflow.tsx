@@ -26,6 +26,7 @@ import { TableManagement } from "@/components/germinacion/table-management" // I
 import { RepetitionDataEntry } from "@/components/germinacion/repetition-data-entry"
 import { CalculationEngine } from "@/components/germinacion/calculation-engine"
 import { InstituteValuesEditor } from "@/components/germinacion/institute-values-editor"
+import { useAnalysisState, analysisUtils } from "@/components/germinacion/analysis-state-provider"
 
 interface WorkflowStep {
   id: number
@@ -43,108 +44,19 @@ interface GerminacionWorkflowProps {
 }
 
 export function GerminacionWorkflow({ analysisId, initialStep = 1, onStepChange, onSave }: GerminacionWorkflowProps) {
+  const { state, dispatch, saveAnalysis } = useAnalysisState()
   const [currentStep, setCurrentStep] = useState(initialStep)
-  const [workflowData, setWorkflowData] = useState<any>({
-    // Paso 1: Configuración inicial
-    numeroRepeticiones: 4,
-    numeroConteos: 7,
-    fechaConteos: [],
-
-    // Paso 2: Tablas
-    tablas: [],
-
-    // Paso 3: Repeticiones
-    repeticiones: {},
-
-    // Paso 4: Cálculos automáticos
-    calculosRealizados: false,
-    calculationResults: [],
-    tableSummaries: [],
-
-    // Paso 5: Porcentajes manuales
-    porcentajesIngresados: false,
-
-    // Paso 6: Finalización de tablas
-    tablasFinalizada: false,
-
-    // Paso 7: Valores por instituto
-    valoresInstituto: {
-      INIA: {},
-      INASE: {},
-    },
-
-    // Paso 8: Estado final
-    estadoFinal: "REGISTRADO",
-  })
-
-  const steps: WorkflowStep[] = [
-    {
-      id: 1,
-      title: "Configuración Inicial",
-      description: "Definir parámetros básicos del análisis",
-      icon: Settings,
-      status: currentStep === 1 ? "in-progress" : currentStep > 1 ? "completed" : "pending",
-    },
-    {
-      id: 2,
-      title: "Creación de Tablas",
-      description: "Configurar tablas con parámetros de tratamiento",
-      icon: Plus,
-      status: currentStep === 2 ? "in-progress" : currentStep > 2 ? "completed" : "pending",
-    },
-    {
-      id: 3,
-      title: "Registro de Repeticiones",
-      description: "Ingresar conteos por fecha para cada repetición",
-      icon: FileCheck,
-      status: currentStep === 3 ? "in-progress" : currentStep > 3 ? "completed" : "pending",
-    },
-    {
-      id: 4,
-      title: "Cálculos Automáticos",
-      description: "Generar totales y promedios automáticamente",
-      icon: Calculator,
-      status: currentStep === 4 ? "in-progress" : currentStep > 4 ? "completed" : "pending",
-    },
-    {
-      id: 5,
-      title: "Porcentajes Manuales",
-      description: "Ingresar porcentajes con redondeo (deben sumar 100%)",
-      icon: Percent,
-      status: currentStep === 5 ? "in-progress" : currentStep > 5 ? "completed" : "pending",
-    },
-    {
-      id: 6,
-      title: "Finalización de Tablas",
-      description: "Marcar tablas como finalizadas",
-      icon: CheckCircle,
-      status: currentStep === 6 ? "in-progress" : currentStep > 6 ? "completed" : "pending",
-    },
-    {
-      id: 7,
-      title: "Valores por Instituto",
-      description: "Editar valores INIA/INASE",
-      icon: Building,
-      status: currentStep === 7 ? "in-progress" : currentStep > 7 ? "completed" : "pending",
-    },
-    {
-      id: 8,
-      title: "Finalización",
-      description: "Cambiar estado a PENDIENTE_APROBACION o APROBADO",
-      icon: AlertTriangle,
-      status: currentStep === 8 ? "in-progress" : "pending",
-    },
-  ]
 
   const handleStepChange = (newStep: number) => {
-    if (newStep >= 1 && newStep <= 8) {
+    if (newStep >= 1 && newStep <= 8 && analysisUtils.canAccessStep(state, newStep)) {
       setCurrentStep(newStep)
+      dispatch({ type: "SET_CURRENT_STEP", payload: newStep })
       onStepChange?.(newStep)
     }
   }
 
   const handleNext = () => {
-    if (currentStep < 8) {
+    if (currentStep < 8 && analysisUtils.canAccessStep(state, currentStep + 1)) {
       handleStepChange(currentStep + 1)
     }
   }
@@ -155,36 +67,96 @@ export function GerminacionWorkflow({ analysisId, initialStep = 1, onStepChange,
     }
   }
 
-  const handleSave = () => {
-    onSave?.(workflowData)
+  const handleSave = async () => {
+    await saveAnalysis()
+    onSave?.(state)
   }
 
   const getStepProgress = () => {
-    return (currentStep / 8) * 100
+    return analysisUtils.getOverallProgress(state)
   }
 
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return <Step1ConfiguracionInicial data={workflowData} onChange={setWorkflowData} />
+        return <Step1ConfiguracionInicial />
       case 2:
-        return <Step2CreacionTablas data={workflowData} onChange={setWorkflowData} />
+        return <Step2CreacionTablas />
       case 3:
-        return <Step3RegistroRepeticiones data={workflowData} onChange={setWorkflowData} />
+        return <Step3RegistroRepeticiones />
       case 4:
-        return <Step4CalculosAutomaticos data={workflowData} onChange={setWorkflowData} />
+        return <Step4CalculosAutomaticos />
       case 5:
-        return <Step5PorcentajesManuales data={workflowData} onChange={setWorkflowData} />
+        return <Step5PorcentajesManuales />
       case 6:
-        return <Step6FinalizacionTablas data={workflowData} onChange={setWorkflowData} />
+        return <Step6FinalizacionTablas />
       case 7:
-        return <Step7ValoresInstituto data={workflowData} onChange={setWorkflowData} />
+        return <Step7ValoresInstituto />
       case 8:
-        return <Step8Finalizacion data={workflowData} onChange={setWorkflowData} />
+        return <Step8Finalizacion />
       default:
         return null
     }
   }
+
+  const steps: WorkflowStep[] = [
+    {
+      id: 1,
+      title: "Configuración Inicial",
+      description: "Definir parámetros básicos del análisis",
+      icon: Settings,
+      status: analysisUtils.getStepStatus(state, 1),
+    },
+    {
+      id: 2,
+      title: "Creación de Tablas",
+      description: "Configurar tablas con parámetros de tratamiento",
+      icon: Plus,
+      status: analysisUtils.getStepStatus(state, 2),
+    },
+    {
+      id: 3,
+      title: "Registro de Repeticiones",
+      description: "Ingresar conteos por fecha para cada repetición",
+      icon: FileCheck,
+      status: analysisUtils.getStepStatus(state, 3),
+    },
+    {
+      id: 4,
+      title: "Cálculos Automáticos",
+      description: "Generar totales y promedios automáticamente",
+      icon: Calculator,
+      status: analysisUtils.getStepStatus(state, 4),
+    },
+    {
+      id: 5,
+      title: "Porcentajes Manuales",
+      description: "Ingresar porcentajes con redondeo (deben sumar 100%)",
+      icon: Percent,
+      status: analysisUtils.getStepStatus(state, 5),
+    },
+    {
+      id: 6,
+      title: "Finalización de Tablas",
+      description: "Marcar tablas como finalizadas",
+      icon: CheckCircle,
+      status: analysisUtils.getStepStatus(state, 6),
+    },
+    {
+      id: 7,
+      title: "Valores por Instituto",
+      description: "Editar valores INIA/INASE",
+      icon: Building,
+      status: analysisUtils.getStepStatus(state, 7),
+    },
+    {
+      id: 8,
+      title: "Finalización",
+      description: "Cambiar estado a PENDIENTE_APROBACION o APROBADO",
+      icon: AlertTriangle,
+      status: analysisUtils.getStepStatus(state, 8),
+    },
+  ]
 
   return (
     <div className="space-y-6">
@@ -243,7 +215,10 @@ export function GerminacionWorkflow({ analysisId, initialStep = 1, onStepChange,
             Guardar Progreso
           </Button>
 
-          <Button onClick={handleNext} disabled={currentStep === 8}>
+          <Button
+            onClick={handleNext}
+            disabled={currentStep === 8 || !analysisUtils.canAccessStep(state, currentStep + 1)}
+          >
             Siguiente
             <ChevronRight className="h-4 w-4 ml-2" />
           </Button>
@@ -253,10 +228,13 @@ export function GerminacionWorkflow({ analysisId, initialStep = 1, onStepChange,
   )
 }
 
-// Componentes para cada paso del workflow
-function Step1ConfiguracionInicial({ data, onChange }: { data: any; onChange: (data: any) => void }) {
+function Step1ConfiguracionInicial() {
+  const { state, dispatch } = useAnalysisState()
+
   const handleChange = (field: string, value: any) => {
-    onChange({ ...data, [field]: value })
+    if (field === "fechaConteos") {
+      dispatch({ type: "SET_FECHAS_CONTEO", payload: value })
+    }
   }
 
   return (
@@ -264,10 +242,7 @@ function Step1ConfiguracionInicial({ data, onChange }: { data: any; onChange: (d
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <Label htmlFor="numeroRepeticiones">Número de Repeticiones</Label>
-          <Select
-            value={data.numeroRepeticiones?.toString()}
-            onValueChange={(value) => handleChange("numeroRepeticiones", Number.parseInt(value))}
-          >
+          <Select value="4" onValueChange={(value) => console.log("[v0] Repeticiones:", value)}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar número de repeticiones" />
             </SelectTrigger>
@@ -282,10 +257,7 @@ function Step1ConfiguracionInicial({ data, onChange }: { data: any; onChange: (d
 
         <div>
           <Label htmlFor="numeroConteos">Número de Conteos</Label>
-          <Select
-            value={data.numeroConteos?.toString()}
-            onValueChange={(value) => handleChange("numeroConteos", Number.parseInt(value))}
-          >
+          <Select value="7" onValueChange={(value) => console.log("[v0] Conteos:", value)}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar número de conteos" />
             </SelectTrigger>
@@ -304,7 +276,7 @@ function Step1ConfiguracionInicial({ data, onChange }: { data: any; onChange: (d
       <div>
         <Label>Fechas de Conteo</Label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
-          {Array.from({ length: data.numeroConteos || 7 }, (_, i) => (
+          {Array.from({ length: 7 }, (_, i) => (
             <div key={i}>
               <Label htmlFor={`fecha-${i}`} className="text-sm">
                 Conteo {i + 1}
@@ -312,9 +284,9 @@ function Step1ConfiguracionInicial({ data, onChange }: { data: any; onChange: (d
               <Input
                 id={`fecha-${i}`}
                 type="date"
-                value={data.fechaConteos?.[i] || ""}
+                value={state.fechasConteo?.[i] || ""}
                 onChange={(e) => {
-                  const newFechas = [...(data.fechaConteos || [])]
+                  const newFechas = [...(state.fechasConteo || [])]
                   newFechas[i] = e.target.value
                   handleChange("fechaConteos", newFechas)
                 }}
@@ -331,8 +303,8 @@ function Step1ConfiguracionInicial({ data, onChange }: { data: any; onChange: (d
         </CardHeader>
         <CardContent className="text-sm text-blue-700">
           <ul className="space-y-1">
-            <li>• El array normales[] se inicializa con {data.numeroConteos || 7} posiciones</li>
-            <li>• Se crearán {data.numeroRepeticiones || 4} repeticiones automáticamente</li>
+            <li>• El array normales[] se inicializa con 7 posiciones</li>
+            <li>• Se crearán 4 repeticiones automáticamente</li>
             <li>• Los totales y promedios se calcularán automáticamente</li>
             <li>• Las fechas de conteo son obligatorias para el proceso</li>
           </ul>
@@ -342,43 +314,44 @@ function Step1ConfiguracionInicial({ data, onChange }: { data: any; onChange: (d
   )
 }
 
-function Step2CreacionTablas({ data, onChange }: { data: any; onChange: (data: any) => void }) {
+function Step2CreacionTablas() {
+  const { state, dispatch } = useAnalysisState()
+
   const handleTablesChange = (tables: any[]) => {
-    onChange({ ...data, tablas: tables })
+    tables.forEach((table) => {
+      if (!state.tablas.find((t) => t.id === table.id)) {
+        dispatch({ type: "ADD_TABLA", payload: table })
+      }
+    })
   }
 
   return (
     <div className="space-y-4">
       <TableManagement
-        analysisId="current-analysis"
-        numeroRepeticiones={data.numeroRepeticiones || 4}
-        numeroConteos={data.numeroConteos || 7}
+        analysisId={state.id}
+        numeroRepeticiones={4}
+        numeroConteos={7}
         onTablesChange={handleTablesChange}
       />
     </div>
   )
 }
 
-function Step3RegistroRepeticiones({ data, onChange }: { data: any; onChange: (data: any) => void }) {
-  const handleRepetitionChange = (tableId: string, repetitionId: string, repData: any) => {
-    const updatedTables = data.tablas.map((table: any) => {
-      if (table.id === tableId) {
-        return {
-          ...table,
-          repeticiones: table.repeticiones.map((rep: any) => (rep.id === repetitionId ? repData : rep)),
-        }
-      }
-      return table
-    })
+function Step3RegistroRepeticiones() {
+  const { state, dispatch } = useAnalysisState()
 
-    onChange({ ...data, tablas: updatedTables })
+  const handleRepetitionChange = (tableId: string, repetitionId: string, repData: any) => {
+    dispatch({
+      type: "UPDATE_REPETICION",
+      payload: { tablaId: tableId, repeticionId: repetitionId, data: repData },
+    })
   }
 
   return (
     <div className="space-y-4">
       <RepetitionDataEntry
-        tables={data.tablas || []}
-        fechaConteos={data.fechaConteos || []}
+        tables={state.tablas || []}
+        fechaConteos={state.fechasConteo || []}
         onRepetitionChange={handleRepetitionChange}
         onSave={() => console.log("[v0] Repetition data saved")}
       />
@@ -386,29 +359,25 @@ function Step3RegistroRepeticiones({ data, onChange }: { data: any; onChange: (d
   )
 }
 
-function Step4CalculosAutomaticos({ data, onChange }: { data: any; onChange: (data: any) => void }) {
+function Step4CalculosAutomaticos() {
+  const { state, dispatch } = useAnalysisState()
+
   const handleCalculationsComplete = (results: any[], summaries: any[]) => {
-    onChange({
-      ...data,
-      calculosRealizados: true,
-      calculationResults: results,
-      tableSummaries: summaries,
+    dispatch({
+      type: "SET_CALCULOS_REALIZADOS",
+      payload: { calculosRealizados: true, calculationResults: results, tableSummaries: summaries },
     })
     console.log("[v0] Calculations completed:", { results, summaries })
   }
 
   const handleUpdateRepetitions = (tableId: string, repetitions: any[]) => {
-    const updatedTables = data.tablas.map((table: any) =>
-      table.id === tableId ? { ...table, repeticiones: repetitions } : table,
-    )
-
-    onChange({ ...data, tablas: updatedTables })
+    dispatch({ type: "UPDATE_REPETICIONES", payload: { tablaId: tableId, repetitions: repetitions } })
   }
 
   return (
     <div className="space-y-4">
       <CalculationEngine
-        tables={data.tablas || []}
+        tables={state.tablas || []}
         onCalculationsComplete={handleCalculationsComplete}
         onUpdateRepetitions={handleUpdateRepetitions}
       />
@@ -416,7 +385,7 @@ function Step4CalculosAutomaticos({ data, onChange }: { data: any; onChange: (da
   )
 }
 
-function Step5PorcentajesManuales({ data, onChange }: { data: any; onChange: (data: any) => void }) {
+function Step5PorcentajesManuales() {
   return (
     <div className="space-y-4">
       <div className="text-center py-8">
@@ -433,7 +402,7 @@ function Step5PorcentajesManuales({ data, onChange }: { data: any; onChange: (da
   )
 }
 
-function Step6FinalizacionTablas({ data, onChange }: { data: any; onChange: (data: any) => void }) {
+function Step6FinalizacionTablas() {
   return (
     <div className="space-y-4">
       <div className="text-center py-8">
@@ -450,11 +419,13 @@ function Step6FinalizacionTablas({ data, onChange }: { data: any; onChange: (dat
   )
 }
 
-function Step7ValoresInstituto({ data, onChange }: { data: any; onChange: (data: any) => void }) {
+function Step7ValoresInstituto() {
+  const { state, dispatch } = useAnalysisState()
+
   const handleValuesChange = (valores: any[]) => {
-    onChange({
-      ...data,
-      valoresInstituto: {
+    dispatch({
+      type: "SET_VALORES_INSTITUTO",
+      payload: {
         INIA: valores.filter((v) => v.instituto === "INIA"),
         INASE: valores.filter((v) => v.instituto === "INASE"),
       },
@@ -464,8 +435,8 @@ function Step7ValoresInstituto({ data, onChange }: { data: any; onChange: (data:
   return (
     <div className="space-y-4">
       <InstituteValuesEditor
-        tableSummaries={data.tableSummaries || []}
-        valoresGerm={[...(data.valoresInstituto?.INIA || []), ...(data.valoresInstituto?.INASE || [])]}
+        tableSummaries={state.tableSummaries || []}
+        valoresGerm={[...(state.valoresInstituto?.INIA || []), ...(state.valoresInstituto?.INASE || [])]}
         onValuesChange={handleValuesChange}
         onSave={() => console.log("[v0] Institute values saved")}
       />
@@ -473,9 +444,11 @@ function Step7ValoresInstituto({ data, onChange }: { data: any; onChange: (data:
   )
 }
 
-function Step8Finalizacion({ data, onChange }: { data: any; onChange: (data: any) => void }) {
+function Step8Finalizacion() {
+  const { state, dispatch } = useAnalysisState()
+
   const handleEstadoChange = (estado: string) => {
-    onChange({ ...data, estadoFinal: estado })
+    dispatch({ type: "SET_ESTADO_FINAL", payload: estado })
   }
 
   return (
@@ -488,7 +461,7 @@ function Step8Finalizacion({ data, onChange }: { data: any; onChange: (data: any
 
       <div className="max-w-md mx-auto">
         <Label htmlFor="estadoFinal">Estado Final</Label>
-        <Select value={data.estadoFinal} onValueChange={handleEstadoChange}>
+        <Select value={state.estadoFinal} onValueChange={handleEstadoChange}>
           <SelectTrigger>
             <SelectValue placeholder="Seleccionar estado final" />
           </SelectTrigger>
