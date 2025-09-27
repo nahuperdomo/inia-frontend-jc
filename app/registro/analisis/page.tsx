@@ -11,7 +11,7 @@ import { ArrowLeft, Search, TestTube, Sprout, Scale, Microscope } from "lucide-r
 import Link from "next/link"
 
 import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
-import { obtenerLotesActivos, LoteSimple } from "@/app/services/lote-service"
+import { obtenerLotesActivos, type LoteSimple } from "@/app/services/lote-service"
 import { registrarAnalisis } from "@/app/services/analisis-service"
 
 export type AnalysisFormData = {
@@ -35,6 +35,14 @@ export type AnalysisFormData = {
   malezasToleridas: string
   pesoTotal: string
 
+  // Germinación
+  fechaInicioGerm: string
+  fechaUltConteo: string
+  numeroRepeticiones: string
+  numeroConteos: string
+  numDias: string
+  fechaConteos: string[]
+
   // DOSN (INIA)
   iniaFecha: string
   iniaGramos: string
@@ -53,19 +61,43 @@ export type AnalysisFormData = {
 }
 
 const analysisTypes = [
-  { id: "pureza", name: "Pureza Física", description: "Análisis de pureza física de semillas", icon: Search, color: "blue" },
-  { id: "germinacion", name: "Germinación", description: "Ensayos de germinación estándar", icon: Sprout, color: "green" },
-  { id: "pms", name: "Peso de Mil Semillas", description: "Determinación del peso de mil semillas", icon: Scale, color: "purple" },
-  { id: "tetrazolio", name: "Tetrazolio", description: "Ensayo de viabilidad y vigor", icon: TestTube, color: "orange" },
+  {
+    id: "pureza",
+    name: "Pureza Física",
+    description: "Análisis de pureza física de semillas",
+    icon: Search,
+    color: "blue",
+  },
+  {
+    id: "germinacion",
+    name: "Germinación",
+    description: "Ensayos de germinación estándar",
+    icon: Sprout,
+    color: "green",
+  },
+  {
+    id: "pms",
+    name: "Peso de Mil Semillas",
+    description: "Determinación del peso de mil semillas",
+    icon: Scale,
+    color: "purple",
+  },
+  {
+    id: "tetrazolio",
+    name: "Tetrazolio",
+    description: "Ensayo de viabilidad y vigor",
+    icon: TestTube,
+    color: "orange",
+  },
   { id: "dosn", name: "DOSN", description: "Determinación de otras semillas nocivas", icon: Microscope, color: "red" },
 ]
 
 export default function RegistroAnalisisPage() {
-  const [selectedAnalysisType, setSelectedAnalysisType] = useState("");
-  const [selectedLote, setSelectedLote] = useState("");
+  const [selectedAnalysisType, setSelectedAnalysisType] = useState("")
+  const [selectedLote, setSelectedLote] = useState("")
   // Estados para listados de malezas y cultivos
-  const [malezasList, setMalezasList] = useState<any[]>([]);
-  const [cultivosList, setCultivosList] = useState<any[]>([]);
+  const [malezasList, setMalezasList] = useState<any[]>([])
+  const [cultivosList, setCultivosList] = useState<any[]>([])
   const [formData, setFormData] = useState<AnalysisFormData>({
     loteid: "",
     responsable: "",
@@ -81,6 +113,12 @@ export default function RegistroAnalisisPage() {
     malezas: "",
     malezasToleridas: "",
     pesoTotal: "",
+    fechaInicioGerm: "",
+    fechaUltConteo: "",
+    numeroRepeticiones: "4",
+    numeroConteos: "7",
+    numDias: "",
+    fechaConteos: [],
     iniaFecha: "",
     iniaGramos: "",
     iniaCompleto: false,
@@ -93,7 +131,7 @@ export default function RegistroAnalisisPage() {
     inaseReducido: false,
     inaseLimitado: false,
     inaseReducidoLimitado: false,
-  });
+  })
 
   const handleInputChange = (field: keyof AnalysisFormData, value: string | number | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value as any }))
@@ -126,42 +164,43 @@ export default function RegistroAnalisisPage() {
       idLote: formData.loteid,
       comentarios: formData.observaciones,
       estado: "REGISTRADO",
-    };
+    }
 
     if (selectedAnalysisType === "dosn") {
-      const mapTipoDosn = (obj: any, prefix: string) => [
-        obj[`${prefix}Completo`] ? "COMPLETO" : null,
-        obj[`${prefix}Reducido`] ? "REDUCIDO" : null,
-        obj[`${prefix}Limitado`] ? "LIMITADO" : null,
-        obj[`${prefix}ReducidoLimitado`] ? "REDUCIDO_LIMITADO" : null,
-      ].filter(Boolean);
+      const mapTipoDosn = (obj: any, prefix: string) =>
+        [
+          obj[`${prefix}Completo`] ? "COMPLETO" : null,
+          obj[`${prefix}Reducido`] ? "REDUCIDO" : null,
+          obj[`${prefix}Limitado`] ? "LIMITADO" : null,
+          obj[`${prefix}ReducidoLimitado`] ? "REDUCIDO_LIMITADO" : null,
+        ].filter(Boolean)
 
       // Agregar otrosCultivos
-      let cultivosListWithOtros = [...cultivosList];
+      const cultivosListWithOtros = [...cultivosList]
       if (formData.otrosCultivos && formData.otrosCultivos !== "") {
         cultivosListWithOtros.push({
           listadoTipo: "OTROS",
           listadoInsti: formData.otrosCultivosInsti || "INIA",
           listadoNum: Number(formData.otrosCultivosNum) || 1,
-          idCatalogo: formData.otrosCultivosIdCatalogo || null
-        });
+          idCatalogo: formData.otrosCultivosIdCatalogo || null,
+        })
       }
 
       // mapeo de malezas
       const mapMalezaTipo = (m: any) => {
         switch (m.tipoMaleza) {
           case "tolerancia-cero":
-            return "MAL_TOLERANCIA_CERO";
+            return "MAL_TOLERANCIA_CERO"
           case "con-tolerancia":
-            return "MAL_TOLERANCIA";
+            return "MAL_TOLERANCIA"
           case "comunes":
-            return "MAL_COMUNES";
+            return "MAL_COMUNES"
           case "no-contiene":
-            return "MAL_COMUNES";
+            return "MAL_COMUNES"
           default:
-            return "MAL_COMUNES";
+            return "MAL_COMUNES"
         }
-      };
+      }
 
       const listados = [
         ...malezasList.map((m) => ({
@@ -170,7 +209,7 @@ export default function RegistroAnalisisPage() {
           listadoNum: m.numero ? Number(m.numero) : 0, // si no hay valor → 0
         })),
         ...cultivosListWithOtros.map((c) => ({ ...c, listadoTipo: "OTROS" })),
-      ];
+      ]
 
       payload = {
         idLote: formData.loteid,
@@ -186,7 +225,7 @@ export default function RegistroAnalisisPage() {
         tipoINASE: mapTipoDosn(formData, "inase"),
         // Listados
         listados,
-      };
+      }
     } else if (selectedAnalysisType === "pureza") {
       payload = {
         ...payload,
@@ -195,7 +234,17 @@ export default function RegistroAnalisisPage() {
         materiaInerte: toNum(formData.materiaInerte),
         otrosCultivos: toNum(formData.otrosCultivos),
         malezas: toNum(formData.malezas),
-      };
+      }
+    } else if (selectedAnalysisType === "germinacion") {
+      payload = {
+        ...payload,
+        fechaInicioGerm: formData.fechaInicioGerm,
+        fechaConteos: formData.fechaConteos.filter((fecha) => fecha !== ""), // Remove empty dates
+        fechaUltConteo: formData.fechaUltConteo,
+        numeroRepeticiones: toNum(formData.numeroRepeticiones),
+        numeroConteos: toNum(formData.numeroConteos),
+        numDias: formData.numDias,
+      }
     }
 
     try {
@@ -258,8 +307,9 @@ export default function RegistroAnalisisPage() {
               return (
                 <div
                   key={type.id}
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${isSelected ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:border-gray-300"
-                    }`}
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
+                    isSelected ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
                   onClick={() => setSelectedAnalysisType(type.id)}
                 >
                   <div className="flex items-center gap-3 mb-2">
@@ -298,13 +348,23 @@ export default function RegistroAnalisisPage() {
                     <SelectValue placeholder="Seleccionar lote existente" />
                   </SelectTrigger>
                   <SelectContent>
-                    {lotesLoading && <SelectItem value="loading" disabled>Cargando lotes...</SelectItem>}
-                    {lotesError && <SelectItem value="error" disabled>{lotesError}</SelectItem>}
-                    {!lotesLoading && !lotesError && lotes.map((lote) => (
-                      <SelectItem key={lote.loteID} value={lote.loteID.toString()}>
-                        {lote.ficha} (ID: {lote.loteID})
+                    {lotesLoading && (
+                      <SelectItem value="loading" disabled>
+                        Cargando lotes...
                       </SelectItem>
-                    ))}
+                    )}
+                    {lotesError && (
+                      <SelectItem value="error" disabled>
+                        {lotesError}
+                      </SelectItem>
+                    )}
+                    {!lotesLoading &&
+                      !lotesError &&
+                      lotes.map((lote) => (
+                        <SelectItem key={lote.loteID} value={lote.loteID.toString()}>
+                          {lote.ficha} (ID: {lote.loteID})
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -374,8 +434,6 @@ export default function RegistroAnalisisPage() {
                   </CardContent>
                 </Card>
               )}
-
-
             </div>
           </div>
 
@@ -469,6 +527,124 @@ export default function RegistroAnalisisPage() {
               </CardContent>
             </Card>
           )}
+
+          {selectedAnalysisType === "germinacion" && (
+            <Card className="border-green-200 bg-green-50">
+              <CardHeader>
+                <CardTitle className="text-green-800">Campos Específicos - Germinación</CardTitle>
+                <p className="text-sm text-green-700">
+                  Configura los parámetros básicos para el análisis de germinación
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="fechaInicioGerm">Fecha Inicio Germinación</Label>
+                    <Input
+                      id="fechaInicioGerm"
+                      type="date"
+                      value={formData.fechaInicioGerm}
+                      onChange={(e) => handleInputChange("fechaInicioGerm", e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Fecha de inicio del ensayo</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="fechaUltConteo">Fecha Último Conteo</Label>
+                    <Input
+                      id="fechaUltConteo"
+                      type="date"
+                      value={formData.fechaUltConteo}
+                      onChange={(e) => handleInputChange("fechaUltConteo", e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Fecha del último conteo programado</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="numeroRepeticiones">Número de Repeticiones</Label>
+                    <Select
+                      value={formData.numeroRepeticiones}
+                      onValueChange={(v) => handleInputChange("numeroRepeticiones", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar repeticiones" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2">2 repeticiones</SelectItem>
+                        <SelectItem value="4">4 repeticiones</SelectItem>
+                        <SelectItem value="8">8 repeticiones</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">Controla cuántas RepGerm crear</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="numeroConteos">Número de Conteos</Label>
+                    <Select value={formData.numeroConteos} onValueChange={(v) => handleInputChange("numeroConteos", v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar conteos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5 conteos</SelectItem>
+                        <SelectItem value="7">7 conteos</SelectItem>
+                        <SelectItem value="10">10 conteos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">Controla el tamaño del array normales[]</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="numDias">Número de Días</Label>
+                    <Input
+                      id="numDias"
+                      type="text"
+                      placeholder="ej: 7, 14, 21"
+                      value={formData.numDias}
+                      onChange={(e) => handleInputChange("numDias", e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Duración total del ensayo</p>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Fechas de Conteo</Label>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Define las fechas específicas para cada conteo (array no-null)
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {Array.from({ length: Number.parseInt(formData.numeroConteos) || 7 }, (_, i) => (
+                      <div key={i}>
+                        <Label htmlFor={`fechaConteo-${i}`} className="text-sm">
+                          Conteo {i + 1}
+                        </Label>
+                        <Input
+                          id={`fechaConteo-${i}`}
+                          type="date"
+                          value={formData.fechaConteos[i] || ""}
+                          onChange={(e) => {
+                            const newFechas = [...formData.fechaConteos]
+                            newFechas[i] = e.target.value
+                            handleInputChange("fechaConteos", newFechas)
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Card className="bg-green-100 border-green-300">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-green-800 text-sm">Información del Proceso</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm text-green-700">
+                    <ul className="space-y-1">
+                      <li>• Se crearán {formData.numeroRepeticiones} repeticiones automáticamente</li>
+                      <li>• Cada repetición tendrá un array normales[] de {formData.numeroConteos} posiciones</li>
+                      <li>• Las fechas de conteo son obligatorias para el proceso</li>
+                      <li>• Después del registro, podrás acceder al flujo de trabajo completo</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </CardContent>
+            </Card>
+          )}
+
           {selectedAnalysisType === "dosn" && (
             <DosnFields
               formData={formData}
@@ -477,6 +653,7 @@ export default function RegistroAnalisisPage() {
               onChangeListadosCultivos={setCultivosList}
             />
           )}
+
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Button variant="outline" className="w-full sm:flex-1 bg-transparent" disabled={loading}>
               Guardar como Borrador
