@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Search, TestTube, Sprout, Scale, Microscope } from "lucide-react"
+import { ArrowLeft, Search, TestTube, Sprout, Scale, Microscope, ArrowRight, CheckCircle } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
 import { obtenerLotesActivos, type LoteSimple } from "@/app/services/lote-service"
@@ -93,6 +94,7 @@ const analysisTypes = [
 ]
 
 export default function RegistroAnalisisPage() {
+  const router = useRouter()
   const [selectedAnalysisType, setSelectedAnalysisType] = useState("")
   const [selectedLote, setSelectedLote] = useState("")
   // Estados para listados de malezas y cultivos
@@ -157,6 +159,31 @@ export default function RegistroAnalisisPage() {
       setLoading(false)
       setError("Selecciona un lote.")
       return
+    }
+
+    if (selectedAnalysisType === "germinacion") {
+      if (!formData.fechaInicioGerm) {
+        setLoading(false)
+        setError("La fecha de inicio de germinación es requerida.")
+        return
+      }
+      if (!formData.fechaUltConteo) {
+        setLoading(false)
+        setError("La fecha del último conteo es requerida.")
+        return
+      }
+      if (!formData.numDias) {
+        setLoading(false)
+        setError("El número de días es requerido.")
+        return
+      }
+      const fechasCompletas = formData.fechaConteos.filter((f) => f !== "").length
+      const fechasRequeridas = Number.parseInt(formData.numeroConteos) || 0
+      if (fechasCompletas !== fechasRequeridas) {
+        setLoading(false)
+        setError(`Debes completar todas las ${fechasRequeridas} fechas de conteo.`)
+        return
+      }
     }
 
     let payload: any = {
@@ -248,8 +275,14 @@ export default function RegistroAnalisisPage() {
     }
 
     try {
-      await registrarAnalisis(payload, selectedAnalysisType)
+      const response = await registrarAnalisis(payload, selectedAnalysisType)
       setSuccess(true)
+
+      if (selectedAnalysisType === "germinacion" && response?.id) {
+        setTimeout(() => {
+          router.push(`/analisis/germinacion/${response.id}`)
+        }, 1500)
+      }
     } catch (err: any) {
       setError(err?.message || "Error al registrar análisis")
     } finally {
@@ -279,6 +312,20 @@ export default function RegistroAnalisisPage() {
 
   const selectedLoteInfo = selectedLote ? lotes.find((l) => l.loteID.toString() === selectedLote) : null
 
+  const isFormReady = () => {
+    if (!selectedAnalysisType || !formData.loteid) return false
+
+    if (selectedAnalysisType === "germinacion") {
+      const fechasCompletas = formData.fechaConteos.filter((f) => f !== "").length
+      const fechasRequeridas = Number.parseInt(formData.numeroConteos) || 0
+      return (
+        formData.fechaInicioGerm && formData.fechaUltConteo && formData.numDias && fechasCompletas === fechasRequeridas
+      )
+    }
+
+    return true
+  }
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-4">
@@ -290,9 +337,35 @@ export default function RegistroAnalisisPage() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold">Registro de Análisis</h1>
-          <p className="text-muted-foreground">Registra nuevos análisis para lotes existentes en el sistema</p>
+          <p className="text-muted-foreground">Configura los parámetros iniciales para tu análisis</p>
         </div>
       </div>
+
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                1
+              </div>
+              <div>
+                <h3 className="font-medium text-blue-900">Configuración Inicial</h3>
+                <p className="text-sm text-blue-700">Define los parámetros básicos del análisis</p>
+              </div>
+            </div>
+            <ArrowRight className="h-5 w-5 text-blue-600" />
+            <div className="flex items-center gap-3 opacity-50">
+              <div className="w-8 h-8 rounded-full border-2 border-gray-300 text-gray-400 flex items-center justify-center text-sm font-medium">
+                2
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-600">Análisis Detallado</h3>
+                <p className="text-sm text-gray-500">Gestión de tablas y repeticiones</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -381,31 +454,6 @@ export default function RegistroAnalisisPage() {
                   />
                 </div>
               </div>
-
-              {/* Opcional: si usás estos campos en backend, habilitalos */}
-              {/* <div>
-                <Label htmlFor="responsable">Responsable</Label>
-                <Select value={formData.responsable} onValueChange={(v) => handleInputChange("responsable", v)}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar responsable" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="juan.perez">Juan Pérez</SelectItem>
-                    <SelectItem value="maria.garcia">María García</SelectItem>
-                    <SelectItem value="carlos.rodriguez">Carlos Rodríguez</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="prioridad">Prioridad</Label>
-                <Select value={formData.prioridad} onValueChange={(v) => handleInputChange("prioridad", v)}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar prioridad" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="alta">Alta</SelectItem>
-                    <SelectItem value="media">Media</SelectItem>
-                    <SelectItem value="baja">Baja</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div> */}
             </div>
 
             <div className="space-y-4">
@@ -531,9 +579,9 @@ export default function RegistroAnalisisPage() {
           {selectedAnalysisType === "germinacion" && (
             <Card className="border-green-200 bg-green-50">
               <CardHeader>
-                <CardTitle className="text-green-800">Campos Específicos - Germinación</CardTitle>
+                <CardTitle className="text-green-800">Configuración Inicial - Germinación</CardTitle>
                 <p className="text-sm text-green-700">
-                  Configura los parámetros básicos para el análisis de germinación según GerminacionRequestDTO
+                  Define los parámetros básicos que se usarán en el análisis completo
                 </p>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -650,28 +698,34 @@ export default function RegistroAnalisisPage() {
 
                 <Card className="bg-green-100 border-green-300">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-green-800 text-sm">Información del Proceso</CardTitle>
+                    <CardTitle className="text-green-800 text-sm flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Configuración Automática
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="text-sm text-green-700">
                     <ul className="space-y-1">
                       <li>• Se crearán {formData.numeroRepeticiones} repeticiones automáticamente</li>
                       <li>• Cada repetición tendrá un array normales[] de {formData.numeroConteos} posiciones</li>
                       <li>• Las fechas de conteo son obligatorias (array no-null)</li>
-                      <li>• Después del registro, podrás gestionar tablas y repeticiones en el flujo completo</li>
-                      <li>• Los campos marcados con * son requeridos por el GerminacionRequestDTO</li>
+                      <li>• Los campos marcados con * son requeridos por el sistema</li>
                     </ul>
                   </CardContent>
                 </Card>
 
                 <Card className="bg-blue-50 border-blue-200">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-blue-800 text-sm">Próximos Pasos</CardTitle>
+                    <CardTitle className="text-blue-800 text-sm flex items-center gap-2">
+                      <ArrowRight className="h-4 w-4" />
+                      Después de la Configuración
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="text-sm text-blue-700">
-                    <p>Una vez registrado el análisis, podrás acceder al flujo completo que incluye:</p>
+                    <p>Una vez completada la configuración inicial, accederás al flujo completo que incluye:</p>
                     <ul className="mt-2 space-y-1">
-                      <li>• Gestión de Tablas de Germinación (TablaGermRequestDTO)</li>
-                      <li>• Sistema de Repeticiones por Tabla (RepGermRequestDTO)</li>
+                      <li>• Gestión de Tablas de Germinación</li>
+                      <li>• Sistema de Repeticiones por Tabla</li>
+                      <li>• Ingreso de datos de conteos</li>
                       <li>• Cálculos automáticos y validaciones</li>
                       <li>• Seguimiento del progreso paso a paso</li>
                     </ul>
@@ -694,17 +748,50 @@ export default function RegistroAnalisisPage() {
             <Button variant="outline" className="w-full sm:flex-1 bg-transparent" disabled={loading}>
               Guardar como Borrador
             </Button>
-            <Button
-              className="w-full sm:flex-1 bg-green-700 hover:bg-green-700"
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? "Registrando..." : "Registrar Análisis"}
-            </Button>
+
+            {selectedAnalysisType === "germinacion" ? (
+              <Button
+                className={`w-full sm:flex-1 ${isFormReady() ? "bg-green-600 hover:bg-green-700" : "bg-gray-400"}`}
+                onClick={handleSubmit}
+                disabled={loading || !isFormReady()}
+              >
+                {loading ? (
+                  "Configurando..."
+                ) : success ? (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Redirigiendo al Análisis...
+                  </>
+                ) : (
+                  <>
+                    Continuar al Análisis
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button
+                className="w-full sm:flex-1 bg-green-700 hover:bg-green-800"
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? "Registrando..." : "Registrar Análisis"}
+              </Button>
+            )}
           </div>
 
-          {error && <div className="text-red-600 mt-2">{error}</div>}
-          {success && <div className="text-green-600 mt-2">¡Análisis registrado exitosamente!</div>}
+          {error && <div className="text-red-600 mt-2 p-3 bg-red-50 rounded-md border border-red-200">{error}</div>}
+          {success && selectedAnalysisType === "germinacion" && (
+            <div className="text-green-600 mt-2 p-3 bg-green-50 rounded-md border border-green-200 flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              ¡Configuración completada! Redirigiendo al flujo de análisis...
+            </div>
+          )}
+          {success && selectedAnalysisType !== "germinacion" && (
+            <div className="text-green-600 mt-2 p-3 bg-green-50 rounded-md border border-green-200">
+              ¡Análisis registrado exitosamente!
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
