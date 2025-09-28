@@ -267,6 +267,7 @@ export default function GerminacionDetailPage() {
         germinacionId={parseInt(germinacionId)}
         isFinalized={isFinalized}
         onTablaUpdated={cargarDatos}
+        germinacion={germinacion}
       />
 
       {/* Acciones */}
@@ -274,17 +275,7 @@ export default function GerminacionDetailPage() {
         <CardHeader>
           <CardTitle>Acciones</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col sm:flex-row flex-wrap gap-4">
-          {canCreateTable && (
-            <Button 
-              onClick={handleCrearTabla} 
-              disabled={creatingTable}
-              size="lg"
-            >
-              {creatingTable ? "Creando..." : "Crear Nueva Tabla"}
-            </Button>
-          )}
-          
+        <CardContent className="flex flex-col sm:flex-row flex-wrap gap-4">          
           {canFinalize && (
             <Button 
               onClick={handleFinalizarAnalisis}
