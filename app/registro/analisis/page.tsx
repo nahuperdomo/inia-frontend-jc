@@ -11,8 +11,11 @@ import { ArrowLeft, Search, TestTube, Sprout, Scale, Microscope } from "lucide-r
 import Link from "next/link"
 
 import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
-import { obtenerLotesActivos, LoteSimple } from "@/app/services/lote-service"
+import GerminacionFields from "@/app/registro/analisis/germinacion/form-germinacion"
+import { obtenerLotesActivos } from "@/app/services/lote-service"
+import { LoteSimpleDTO } from "@/app/models"
 import { registrarAnalisis } from "@/app/services/analisis-service"
+import { crearGerminacion } from "@/app/services/germinacion-service"
 
 export type AnalysisFormData = {
   loteid: string
@@ -50,6 +53,14 @@ export type AnalysisFormData = {
   inaseReducido: boolean
   inaseLimitado: boolean
   inaseReducidoLimitado: boolean
+
+  // Germinación
+  fechaInicioGerm: string
+  fechaConteos: string[]
+  fechaUltConteo: string
+  numDias: string
+  numeroRepeticiones: number
+  numeroConteos: number
 }
 
 const analysisTypes = [
@@ -93,6 +104,13 @@ export default function RegistroAnalisisPage() {
     inaseReducido: false,
     inaseLimitado: false,
     inaseReducidoLimitado: false,
+    // Germinación
+    fechaInicioGerm: "",
+    fechaConteos: [],
+    fechaUltConteo: "",
+    numDias: "",
+    numeroRepeticiones: 1,
+    numeroConteos: 0,
   });
 
   const handleInputChange = (field: keyof AnalysisFormData, value: string | number | boolean) => {
@@ -196,19 +214,99 @@ export default function RegistroAnalisisPage() {
         otrosCultivos: toNum(formData.otrosCultivos),
         malezas: toNum(formData.malezas),
       };
+    } else if (selectedAnalysisType === "germinacion") {
+      // Validaciones específicas para germinación
+      if (!formData.fechaInicioGerm) {
+        setError("Fecha de inicio de germinación es requerida");
+        setLoading(false);
+        return;
+      }
+      if (!formData.fechaUltConteo) {
+        setError("Fecha del último conteo es requerida");
+        setLoading(false);
+        return;
+      }
+      if (!formData.numeroRepeticiones || formData.numeroRepeticiones < 1) {
+        setError("Número de repeticiones debe ser mayor a 0");
+        setLoading(false);
+        return;
+      }
+      if (!formData.numeroConteos || formData.numeroConteos < 1) {
+        setError("Número de conteos debe ser mayor a 0");
+        setLoading(false);
+        return;
+      }
+      if (!formData.fechaConteos || formData.fechaConteos.length === 0) {
+        setError("Debe especificar al menos una fecha de conteo");
+        setLoading(false);
+        return;
+      }
+      
+      // Filtrar fechas vacías
+      const fechasValidas = formData.fechaConteos.filter((fecha: string) => fecha && fecha.trim() !== "");
+      if (fechasValidas.length === 0) {
+        setError("Debe completar al menos una fecha de conteo");
+        setLoading(false);
+        return;
+      }
+
+      payload = {
+        idLote: parseInt(formData.loteid), // Convertir a número
+        comentarios: formData.observaciones || "",
+        fechaInicioGerm: formData.fechaInicioGerm,
+        fechaConteos: fechasValidas,
+        fechaUltConteo: formData.fechaUltConteo,
+        numDias: formData.numDias || "",
+        numeroRepeticiones: formData.numeroRepeticiones || 1,
+        numeroConteos: formData.numeroConteos || 1,
+      };
     }
 
     try {
-      await registrarAnalisis(payload, selectedAnalysisType)
+      console.log("=== DEBUG INFO ===");
+      console.log("Tipo de análisis:", selectedAnalysisType);
+      
+      // Verificar cookies
+      const cookies = document.cookie;
+      console.log("Cookies disponibles:", cookies);
+      const tokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
+      console.log("Token en cookies:", tokenCookie ? "✅ Existe" : "❌ No existe");
+      
+      console.log("Enviando payload para germinación:", payload);
+      
+      // PRUEBA: Intentar hacer una llamada a un endpoint que sabemos que funciona
+      if (selectedAnalysisType === "germinacion") {
+        console.log("🧪 PRUEBA: Vamos a probar primero obtener lotes para verificar auth...");
+        try {
+          const lotesTest = await obtenerLotesActivos();
+          console.log("✅ Test de auth exitoso - lotes obtenidos:", lotesTest.length);
+        } catch (authError) {
+          console.error("❌ Test de auth falló:", authError);
+          throw new Error("Problema de autenticación detectado");
+        }
+        
+        console.log("🚀 Ahora intentando crear germinación...");
+        const result = await crearGerminacion(payload);
+        
+        // Redirigir a la página de gestión del análisis creado
+        setTimeout(() => {
+          window.location.href = `/listado/analisis/germinacion/${result.analisisID}`;
+        }, 1500);
+      } else {
+        await registrarAnalisis(payload, selectedAnalysisType)
+      }
       setSuccess(true)
     } catch (err: any) {
+      console.error("Error al crear germinación:", err);
+      console.error("Status del error:", err.status);
+      console.error("Mensaje completo:", err.message);
       setError(err?.message || "Error al registrar análisis")
     } finally {
       setLoading(false)
     }
   }
 
-  const [lotes, setLotes] = useState<LoteSimple[]>([])
+  const [lotes, setLotes] = useState<LoteSimpleDTO[]>([])
   const [lotesLoading, setLotesLoading] = useState(true)
   const [lotesError, setLotesError] = useState<string | null>(null)
 
@@ -475,6 +573,12 @@ export default function RegistroAnalisisPage() {
               handleInputChange={handleInputChange as (field: string, value: any) => void}
               onChangeListadosMalezas={setMalezasList}
               onChangeListadosCultivos={setCultivosList}
+            />
+          )}
+          {selectedAnalysisType === "germinacion" && (
+            <GerminacionFields
+              formData={formData}
+              handleInputChange={handleInputChange as (field: string, value: any) => void}
             />
           )}
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
