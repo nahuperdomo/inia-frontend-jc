@@ -4,7 +4,7 @@ export type EstadoAnalisis = 'PENDIENTE' | 'EN_PROCESO' | 'FINALIZADO' | 'PENDIE
 
 export type TipoMYCCatalogo = 'MALEZA' | 'CULTIVO' | 'BRASSICA';
 
-export type TipoListado = 'OTRAS_SEMILLAS' | 'MALEZAS' | 'OTROS_CULTIVOS';
+export type TipoListado = | 'MAL_TOLERANCIA' | 'MAL_TOLERANCIA_CERO' | 'MAL_COMUNES' | 'BRASSICA' | 'OTROS';
 
 export type Instituto = 'INIA' | 'INASE';
 

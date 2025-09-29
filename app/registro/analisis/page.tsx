@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Search, TestTube, Sprout, Scale, Microscope } from "lucide-react"
+import { ArrowLeft, Search, TestTube, Sprout, Scale, Microscope, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 
 import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
@@ -16,6 +16,7 @@ import { obtenerLotesActivos } from "@/app/services/lote-service"
 import { LoteSimpleDTO } from "@/app/models"
 import { registrarAnalisis } from "@/app/services/analisis-service"
 import { crearGerminacion } from "@/app/services/germinacion-service"
+
 
 export type AnalysisFormData = {
   loteid: string
@@ -54,6 +55,16 @@ export type AnalysisFormData = {
   inaseLimitado: boolean
   inaseReducidoLimitado: boolean
 
+  // Cuscuta
+  cuscutaGramos: string
+  cuscutaNumero: string
+  cuscutaFecha: string
+  cuscutaCumple: string
+
+  // Cumple estándar
+  cumpleEstandar: string
+  cumpleFecha: string
+
   // Germinación
   fechaInicioGerm: string
   fechaConteos: string[]
@@ -74,9 +85,26 @@ const analysisTypes = [
 export default function RegistroAnalisisPage() {
   const [selectedAnalysisType, setSelectedAnalysisType] = useState("");
   const [selectedLote, setSelectedLote] = useState("");
-  // Estados para listados de malezas y cultivos
+  // Estados para listados de malezas, cultivos y brassicas
   const [malezasList, setMalezasList] = useState<any[]>([]);
   const [cultivosList, setCultivosList] = useState<any[]>([]);
+  const [brassicasList, setBrassicasList] = useState<any[]>([]);
+
+  // Funciones de callback con logs para debugging - memoizadas para evitar re-renders infinitos
+  const handleMalezasChange = useCallback((list: any[]) => {
+    console.log("🐛 DEBUG - handleMalezasChange llamado con:", list);
+    setMalezasList(list);
+  }, []);
+
+  const handleCultivosChange = useCallback((list: any[]) => {
+    console.log("🐛 DEBUG - handleCultivosChange llamado con:", list);
+    setCultivosList(list);
+  }, []);
+
+  const handleBrassicasChange = useCallback((list: any[]) => {
+    console.log("🐛 DEBUG - handleBrassicasChange llamado con:", list);
+    setBrassicasList(list);
+  }, []);
   const [formData, setFormData] = useState<AnalysisFormData>({
     loteid: "",
     responsable: "",
@@ -104,6 +132,14 @@ export default function RegistroAnalisisPage() {
     inaseReducido: false,
     inaseLimitado: false,
     inaseReducidoLimitado: false,
+    // Cuscuta
+    cuscutaGramos: "",
+    cuscutaNumero: "",
+    cuscutaFecha: "",
+    cuscutaCumple: "",
+    // Cumple estándar
+    cumpleEstandar: "",
+    cumpleFecha: "",
     // Germinación
     fechaInicioGerm: "",
     fechaConteos: [],
@@ -113,13 +149,13 @@ export default function RegistroAnalisisPage() {
     numeroConteos: 0,
   });
 
-  const handleInputChange = (field: keyof AnalysisFormData, value: string | number | boolean) => {
-    setFormData((prev) => ({ ...prev, [field]: value as any }))
-  }
-
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  const handleInputChange = useCallback((field: keyof AnalysisFormData, value: string | number | boolean) => {
+    setFormData((prev) => ({ ...prev, [field]: value as any }))
+  }, [])
 
   const toNum = (v: string) => (v === "" ? undefined : Number(v))
 
@@ -154,6 +190,12 @@ export default function RegistroAnalisisPage() {
         obj[`${prefix}ReducidoLimitado`] ? "REDUCIDO_LIMITADO" : null,
       ].filter(Boolean);
 
+      // Debug: Verificar estados de los arrays antes de procesar
+      console.log("🔍 DEBUG - Estados de arrays antes de procesar:");
+      console.log("  - malezasList.length:", malezasList.length);
+      console.log("  - cultivosList.length:", cultivosList.length);
+      console.log("  - brassicasList.length:", brassicasList.length);
+
       // Agregar otrosCultivos
       let cultivosListWithOtros = [...cultivosList];
       if (formData.otrosCultivos && formData.otrosCultivos !== "") {
@@ -165,35 +207,21 @@ export default function RegistroAnalisisPage() {
         });
       }
 
-      // mapeo de malezas
-      const mapMalezaTipo = (m: any) => {
-        switch (m.tipoMaleza) {
-          case "tolerancia-cero":
-            return "MAL_TOLERANCIA_CERO";
-          case "con-tolerancia":
-            return "MAL_TOLERANCIA";
-          case "comunes":
-            return "MAL_COMUNES";
-          case "no-contiene":
-            return "MAL_COMUNES";
-          default:
-            return "MAL_COMUNES";
-        }
-      };
-
+      // mapeo de malezas - ya no es necesario mapear porque el componente envía los valores correctos
       const listados = [
         ...malezasList.map((m) => ({
           ...m,
-          listadoTipo: mapMalezaTipo(m),
-          listadoNum: m.numero ? Number(m.numero) : 0, // si no hay valor → 0
+          listadoNum: m.listadoNum !== null && m.listadoNum !== undefined ? m.listadoNum : null, // mantener null si no hay valor
         })),
         ...cultivosListWithOtros.map((c) => ({ ...c, listadoTipo: "OTROS" })),
+        ...brassicasList.map((b) => ({ ...b, listadoTipo: "BRASSICA" })),
       ];
 
       payload = {
         idLote: formData.loteid,
         comentarios: formData.observaciones,
-        estado: "REGISTRADO",
+        // Cumple estándar
+        cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : null,
         // INIA
         fechaINIA: formData.iniaFecha || null,
         gramosAnalizadosINIA: toNum(formData.iniaGramos),
@@ -202,9 +230,25 @@ export default function RegistroAnalisisPage() {
         fechaINASE: formData.inaseFecha || null,
         gramosAnalizadosINASE: toNum(formData.inaseGramos),
         tipoINASE: mapTipoDosn(formData, "inase"),
+        // Cuscuta
+        cuscuta_g: toNum(formData.cuscutaGramos),
+        cuscutaNum: toNum(formData.cuscutaNumero),
+        fechaCuscuta: formData.cuscutaFecha || null,
         // Listados
         listados,
       };
+
+      // Debug logs para verificar datos antes de enviar
+      console.log("🔍 DEBUG - Datos de DOSN antes de enviar:");
+      console.log("  - listados finales:", listados);
+      console.log("  - payload.listados:", payload.listados);
+
+      // Validación adicional para asegurar que hay datos para enviar
+      if (listados.length === 0) {
+        console.warn("⚠️ WARNING: No hay listados para enviar. Esto podría ser normal si el análisis no requiere listados.");
+      } else {
+        console.log(`✅ Se enviarán ${listados.length} listados al backend`);
+      }
     } else if (selectedAnalysisType === "pureza") {
       payload = {
         ...payload,
@@ -241,7 +285,7 @@ export default function RegistroAnalisisPage() {
         setLoading(false);
         return;
       }
-      
+
       // Filtrar fechas vacías
       const fechasValidas = formData.fechaConteos.filter((fecha: string) => fecha && fecha.trim() !== "");
       if (fechasValidas.length === 0) {
@@ -265,15 +309,15 @@ export default function RegistroAnalisisPage() {
     try {
       console.log("=== DEBUG INFO ===");
       console.log("Tipo de análisis:", selectedAnalysisType);
-      
+
       // Verificar cookies
       const cookies = document.cookie;
       console.log("Cookies disponibles:", cookies);
       const tokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
       console.log("Token en cookies:", tokenCookie ? "✅ Existe" : "❌ No existe");
-      
+
       console.log("Enviando payload para germinación:", payload);
-      
+
       // PRUEBA: Intentar hacer una llamada a un endpoint que sabemos que funciona
       if (selectedAnalysisType === "germinacion") {
         console.log("🧪 PRUEBA: Vamos a probar primero obtener lotes para verificar auth...");
@@ -284,10 +328,10 @@ export default function RegistroAnalisisPage() {
           console.error("❌ Test de auth falló:", authError);
           throw new Error("Problema de autenticación detectado");
         }
-        
+
         console.log("🚀 Ahora intentando crear germinación...");
         const result = await crearGerminacion(payload);
-        
+
         // Redirigir a la página de gestión del análisis creado
         setTimeout(() => {
           window.location.href = `/listado/analisis/germinacion/${result.analisisID}`;
@@ -419,31 +463,6 @@ export default function RegistroAnalisisPage() {
                   />
                 </div>
               </div>
-
-              {/* Opcional: si usás estos campos en backend, habilitalos */}
-              {/* <div>
-                <Label htmlFor="responsable">Responsable</Label>
-                <Select value={formData.responsable} onValueChange={(v) => handleInputChange("responsable", v)}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar responsable" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="juan.perez">Juan Pérez</SelectItem>
-                    <SelectItem value="maria.garcia">María García</SelectItem>
-                    <SelectItem value="carlos.rodriguez">Carlos Rodríguez</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="prioridad">Prioridad</Label>
-                <Select value={formData.prioridad} onValueChange={(v) => handleInputChange("prioridad", v)}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar prioridad" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="alta">Alta</SelectItem>
-                    <SelectItem value="media">Media</SelectItem>
-                    <SelectItem value="baja">Baja</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div> */}
             </div>
 
             <div className="space-y-4">
@@ -571,8 +590,9 @@ export default function RegistroAnalisisPage() {
             <DosnFields
               formData={formData}
               handleInputChange={handleInputChange as (field: string, value: any) => void}
-              onChangeListadosMalezas={setMalezasList}
-              onChangeListadosCultivos={setCultivosList}
+              onChangeListadosMalezas={handleMalezasChange}
+              onChangeListadosCultivos={handleCultivosChange}
+              onChangeListadosBrassicas={handleBrassicasChange}
             />
           )}
           {selectedAnalysisType === "germinacion" && (
@@ -581,6 +601,7 @@ export default function RegistroAnalisisPage() {
               handleInputChange={handleInputChange as (field: string, value: any) => void}
             />
           )}
+
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Button variant="outline" className="w-full sm:flex-1 bg-transparent" disabled={loading}>
               Guardar como Borrador

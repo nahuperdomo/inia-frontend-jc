@@ -47,16 +47,25 @@ VALUES (
     NULL  -- empresaid
 );
 
-INSERT INTO public.malezasycultivos (catalogoid, activo, maleza, nombre_cientifico, nombre_comun) VALUES
-(1, true, true, 'Amaranthus quitensis', 'Yuyo colorado'),
-(2, true, true, 'Sorghum halepense', 'Sorgo de Alepo'),
-(3, true, true, 'Conyza bonariensis', 'Rama negra'),
-(4, true, true, 'Cyperus rotundus', 'Cebollín'),
-(5, true, true, 'Echinochloa crus-galli', 'Capín o Pasto cuaresma');
+-- Malezas
+INSERT INTO public.malezasycultivos (catalogoid, activo, nombre_cientifico, nombre_comun, tipomyccatalogo) VALUES
+(1, true, 'Amaranthus quitensis', 'Yuyo colorado', 'MALEZA'),
+(2, true, 'Sorghum halepense', 'Sorgo de Alepo', 'MALEZA'),
+(3, true, 'Conyza bonariensis', 'Rama negra', 'MALEZA'),
+(4, true, 'Cyperus rotundus', 'Cebollín', 'MALEZA'),
+(5, true, 'Echinochloa crus-galli', 'Capín o Pasto cuaresma', 'MALEZA');
 
-INSERT INTO public.malezasycultivos (catalogoid, activo, maleza, nombre_cientifico, nombre_comun) VALUES
-(100, true, false, 'Zea mays', 'Maíz'),
-(101, true, false, 'Glycine max', 'Soja'),
-(102, true, false, 'Triticum aestivum', 'Trigo'),
-(103, true, false, 'Oryza sativa', 'Arroz'),
-(104, true, false, 'Hordeum vulgare', 'Cebada');
+-- Cultivos
+INSERT INTO public.malezasycultivos (catalogoid, activo, nombre_cientifico, nombre_comun, tipomyccatalogo) VALUES
+(100, true, 'Zea mays', 'Maíz', 'CULTIVO'),
+(101, true, 'Glycine max', 'Soja', 'CULTIVO'),
+(102, true, 'Triticum aestivum', 'Trigo', 'CULTIVO'),
+(103, true, 'Oryza sativa', 'Arroz', 'CULTIVO'),
+(104, true, 'Hordeum vulgare', 'Cebada', 'CULTIVO');
+
+-- Brassicas
+INSERT INTO public.malezasycultivos (catalogoid, activo, nombre_cientifico, nombre_comun, tipomyccatalogo) VALUES
+(200, true, 'Brassica oleracea var. capitata', 'Repollo', 'BRASSICA'),
+(201, true, 'Brassica napus', 'Colza / Canola', 'BRASSICA'),
+(202, true, 'Brassica rapa subsp. rapa', 'Nabo', 'BRASSICA'),
+(203, true, 'Brassica juncea', 'Mostaza india', 'BRASSICA');
