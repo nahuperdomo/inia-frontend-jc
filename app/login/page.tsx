@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Leaf } from "lucide-react"
-
+import { toast } from 'sonner'
 export default function LoginPage() {
   const [credentials, setCredentials] = useState({
     usuario: "",
@@ -20,7 +20,7 @@ export default function LoginPage() {
 
   // Función helper para manejar cookies
   function setCookie(name: string, value: string, days: number = 1) {
-    const maxAge = days * 24 * 60 * 60; // Convertir días a segundos
+    const maxAge = days * 24 * 60 * 60;
     document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; secure; samesite=strict`;
   }
 
@@ -38,6 +38,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+
     try {
       const data = await login(credentials.usuario, credentials.password)
 
@@ -49,7 +50,10 @@ export default function LoginPage() {
 
       router.push("/dashboard")
     } catch (error) {
-      alert("Credenciales incorrectas")
+      // Toast de error en lugar de alert
+      toast.error('Credenciales incorrectas', {
+        description: 'Por favor verifica tu usuario y contraseña'
+      })
     } finally {
       setIsLoading(false)
     }

@@ -17,7 +17,7 @@ interface Lote {
   codigoCC: string
   codigoFT: string
   fechaRegistro: string
-  estado: "Activo" | "En análisis" | "Completado" | "Pendiente"
+  estado: "Activo" | "Inactivos"
   pureza: number
   observaciones: string
 }
