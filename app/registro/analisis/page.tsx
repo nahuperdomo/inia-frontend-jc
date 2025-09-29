@@ -8,6 +8,26 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Search, TestTube, Sprout, Scale, Microscope } from "lucide-react"
+// Create a custom MessageCircle component since the imported one seems to have issues
+const MessageCircle = (props: any) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={props.className}
+      {...props}
+    >
+      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+    </svg>
+  )
+}
 import Link from "next/link"
 
 import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
@@ -241,7 +261,7 @@ export default function RegistroAnalisisPage() {
         setLoading(false);
         return;
       }
-      
+
       // Filtrar fechas vacías
       const fechasValidas = formData.fechaConteos.filter((fecha: string) => fecha && fecha.trim() !== "");
       if (fechasValidas.length === 0) {
@@ -265,15 +285,15 @@ export default function RegistroAnalisisPage() {
     try {
       console.log("=== DEBUG INFO ===");
       console.log("Tipo de análisis:", selectedAnalysisType);
-      
+
       // Verificar cookies
       const cookies = document.cookie;
       console.log("Cookies disponibles:", cookies);
       const tokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
       console.log("Token en cookies:", tokenCookie ? "✅ Existe" : "❌ No existe");
-      
+
       console.log("Enviando payload para germinación:", payload);
-      
+
       // PRUEBA: Intentar hacer una llamada a un endpoint que sabemos que funciona
       if (selectedAnalysisType === "germinacion") {
         console.log("🧪 PRUEBA: Vamos a probar primero obtener lotes para verificar auth...");
@@ -284,10 +304,10 @@ export default function RegistroAnalisisPage() {
           console.error("❌ Test de auth falló:", authError);
           throw new Error("Problema de autenticación detectado");
         }
-        
+
         console.log("🚀 Ahora intentando crear germinación...");
         const result = await crearGerminacion(payload);
-        
+
         // Redirigir a la página de gestión del análisis creado
         setTimeout(() => {
           window.location.href = `/listado/analisis/germinacion/${result.analisisID}`;
@@ -407,18 +427,20 @@ export default function RegistroAnalisisPage() {
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="observaciones">Observaciones</Label>
-                  <Textarea
-                    id="observaciones"
-                    placeholder="Observaciones adicionales sobre el análisis..."
-                    value={formData.observaciones}
-                    onChange={(e) => handleInputChange("observaciones", e.target.value)}
-                    rows={4}
-                  />
+              {selectedAnalysisType !== "pureza" && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="observaciones">Observaciones</Label>
+                    <Textarea
+                      id="observaciones"
+                      placeholder="Observaciones adicionales sobre el análisis..."
+                      value={formData.observaciones}
+                      onChange={(e) => handleInputChange("observaciones", e.target.value)}
+                      rows={4}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Opcional: si usás estos campos en backend, habilitalos */}
               {/* <div>
@@ -563,6 +585,26 @@ export default function RegistroAnalisisPage() {
                       <SelectItem value="100g">100g</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* Sección dedicada para comentarios de pureza física */}
+                <div className="mt-6 pt-4 border-t border-blue-200">
+                  <Label htmlFor="comentariosPureza" className="text-blue-800 font-semibold flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4" />
+                    Comentarios de Pureza Física
+                  </Label>
+                  <Textarea
+                    id="comentariosPureza"
+                    placeholder="Ingrese comentarios específicos del análisis de pureza física..."
+                    value={formData.observaciones}
+                    onChange={(e) => handleInputChange("observaciones", e.target.value)}
+                    rows={4}
+                    className="mt-2"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Incluya observaciones sobre la muestra, condiciones del análisis, particularidades
+                    encontradas u otra información relevante para documentar este análisis.
+                  </p>
                 </div>
               </CardContent>
             </Card>
