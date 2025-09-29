@@ -47,9 +47,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check for existing session
-    const savedUser = localStorage.getItem("inia-user")
-    if (savedUser) {
-      setUser(JSON.parse(savedUser))
+    if (typeof window !== "undefined") {
+      const savedUser = localStorage.getItem("inia-user")
+      if (savedUser) {
+        setUser(JSON.parse(savedUser))
+      }
     }
     setIsLoading(false)
   }, [])
@@ -87,12 +89,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     setUser(mockUser)
-    localStorage.setItem("inia-user", JSON.stringify(mockUser))
+    if (typeof window !== "undefined") {
+      localStorage.setItem("inia-user", JSON.stringify(mockUser))
+    }
   }
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem("inia-user")
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("inia-user")
+    }
   }
 
   const hasPermission = (permission: string): boolean => {

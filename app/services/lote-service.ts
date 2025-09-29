@@ -12,4 +12,3 @@ export async function obtenerLotesActivos(): Promise<LoteSimple[]> {
   // El backend responde { lotes: [...] }
   return res.lotes || [];
 }
-
