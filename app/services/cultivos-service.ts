@@ -1,15 +1,13 @@
-import { apiFetch } from "@/app/services/api"
+import { apiFetch } from "@/app/services/api";
+import { MalezasYCultivosCatalogoDTO } from "../models";
 
-export type CultivoCatalogo = {
-  catalogoID: number
-  nombreComun: string
-  nombreCientifico: string
-  maleza: boolean
+// Get only cultivos (using the dedicated endpoint)
+export async function obtenerCultivos(): Promise<MalezasYCultivosCatalogoDTO[]> {
+  return apiFetch("/api/malezas-cultivos/cultivos");
 }
 
-export async function obtenerCultivos(): Promise<CultivoCatalogo[]> {
-  const data = await apiFetch("/api/malezas-cultivos") as CultivoCatalogo[]
-
-  // solo cultivos
-  return data.filter((item) => item.maleza === false)
+// Get all active items (for backward compatibility)
+export async function obtenerTodosActivosCultivos(): Promise<MalezasYCultivosCatalogoDTO[]> {
+  const data = await apiFetch("/api/malezas-cultivos") as MalezasYCultivosCatalogoDTO[];
+  return data.filter((item) => item.tipoMYCCatalogo === 'CULTIVO');
 }
