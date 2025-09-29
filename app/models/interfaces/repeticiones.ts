@@ -89,6 +89,7 @@ export interface TablaGermDTO {
   pretratamiento: string;
   total: number;
   promedioSinRedondeo: number[];
+  promediosSinRedPorConteo?: number[]; // Nueva lista con promedios por conteo
   porcentajeNormalesConRedondeo?: number;
   porcentajeAnormalesConRedondeo?: number;
   porcentajeDurasConRedondeo?: number;

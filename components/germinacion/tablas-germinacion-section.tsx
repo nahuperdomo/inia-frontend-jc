@@ -482,14 +482,20 @@ export function TablasGerminacionSection({
       let guardadoExitoso = false
       
       // Guardar valores INIA
-      if (valoresInia.total > 0) {
+      const tieneValoresInia = valoresInia.normales > 0 || valoresInia.anormales > 0 || 
+                              valoresInia.duras > 0 || valoresInia.frescas > 0 || 
+                              valoresInia.muertas > 0 || valoresInia.total > 0
+      if (tieneValoresInia) {
         await actualizarValores(germinacionId, tablaId, 1, valoresInia)
         console.log("✅ Valores INIA guardados")
         guardadoExitoso = true
       }
       
       // Guardar valores INASE
-      if (valoresInase.total > 0) {
+      const tieneValoresInase = valoresInase.normales > 0 || valoresInase.anormales > 0 || 
+                               valoresInase.duras > 0 || valoresInase.frescas > 0 || 
+                               valoresInase.muertas > 0 || valoresInase.total > 0
+      if (tieneValoresInase) {
         await actualizarValores(germinacionId, tablaId, 2, valoresInase)
         console.log("✅ Valores INASE guardados")
         guardadoExitoso = true
@@ -987,8 +993,196 @@ export function TablasGerminacionSection({
                     numeroRepeticiones={germinacion?.numeroRepeticiones || 4}
                     numeroConteos={germinacion?.numeroConteos || 3}
                     isFinalized={isFinalized}
+                    fechasConteos={germinacion?.fechaConteos}
                     onRepeticionesUpdated={(repeticiones) => handleRepeticionesUpdated(tabla.tablaGermID, repeticiones)}
                   />
+
+                  {/* Sección de Estadísticas Finales */}
+                  {tabla.repGerm && tabla.repGerm.length > 0 && (
+                    <Card className="mt-4 border-green-200 bg-green-50">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-green-800 text-lg">📊 Resumen de Análisis</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-6">
+                          {/* Totales por Campo y Conteo */}
+                          <div>
+                            <h5 className="font-semibold text-green-700 mb-3">Totales por Campo</h5>
+                            
+                            {/* Totales de Normales por Conteo */}
+                            <div className="mb-4">
+                              <h6 className="font-medium text-gray-700 mb-2">Normales por Conteo</h6>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                {Array.from({ length: germinacion?.numeroConteos || 3 }, (_, conteoIndex) => {
+                                  const totalConteo = tabla.repGerm?.reduce((sum: number, rep: any) => {
+                                    return sum + (rep.normales && rep.normales[conteoIndex] ? rep.normales[conteoIndex] : 0)
+                                  }, 0) || 0
+                                  
+                                  return (
+                                    <div key={conteoIndex} className="text-center p-2 bg-white rounded border">
+                                      <div className="font-medium text-gray-600">Conteo {conteoIndex + 1}</div>
+                                      <div className="text-lg font-semibold text-green-600">{totalConteo}</div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Totales de otros campos */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Total Anormales</div>
+                                <div className="text-lg font-semibold text-orange-600">
+                                  {tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.anormales || 0), 0) || 0}
+                                </div>
+                              </div>
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Total Duras</div>
+                                <div className="text-lg font-semibold text-blue-600">
+                                  {tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.duras || 0), 0) || 0}
+                                </div>
+                              </div>
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Total Frescas</div>
+                                <div className="text-lg font-semibold text-cyan-600">
+                                  {tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.frescas || 0), 0) || 0}
+                                </div>
+                              </div>
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Total Muertas</div>
+                                <div className="text-lg font-semibold text-red-600">
+                                  {tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.muertas || 0), 0) || 0}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Promedios Sin Redondeo */}
+                          <div>
+                            <h5 className="font-semibold text-green-700 mb-3">Promedios Sin Redondeo</h5>
+                            
+                            {/* Promedios de Normales por Conteo */}
+                            <div className="mb-4">
+                              <h6 className="font-medium text-gray-700 mb-2">Promedios Normales por Conteo</h6>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                {Array.from({ length: germinacion?.numeroConteos || 3 }, (_, conteoIndex) => {
+                                  const totalConteo = tabla.repGerm?.reduce((sum: number, rep: any) => {
+                                    return sum + (rep.normales && rep.normales[conteoIndex] ? rep.normales[conteoIndex] : 0)
+                                  }, 0) || 0
+                                  const numRepeticiones = tabla.repGerm?.length || 1
+                                  const promedio = totalConteo / numRepeticiones
+                                  
+                                  return (
+                                    <div key={conteoIndex} className="text-center p-2 bg-white rounded border">
+                                      <div className="font-medium text-gray-600">Conteo {conteoIndex + 1}</div>
+                                      <div className="text-lg font-semibold text-green-600">{promedio.toFixed(4)}</div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Promedios de otros campos */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Promedio Anormales</div>
+                                <div className="text-lg font-semibold text-orange-600">
+                                  {((tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.anormales || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
+                                </div>
+                              </div>
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Promedio Duras</div>
+                                <div className="text-lg font-semibold text-blue-600">
+                                  {((tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.duras || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
+                                </div>
+                              </div>
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Promedio Frescas</div>
+                                <div className="text-lg font-semibold text-cyan-600">
+                                  {((tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.frescas || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
+                                </div>
+                              </div>
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Promedio Muertas</div>
+                                <div className="text-lg font-semibold text-red-600">
+                                  {((tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.muertas || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Porcentajes Calculados Sin Redondeo */}
+                          <div>
+                            <h5 className="font-semibold text-green-700 mb-3">Porcentajes Calculados (Sin Redondeo)</h5>
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                              {(() => {
+                                // Calcular totales reales
+                                const totalNormales = tabla.repGerm?.reduce((sum: number, rep: any) => {
+                                  return sum + (rep.normales ? rep.normales.reduce((s: number, n: number) => s + n, 0) : 0)
+                                }, 0) || 0
+                                const totalAnormales = tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.anormales || 0), 0) || 0
+                                const totalDuras = tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.duras || 0), 0) || 0
+                                const totalFrescas = tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.frescas || 0), 0) || 0
+                                const totalMuertas = tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.muertas || 0), 0) || 0
+                                const totalGeneral = totalNormales + totalAnormales + totalDuras + totalFrescas + totalMuertas
+                                
+                                return (
+                                  <>
+                                    <div className="text-center p-2 bg-white rounded">
+                                      <div className="font-medium text-gray-600">% Normales</div>
+                                      <div className="text-lg font-semibold text-green-600">
+                                        {totalGeneral > 0 ? ((totalNormales / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                      </div>
+                                    </div>
+                                    <div className="text-center p-2 bg-white rounded">
+                                      <div className="font-medium text-gray-600">% Anormales</div>
+                                      <div className="text-lg font-semibold text-orange-600">
+                                        {totalGeneral > 0 ? ((totalAnormales / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                      </div>
+                                    </div>
+                                    <div className="text-center p-2 bg-white rounded">
+                                      <div className="font-medium text-gray-600">% Duras</div>
+                                      <div className="text-lg font-semibold text-blue-600">
+                                        {totalGeneral > 0 ? ((totalDuras / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                      </div>
+                                    </div>
+                                    <div className="text-center p-2 bg-white rounded">
+                                      <div className="font-medium text-gray-600">% Frescas</div>
+                                      <div className="text-lg font-semibold text-cyan-600">
+                                        {totalGeneral > 0 ? ((totalFrescas / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                      </div>
+                                    </div>
+                                    <div className="text-center p-2 bg-white rounded">
+                                      <div className="font-medium text-gray-600">% Muertas</div>
+                                      <div className="text-lg font-semibold text-red-600">
+                                        {totalGeneral > 0 ? ((totalMuertas / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                      </div>
+                                    </div>
+                                  </>
+                                )
+                              })()}
+                            </div>
+                          </div>
+
+                          {/* Total de Semillas */}
+                          <div className="text-center p-4 bg-gradient-to-r from-green-100 to-green-200 rounded-lg">
+                            <div className="text-sm font-medium text-green-700 mb-1">Total de Semillas Analizadas</div>
+                            <div className="text-2xl font-bold text-green-800">
+                              {(() => {
+                                const totalNormales = tabla.repGerm?.reduce((sum: number, rep: any) => {
+                                  return sum + (rep.normales ? rep.normales.reduce((s: number, n: number) => s + n, 0) : 0)
+                                }, 0) || 0
+                                const totalOtras = tabla.repGerm?.reduce((sum: number, rep: any) => 
+                                  sum + (rep.anormales || 0) + (rep.duras || 0) + (rep.frescas || 0) + (rep.muertas || 0), 0
+                                ) || 0
+                                return totalNormales + totalOtras
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Sección de porcentajes con redondeo */}
                   {mostrandoPorcentajes === tabla.tablaGermID && (
@@ -1323,27 +1517,27 @@ export function TablasGerminacionSection({
                               <div className="grid grid-cols-2 gap-2 text-sm">
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Normales</div>
-                                  <div>{valoresInia.normales}</div>
+                                  <div>{tabla.porcentajeNormalesConRedondeo || 0}%</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Anormales</div>
-                                  <div>{valoresInia.anormales}</div>
+                                  <div>{tabla.porcentajeAnormalesConRedondeo || 0}%</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Duras</div>
-                                  <div>{valoresInia.duras}</div>
+                                  <div>{tabla.porcentajeDurasConRedondeo || 0}%</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Frescas</div>
-                                  <div>{valoresInia.frescas}</div>
+                                  <div>{tabla.porcentajeFrescasConRedondeo || 0}%</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Muertas</div>
-                                  <div>{valoresInia.muertas}</div>
+                                  <div>{tabla.porcentajeMuertasConRedondeo || 0}%</div>
                                 </div>
                                 <div className="text-center font-semibold">
                                   <div className="font-medium text-gray-600">Germinación</div>
-                                  <div>{valoresInia.total}</div>
+                                  <div>{tabla.porcentajeNormalesConRedondeo || 0}%</div>
                                 </div>
                               </div>
                             </div>
@@ -1353,27 +1547,27 @@ export function TablasGerminacionSection({
                               <div className="grid grid-cols-2 gap-2 text-sm">
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Normales</div>
-                                  <div>{valoresInase.normales}</div>
+                                  <div>-</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Anormales</div>
-                                  <div>{valoresInase.anormales}</div>
+                                  <div>-</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Duras</div>
-                                  <div>{valoresInase.duras}</div>
+                                  <div>-</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Frescas</div>
-                                  <div>{valoresInase.frescas}</div>
+                                  <div>-</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Muertas</div>
-                                  <div>{valoresInase.muertas}</div>
+                                  <div>-</div>
                                 </div>
                                 <div className="text-center font-semibold">
                                   <div className="font-medium text-gray-600">Germinación</div>
-                                  <div>{valoresInase.total}</div>
+                                  <div>-</div>
                                 </div>
                               </div>
                             </div>

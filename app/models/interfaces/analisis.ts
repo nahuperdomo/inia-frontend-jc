@@ -11,7 +11,8 @@ export interface AnalisisHistorialDTO {
 // Base DTO for all analysis responses
 export interface AnalisisDTO {
   analisisID: number;
-  lote: string;
+  idLote?: number; // ID del lote
+  lote: string; // Nombre del lote
   estado: EstadoAnalisis;
   fechaInicio: string; // LocalDateTime as string
   fechaFin?: string; // LocalDateTime as string
