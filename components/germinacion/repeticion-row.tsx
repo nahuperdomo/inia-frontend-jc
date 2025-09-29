@@ -14,6 +14,7 @@ interface RepeticionRowProps {
   numeroConteos: number
   numSemillasPRep: number
   isFinalized: boolean
+  fechasConteos?: string[] // Agregar fechas de conteos para validación
   onGuardar: (datos: RepGermRequestDTO) => Promise<void>
   onEliminar?: () => Promise<void>
 }
@@ -24,6 +25,7 @@ export function RepeticionRow({
   numeroConteos,
   numSemillasPRep,
   isFinalized,
+  fechasConteos,
   onGuardar,
   onEliminar
 }: RepeticionRowProps) {
@@ -113,6 +115,18 @@ export function RepeticionRow({
     setDatos(prev => ({ ...prev, [campo]: valor }))
   }
 
+  // Función para validar si se puede ingresar datos en un conteo específico
+  const puedeIngresarConteo = (indiceConteo: number): boolean => {
+    if (!fechasConteos || !fechasConteos[indiceConteo]) return true
+    
+    const fechaConteo = new Date(fechasConteos[indiceConteo])
+    const fechaActual = new Date()
+    fechaActual.setHours(0, 0, 0, 0) // Resetear horas para comparar solo fechas
+    fechaConteo.setHours(0, 0, 0, 0)
+    
+    return fechaConteo <= fechaActual
+  }
+
   const totalExcedido = datos.total > numSemillasPRep
   const puedeGuardar = datos.total > 0 && !totalExcedido
 
@@ -180,20 +194,34 @@ export function RepeticionRow({
               Normales por Conteo:
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-              {datos.normales.map((valor, indice) => (
-                <div key={indice}>
-                  <label className="text-xs text-gray-500">Conteo {indice + 1}</label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max={numSemillasPRep}
-                    value={valor}
-                    onChange={(e) => actualizarNormal(indice, parseInt(e.target.value) || 0)}
-                    disabled={!modoEdicion}
-                    className="text-center"
-                  />
-                </div>
-              ))}
+              {datos.normales.map((valor, indice) => {
+                const puedeIngresar = puedeIngresarConteo(indice)
+                return (
+                  <div key={indice}>
+                    <label className="text-xs text-gray-500">
+                      Conteo {indice + 1}
+                      {!puedeIngresar && (
+                        <span className="text-red-500 ml-1" title="Fecha futura - no disponible">⚠️</span>
+                      )}
+                    </label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max={numSemillasPRep}
+                      value={valor}
+                      onChange={(e) => actualizarNormal(indice, parseInt(e.target.value) || 0)}
+                      disabled={!modoEdicion || !puedeIngresar}
+                      className={`text-center ${!puedeIngresar ? 'bg-gray-100 text-gray-400' : ''}`}
+                      title={!puedeIngresar ? "No se puede ingresar datos para fechas futuras" : ""}
+                    />
+                    {fechasConteos && fechasConteos[indice] && (
+                      <div className="text-xs text-gray-400 text-center mt-1">
+                        {new Date(fechasConteos[indice]).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
 

@@ -19,6 +19,7 @@ interface RepeticionesManagerProps {
   numeroRepeticiones: number
   numeroConteos: number
   isFinalized: boolean
+  fechasConteos?: string[] // Agregar fechas de conteos
   onRepeticionesUpdated: (repeticiones: RepGermDTO[]) => void
 }
 
@@ -28,6 +29,7 @@ export function RepeticionesManager({
   numeroRepeticiones,
   numeroConteos,
   isFinalized,
+  fechasConteos,
   onRepeticionesUpdated
 }: RepeticionesManagerProps) {
   const [repeticiones, setRepeticiones] = useState<RepGermDTO[]>([])
@@ -132,6 +134,7 @@ export function RepeticionesManager({
               numeroConteos={numeroConteos}
               numSemillasPRep={tabla.numSemillasPRep}
               isFinalized={isFinalized || tabla.finalizada}
+              fechasConteos={fechasConteos}
               onGuardar={(datos) => handleGuardarRepeticion(numeroRep, datos)}
             />
           )
