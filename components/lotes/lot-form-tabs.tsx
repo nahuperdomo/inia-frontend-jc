@@ -17,7 +17,7 @@ interface LoteFormData {
   fechaEntrega: string
   fechaRecibo: string
   depositoID: number | ""
-  unidadEmbalado: string
+  unidadEmbolsado: string
   remitente: string
   observaciones: string
   kilosLimpios: number | ""
@@ -27,8 +27,8 @@ interface LoteFormData {
   }>
   numeroArticuloID: number | ""
   cantidad: number | ""
-  origen: string
-  estado: string
+  origenID: number | ""
+  estadoID: number | ""
   fechaCosecha: string
 }
 
@@ -59,6 +59,31 @@ export function LotFormTabs({ formData, onInputChange, activeTab, onTabChange }:
     { id: 2, nombre: "Depósito B" },
   ]
   const unidadesEmbalado = ["Bolsas", "Granel", "Big Bags", "Contenedores"]
+
+  // Nuevos datos hardcodeados para los selects
+  const tiposHumedad = [
+    { id: 1, nombre: "Humedad Base Húmeda" },
+    { id: 2, nombre: "Humedad Base Seca" },
+    { id: 3, nombre: "Humedad Relativa" },
+    { id: 4, nombre: "Humedad Absoluta" },
+  ]
+
+  const origenes = [
+    { id: 1, nombre: "Nacional" },
+    { id: 2, nombre: "Importado - Argentina" },
+    { id: 3, nombre: "Importado - Brasil" },
+    { id: 4, nombre: "Importado - Chile" },
+    { id: 5, nombre: "Importado - Paraguay" },
+  ]
+
+  const estados = [
+    { id: 1, nombre: "Ingresado" },
+    { id: 2, nombre: "En Proceso" },
+    { id: 3, nombre: "En Análisis" },
+    { id: 4, nombre: "Aprobado" },
+    { id: 5, nombre: "Rechazado" },
+    { id: 6, nombre: "Liberado" },
+  ]
 
   return (
     <Card>
@@ -222,10 +247,10 @@ export function LotFormTabs({ formData, onInputChange, activeTab, onTabChange }:
                 </Select>
               </div>
               <div>
-                <Label htmlFor="unidadEmbalado">Unidad de embalado</Label>
+                <Label htmlFor="unidadEmbolsado">Unidad de embalado</Label>
                 <Select
-                  value={formData.unidadEmbalado}
-                  onValueChange={value => onInputChange("unidadEmbalado", value)}
+                  value={formData.unidadEmbolsado}
+                  onValueChange={value => onInputChange("unidadEmbolsado", value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar unidad" />
@@ -270,19 +295,26 @@ export function LotFormTabs({ formData, onInputChange, activeTab, onTabChange }:
               </div>
               <div>
                 <Label htmlFor="tipoHumedadID">Tipo de humedad</Label>
-                <Input
-                  id="tipoHumedadID"
-                  type="number"
-                  value={formData.datosHumedad[0]?.tipoHumedadID ?? ""}
-                  onChange={e => {
+                <Select
+                  value={formData.datosHumedad[0]?.tipoHumedadID === "" ? "" : String(formData.datosHumedad[0]?.tipoHumedadID)}
+                  onValueChange={value => {
                     const newDatos = [...formData.datosHumedad]
                     newDatos[0] = {
                       ...newDatos[0],
-                      tipoHumedadID: e.target.value === "" ? "" : Number(e.target.value)
+                      tipoHumedadID: value === "" ? "" : Number(value)
                     }
                     onInputChange("datosHumedad", newDatos)
                   }}
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar tipo de humedad" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tiposHumedad.map((tipo) => (
+                      <SelectItem key={tipo.id} value={String(tipo.id)}>{tipo.nombre}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="valorHumedad">Valor humedad (%)</Label>
@@ -321,20 +353,36 @@ export function LotFormTabs({ formData, onInputChange, activeTab, onTabChange }:
                 />
               </div>
               <div>
-                <Label htmlFor="origen">Origen</Label>
-                <Input
-                  id="origen"
-                  value={formData.origen}
-                  onChange={e => onInputChange("origen", e.target.value)}
-                />
+                <Label htmlFor="origenID">Origen</Label>
+                <Select
+                  value={formData.origenID === "" ? "" : String(formData.origenID)}
+                  onValueChange={value => onInputChange("origenID", value === "" ? "" : Number(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar origen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {origenes.map((origen) => (
+                      <SelectItem key={origen.id} value={String(origen.id)}>{origen.nombre}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
-                <Label htmlFor="estado">Estado</Label>
-                <Input
-                  id="estado"
-                  value={formData.estado}
-                  onChange={e => onInputChange("estado", e.target.value)}
-                />
+                <Label htmlFor="estadoID">Estado</Label>
+                <Select
+                  value={formData.estadoID === "" ? "" : String(formData.estadoID)}
+                  onValueChange={value => onInputChange("estadoID", value === "" ? "" : Number(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {estados.map((estado) => (
+                      <SelectItem key={estado.id} value={String(estado.id)}>{estado.nombre}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="fechaCosecha">Fecha de cosecha</Label>

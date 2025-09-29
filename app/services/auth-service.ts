@@ -10,11 +10,14 @@ import {
 } from "../models";
 
 // Autenticación y validación de token
-export async function login(user: string, password: string): Promise<LoginResponse> {
-  const response = await fetch(`http://localhost:8080/api/v1/auth/login`, {
+export async function login(usuario: string, password: string): Promise<LoginResponse> {
+  const response = await fetch(`/api/v1/auth/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user, password }),
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    body: JSON.stringify({ usuario, password }),
   });
   if (!response.ok) throw new Error(await response.text());
   return response.json();
