@@ -20,6 +20,12 @@ export interface GerminacionRequestDTO extends AnalisisRequestDTO {
   numeroConteos?: number;
 }
 
+export interface GerminacionEditRequestDTO {
+  // Solo campos editables después de la creación (sin fechas ni numDias)
+  idLote?: number;
+  comentarios?: string;
+}
+
 export interface ResponseListadoGerminacion {
   germinaciones: GerminacionDTO[];
 }

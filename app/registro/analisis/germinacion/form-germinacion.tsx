@@ -182,41 +182,34 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
     }
   }, [data.fechaInicioGerm, data.fechaUltConteo])
 
-  // Generar fechas de conteo automáticamente
+  // Solo establecer la fecha del último conteo automáticamente
   React.useEffect(() => {
-    const { fechaInicioGerm, fechaUltConteo, numeroConteos } = data
+    const { fechaUltConteo, numeroConteos } = data
     
-    if (fechaInicioGerm && fechaUltConteo && numeroConteos && numeroConteos > 0) {
-      const fechaInicio = new Date(fechaInicioGerm)
-      const fechaFin = new Date(fechaUltConteo)
+    if (fechaUltConteo && numeroConteos && numeroConteos > 0) {
+      const fechasActuales = data.fechaConteos || []
       
-      // Solo generar si las fechas son válidas y la fecha de fin es posterior a la de inicio
-      if (!isNaN(fechaInicio.getTime()) && !isNaN(fechaFin.getTime()) && fechaFin > fechaInicio) {
-        const fechasGeneradas = generarFechasConteo(fechaInicioGerm, fechaUltConteo, numeroConteos)
-        
-        // Solo actualizar si las fechas generadas son diferentes y válidas
-        const fechasActualesStr = JSON.stringify(data.fechaConteos || [])
-        const fechasGeneradasStr = JSON.stringify(fechasGeneradas)
-        
-        if (fechasActualesStr !== fechasGeneradasStr && fechasGeneradas.length > 0) {
-          handleInputChange("fechaConteos", fechasGeneradas)
+      // Solo establecer la fecha del último conteo si hay fechas y el último está vacío o es diferente
+      if (fechasActuales.length === numeroConteos) {
+        const ultimoIndice = numeroConteos - 1
+        if (fechasActuales[ultimoIndice] !== fechaUltConteo) {
+          const nuevasFechas = [...fechasActuales]
+          nuevasFechas[ultimoIndice] = fechaUltConteo
+          handleInputChange("fechaConteos", nuevasFechas)
         }
       }
     }
-  }, [data.fechaInicioGerm, data.fechaUltConteo, data.numeroConteos])
+  }, [data.fechaUltConteo, data.numeroConteos])
 
-  // Sincronizar fechaConteos con numeroConteos (mantener lógica original para casos manuales)
+  // Sincronizar fechaConteos con numeroConteos (crear array vacío del tamaño correcto)
   React.useEffect(() => {
     if (data.numeroConteos && data.numeroConteos > 0) {
       const currentFechas = data.fechaConteos || []
       if (currentFechas.length !== data.numeroConteos) {
-        // Solo ajustar el tamaño del array si no se están generando automáticamente
-        if (!data.fechaInicioGerm || !data.fechaUltConteo) {
-          const newFechas = Array(data.numeroConteos).fill("").map((_, index) => 
-            currentFechas[index] || ""
-          )
-          handleInputChange("fechaConteos", newFechas)
-        }
+        const newFechas = Array(data.numeroConteos).fill("").map((_, index) => 
+          currentFechas[index] || ""
+        )
+        handleInputChange("fechaConteos", newFechas)
       }
     }
   }, [data.numeroConteos])
@@ -371,7 +364,7 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
               <h3 className="text-lg font-semibold">
                 Fechas de Conteo *
                 <span className="text-sm font-normal text-gray-500 ml-2">
-                  (Se generan automáticamente)
+                  (Solo el último conteo se establece automáticamente)
                 </span>
               </h3>
             </div>
@@ -436,12 +429,12 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
           {/* Mensaje informativo */}
           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-700">
-              💡 <strong>Tip:</strong> Las fechas de conteo se generan automáticamente cuando defines:
+              💡 <strong>Tip:</strong> Define manualmente las fechas de conteo intermedias:
             </p>
             <ul className="text-xs text-blue-600 mt-1 ml-4 list-disc">
-              <li>La fecha de inicio de germinación</li>
-              <li>La fecha de último conteo</li>
-              <li>El número de conteos</li>
+              <li>Solo la fecha del último conteo se establece automáticamente</li>
+              <li>Las fechas intermedias deben ingresarse manualmente</li>
+              <li>Todas las fechas deben estar entre la fecha de inicio y la de último conteo</li>
             </ul>
           </div>
           

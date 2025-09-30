@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { 
   obtenerGerminacionPorId, 
   obtenerTablasGerminacion,
@@ -12,7 +13,9 @@ import {
   finalizarGerminacion,
   actualizarGerminacion
 } from '@/app/services/germinacion-service'
-import { GerminacionDTO, GerminacionRequestDTO } from '@/app/models/interfaces/germinacion'
+import { obtenerLotesActivos } from '@/app/services/lote-service'
+import { GerminacionDTO, GerminacionRequestDTO, GerminacionEditRequestDTO } from '@/app/models/interfaces/germinacion'
+import { LoteSimpleDTO } from '@/app/models/interfaces/lote-simple'
 import { TablaGermDTO, RepGermDTO } from '@/app/models/interfaces/repeticiones'
 import { TablasGerminacionSection } from '@/components/germinacion/tablas-germinacion-section'
 import { CalendarDays, Beaker, CheckCircle, Edit } from 'lucide-react'
@@ -51,44 +54,6 @@ const convertirFechaParaInput = (fechaString: string): string => {
   return fecha.toISOString().split('T')[0]
 }
 
-// Función para validar que una fecha esté en el rango permitido
-const validarFechaEnRango = (fecha: string, fechaInicio: string, fechaFin: string): boolean => {
-  if (!fecha || !fechaInicio || !fechaFin) return true // Si no hay fechas, no validar
-  
-  const fechaValidar = new Date(fecha)
-  const fechaMin = new Date(fechaInicio)
-  const fechaMax = new Date(fechaFin)
-  
-  return fechaValidar >= fechaMin && fechaValidar <= fechaMax
-}
-
-// Función para generar fechas de conteo automáticamente
-const generarFechasConteo = (fechaInicio: string, fechaUltConteo: string, numeroConteos: number): string[] => {
-  if (!fechaInicio || !fechaUltConteo || numeroConteos <= 0) return []
-  
-  const inicio = new Date(fechaInicio)
-  const fin = new Date(fechaUltConteo)
-  
-  if (inicio >= fin) return []
-  
-  const diferenciaDias = Math.floor((fin.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24))
-  const intervaloDias = Math.floor(diferenciaDias / (numeroConteos - 1))
-  
-  const fechas: string[] = []
-  for (let i = 0; i < numeroConteos; i++) {
-    const fecha = new Date(inicio)
-    fecha.setDate(inicio.getDate() + (i * intervaloDias))
-    fechas.push(fecha.toISOString().split('T')[0])
-  }
-  
-  // Asegurar que la última fecha sea exactamente la fecha del último conteo
-  if (fechas.length > 0) {
-    fechas[fechas.length - 1] = fechaUltConteo
-  }
-  
-  return fechas
-}
-
 export default function GerminacionDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -96,115 +61,42 @@ export default function GerminacionDetailPage() {
 
   const [germinacion, setGerminacion] = useState<GerminacionDTO | null>(null)
   const [tablas, setTablas] = useState<TablaGermDTO[]>([])
+  const [lotes, setLotes] = useState<LoteSimpleDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [creatingTable, setCreatingTable] = useState(false)
   const [finalizing, setFinalizing] = useState(false)
   const [error, setError] = useState<string>("")
   const [editandoGerminacion, setEditandoGerminacion] = useState(false)
-  const [germinacionEditada, setGerminacionEditada] = useState<GerminacionRequestDTO>({
+  
+  // Simplificado para solo campos editables
+  const [germinacionEditada, setGerminacionEditada] = useState<{
+    idLote: number
+    comentarios: string
+  }>({
     idLote: 0,
-    comentarios: '',
-    fechaInicioGerm: '',
-    fechaConteos: [],
-    fechaUltConteo: '',
-    numDias: '',
-    numeroRepeticiones: 4,
-    numeroConteos: 3
+    comentarios: ''
   })
-  const [germinacionOriginal, setGerminacionOriginal] = useState<GerminacionRequestDTO | null>(null)
-
-  // Efectos para validaciones y actualizaciones automáticas de fechas
-  useEffect(() => {
-    if (!editandoGerminacion) return
-    
-    // Solo generar fechas si tenemos todos los datos necesarios
-    const { fechaInicioGerm, fechaUltConteo, numeroConteos } = germinacionEditada
-    
-    if (fechaInicioGerm && fechaUltConteo && numeroConteos && numeroConteos > 0) {
-      const fechaInicio = new Date(fechaInicioGerm)
-      const fechaFin = new Date(fechaUltConteo)
-      
-      // Verificar que las fechas sean válidas
-      if (fechaFin > fechaInicio) {
-        const fechasGeneradas = generarFechasConteo(fechaInicioGerm, fechaUltConteo, numeroConteos)
-        
-        // Solo actualizar si las fechas son diferentes
-        if (JSON.stringify(germinacionEditada.fechaConteos) !== JSON.stringify(fechasGeneradas)) {
-          console.log("🗓️ Generando nuevas fechas de conteo:", fechasGeneradas)
-          setGerminacionEditada(prev => ({
-            ...prev,
-            fechaConteos: fechasGeneradas
-          }))
-        }
-      }
-    }
-  }, [germinacionEditada.fechaInicioGerm, germinacionEditada.fechaUltConteo, germinacionEditada.numeroConteos])
-
-  // Efecto separado para validar fechas y mostrar errores
-  useEffect(() => {
-    if (!editandoGerminacion) return
-    
-    const { fechaInicioGerm, fechaUltConteo } = germinacionEditada
-    
-    if (fechaInicioGerm && fechaUltConteo) {
-      const fechaInicio = new Date(fechaInicioGerm)
-      const fechaFin = new Date(fechaUltConteo)
-      
-      // Si la fecha de fin es menor o igual que la de inicio, mostrar error
-      if (fechaFin <= fechaInicio) {
-        console.log("⚠️ Fechas inválidas: fecha fin debe ser posterior a fecha inicio")
-      }
-    }
-  }, [germinacionEditada.fechaInicioGerm, germinacionEditada.fechaUltConteo])
-
-  // Funciones de validación simplificadas
-  const esFechaInicioValida = (): boolean => {
-    const { fechaInicioGerm, fechaUltConteo } = germinacionEditada
-    if (!fechaInicioGerm || !fechaUltConteo) return true
-    
-    const inicio = new Date(fechaInicioGerm)
-    const fin = new Date(fechaUltConteo)
-    return inicio < fin
-  }
-
-  const esFechaFinValida = (): boolean => {
-    const { fechaInicioGerm, fechaUltConteo } = germinacionEditada
-    if (!fechaInicioGerm || !fechaUltConteo) return true
-    
-    const inicio = new Date(fechaInicioGerm)
-    const fin = new Date(fechaUltConteo)
-    return fin > inicio
-  }
-
-  const esFechaConteoValida = (fecha: string): boolean => {
-    const { fechaInicioGerm, fechaUltConteo } = germinacionEditada
-    if (!fecha || !fechaInicioGerm || !fechaUltConteo) return true
-    
-    const fechaConteo = new Date(fecha)
-    const inicio = new Date(fechaInicioGerm)
-    const fin = new Date(fechaUltConteo)
-    
-    return fechaConteo >= inicio && fechaConteo <= fin
-  }
-
-  const sonTodasLasFechasValidas = (): boolean => {
-    const inicioValido = esFechaInicioValida()
-    const finValido = esFechaFinValida()
-    const conteosValidos = germinacionEditada.fechaConteos.every(fecha => esFechaConteoValida(fecha))
-    
-    return inicioValido && finValido && conteosValidos
-  }
+  
+  const [germinacionOriginal, setGerminacionOriginal] = useState<{
+    idLote: number
+    comentarios: string
+  } | null>(null)
 
   const cargarDatos = async () => {
     try {
       setLoading(true)
       console.log("🔄 Cargando germinación y tablas para ID:", germinacionId)
       
-      // Primero cargar solo la germinación
-      const germinacionData = await obtenerGerminacionPorId(parseInt(germinacionId))
+      // Cargar datos en paralelo
+      const [germinacionData, lotesData] = await Promise.all([
+        obtenerGerminacionPorId(parseInt(germinacionId)),
+        obtenerLotesActivos()
+      ])
+      
       console.log("✅ Germinación cargada:", germinacionData)
-      console.log("📊 Estructura completa de datos:", JSON.stringify(germinacionData, null, 2))
+      console.log("✅ Lotes cargados:", lotesData)
       setGerminacion(germinacionData)
+      setLotes(lotesData)
       
       // Cargar tablas usando el endpoint correcto
       try {
@@ -318,24 +210,16 @@ export default function GerminacionDetailPage() {
   const handleEditarGerminacion = () => {
     if (!germinacion) return
     
-    console.log("🔍 Datos de germinación disponibles:", JSON.stringify(germinacion, null, 2))
+    console.log("🔍 Iniciando edición de germinación")
     
-    // Necesitamos el ID del lote, ahora viene del backend en el DTO
-    const datosGerminacion = {
-      idLote: germinacion.idLote || 0, // Usar el idLote del DTO
-      comentarios: germinacion.comentarios || '',
-      fechaInicioGerm: convertirFechaParaInput(germinacion.fechaInicioGerm || ''),
-      fechaConteos: (germinacion.fechaConteos || []).map(fecha => convertirFechaParaInput(fecha)),
-      fechaUltConteo: convertirFechaParaInput(germinacion.fechaUltConteo || ''),
-      numDias: germinacion.numDias || '',
-      numeroRepeticiones: germinacion.numeroRepeticiones || 4,
-      numeroConteos: germinacion.numeroConteos || 3
+    // Solo preparar los campos editables
+    const datosEdicion = {
+      idLote: germinacion.idLote || 0,
+      comentarios: germinacion.comentarios || ''
     }
     
-    console.log("🔧 Datos preparados para edición:", JSON.stringify(datosGerminacion, null, 2))
-    
-    setGerminacionEditada(datosGerminacion)
-    setGerminacionOriginal({ ...datosGerminacion })
+    setGerminacionEditada(datosEdicion)
+    setGerminacionOriginal({ ...datosEdicion })
     setEditandoGerminacion(true)
   }
 
@@ -359,17 +243,18 @@ export default function GerminacionDetailPage() {
       return
     }
 
-    // Validar fechas antes de guardar
-    if (!sonTodasLasFechasValidas()) {
-      alert("Por favor, corrige las fechas inválidas antes de guardar")
-      return
-    }
-
     try {
       console.log("💾 Guardando cambios en germinación:", germinacionId)
-      console.log("📊 Datos a enviar:", JSON.stringify(germinacionEditada, null, 2))
       
-      const germinacionActualizada = await actualizarGerminacion(parseInt(germinacionId), germinacionEditada)
+      // Crear el DTO de edición con solo los campos permitidos
+      const datosEdicion: GerminacionEditRequestDTO = {
+        idLote: germinacionEditada.idLote,
+        comentarios: germinacionEditada.comentarios
+      }
+      
+      console.log("📊 Datos a enviar:", JSON.stringify(datosEdicion, null, 2))
+      
+      const germinacionActualizada = await actualizarGerminacion(parseInt(germinacionId), datosEdicion)
       console.log("✅ Germinación actualizada exitosamente")
       
       // Actualizar estado local
@@ -378,16 +263,8 @@ export default function GerminacionDetailPage() {
       setGerminacionOriginal(null)
     } catch (error: any) {
       console.error("❌ Error guardando germinación:", error)
-      console.error("❌ Detalles del error:", error)
       alert(`Error al guardar los cambios: ${error.message || 'Error desconocido'}`)
     }
-  }
-
-  const actualizarFechaConteo = (indice: number, fecha: string) => {
-    setGerminacionEditada(prev => ({
-      ...prev,
-      fechaConteos: prev.fechaConteos.map((f, i) => i === indice ? fecha : f)
-    }))
   }
 
   if (loading) {
@@ -475,171 +352,111 @@ export default function GerminacionDetailPage() {
         </CardHeader>
         <CardContent>
           {editandoGerminacion ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {germinacion.fechaInicioGerm && (
-                  <div>
-                    <Label className="text-sm font-medium">Fecha de Inicio</Label>
-                    <Input
-                      type="date"
-                      value={germinacionEditada.fechaInicioGerm}
-                      onChange={(e) => {
-                        console.log("📅 Cambiando fecha inicio a:", e.target.value)
-                        setGerminacionEditada(prev => ({ ...prev, fechaInicioGerm: e.target.value }))
-                      }}
-                      className={!esFechaInicioValida() ? 'border-red-500 bg-red-50' : ''}
-                    />
-                    {!esFechaInicioValida() && (
-                      <p className="text-xs text-red-600 mt-1">
-                        La fecha de inicio debe ser anterior a la fecha de último conteo
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                <div>
-                  <Label className="text-sm font-medium">Fecha Último Conteo</Label>
-                  <Input
-                    type="date"
-                    value={germinacionEditada.fechaUltConteo}
-                    onChange={(e) => {
-                      console.log("📅 Cambiando fecha último conteo a:", e.target.value)
-                      setGerminacionEditada(prev => ({ ...prev, fechaUltConteo: e.target.value }))
-                    }}
-                    min={germinacionEditada.fechaInicioGerm || undefined}
-                    className={!esFechaFinValida() ? 'border-red-500 bg-red-50' : ''}
-                  />
-                  {!esFechaFinValida() && (
-                    <p className="text-xs text-red-600 mt-1">
-                      La fecha de último conteo debe ser posterior a la fecha de inicio
+            <div className="space-y-6">
+              <div className="text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p><strong>Modo de Edición:</strong> Solo se pueden modificar los campos que se muestran a continuación. Los datos como fechas, número de días y repeticiones no son editables una vez creado el análisis.</p>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Lote Asociado *</Label>
+                    <Select
+                      value={germinacionEditada.idLote?.toString() || ""}
+                      onValueChange={(value) => setGerminacionEditada(prev => ({ 
+                        ...prev, 
+                        idLote: parseInt(value) 
+                      }))}
+                    >
+                      <SelectTrigger className="h-11">
+                        <SelectValue placeholder="Seleccionar lote..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {lotes.map((lote) => (
+                          <SelectItem key={lote.loteID} value={lote.loteID.toString()}>
+                            {lote.ficha} (ID: {lote.loteID})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500">
+                      Selecciona el lote que se analizará en este análisis de germinación
                     </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Comentarios</Label>
+                    <Input
+                      value={germinacionEditada.comentarios}
+                      onChange={(e) => setGerminacionEditada(prev => ({ 
+                        ...prev, 
+                        comentarios: e.target.value 
+                      }))}
+                      placeholder="Comentarios adicionales sobre el análisis..."
+                      className="h-11"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Información adicional o observaciones sobre el análisis
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Información del lote seleccionado */}
+                  {germinacionEditada.idLote && lotes.find(l => l.loteID === germinacionEditada.idLote) && (
+                    <Card className="bg-gray-50">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Información del Lote</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        {(() => {
+                          const selectedLoteInfo = lotes.find(l => l.loteID === germinacionEditada.idLote);
+                          return selectedLoteInfo ? (
+                            <>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Ficha:</span>
+                                <span className="font-medium">{selectedLoteInfo.ficha}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">ID:</span>
+                                <span>{selectedLoteInfo.loteID}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Número Ficha:</span>
+                                <span>{selectedLoteInfo.numeroFicha}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Activo:</span>
+                                <span>{selectedLoteInfo.activo ? "Sí" : "No"}</span>
+                              </div>
+                            </>
+                          ) : null;
+                        })()}
+                      </CardContent>
+                    </Card>
                   )}
                 </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Días de Análisis</Label>
-                  <Input
-                    value={germinacionEditada.numDias}
-                    onChange={(e) => setGerminacionEditada(prev => ({ ...prev, numDias: e.target.value }))}
-                    placeholder="Ej: 14 días"
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Número de Repeticiones</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={germinacionEditada.numeroRepeticiones}
-                    onChange={(e) => setGerminacionEditada(prev => ({ ...prev, numeroRepeticiones: parseInt(e.target.value) || 4 }))}
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Número de Conteos</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="7"
-                    value={germinacionEditada.numeroConteos}
-                    onChange={(e) => {
-                      const nuevoNumero = parseInt(e.target.value) || 3
-                      console.log("🔢 Cambiando número de conteos a:", nuevoNumero)
-                      setGerminacionEditada(prev => ({ ...prev, numeroConteos: nuevoNumero }))
-                    }}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <Label className="text-sm font-medium">Comentarios</Label>
-                  <Input
-                    value={germinacionEditada.comentarios}
-                    onChange={(e) => setGerminacionEditada(prev => ({ ...prev, comentarios: e.target.value }))}
-                    placeholder="Comentarios adicionales..."
-                  />
-                </div>
               </div>
-
-              {/* Fechas de Conteos */}
-              {germinacionEditada.fechaConteos.length > 0 && (
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">
-                    Fechas de Conteos 
-                    <span className="text-xs text-gray-500 ml-2">
-                      (Se generan automáticamente basadas en las fechas de inicio y fin)
-                    </span>
-                  </Label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {germinacionEditada.fechaConteos.map((fecha, index) => {
-                      const esValida = esFechaConteoValida(fecha)
-                      const esUltimoConteo = index === germinacionEditada.fechaConteos.length - 1
-                      
-                      return (
-                        <div key={index}>
-                          <Label className="text-xs text-gray-600">
-                            Conteo {index + 1}
-                            {esUltimoConteo && " (Último)"}
-                          </Label>
-                          <Input
-                            type="date"
-                            value={fecha}
-                            onChange={(e) => {
-                              console.log(`📅 Cambiando fecha conteo ${index + 1} a:`, e.target.value)
-                              actualizarFechaConteo(index, e.target.value)
-                            }}
-                            min={germinacionEditada.fechaInicioGerm || undefined}
-                            max={germinacionEditada.fechaUltConteo || undefined}
-                            className={!esValida ? 'border-red-500 bg-red-50' : ''}
-                          />
-                          {!esValida && (
-                            <p className="text-xs text-red-600 mt-1">
-                              Debe estar entre la fecha de inicio y último conteo
-                            </p>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                  
-                  {/* Mensaje informativo */}
-                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-700">
-                      💡 <strong>Tip:</strong> Las fechas de conteo se actualizan automáticamente cuando cambias:
-                    </p>
-                    <ul className="text-xs text-blue-600 mt-1 ml-4 list-disc">
-                      <li>La fecha de inicio de germinación</li>
-                      <li>La fecha de último conteo</li>
-                      <li>El número de conteos</li>
-                    </ul>
-                  </div>
-                </div>
-              )}
               
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-3 pt-4 border-t">
                 <Button
                   variant="outline"
                   onClick={handleCancelarEdicionGerminacion}
+                  className="min-w-24"
                 >
                   Cancelar
                 </Button>
                 
                 <Button
                   onClick={handleGuardarGerminacion}
-                  disabled={!hanCambiadoGerminacion() || !sonTodasLasFechasValidas()}
+                  disabled={!hanCambiadoGerminacion()}
                   className={
                     !hanCambiadoGerminacion()
-                      ? 'bg-gray-400 hover:bg-gray-500'
-                      : !sonTodasLasFechasValidas()
-                      ? 'bg-red-600 hover:bg-red-700'
-                      : 'bg-green-600 hover:bg-green-700'
+                      ? 'bg-gray-400 hover:bg-gray-500 min-w-32'
+                      : 'bg-green-600 hover:bg-green-700 min-w-32'
                   }
                 >
-                  {!hanCambiadoGerminacion() 
-                    ? 'Sin Cambios' 
-                    : !sonTodasLasFechasValidas()
-                    ? 'Fechas Inválidas'
-                    : 'Guardar Cambios'}
+                  {!hanCambiadoGerminacion() ? 'Sin Cambios' : 'Guardar Cambios'}
                 </Button>
               </div>
             </div>
