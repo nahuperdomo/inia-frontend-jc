@@ -117,26 +117,30 @@ export default function GerminacionDetailPage() {
   useEffect(() => {
     if (!editandoGerminacion) return
     
-    // Actualizar fechas de conteo automáticamente cuando cambia la fecha de inicio, fin o número de conteos
+    // Solo generar fechas si tenemos todos los datos necesarios
     const { fechaInicioGerm, fechaUltConteo, numeroConteos } = germinacionEditada
     
     if (fechaInicioGerm && fechaUltConteo && numeroConteos && numeroConteos > 0) {
-      const fechasGeneradas = generarFechasConteo(fechaInicioGerm, fechaUltConteo, numeroConteos)
+      const fechaInicio = new Date(fechaInicioGerm)
+      const fechaFin = new Date(fechaUltConteo)
       
-      // Solo actualizar si las fechas generadas son diferentes
-      const fechasActualesStr = JSON.stringify(germinacionEditada.fechaConteos)
-      const fechasGeneradasStr = JSON.stringify(fechasGeneradas)
-      
-      if (fechasActualesStr !== fechasGeneradasStr) {
-        setGerminacionEditada(prev => ({
-          ...prev,
-          fechaConteos: fechasGeneradas
-        }))
+      // Verificar que las fechas sean válidas
+      if (fechaFin > fechaInicio) {
+        const fechasGeneradas = generarFechasConteo(fechaInicioGerm, fechaUltConteo, numeroConteos)
+        
+        // Solo actualizar si las fechas son diferentes
+        if (JSON.stringify(germinacionEditada.fechaConteos) !== JSON.stringify(fechasGeneradas)) {
+          console.log("🗓️ Generando nuevas fechas de conteo:", fechasGeneradas)
+          setGerminacionEditada(prev => ({
+            ...prev,
+            fechaConteos: fechasGeneradas
+          }))
+        }
       }
     }
-  }, [germinacionEditada.fechaInicioGerm, germinacionEditada.fechaUltConteo, germinacionEditada.numeroConteos, editandoGerminacion])
+  }, [germinacionEditada.fechaInicioGerm, germinacionEditada.fechaUltConteo, germinacionEditada.numeroConteos])
 
-  // Efecto para validar que la fecha de último conteo no sea menor que la de inicio
+  // Efecto separado para validar fechas y mostrar errores
   useEffect(() => {
     if (!editandoGerminacion) return
     
@@ -146,47 +150,49 @@ export default function GerminacionDetailPage() {
       const fechaInicio = new Date(fechaInicioGerm)
       const fechaFin = new Date(fechaUltConteo)
       
-      if (fechaFin < fechaInicio) {
-        // Ajustar automáticamente la fecha de último conteo
-        const fechaMinima = new Date(fechaInicio)
-        fechaMinima.setDate(fechaMinima.getDate() + 7) // Mínimo 7 días después
-        
-        setGerminacionEditada(prev => ({
-          ...prev,
-          fechaUltConteo: fechaMinima.toISOString().split('T')[0]
-        }))
+      // Si la fecha de fin es menor o igual que la de inicio, mostrar error
+      if (fechaFin <= fechaInicio) {
+        console.log("⚠️ Fechas inválidas: fecha fin debe ser posterior a fecha inicio")
       }
     }
-  }, [germinacionEditada.fechaInicioGerm, germinacionEditada.fechaUltConteo, editandoGerminacion])
+  }, [germinacionEditada.fechaInicioGerm, germinacionEditada.fechaUltConteo])
 
-  // Funciones de validación para mostrar en UI
-  const validarFechaInicio = (): boolean => {
-    if (!editandoGerminacion || !germinacionEditada.fechaUltConteo) return true
-    const fechaInicio = new Date(germinacionEditada.fechaInicioGerm)
-    const fechaFin = new Date(germinacionEditada.fechaUltConteo)
-    return fechaInicio < fechaFin
+  // Funciones de validación simplificadas
+  const esFechaInicioValida = (): boolean => {
+    const { fechaInicioGerm, fechaUltConteo } = germinacionEditada
+    if (!fechaInicioGerm || !fechaUltConteo) return true
+    
+    const inicio = new Date(fechaInicioGerm)
+    const fin = new Date(fechaUltConteo)
+    return inicio < fin
   }
 
-  const validarFechaUltimoConteo = (): boolean => {
-    if (!editandoGerminacion || !germinacionEditada.fechaInicioGerm) return true
-    const fechaInicio = new Date(germinacionEditada.fechaInicioGerm)
-    const fechaFin = new Date(germinacionEditada.fechaUltConteo)
-    return fechaFin > fechaInicio
+  const esFechaFinValida = (): boolean => {
+    const { fechaInicioGerm, fechaUltConteo } = germinacionEditada
+    if (!fechaInicioGerm || !fechaUltConteo) return true
+    
+    const inicio = new Date(fechaInicioGerm)
+    const fin = new Date(fechaUltConteo)
+    return fin > inicio
   }
 
-  const validarFechaConteo = (fecha: string): boolean => {
-    if (!editandoGerminacion) return true
-    return validarFechaEnRango(fecha, germinacionEditada.fechaInicioGerm, germinacionEditada.fechaUltConteo)
+  const esFechaConteoValida = (fecha: string): boolean => {
+    const { fechaInicioGerm, fechaUltConteo } = germinacionEditada
+    if (!fecha || !fechaInicioGerm || !fechaUltConteo) return true
+    
+    const fechaConteo = new Date(fecha)
+    const inicio = new Date(fechaInicioGerm)
+    const fin = new Date(fechaUltConteo)
+    
+    return fechaConteo >= inicio && fechaConteo <= fin
   }
 
   const sonTodasLasFechasValidas = (): boolean => {
-    if (!editandoGerminacion) return true
+    const inicioValido = esFechaInicioValida()
+    const finValido = esFechaFinValida()
+    const conteosValidos = germinacionEditada.fechaConteos.every(fecha => esFechaConteoValida(fecha))
     
-    const fechaInicioValida = validarFechaInicio()
-    const fechaFinValida = validarFechaUltimoConteo()
-    const fechasConteosValidas = germinacionEditada.fechaConteos.every(fecha => validarFechaConteo(fecha))
-    
-    return fechaInicioValida && fechaFinValida && fechasConteosValidas
+    return inicioValido && finValido && conteosValidos
   }
 
   const cargarDatos = async () => {
@@ -477,10 +483,13 @@ export default function GerminacionDetailPage() {
                     <Input
                       type="date"
                       value={germinacionEditada.fechaInicioGerm}
-                      onChange={(e) => setGerminacionEditada(prev => ({ ...prev, fechaInicioGerm: e.target.value }))}
-                      className={!validarFechaInicio() ? 'border-red-500 bg-red-50' : ''}
+                      onChange={(e) => {
+                        console.log("📅 Cambiando fecha inicio a:", e.target.value)
+                        setGerminacionEditada(prev => ({ ...prev, fechaInicioGerm: e.target.value }))
+                      }}
+                      className={!esFechaInicioValida() ? 'border-red-500 bg-red-50' : ''}
                     />
-                    {!validarFechaInicio() && (
+                    {!esFechaInicioValida() && (
                       <p className="text-xs text-red-600 mt-1">
                         La fecha de inicio debe ser anterior a la fecha de último conteo
                       </p>
@@ -493,11 +502,14 @@ export default function GerminacionDetailPage() {
                   <Input
                     type="date"
                     value={germinacionEditada.fechaUltConteo}
-                    onChange={(e) => setGerminacionEditada(prev => ({ ...prev, fechaUltConteo: e.target.value }))}
+                    onChange={(e) => {
+                      console.log("📅 Cambiando fecha último conteo a:", e.target.value)
+                      setGerminacionEditada(prev => ({ ...prev, fechaUltConteo: e.target.value }))
+                    }}
                     min={germinacionEditada.fechaInicioGerm || undefined}
-                    className={!validarFechaUltimoConteo() ? 'border-red-500 bg-red-50' : ''}
+                    className={!esFechaFinValida() ? 'border-red-500 bg-red-50' : ''}
                   />
-                  {!validarFechaUltimoConteo() && (
+                  {!esFechaFinValida() && (
                     <p className="text-xs text-red-600 mt-1">
                       La fecha de último conteo debe ser posterior a la fecha de inicio
                     </p>
@@ -531,7 +543,11 @@ export default function GerminacionDetailPage() {
                     min="1"
                     max="7"
                     value={germinacionEditada.numeroConteos}
-                    onChange={(e) => setGerminacionEditada(prev => ({ ...prev, numeroConteos: parseInt(e.target.value) || 3 }))}
+                    onChange={(e) => {
+                      const nuevoNumero = parseInt(e.target.value) || 3
+                      console.log("🔢 Cambiando número de conteos a:", nuevoNumero)
+                      setGerminacionEditada(prev => ({ ...prev, numeroConteos: nuevoNumero }))
+                    }}
                   />
                 </div>
 
@@ -556,7 +572,7 @@ export default function GerminacionDetailPage() {
                   </Label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {germinacionEditada.fechaConteos.map((fecha, index) => {
-                      const esValida = validarFechaConteo(fecha)
+                      const esValida = esFechaConteoValida(fecha)
                       const esUltimoConteo = index === germinacionEditada.fechaConteos.length - 1
                       
                       return (
@@ -568,7 +584,10 @@ export default function GerminacionDetailPage() {
                           <Input
                             type="date"
                             value={fecha}
-                            onChange={(e) => actualizarFechaConteo(index, e.target.value)}
+                            onChange={(e) => {
+                              console.log(`📅 Cambiando fecha conteo ${index + 1} a:`, e.target.value)
+                              actualizarFechaConteo(index, e.target.value)
+                            }}
                             min={germinacionEditada.fechaInicioGerm || undefined}
                             max={germinacionEditada.fechaUltConteo || undefined}
                             className={!esValida ? 'border-red-500 bg-red-50' : ''}
