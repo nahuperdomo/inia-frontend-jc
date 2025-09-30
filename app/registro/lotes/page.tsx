@@ -15,33 +15,8 @@ import { LotDetailsModal } from "@/components/lotes/lot-details-modal"
 import { AnalysisModal } from "@/components/lotes/analysis-modal"
 
 import { createLote, getLotes } from "@/app/services/lotes-service"
-
-interface LoteFormData {
-  numeroFicha: number | ""
-  ficha: string
-  cultivarID: number | ""
-  tipo: string
-  empresaID: number | ""
-  clienteID: number | ""
-  codigoCC: string
-  codigoFF: string
-  fechaEntrega: string
-  fechaRecibo: string
-  depositoID: number | ""
-  unidadEmbolsado: string
-  remitente: string
-  observaciones: string
-  kilosLimpios: number | ""
-  datosHumedad: Array<{
-    tipoHumedadID: number | ""
-    valor: number | ""
-  }>
-  numeroArticuloID: number | ""
-  cantidad: number | ""
-  origenID: number | ""
-  estadoID: number | ""
-  fechaCosecha: string
-}
+import { LoteFormData, loteValidationSchema } from "@/lib/validations/lotes-validation"
+import useValidation from "@/lib/hooks/useValidation"
 
 export default function RegistroLotesPage() {
   const router = useRouter()
@@ -51,7 +26,8 @@ export default function RegistroLotesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showAnalysisModal, setShowAnalysisModal] = useState(false)
 
-  const [formData, setFormData] = useState<LoteFormData>({
+  // Estado inicial del formulario
+  const initialFormData: LoteFormData = {
     numeroFicha: "",
     ficha: "",
     cultivarID: "",
@@ -78,31 +54,56 @@ export default function RegistroLotesPage() {
     origenID: "",
     estadoID: "",
     fechaCosecha: "",
-  })
+  };
 
-  const [recentLots, setRecentLots] = useState<any[]>([])
+  const [formData, setFormData] = useState<LoteFormData>(initialFormData);
+
+  // Uso del hook de validación
+  const {
+    validateForm,
+    isValid,
+    handleBlur,
+    hasError,
+    getErrorMessage,
+    touchAll,
+    resetValidation
+  } = useValidation<LoteFormData>(formData, loteValidationSchema);
+
+  const [recentLots, setRecentLots] = useState<any[]>([]);
 
   useEffect(() => {
-    loadRecentLots()
-  }, [])
+    loadRecentLots();
+  }, []);
 
   const loadRecentLots = async () => {
     try {
-      const response = await getLotes()
-      setRecentLots(response)
-      console.log("Lotes recientes cargados:", response)
+      const response = await getLotes();
+      setRecentLots(response);
+      console.log("Lotes recientes cargados:", response);
     } catch (error) {
-      console.error('Error al cargar lotes:', error)
+      console.error('Error al cargar lotes:', error);
     }
-  }
+  };
 
   const handleInputChange = (field: keyof LoteFormData, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+
+    // Validar todos los campos y marcarlos como tocados
+    touchAll(formData);
+
+    // Si no es válido, no continuamos
+    if (!isValid(formData)) {
+      toast.error('El formulario contiene errores', {
+        description: 'Por favor, corrige los errores antes de continuar',
+      });
+      return;
+    }
+
+    setIsLoading(true);
     try {
       // Transformar los datos del formulario al formato esperado por el backend
       const loteData = {
@@ -124,53 +125,33 @@ export default function RegistroLotesPage() {
           tipoHumedadID: Number(h.tipoHumedadID),
           valor: Number(h.valor)
         }))
-      }
-      const response = await createLote(loteData)
+      };
+
+      const response = await createLote(loteData);
       toast.success('Lote registrado exitosamente', {
         description: `Se ha creado el lote con número de ficha ${formData.numeroFicha}`,
-      })
+      });
+
       // Limpiamos el formulario
-      setFormData({
-        numeroFicha: "",
-        ficha: "",
-        cultivarID: "",
-        tipo: "INTERNO",
-        empresaID: "",
-        clienteID: "",
-        codigoCC: "",
-        codigoFF: "",
-        fechaEntrega: "",
-        fechaRecibo: "",
-        depositoID: "",
-        unidadEmbolsado: "",
-        remitente: "",
-        observaciones: "",
-        kilosLimpios: "",
-        datosHumedad: [
-          {
-            tipoHumedadID: "",
-            valor: "",
-          },
-        ],
-        numeroArticuloID: "",
-        cantidad: "",
-        origenID: "",
-        estadoID: "",
-        fechaCosecha: "",
-      })
+      setFormData(initialFormData);
+
+      // Reiniciar validación
+      resetValidation();
+
       // Regresamos a la primera pestaña
-      setActiveTab("datos")
+      setActiveTab("datos");
+
       // Recargamos la lista de lotes
-      await loadRecentLots()
+      await loadRecentLots();
     } catch (error) {
       toast.error('Error al registrar el lote', {
         description: 'Por favor, verifica los datos e intenta nuevamente',
-      })
-      console.error("Error al registrar lote:", error)
+      });
+      console.error("Error al registrar lote:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleViewDetails = (lot: any) => {
     setSelectedLot(lot)
@@ -231,6 +212,9 @@ export default function RegistroLotesPage() {
             onInputChange={handleInputChange}
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            handleBlur={(field) => handleBlur(field, formData[field as keyof LoteFormData], formData)}
+            hasError={hasError}
+            getErrorMessage={getErrorMessage}
           />
 
           {/* Submit Button */}

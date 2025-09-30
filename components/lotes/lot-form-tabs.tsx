@@ -1,45 +1,29 @@
 "use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
-interface LoteFormData {
-  numeroFicha: number | ""
-  ficha: string
-  cultivarID: number | ""
-  tipo: string
-  empresaID: number | ""
-  clienteID: number | ""
-  codigoCC: string
-  codigoFF: string
-  fechaEntrega: string
-  fechaRecibo: string
-  depositoID: number | ""
-  unidadEmbolsado: string
-  remitente: string
-  observaciones: string
-  kilosLimpios: number | ""
-  datosHumedad: Array<{
-    tipoHumedadID: number | ""
-    valor: number | ""
-  }>
-  numeroArticuloID: number | ""
-  cantidad: number | ""
-  origenID: number | ""
-  estadoID: number | ""
-  fechaCosecha: string
-}
+import FormField from "@/components/ui/form-field"
+import FormSelect from "@/components/ui/form-select"
+import { LoteFormData } from "@/lib/validations/lotes-validation"
 
 interface LotFormTabsProps {
   formData: LoteFormData
   onInputChange: (field: keyof LoteFormData, value: any) => void
   activeTab: string
   onTabChange: (tab: string) => void
+  handleBlur: (field: string) => void
+  hasError: (field: string) => boolean
+  getErrorMessage: (field: string) => string
 }
 
-export function LotFormTabs({ formData, onInputChange, activeTab, onTabChange }: LotFormTabsProps) {
+export function LotFormTabs({
+  formData,
+  onInputChange,
+  activeTab,
+  onTabChange,
+  handleBlur,
+  hasError,
+  getErrorMessage
+}: LotFormTabsProps) {
   // Simulación de opciones, reemplaza por tus datos reales si tienes catálogos
   const cultivares = [
     { id: 1, nombre: "Cultivar 1" },
@@ -58,7 +42,12 @@ export function LotFormTabs({ formData, onInputChange, activeTab, onTabChange }:
     { id: 1, nombre: "Depósito A" },
     { id: 2, nombre: "Depósito B" },
   ]
-  const unidadesEmbalado = ["Bolsas", "Granel", "Big Bags", "Contenedores"]
+  const unidadesEmbalado = [
+    { id: "Bolsas", nombre: "Bolsas" },
+    { id: "Granel", nombre: "Granel" },
+    { id: "Big Bags", nombre: "Big Bags" },
+    { id: "Contenedores", nombre: "Contenedores" }
+  ]
 
   // Nuevos datos hardcodeados para los selects
   const tiposHumedad = [
@@ -85,6 +74,12 @@ export function LotFormTabs({ formData, onInputChange, activeTab, onTabChange }:
     { id: 6, nombre: "Liberado" },
   ]
 
+  const tipoOptions = [
+    { id: "INTERNO", nombre: "Interno" },
+    { id: "OTROS_CENTROS_COSTOS", nombre: "Otros Centros de Costos" },
+    { id: "EXTERNOS", nombre: "Externos" }
+  ]
+
   return (
     <Card>
       <CardHeader>
@@ -103,296 +98,276 @@ export function LotFormTabs({ formData, onInputChange, activeTab, onTabChange }:
           {/* Datos Tab */}
           <TabsContent value="datos" className="space-y-4 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="numeroFicha">Número de ficha</Label>
-                <Input
-                  id="numeroFicha"
-                  type="number"
-                  value={formData.numeroFicha}
-                  onChange={e => onInputChange("numeroFicha", e.target.value === "" ? "" : Number(e.target.value))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="ficha">Ficha</Label>
-                <Input
-                  id="ficha"
-                  value={formData.ficha}
-                  onChange={e => onInputChange("ficha", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="cultivarID">Cultivar</Label>
-                <Select
-                  value={formData.cultivarID === "" ? "" : String(formData.cultivarID)}
-                  onValueChange={value => onInputChange("cultivarID", value === "" ? "" : Number(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar cultivar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cultivares.map((c) => (
-                      <SelectItem key={c.id} value={String(c.id)}>{c.nombre}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="tipo">Tipo</Label>
-                <Select
-                  value={formData.tipo}
-                  onValueChange={value => onInputChange("tipo", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="INTERNO">Interno</SelectItem>
-                    <SelectItem value="OTROS_CENTROS_COSTOS">Otros Centros de Costos</SelectItem>
-                    <SelectItem value="EXTERNOS">Externos</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <FormField
+                id="numeroFicha"
+                label="Número de ficha"
+                type="number"
+                value={formData.numeroFicha}
+                onChange={(e) => onInputChange("numeroFicha", e.target.value === "" ? "" : Number(e.target.value))}
+                onBlur={() => handleBlur("numeroFicha")}
+                error={hasError("numeroFicha") ? getErrorMessage("numeroFicha") : undefined}
+                required={true}
+              />
+
+              <FormField
+                id="ficha"
+                label="Ficha"
+                value={formData.ficha}
+                onChange={(e) => onInputChange("ficha", e.target.value)}
+                onBlur={() => handleBlur("ficha")}
+                error={hasError("ficha") ? getErrorMessage("ficha") : undefined}
+                required={true}
+              />
+
+              <FormSelect
+                id="cultivarID"
+                label="Cultivar"
+                value={formData.cultivarID}
+                onChange={(value) => onInputChange("cultivarID", value === "" ? "" : Number(value))}
+                onBlur={() => handleBlur("cultivarID")}
+                options={cultivares}
+                error={hasError("cultivarID") ? getErrorMessage("cultivarID") : undefined}
+                required={true}
+                placeholder="Seleccionar cultivar"
+              />
+
+              <FormSelect
+                id="tipo"
+                label="Tipo"
+                value={formData.tipo}
+                onChange={(value) => onInputChange("tipo", value)}
+                onBlur={() => handleBlur("tipo")}
+                options={tipoOptions}
+                error={hasError("tipo") ? getErrorMessage("tipo") : undefined}
+                required={true}
+                placeholder="Seleccionar tipo"
+              />
             </div>
           </TabsContent>
 
           {/* Empresa Tab */}
           <TabsContent value="empresa" className="space-y-4 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="empresaID">Empresa</Label>
-                <Select
-                  value={formData.empresaID === "" ? "" : String(formData.empresaID)}
-                  onValueChange={value => onInputChange("empresaID", value === "" ? "" : Number(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar empresa" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {empresas.map((e) => (
-                      <SelectItem key={e.id} value={String(e.id)}>{e.nombre}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="clienteID">Cliente</Label>
-                <Select
-                  value={formData.clienteID === "" ? "" : String(formData.clienteID)}
-                  onValueChange={value => onInputChange("clienteID", value === "" ? "" : Number(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clientes.map((c) => (
-                      <SelectItem key={c.id} value={String(c.id)}>{c.nombre}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="codigoCC">Código CC</Label>
-                <Input
-                  id="codigoCC"
-                  value={formData.codigoCC}
-                  onChange={e => onInputChange("codigoCC", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="codigoFF">Código FF</Label>
-                <Input
-                  id="codigoFF"
-                  value={formData.codigoFF}
-                  onChange={e => onInputChange("codigoFF", e.target.value)}
-                />
-              </div>
+              <FormSelect
+                id="empresaID"
+                label="Empresa"
+                value={formData.empresaID}
+                onChange={(value) => onInputChange("empresaID", value === "" ? "" : Number(value))}
+                onBlur={() => handleBlur("empresaID")}
+                options={empresas}
+                error={hasError("empresaID") ? getErrorMessage("empresaID") : undefined}
+                required={true}
+                placeholder="Seleccionar empresa"
+              />
+
+              <FormSelect
+                id="clienteID"
+                label="Cliente"
+                value={formData.clienteID}
+                onChange={(value) => onInputChange("clienteID", value === "" ? "" : Number(value))}
+                onBlur={() => handleBlur("clienteID")}
+                options={clientes}
+                error={hasError("clienteID") ? getErrorMessage("clienteID") : undefined}
+                required={true}
+                placeholder="Seleccionar cliente"
+              />
+
+              <FormField
+                id="codigoCC"
+                label="Código CC"
+                value={formData.codigoCC}
+                onChange={(e) => onInputChange("codigoCC", e.target.value)}
+                onBlur={() => handleBlur("codigoCC")}
+                error={hasError("codigoCC") ? getErrorMessage("codigoCC") : undefined}
+              />
+
+              <FormField
+                id="codigoFF"
+                label="Código FF"
+                value={formData.codigoFF}
+                onChange={(e) => onInputChange("codigoFF", e.target.value)}
+                onBlur={() => handleBlur("codigoFF")}
+                error={hasError("codigoFF") ? getErrorMessage("codigoFF") : undefined}
+              />
             </div>
           </TabsContent>
 
           {/* Recepción y almacenamiento Tab */}
           <TabsContent value="recepcion" className="space-y-4 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="fechaEntrega">Fecha de entrega</Label>
-                <Input
-                  id="fechaEntrega"
-                  type="date"
-                  value={formData.fechaEntrega}
-                  onChange={e => onInputChange("fechaEntrega", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="fechaRecibo">Fecha de recibo</Label>
-                <Input
-                  id="fechaRecibo"
-                  type="date"
-                  value={formData.fechaRecibo}
-                  onChange={e => onInputChange("fechaRecibo", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="depositoID">Depósito</Label>
-                <Select
-                  value={formData.depositoID === "" ? "" : String(formData.depositoID)}
-                  onValueChange={value => onInputChange("depositoID", value === "" ? "" : Number(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar depósito" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {depositos.map((d) => (
-                      <SelectItem key={d.id} value={String(d.id)}>{d.nombre}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="unidadEmbolsado">Unidad de embalado</Label>
-                <Select
-                  value={formData.unidadEmbolsado}
-                  onValueChange={value => onInputChange("unidadEmbolsado", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar unidad" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {unidadesEmbalado.map((unidad) => (
-                      <SelectItem key={unidad} value={unidad}>{unidad}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="remitente">Remitente</Label>
-                <Input
-                  id="remitente"
-                  value={formData.remitente}
-                  onChange={e => onInputChange("remitente", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="observaciones">Observaciones</Label>
-                <Input
-                  id="observaciones"
-                  value={formData.observaciones}
-                  onChange={e => onInputChange("observaciones", e.target.value)}
-                />
-              </div>
+              <FormField
+                id="fechaEntrega"
+                label="Fecha de entrega"
+                type="date"
+                value={formData.fechaEntrega}
+                onChange={(e) => onInputChange("fechaEntrega", e.target.value)}
+                onBlur={() => handleBlur("fechaEntrega")}
+                error={hasError("fechaEntrega") ? getErrorMessage("fechaEntrega") : undefined}
+                required={true}
+              />
+
+              <FormField
+                id="fechaRecibo"
+                label="Fecha de recibo"
+                type="date"
+                value={formData.fechaRecibo}
+                onChange={(e) => onInputChange("fechaRecibo", e.target.value)}
+                onBlur={() => handleBlur("fechaRecibo")}
+                error={hasError("fechaRecibo") ? getErrorMessage("fechaRecibo") : undefined}
+                required={true}
+              />
+
+              <FormSelect
+                id="depositoID"
+                label="Depósito"
+                value={formData.depositoID}
+                onChange={(value) => onInputChange("depositoID", value === "" ? "" : Number(value))}
+                onBlur={() => handleBlur("depositoID")}
+                options={depositos}
+                error={hasError("depositoID") ? getErrorMessage("depositoID") : undefined}
+                required={true}
+                placeholder="Seleccionar depósito"
+              />
+
+              <FormSelect
+                id="unidadEmbolsado"
+                label="Unidad de embalado"
+                value={formData.unidadEmbolsado}
+                onChange={(value) => onInputChange("unidadEmbolsado", value)}
+                onBlur={() => handleBlur("unidadEmbolsado")}
+                options={unidadesEmbalado}
+                error={hasError("unidadEmbolsado") ? getErrorMessage("unidadEmbolsado") : undefined}
+                required={true}
+                placeholder="Seleccionar unidad"
+              />
+
+              <FormField
+                id="remitente"
+                label="Remitente"
+                value={formData.remitente}
+                onChange={(e) => onInputChange("remitente", e.target.value)}
+                onBlur={() => handleBlur("remitente")}
+                error={hasError("remitente") ? getErrorMessage("remitente") : undefined}
+                required={true}
+              />
+
+              <FormField
+                id="observaciones"
+                label="Observaciones"
+                value={formData.observaciones}
+                onChange={(e) => onInputChange("observaciones", e.target.value)}
+                onBlur={() => handleBlur("observaciones")}
+                error={hasError("observaciones") ? getErrorMessage("observaciones") : undefined}
+              />
             </div>
           </TabsContent>
 
           {/* Calidad y producción Tab */}
           <TabsContent value="calidad" className="space-y-4 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="kilosLimpios">Kilos limpios</Label>
-                <Input
-                  id="kilosLimpios"
-                  type="number"
-                  value={formData.kilosLimpios}
-                  onChange={e => onInputChange("kilosLimpios", e.target.value === "" ? "" : Number(e.target.value))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="tipoHumedadID">Tipo de humedad</Label>
-                <Select
-                  value={formData.datosHumedad[0]?.tipoHumedadID === "" ? "" : String(formData.datosHumedad[0]?.tipoHumedadID)}
-                  onValueChange={value => {
-                    const newDatos = [...formData.datosHumedad]
-                    newDatos[0] = {
-                      ...newDatos[0],
-                      tipoHumedadID: value === "" ? "" : Number(value)
-                    }
-                    onInputChange("datosHumedad", newDatos)
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar tipo de humedad" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tiposHumedad.map((tipo) => (
-                      <SelectItem key={tipo.id} value={String(tipo.id)}>{tipo.nombre}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="valorHumedad">Valor humedad (%)</Label>
-                <Input
-                  id="valorHumedad"
-                  type="number"
-                  step="0.1"
-                  value={formData.datosHumedad[0]?.valor ?? ""}
-                  onChange={e => {
-                    const newDatos = [...formData.datosHumedad]
-                    newDatos[0] = {
-                      ...newDatos[0],
-                      valor: e.target.value === "" ? "" : Number(e.target.value)
-                    }
-                    onInputChange("datosHumedad", newDatos)
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor="numeroArticuloID">Número Artículo</Label>
-                <Input
-                  id="numeroArticuloID"
-                  type="number"
-                  value={formData.numeroArticuloID}
-                  onChange={e => onInputChange("numeroArticuloID", e.target.value === "" ? "" : Number(e.target.value))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="cantidad">Cantidad</Label>
-                <Input
-                  id="cantidad"
-                  type="number"
-                  step="0.01"
-                  value={formData.cantidad}
-                  onChange={e => onInputChange("cantidad", e.target.value === "" ? "" : Number(e.target.value))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="origenID">Origen</Label>
-                <Select
-                  value={formData.origenID === "" ? "" : String(formData.origenID)}
-                  onValueChange={value => onInputChange("origenID", value === "" ? "" : Number(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar origen" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {origenes.map((origen) => (
-                      <SelectItem key={origen.id} value={String(origen.id)}>{origen.nombre}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="estadoID">Estado</Label>
-                <Select
-                  value={formData.estadoID === "" ? "" : String(formData.estadoID)}
-                  onValueChange={value => onInputChange("estadoID", value === "" ? "" : Number(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {estados.map((estado) => (
-                      <SelectItem key={estado.id} value={String(estado.id)}>{estado.nombre}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="fechaCosecha">Fecha de cosecha</Label>
-                <Input
-                  id="fechaCosecha"
-                  type="date"
-                  value={formData.fechaCosecha}
-                  onChange={e => onInputChange("fechaCosecha", e.target.value)}
-                />
-              </div>
+              <FormField
+                id="kilosLimpios"
+                label="Kilos limpios"
+                type="number"
+                value={formData.kilosLimpios}
+                onChange={(e) => onInputChange("kilosLimpios", e.target.value === "" ? "" : Number(e.target.value))}
+                onBlur={() => handleBlur("kilosLimpios")}
+                error={hasError("kilosLimpios") ? getErrorMessage("kilosLimpios") : undefined}
+                required={true}
+              />
+
+              <FormSelect
+                id="tipoHumedadID"
+                label="Tipo de humedad"
+                value={formData.datosHumedad[0]?.tipoHumedadID || ""}
+                onChange={(value) => {
+                  const newDatos = [...formData.datosHumedad]
+                  newDatos[0] = {
+                    ...newDatos[0],
+                    tipoHumedadID: value === "" ? "" : Number(value)
+                  }
+                  onInputChange("datosHumedad", newDatos)
+                }}
+                onBlur={() => handleBlur("tipoHumedadID")}
+                options={tiposHumedad}
+                error={hasError("tipoHumedadID") ? getErrorMessage("tipoHumedadID") : undefined}
+                placeholder="Seleccionar tipo de humedad"
+              />
+
+              <FormField
+                id="valorHumedad"
+                label="Valor humedad (%)"
+                type="number"
+                step="0.1"
+                value={formData.datosHumedad[0]?.valor ?? ""}
+                onChange={(e) => {
+                  const newDatos = [...formData.datosHumedad]
+                  newDatos[0] = {
+                    ...newDatos[0],
+                    valor: e.target.value === "" ? "" : Number(e.target.value)
+                  }
+                  onInputChange("datosHumedad", newDatos)
+                }}
+                onBlur={() => handleBlur("valorHumedad")}
+                error={hasError("valorHumedad") ? getErrorMessage("valorHumedad") : undefined}
+              />
+
+              <FormField
+                id="numeroArticuloID"
+                label="Número Artículo"
+                type="number"
+                value={formData.numeroArticuloID}
+                onChange={(e) => onInputChange("numeroArticuloID", e.target.value === "" ? "" : Number(e.target.value))}
+                onBlur={() => handleBlur("numeroArticuloID")}
+                error={hasError("numeroArticuloID") ? getErrorMessage("numeroArticuloID") : undefined}
+              />
+
+              <FormField
+                id="cantidad"
+                label="Cantidad"
+                type="number"
+                step="0.01"
+                value={formData.cantidad}
+                onChange={(e) => onInputChange("cantidad", e.target.value === "" ? "" : Number(e.target.value))}
+                onBlur={() => handleBlur("cantidad")}
+                error={hasError("cantidad") ? getErrorMessage("cantidad") : undefined}
+                required={true}
+              />
+
+              <FormSelect
+                id="origenID"
+                label="Origen"
+                value={formData.origenID}
+                onChange={(value) => onInputChange("origenID", value === "" ? "" : Number(value))}
+                onBlur={() => handleBlur("origenID")}
+                options={origenes}
+                error={hasError("origenID") ? getErrorMessage("origenID") : undefined}
+                required={true}
+                placeholder="Seleccionar origen"
+              />
+
+              <FormSelect
+                id="estadoID"
+                label="Estado"
+                value={formData.estadoID}
+                onChange={(value) => onInputChange("estadoID", value === "" ? "" : Number(value))}
+                onBlur={() => handleBlur("estadoID")}
+                options={estados}
+                error={hasError("estadoID") ? getErrorMessage("estadoID") : undefined}
+                required={true}
+                placeholder="Seleccionar estado"
+              />
+
+              <FormField
+                id="fechaCosecha"
+                label="Fecha de cosecha"
+                type="date"
+                value={formData.fechaCosecha}
+                onChange={(e) => onInputChange("fechaCosecha", e.target.value)}
+                onBlur={() => handleBlur("fechaCosecha")}
+                error={hasError("fechaCosecha") ? getErrorMessage("fechaCosecha") : undefined}
+                required={true}
+              />
             </div>
           </TabsContent>
         </Tabs>
