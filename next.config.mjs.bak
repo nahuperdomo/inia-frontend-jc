@@ -1,9 +1,7 @@
-// Usar importaciones ES Modules 
+// Importaciones ES Modules para React y React DOM
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Obtener la ruta actual del directorio
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -30,11 +28,11 @@ const nextConfig = {
   },
   // Configuración optimizada para Docker
   webpack: (config, { dev, isServer }) => {
-    // Forzar resoluciones usando path absoluto en lugar de require
+    // Forzar resoluciones para evitar conflictos de versiones - usando path para evitar require
     config.resolve.alias = {
       ...config.resolve.alias,
-      'react': path.join(__dirname, 'node_modules', 'react'),
-      'react-dom': path.join(__dirname, 'node_modules', 'react-dom')
+      'react': path.resolve('./node_modules/react'),
+      'react-dom': path.resolve('./node_modules/react-dom')
     };
 
     // Optimización para contenedores Docker

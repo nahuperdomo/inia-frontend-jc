@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "next dev -p 3000",
+    "dev:stable": "NODE_OPTIONS='--import ./lib/stability-esm-patch.mjs' next dev -p 3000",
+    "dev:legacy": "NODE_OPTIONS='--require ./lib/stability-patch.js' next dev -p 3000",
     "lint": "next lint",
     "start": "next start"
   },

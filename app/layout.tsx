@@ -2,10 +2,12 @@ import type React from "react"
 import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
-import { Analytics } from "@vercel/analytics/next"
 import { AuthProvider } from "@/components/auth-provider"
-import { Suspense } from "react"
+// Suspense y características avanzadas pueden causar problemas de hidratación en Docker
+// Simplificando importaciones
 import "./globals.css"
+// Importar script de estabilidad para Next.js
+import "../lib/stability-patch.js"
 
 export const metadata: Metadata = {
   title: "Sistema INIA - Gestión Agropecuaria",
@@ -19,12 +21,19 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning={true}>
+      <head>
+        {/* Meta tag para forzar la recarga de cachés */}
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
+        {/* Desactivar Service Workers */}
+        <script src="/disable-sw.js" />
+        {/* Script de diagnóstico de entorno */}
+        <script src="/browser-check.js" />
+      </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <Suspense fallback={<div>Loading...</div>}>
-          <AuthProvider>{children}</AuthProvider>
-        </Suspense>
-        <Analytics />
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   )
