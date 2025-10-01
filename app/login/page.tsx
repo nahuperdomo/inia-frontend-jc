@@ -21,21 +21,34 @@ export default function LoginPage() {
   // Función helper para manejar cookies
   function setCookie(name: string, value: string, days: number = 1) {
     const maxAge = days * 24 * 60 * 60;
-    document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; secure; samesite=strict`;
+    // Usamos SameSite=Lax para compatibilidad con dispositivos móviles
+    document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
   }
 
   // Servicio de login
   async function login(usuario: string, password: string) {
-    const response = await fetch(`/api/v1/auth/login`, {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.1.18:8080";
+    console.log("🔄 Intentando login con:", { usuario, API_BASE_URL });
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json"
       },
       body: JSON.stringify({ usuario, password }),
+      credentials: "include"
     })
-    if (!response.ok) throw new Error(await response.text())
-    return response.json()
+
+    console.log("📥 Status de respuesta:", response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ Error:", errorText);
+      throw new Error(errorText);
+    }
+
+    return response.json();
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

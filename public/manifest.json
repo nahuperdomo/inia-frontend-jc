@@ -1,0 +1,38 @@
+{
+    "name": "INIA - Sistema de Gestión de Análisis de Semillas",
+    "short_name": "INIA",
+    "description": "Plataforma para gestión y análisis de calidad de semillas",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#2563eb",
+    "icons": [
+        {
+            "src": "/icons/icon-192x192.svg",
+            "sizes": "192x192",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-384x384.svg",
+            "sizes": "384x384",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "/icons/icon-512x512.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

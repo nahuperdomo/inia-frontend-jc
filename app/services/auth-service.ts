@@ -11,7 +11,8 @@ import {
 
 // Autenticación y validación de token
 export async function login(usuario: string, password: string): Promise<LoginResponse> {
-  const response = await fetch(`/api/v1/auth/login`, {
+  // Usamos apiFetch para asegurar que use la URL base correcta con la IP
+  return apiFetch(`/api/v1/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -19,8 +20,6 @@ export async function login(usuario: string, password: string): Promise<LoginRes
     },
     body: JSON.stringify({ usuario, password }),
   });
-  if (!response.ok) throw new Error(await response.text());
-  return response.json();
 }
 
 export async function validateToken(): Promise<{ valido: boolean; usuario?: string; error?: string }> {
