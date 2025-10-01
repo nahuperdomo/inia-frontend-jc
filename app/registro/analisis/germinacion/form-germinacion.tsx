@@ -118,21 +118,39 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
   
   const handleFechaConteoChange = (index: number, value: string) => {
     const fechaConteos = data.fechaConteos || []
-    const newFechas = [...fechaConteos]
-    newFechas[index] = value
-    handleInputChange("fechaConteos", newFechas)
+    const esUltimoConteo = index === fechaConteos.length - 1
+    
+    // No permitir editar la última fecha, ya que es automática
+    if (!esUltimoConteo) {
+      const newFechas = [...fechaConteos]
+      newFechas[index] = value
+      handleInputChange("fechaConteos", newFechas)
+    }
   }
 
   const addFechaConteo = () => {
     const fechaConteos = data.fechaConteos || []
-    const newFechas = [...fechaConteos, ""]
+    const newFechas = [...fechaConteos]
+    
+    // Insertar una nueva fecha vacía antes de la última (que siempre debe ser fechaUltConteo)
+    if (newFechas.length > 0) {
+      // Insertar antes de la última fecha
+      newFechas.splice(newFechas.length - 1, 0, "")
+    } else {
+      // Si no hay fechas, agregar una vacía
+      newFechas.push("")
+    }
+    
     handleInputChange("fechaConteos", newFechas)
     handleInputChange("numeroConteos", newFechas.length)
   }
 
   const removeFechaConteo = (index: number) => {
     const fechaConteos = data.fechaConteos || []
-    if (fechaConteos.length > 1) {
+    const esUltimoConteo = index === fechaConteos.length - 1
+    
+    // No permitir eliminar la última fecha (que es la del último conteo)
+    if (fechaConteos.length > 1 && !esUltimoConteo) {
       const newFechas = fechaConteos.filter((_: any, i: number) => i !== index)
       handleInputChange("fechaConteos", newFechas)
       handleInputChange("numeroConteos", newFechas.length)
@@ -209,10 +227,21 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
         const newFechas = Array(data.numeroConteos).fill("").map((_, index) => 
           currentFechas[index] || ""
         )
+        
+        // Asegurar que la última fecha siempre sea la del último conteo
+        if (data.fechaUltConteo && newFechas.length > 0) {
+          newFechas[newFechas.length - 1] = data.fechaUltConteo
+        }
+        
         handleInputChange("fechaConteos", newFechas)
       }
+    } else if (data.numeroConteos === undefined || data.numeroConteos === 0) {
+      // Asegurar que siempre haya al menos 1 conteo
+      handleInputChange("numeroConteos", 1)
+      const inicialFechas = [data.fechaUltConteo || ""]
+      handleInputChange("fechaConteos", inicialFechas)
     }
-  }, [data.numeroConteos])
+  }, [data.numeroConteos, data.fechaUltConteo])
 
   return (
     <Card className="border-0 shadow-sm bg-card">
@@ -341,16 +370,16 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
                 type="number"
                 min="1"
                 max="10"
-                value={data.numeroConteos || ""}
+                value={data.numeroConteos || 1}
                 onChange={(e) => {
-                  const newValue = parseInt(e.target.value) || 1
+                  const newValue = Math.max(1, parseInt(e.target.value) || 1)
                   handleInputChange("numeroConteos", newValue)
                 }}
                 className="h-11 transition-all duration-200 focus:ring-2 focus:ring-green-200"
                 required
               />
               <p className="text-xs text-muted-foreground">
-                Controla el tamaño del array "normales" por repetición (1-10)
+                Controla el tamaño del array "normales" por repetición (mínimo 1, máximo 10)
               </p>
             </div>
           </div>
@@ -390,7 +419,7 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
                   <div className="flex-1">
                     <Label htmlFor={`fechaConteo-${index}`} className="text-sm font-medium">
                       Conteo {index + 1}
-                      {esUltimoConteo && " (Último)"}
+                      {esUltimoConteo && " (Último - Automático)"}
                     </Label>
                     <Input
                       id={`fechaConteo-${index}`}
@@ -401,16 +430,23 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
                       max={data.fechaUltConteo || undefined}
                       className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-green-200 ${
                         !esValida ? 'border-red-500 bg-red-50' : ''
-                      }`}
+                      } ${esUltimoConteo ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                      readOnly={esUltimoConteo}
+                      disabled={esUltimoConteo}
                       required
                     />
-                    {!esValida && (
+                    {!esValida && !esUltimoConteo && (
                       <p className="text-xs text-red-600 mt-1">
                         Debe estar entre la fecha de inicio y último conteo
                       </p>
                     )}
+                    {esUltimoConteo && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Esta fecha se establece automáticamente igual a la fecha de último conteo
+                      </p>
+                    )}
                   </div>
-                  {(data.fechaConteos || []).length > 1 && (
+                  {(data.fechaConteos || []).length > 1 && !esUltimoConteo && (
                     <Button
                       type="button"
                       variant="ghost"
@@ -429,12 +465,14 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
           {/* Mensaje informativo */}
           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-700">
-              💡 <strong>Tip:</strong> Define manualmente las fechas de conteo intermedias:
+              💡 <strong>Fechas de Conteo:</strong>
             </p>
             <ul className="text-xs text-blue-600 mt-1 ml-4 list-disc">
-              <li>Solo la fecha del último conteo se establece automáticamente</li>
-              <li>Las fechas intermedias deben ingresarse manualmente</li>
-              <li>Todas las fechas deben estar entre la fecha de inicio y la de último conteo</li>
+              <li>La fecha del último conteo se establece automáticamente (igual a "Fecha Último Conteo")</li>
+              <li>Las fechas intermedias se pueden editar libremente</li>
+              <li>Todas las fechas intermedias deben estar entre la fecha de inicio y la de último conteo</li>
+              <li>Siempre debe haber al menos 1 fecha de conteo (la del último conteo)</li>
+              <li>Solo se pueden eliminar fechas intermedias, nunca la última</li>
             </ul>
           </div>
           

@@ -463,9 +463,17 @@ export function TablasGerminacionSection({
   }
 
   const hanCambiadoValores = (): boolean => {
-    if (!valoresOriginalesInia || !valoresOriginalesInase) return true
-    return JSON.stringify(valoresInia) !== JSON.stringify(valoresOriginalesInia) ||
-           JSON.stringify(valoresInase) !== JSON.stringify(valoresOriginalesInase)
+    return hanCambiadoValoresInia() || hanCambiadoValoresInase()
+  }
+
+  const hanCambiadoValoresInia = (): boolean => {
+    if (!valoresOriginalesInia) return true
+    return JSON.stringify(valoresInia) !== JSON.stringify(valoresOriginalesInia)
+  }
+
+  const hanCambiadoValoresInase = (): boolean => {
+    if (!valoresOriginalesInase) return true
+    return JSON.stringify(valoresInase) !== JSON.stringify(valoresOriginalesInase)
   }
 
   const handleGuardarValores = async (tablaId: number) => {
@@ -477,31 +485,42 @@ export function TablasGerminacionSection({
     }
 
     try {
-      console.log("💾 Guardando valores INIA e INASE para tabla:", tablaId)
+      console.log("💾 Guardando valores para tabla:", tablaId)
       
       let guardadoExitoso = false
+      let guardoInia = false
+      let guardoInase = false
       
-      // Guardar valores INIA
-      const tieneValoresInia = valoresInia.normales > 0 || valoresInia.anormales > 0 || 
-                              valoresInia.duras > 0 || valoresInia.frescas > 0 || 
-                              valoresInia.muertas > 0 || valoresInia.total > 0
-      if (tieneValoresInia) {
-        await actualizarValores(germinacionId, tablaId, 1, valoresInia)
-        console.log("✅ Valores INIA guardados")
-        guardadoExitoso = true
+      // Guardar valores INIA solo si han cambiado
+      if (hanCambiadoValoresInia()) {
+        const tieneValoresInia = valoresInia.normales > 0 || valoresInia.anormales > 0 || 
+                                valoresInia.duras > 0 || valoresInia.frescas > 0 || 
+                                valoresInia.muertas > 0 || valoresInia.total > 0
+        if (tieneValoresInia) {
+          await actualizarValores(germinacionId, tablaId, 1, valoresInia)
+          console.log("✅ Valores INIA guardados")
+          guardadoExitoso = true
+          guardoInia = true
+        }
       }
       
-      // Guardar valores INASE
-      const tieneValoresInase = valoresInase.normales > 0 || valoresInase.anormales > 0 || 
-                               valoresInase.duras > 0 || valoresInase.frescas > 0 || 
-                               valoresInase.muertas > 0 || valoresInase.total > 0
-      if (tieneValoresInase) {
-        await actualizarValores(germinacionId, tablaId, 2, valoresInase)
-        console.log("✅ Valores INASE guardados")
-        guardadoExitoso = true
+      // Guardar valores INASE solo si han cambiado
+      if (hanCambiadoValoresInase()) {
+        const tieneValoresInase = valoresInase.normales > 0 || valoresInase.anormales > 0 || 
+                                 valoresInase.duras > 0 || valoresInase.frescas > 0 || 
+                                 valoresInase.muertas > 0 || valoresInase.total > 0
+        if (tieneValoresInase) {
+          await actualizarValores(germinacionId, tablaId, 2, valoresInase)
+          console.log("✅ Valores INASE guardados")
+          guardadoExitoso = true
+          guardoInase = true
+        }
       }
       
       if (guardadoExitoso) {
+        // Recargar los valores actualizados desde la base de datos
+        await recargarValores(tablaId, guardoInia, guardoInase)
+        
         setEditandoValores(null)
         setValoresOriginalesInia(null)
         setValoresOriginalesInase(null)
@@ -511,6 +530,53 @@ export function TablasGerminacionSection({
     } catch (error) {
       console.error("❌ Error guardando valores:", error)
       alert("Error al guardar valores")
+    }
+  }
+
+  // Función para recargar valores actualizados después de guardar
+  const recargarValores = async (tablaId: number, recargarInia: boolean = true, recargarInase: boolean = true) => {
+    try {
+      // Recargar valores INIA solo si se guardaron
+      if (recargarInia) {
+        try {
+          const valoresIniaData = await obtenerValoresIniaPorTabla(germinacionId, tablaId)
+          const valoresIniaActualizados = {
+            instituto: 'INIA' as Instituto,
+            normales: valoresIniaData.normales,
+            anormales: valoresIniaData.anormales,
+            duras: valoresIniaData.duras,
+            frescas: valoresIniaData.frescas,
+            muertas: valoresIniaData.muertas,
+            total: valoresIniaData.total
+          }
+          setValoresInia(valoresIniaActualizados)
+          console.log("✅ Valores INIA recargados", valoresIniaActualizados)
+        } catch (error) {
+          console.log("No hay valores INIA para recargar")
+        }
+      }
+
+      // Recargar valores INASE solo si se guardaron
+      if (recargarInase) {
+        try {
+          const valoresInaseData = await obtenerValoresInasePorTabla(germinacionId, tablaId)
+          const valoresInaseActualizados = {
+            instituto: 'INASE' as Instituto,
+            normales: valoresInaseData.normales,
+            anormales: valoresInaseData.anormales,
+            duras: valoresInaseData.duras,
+            frescas: valoresInaseData.frescas,
+            muertas: valoresInaseData.muertas,
+            total: valoresInaseData.total
+          }
+          setValoresInase(valoresInaseActualizados)
+          console.log("✅ Valores INASE recargados", valoresInaseActualizados)
+        } catch (error) {
+          console.log("No hay valores INASE para recargar")
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error recargando valores:", error)
     }
   }
 
@@ -562,6 +628,19 @@ export function TablasGerminacionSection({
 
   const puedeEditarValores = (tabla: TablaGermDTO): boolean => {
     return tabla.repGerm !== undefined && tabla.repGerm.length > 0
+  }
+
+  // Función helper para verificar si todas las repeticiones requeridas están guardadas
+  const tieneTodasLasRepeticionesGuardadas = (tabla: TablaGermDTO): boolean => {
+    if (!tabla.repGerm || !germinacion?.numeroRepeticiones) return false
+    
+    // Verificar que tengamos el número correcto de repeticiones
+    const tieneNumeroCorrect = tabla.repGerm.length === germinacion.numeroRepeticiones
+    
+    // Verificar que todas las repeticiones estén guardadas (tengan repGermID)
+    const todasGuardadas = tabla.repGerm.every((rep: any) => rep.repGermID)
+    
+    return tieneNumeroCorrect && todasGuardadas
   }
 
   return (
@@ -703,60 +782,60 @@ export function TablasGerminacionSection({
           tablasLocales.map((tabla) => (
             <Card key={tabla.tablaGermID} className="border-l-4 border-l-blue-500">
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <h3 className="font-semibold">Tabla #{tabla.numeroTabla || tabla.tablaGermID}</h3>
-                    <Badge variant={tabla.repGerm && tabla.repGerm.length > 0 ? "default" : "secondary"}>
-                      {tabla.repGerm ? tabla.repGerm.length : 0} repeticiones
-                    </Badge>
-                    {tabla.finalizada && (
-                      <Badge variant="default" className="bg-green-600">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Finalizada
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+                    <h3 className="font-semibold text-sm sm:text-base">Tabla #{tabla.numeroTabla || tabla.tablaGermID}</h3>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant={tabla.repGerm && tabla.repGerm.length > 0 ? "default" : "secondary"} className="text-xs">
+                        {tabla.repGerm ? tabla.repGerm.length : 0} repeticiones
                       </Badge>
-                    )}
+                      {tabla.finalizada && (
+                        <Badge variant="default" className="bg-green-600 text-xs">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Finalizada
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => toggleTablaExpansion(tabla.tablaGermID)}
-                      className="min-w-fit"
+                      className="w-full sm:w-auto min-w-fit text-xs sm:text-sm"
                     >
                       {tablaExpandida === tabla.tablaGermID ? "Contraer" : "Expandir"}
                     </Button>
 
-                    {/* Mostrar botones de porcentajes y valores si hay repeticiones */}
-                    {tabla.repGerm && tabla.repGerm.length > 0 && tablaExpandida === tabla.tablaGermID && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setMostrandoPorcentajes(mostrandoPorcentajes === tabla.tablaGermID ? null : tabla.tablaGermID)}
-                          className="min-w-fit text-xs sm:text-sm"
-                        >
-                          <Calculator className="h-4 w-4 mr-1" />
-                          <span className="hidden sm:inline">
-                            {mostrandoPorcentajes === tabla.tablaGermID ? 'Ocultar Porcentajes' : 'Mostrar Porcentajes'}
-                          </span>
-                          <span className="sm:hidden">%</span>
-                        </Button>
+                    {/* Botones de porcentajes y valores - siempre visibles pero deshabilitados si no están todas las repeticiones guardadas */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setMostrandoPorcentajes(mostrandoPorcentajes === tabla.tablaGermID ? null : tabla.tablaGermID)}
+                      disabled={!tieneTodasLasRepeticionesGuardadas(tabla)}
+                      className="w-full sm:w-auto min-w-fit text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Calculator className="h-4 w-4 mr-1" />
+                      <span className="hidden sm:inline">
+                        {mostrandoPorcentajes === tabla.tablaGermID ? 'Ocultar Porcentajes' : 'Mostrar Porcentajes'}
+                      </span>
+                      <span className="sm:hidden">Porcentajes</span>
+                    </Button>
 
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setMostrandoValores(mostrandoValores === tabla.tablaGermID ? null : tabla.tablaGermID)}
-                          className="min-w-fit text-xs sm:text-sm"
-                        >
-                          <Building className="h-4 w-4 mr-1" />
-                          <span className="hidden sm:inline">
-                            {mostrandoValores === tabla.tablaGermID ? 'Ocultar Valores' : 'Mostrar Valores'}
-                          </span>
-                          <span className="sm:hidden">Val</span>
-                        </Button>
-                      </>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setMostrandoValores(mostrandoValores === tabla.tablaGermID ? null : tabla.tablaGermID)}
+                      disabled={!tieneTodasLasRepeticionesGuardadas(tabla)}
+                      className="w-full sm:w-auto min-w-fit text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Building className="h-4 w-4 mr-1" />
+                      <span className="hidden sm:inline">
+                        {mostrandoValores === tabla.tablaGermID ? 'Ocultar Valores' : 'Mostrar Valores'}
+                      </span>
+                      <span className="sm:hidden">Valores</span>
+                    </Button>
 
                     {/* Botones para tabla finalizada - permitir edición */}
                     {tabla.finalizada && (
@@ -765,7 +844,7 @@ export function TablasGerminacionSection({
                           variant="outline"
                           size="sm"
                           onClick={() => handleEditarTabla(tabla.tablaGermID)}
-                          className="border-orange-600 text-orange-600 hover:bg-orange-50 min-w-fit text-xs sm:text-sm"
+                          className="border-orange-600 text-orange-600 hover:bg-orange-50 w-full sm:w-auto min-w-fit text-xs sm:text-sm"
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
                           <span className="hidden sm:inline">Reabrir Tabla</span>
@@ -781,14 +860,15 @@ export function TablasGerminacionSection({
                         size="sm"
                         onClick={() => handleFinalizarTabla(tabla.tablaGermID)}
                         disabled={finalizandoTabla === tabla.tablaGermID}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-green-600 hover:bg-green-700 w-full sm:w-auto text-xs sm:text-sm"
                       >
                         {finalizandoTabla === tabla.tablaGermID ? (
                           "Finalizando..."
                         ) : (
                           <>
                             <CheckCircle className="h-4 w-4 mr-1" />
-                            Finalizar
+                            <span className="hidden sm:inline">Finalizar</span>
+                            <span className="sm:hidden">✓</span>
                           </>
                         )}
                       </Button>
@@ -800,12 +880,14 @@ export function TablasGerminacionSection({
                         size="sm"
                         onClick={() => handleEliminarTabla(tabla.tablaGermID)}
                         disabled={eliminandoTabla === tabla.tablaGermID}
+                        className="w-full sm:w-auto text-xs sm:text-sm"
                       >
                         {eliminandoTabla === tabla.tablaGermID ? (
                           "Eliminando..."
                         ) : (
                           <>
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4 mr-1 sm:mr-0" />
+                            <span className="sm:hidden">Eliminar</span>
                           </>
                         )}
                       </Button>
@@ -819,8 +901,8 @@ export function TablasGerminacionSection({
                   {/* Card con información general de la tabla */}
                   <Card className="mb-4 border-gray-200 bg-gray-50">
                     <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <CardTitle className="text-base sm:text-lg flex items-center gap-2">
                           <Table className="h-4 w-4" />
                           Información General de la Tabla
                         </CardTitle>
@@ -829,7 +911,7 @@ export function TablasGerminacionSection({
                             variant="outline"
                             size="sm"
                             onClick={() => handleEditarDatosGenerales(tabla)}
-                            className="min-w-fit"
+                            className="w-full sm:w-auto min-w-fit text-xs sm:text-sm"
                           >
                             Editar Datos
                           </Button>
@@ -839,7 +921,7 @@ export function TablasGerminacionSection({
                     <CardContent>
                       {editandoTablaGeneral === tabla.tablaGermID ? (
                         <div className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div>
                               <Label className="text-sm font-medium">Tratamiento</Label>
                               <Input
@@ -918,28 +1000,29 @@ export function TablasGerminacionSection({
                             </div>
                           </div>
                           
-                          <div className="flex justify-end gap-2">
+                          <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
                             <Button
                               variant="outline"
                               onClick={handleCancelarEdicionTabla}
+                              className="w-full sm:w-auto"
                             >
                               Cancelar
                             </Button>
                             
                             <Button
                               onClick={() => handleGuardarTablaGeneral(tabla.tablaGermID)}
-                              className={
+                              className={`w-full sm:w-auto ${
                                 hanCambiadoTabla() 
                                   ? 'bg-green-600 hover:bg-green-700' 
                                   : 'bg-gray-400 hover:bg-gray-500'
-                              }
+                              }`}
                             >
                               {hanCambiadoTabla() ? 'Guardar Cambios' : 'Sin Cambios'}
                             </Button>
                           </div>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                           <div>
                             <span className="font-medium text-gray-600">Tratamiento:</span>
                             <p className="text-gray-800">{tabla.tratamiento}</p>
@@ -1012,7 +1095,7 @@ export function TablasGerminacionSection({
                             {/* Totales de Normales por Conteo */}
                             <div className="mb-4">
                               <h6 className="font-medium text-gray-700 mb-2">Normales por Conteo</h6>
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                                 {Array.from({ length: germinacion?.numeroConteos || 3 }, (_, conteoIndex) => {
                                   const totalConteo = tabla.repGerm?.reduce((sum: number, rep: any) => {
                                     return sum + (rep.normales && rep.normales[conteoIndex] ? rep.normales[conteoIndex] : 0)
@@ -1029,7 +1112,7 @@ export function TablasGerminacionSection({
                             </div>
 
                             {/* Totales de otros campos */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                               <div className="text-center p-2 bg-white rounded border">
                                 <div className="font-medium text-gray-600">Total Anormales</div>
                                 <div className="text-lg font-semibold text-orange-600">
@@ -1064,7 +1147,7 @@ export function TablasGerminacionSection({
                             {/* Promedios de Normales por Conteo */}
                             <div className="mb-4">
                               <h6 className="font-medium text-gray-700 mb-2">Promedios Normales por Conteo</h6>
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                                 {Array.from({ length: germinacion?.numeroConteos || 3 }, (_, conteoIndex) => {
                                   const totalConteo = tabla.repGerm?.reduce((sum: number, rep: any) => {
                                     return sum + (rep.normales && rep.normales[conteoIndex] ? rep.normales[conteoIndex] : 0)
@@ -1083,7 +1166,7 @@ export function TablasGerminacionSection({
                             </div>
 
                             {/* Promedios de otros campos */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                               <div className="text-center p-2 bg-white rounded border">
                                 <div className="font-medium text-gray-600">Promedio Anormales</div>
                                 <div className="text-lg font-semibold text-orange-600">
@@ -1114,7 +1197,7 @@ export function TablasGerminacionSection({
                           {/* Porcentajes Calculados Sin Redondeo */}
                           <div>
                             <h5 className="font-semibold text-green-700 mb-3">Porcentajes Calculados (Sin Redondeo)</h5>
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-sm">
                               {(() => {
                                 // Calcular totales reales
                                 const totalNormales = tabla.repGerm?.reduce((sum: number, rep: any) => {
@@ -1207,7 +1290,7 @@ export function TablasGerminacionSection({
                       <CardContent>
                         {editandoPorcentajes === tabla.tablaGermID ? (
                           <div className="space-y-4">
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                               <div>
                                 <Label className="text-sm">% Normales</Label>
                                 <Input
@@ -1303,7 +1386,7 @@ export function TablasGerminacionSection({
                             </div>
                           </div>
                         ) : (
-                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
                             <div>
                               <div className="text-sm font-medium text-gray-600">Normales</div>
                               <div className="text-lg">{tabla.porcentajeNormalesConRedondeo || 0}%</div>
@@ -1358,7 +1441,7 @@ export function TablasGerminacionSection({
                               {/* INIA */}
                               <div className="space-y-3">
                                 <h5 className="font-medium text-purple-700">INIA</h5>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   <div>
                                     <Label className="text-xs">Normales</Label>
                                     <Input
@@ -1425,7 +1508,7 @@ export function TablasGerminacionSection({
                               {/* INASE */}
                               <div className="space-y-3">
                                 <h5 className="font-medium text-purple-700">INASE</h5>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   <div>
                                     <Label className="text-xs">Normales</Label>
                                     <Input
@@ -1514,7 +1597,7 @@ export function TablasGerminacionSection({
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div className="space-y-3">
                               <h5 className="font-medium text-purple-700">INIA</h5>
-                              <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Normales</div>
                                   <div>{tabla.porcentajeNormalesConRedondeo || 0}%</div>
@@ -1544,26 +1627,26 @@ export function TablasGerminacionSection({
 
                             <div className="space-y-3">
                               <h5 className="font-medium text-purple-700">INASE</h5>
-                              <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Normales</div>
-                                  <div>-</div>
+                                  <div>{valoresInase.normales || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Anormales</div>
-                                  <div>-</div>
+                                  <div>{valoresInase.anormales || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Duras</div>
-                                  <div>-</div>
+                                  <div>{valoresInase.duras || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Frescas</div>
-                                  <div>-</div>
+                                  <div>{valoresInase.frescas || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Muertas</div>
-                                  <div>-</div>
+                                  <div>{valoresInase.muertas || 0}</div>
                                 </div>
                                 <div className="text-center font-semibold">
                                   <div className="font-medium text-gray-600">Germinación</div>
