@@ -2,21 +2,34 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Leaf } from "lucide-react"
+import { Leaf, UserPlus } from "lucide-react"
 import { toast } from 'sonner'
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 export default function LoginPage() {
   const [credentials, setCredentials] = useState({
     usuario: "",
     password: "",
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
   const router = useRouter()
+
+  // Simulamos una carga inicial
+  useEffect(() => {
+    // Esto crea un efecto de carga inicial para mejorar la experiencia de usuario
+    const timer = setTimeout(() => {
+      setPageLoading(false)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   // Función helper para manejar cookies
   function setCookie(name: string, value: string, days: number = 1) {
@@ -75,6 +88,20 @@ export default function LoginPage() {
     }
   }
 
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 to-green-100 p-4">
+        <div className="mb-4">
+          <div className="bg-primary rounded-full p-3">
+            <Leaf className="h-8 w-8 text-primary-foreground" />
+          </div>
+        </div>
+        <LoadingSpinner size={40} className="text-primary" />
+        <p className="mt-4 text-sm text-muted-foreground">Cargando aplicación...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-green-100 p-4">
       <Card className="w-full max-w-md">
@@ -113,9 +140,37 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
+              {isLoading ? (
+                <>
+                  <LoadingSpinner className="mr-2" size={16} />
+                  Iniciando sesión...
+                </>
+              ) : (
+                "Iniciar sesión"
+              )}
             </Button>
           </form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">
+                ¿No tienes una cuenta?
+              </span>
+            </div>
+          </div>
+
+          <a
+            href="/registro/usuario"
+            className="no-underline w-full block"
+          >
+            <div className="w-full border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md flex items-center justify-center py-2 px-4">
+              <UserPlus className="mr-2 h-4 w-4" />
+              Registrar nuevo usuario
+            </div>
+          </a>
         </CardContent>
       </Card>
     </div>
