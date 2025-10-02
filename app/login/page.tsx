@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,18 +18,7 @@ export default function LoginPage() {
     password: "",
   })
   const [isLoading, setIsLoading] = useState(false)
-  const [pageLoading, setPageLoading] = useState(true)
   const router = useRouter()
-
-  // Simulamos una carga inicial
-  useEffect(() => {
-    // Esto crea un efecto de carga inicial para mejorar la experiencia de usuario
-    const timer = setTimeout(() => {
-      setPageLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [])
 
   // Función helper para manejar cookies
   function setCookie(name: string, value: string, days: number = 1) {
@@ -86,20 +75,6 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  if (pageLoading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 to-green-100 p-4">
-        <div className="mb-4">
-          <div className="bg-primary rounded-full p-3">
-            <Leaf className="h-8 w-8 text-primary-foreground" />
-          </div>
-        </div>
-        <LoadingSpinner size={40} className="text-primary" />
-        <p className="mt-4 text-sm text-muted-foreground">Cargando aplicación...</p>
-      </div>
-    )
   }
 
   return (

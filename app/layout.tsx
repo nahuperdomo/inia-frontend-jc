@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { AuthProvider } from "@/components/auth-provider"
+import { LoadingProvider } from "@/components/loading-provider"
 import { Suspense } from "react"
 import "./globals.css"
 
@@ -34,7 +35,9 @@ export default function RootLayout({
       </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <Suspense fallback={<div>Loading...</div>}>
-          <AuthProvider>{children}</AuthProvider>
+          <LoadingProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </LoadingProvider>
         </Suspense>
         <Analytics />
       </body>
