@@ -81,22 +81,20 @@ export function TablasGerminacionSection({
     porcentajeMuertasConRedondeo: 0
   })
   const [valoresInia, setValoresInia] = useState<ValoresGermRequestDTO>({
-    instituto: 'INIA',
     normales: 0,
     anormales: 0,
     duras: 0,
     frescas: 0,
     muertas: 0,
-    total: 0
+    germinacion: 0
   })
   const [valoresInase, setValoresInase] = useState<ValoresGermRequestDTO>({
-    instituto: 'INASE',
     normales: 0,
     anormales: 0,
     duras: 0,
     frescas: 0,
     muertas: 0,
-    total: 0
+    germinacion: 0
   })
 
   // Actualizar tablas locales cuando cambien las props
@@ -379,72 +377,71 @@ export function TablasGerminacionSection({
     }))
   }
 
-  // Funciones para manejar valores INIA e INASE
+  // Funciones para manejar valores INIA e INASE (siguiendo el patrón de porcentajes)
   const handleMostrarValores = async (tablaId: number) => {
     try {
       setCargandoValores(true)
       
-      // Cargar valores existentes si los hay
-      try {
-        const valoresIniaData = await obtenerValoresIniaPorTabla(germinacionId, tablaId)
-        const valoresIniaActuales = {
-          instituto: 'INIA' as Instituto,
-          normales: valoresIniaData.normales,
-          anormales: valoresIniaData.anormales,
-          duras: valoresIniaData.duras,
-          frescas: valoresIniaData.frescas,
-          muertas: valoresIniaData.muertas,
-          total: valoresIniaData.total
-        }
-        setValoresInia(valoresIniaActuales)
-        setValoresOriginalesInia({ ...valoresIniaActuales })
-      } catch (error) {
-        console.log("No hay valores INIA existentes")
-        const valoresIniaDefault = {
-          instituto: 'INIA' as Instituto,
-          normales: 0,
-          anormales: 0,
-          duras: 0,
-          frescas: 0,
-          muertas: 0,
-          total: 0
-        }
-        setValoresInia(valoresIniaDefault)
-        setValoresOriginalesInia({ ...valoresIniaDefault })
-      }
-
-      try {
-        const valoresInaseData = await obtenerValoresInasePorTabla(germinacionId, tablaId)
-        const valoresInaseActuales = {
-          instituto: 'INASE' as Instituto,
-          normales: valoresInaseData.normales,
-          anormales: valoresInaseData.anormales,
-          duras: valoresInaseData.duras,
-          frescas: valoresInaseData.frescas,
-          muertas: valoresInaseData.muertas,
-          total: valoresInaseData.total
-        }
-        setValoresInase(valoresInaseActuales)
-        setValoresOriginalesInase({ ...valoresInaseActuales })
-      } catch (error) {
-        console.log("No hay valores INASE existentes")
-        const valoresInaseDefault = {
-          instituto: 'INASE' as Instituto,
-          normales: 0,
-          anormales: 0,
-          duras: 0,
-          frescas: 0,
-          muertas: 0,
-          total: 0
-        }
-        setValoresInase(valoresInaseDefault)
-        setValoresOriginalesInase({ ...valoresInaseDefault })
+      // Cargar valores INIA existentes
+      let valoresIniaActuales = {
+        normales: 0,
+        anormales: 0,
+        duras: 0,
+        frescas: 0,
+        muertas: 0,
+        germinacion: 0
       }
       
+      try {
+        const valoresIniaData = await obtenerValoresIniaPorTabla(germinacionId, tablaId)
+        valoresIniaActuales = {
+          normales: valoresIniaData.normales || 0,
+          anormales: valoresIniaData.anormales || 0,
+          duras: valoresIniaData.duras || 0,
+          frescas: valoresIniaData.frescas || 0,
+          muertas: valoresIniaData.muertas || 0,
+          germinacion: valoresIniaData.germinacion || 0
+        }
+      } catch (error) {
+        console.log("No hay valores INIA existentes, usando valores por defecto")
+      }
+      
+      // Cargar valores INASE existentes
+      let valoresInaseActuales = {
+        normales: 0,
+        anormales: 0,
+        duras: 0,
+        frescas: 0,
+        muertas: 0,
+        germinacion: 0
+      }
+      
+      try {
+        const valoresInaseData = await obtenerValoresInasePorTabla(germinacionId, tablaId)
+        valoresInaseActuales = {
+          normales: valoresInaseData.normales || 0,
+          anormales: valoresInaseData.anormales || 0,
+          duras: valoresInaseData.duras || 0,
+          frescas: valoresInaseData.frescas || 0,
+          muertas: valoresInaseData.muertas || 0,
+          germinacion: valoresInaseData.germinacion || 0
+        }
+      } catch (error) {
+        console.log("No hay valores INASE existentes, usando valores por defecto")
+      }
+      
+      // Establecer estados (como hace porcentajes)
+      setValoresInia(valoresIniaActuales)
+      setValoresOriginalesInia({ ...valoresIniaActuales })
+      setValoresInase(valoresInaseActuales)
+      setValoresOriginalesInase({ ...valoresInaseActuales })
+      
       setMostrandoValores(tablaId)
-      setEditandoValores(tablaId)
+      // NO activar edición automáticamente - solo mostrar valores
+      
     } catch (error) {
       console.error("Error cargando valores:", error)
+      alert("Error al cargar los valores")
     } finally {
       setCargandoValores(false)
     }
@@ -458,8 +455,14 @@ export function TablasGerminacionSection({
       setValoresInase({ ...valoresOriginalesInase })
     }
     setEditandoValores(null)
-    setValoresOriginalesInia(null)
-    setValoresOriginalesInase(null)
+    // NO limpiar los valores originales - se mantienen para futuras ediciones
+    // setValoresOriginalesInia(null)
+    // setValoresOriginalesInase(null)
+  }
+
+  const handleEditarValores = (tablaId: number) => {
+    // Activar modo edición para la tabla especificada
+    setEditandoValores(tablaId)
   }
 
   const hanCambiadoValores = (): boolean => {
@@ -467,12 +470,12 @@ export function TablasGerminacionSection({
   }
 
   const hanCambiadoValoresInia = (): boolean => {
-    if (!valoresOriginalesInia) return true
+    if (!valoresOriginalesInia) return false // Si no hay originales, no hay cambios
     return JSON.stringify(valoresInia) !== JSON.stringify(valoresOriginalesInia)
   }
 
   const hanCambiadoValoresInase = (): boolean => {
-    if (!valoresOriginalesInase) return true
+    if (!valoresOriginalesInase) return false // Si no hay originales, no hay cambios
     return JSON.stringify(valoresInase) !== JSON.stringify(valoresOriginalesInase)
   }
 
@@ -487,107 +490,53 @@ export function TablasGerminacionSection({
     try {
       console.log("💾 Guardando valores para tabla:", tablaId)
       
-      let guardadoExitoso = false
-      let guardoInia = false
-      let guardoInase = false
-      
       // Guardar valores INIA solo si han cambiado
       if (hanCambiadoValoresInia()) {
-        const tieneValoresInia = valoresInia.normales > 0 || valoresInia.anormales > 0 || 
-                                valoresInia.duras > 0 || valoresInia.frescas > 0 || 
-                                valoresInia.muertas > 0 || valoresInia.total > 0
-        if (tieneValoresInia) {
-          await actualizarValores(germinacionId, tablaId, 1, valoresInia)
-          console.log("✅ Valores INIA guardados")
-          guardadoExitoso = true
-          guardoInia = true
-        }
+        console.log("📤 Enviando valores INIA:", valoresInia)
+        
+        // Primero obtener el registro de INIA para conseguir su ID real
+        const valoresIniaExistentes = await obtenerValoresIniaPorTabla(germinacionId, tablaId)
+        const valoresIniaId = valoresIniaExistentes.valoresGermID
+        console.log("🔍 ID real de valores INIA:", valoresIniaId)
+        
+        await actualizarValores(germinacionId, tablaId, valoresIniaId, valoresInia)
+        console.log("✅ Valores INIA guardados")
       }
       
       // Guardar valores INASE solo si han cambiado
       if (hanCambiadoValoresInase()) {
-        const tieneValoresInase = valoresInase.normales > 0 || valoresInase.anormales > 0 || 
-                                 valoresInase.duras > 0 || valoresInase.frescas > 0 || 
-                                 valoresInase.muertas > 0 || valoresInase.total > 0
-        if (tieneValoresInase) {
-          await actualizarValores(germinacionId, tablaId, 2, valoresInase)
-          console.log("✅ Valores INASE guardados")
-          guardadoExitoso = true
-          guardoInase = true
-        }
+        console.log("📤 Enviando valores INASE:", valoresInase)
+        
+        // Primero obtener el registro de INASE para conseguir su ID real
+        const valoresInaseExistentes = await obtenerValoresInasePorTabla(germinacionId, tablaId)
+        const valoresInaseId = valoresInaseExistentes.valoresGermID
+        console.log("🔍 ID real de valores INASE:", valoresInaseId)
+        
+        await actualizarValores(germinacionId, tablaId, valoresInaseId, valoresInase)
+        console.log("✅ Valores INASE guardados")
       }
       
-      if (guardadoExitoso) {
-        // Recargar los valores actualizados desde la base de datos
-        await recargarValores(tablaId, guardoInia, guardoInase)
-        
-        setEditandoValores(null)
-        setValoresOriginalesInia(null)
-        setValoresOriginalesInase(null)
-      } else {
-        alert("No hay valores para guardar")
-      }
+      // Actualizar valores originales para reflejar el estado guardado
+      setValoresOriginalesInia({ ...valoresInia })
+      setValoresOriginalesInase({ ...valoresInase })
+      
+      setEditandoValores(null)
+      console.log("✅ Valores guardados exitosamente")
+      
     } catch (error) {
       console.error("❌ Error guardando valores:", error)
       alert("Error al guardar valores")
     }
   }
 
-  // Función para recargar valores actualizados después de guardar
-  const recargarValores = async (tablaId: number, recargarInia: boolean = true, recargarInase: boolean = true) => {
-    try {
-      // Recargar valores INIA solo si se guardaron
-      if (recargarInia) {
-        try {
-          const valoresIniaData = await obtenerValoresIniaPorTabla(germinacionId, tablaId)
-          const valoresIniaActualizados = {
-            instituto: 'INIA' as Instituto,
-            normales: valoresIniaData.normales,
-            anormales: valoresIniaData.anormales,
-            duras: valoresIniaData.duras,
-            frescas: valoresIniaData.frescas,
-            muertas: valoresIniaData.muertas,
-            total: valoresIniaData.total
-          }
-          setValoresInia(valoresIniaActualizados)
-          console.log("✅ Valores INIA recargados", valoresIniaActualizados)
-        } catch (error) {
-          console.log("No hay valores INIA para recargar")
-        }
-      }
-
-      // Recargar valores INASE solo si se guardaron
-      if (recargarInase) {
-        try {
-          const valoresInaseData = await obtenerValoresInasePorTabla(germinacionId, tablaId)
-          const valoresInaseActualizados = {
-            instituto: 'INASE' as Instituto,
-            normales: valoresInaseData.normales,
-            anormales: valoresInaseData.anormales,
-            duras: valoresInaseData.duras,
-            frescas: valoresInaseData.frescas,
-            muertas: valoresInaseData.muertas,
-            total: valoresInaseData.total
-          }
-          setValoresInase(valoresInaseActualizados)
-          console.log("✅ Valores INASE recargados", valoresInaseActualizados)
-        } catch (error) {
-          console.log("No hay valores INASE para recargar")
-        }
-      }
-    } catch (error) {
-      console.error("❌ Error recargando valores:", error)
-    }
-  }
-
-  const actualizarValorInia = (campo: keyof Omit<ValoresGermRequestDTO, 'instituto'>, valor: number) => {
+  const actualizarValorInia = (campo: keyof ValoresGermRequestDTO, valor: number) => {
     setValoresInia(prev => ({
       ...prev,
       [campo]: valor
     }))
   }
 
-  const actualizarValorInase = (campo: keyof Omit<ValoresGermRequestDTO, 'instituto'>, valor: number) => {
+  const actualizarValorInase = (campo: keyof ValoresGermRequestDTO, valor: number) => {
     setValoresInase(prev => ({
       ...prev,
       [campo]: valor
@@ -826,7 +775,13 @@ export function TablasGerminacionSection({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setMostrandoValores(mostrandoValores === tabla.tablaGermID ? null : tabla.tablaGermID)}
+                      onClick={() => {
+                        if (mostrandoValores === tabla.tablaGermID) {
+                          setMostrandoValores(null)
+                        } else {
+                          handleMostrarValores(tabla.tablaGermID)
+                        }
+                      }}
                       disabled={!tieneTodasLasRepeticionesGuardadas(tabla)}
                       className="w-full sm:w-auto min-w-fit text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -1426,10 +1381,9 @@ export function TablasGerminacionSection({
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleMostrarValores(tabla.tablaGermID)}
-                              disabled={cargandoValores}
+                              onClick={() => setEditandoValores(tabla.tablaGermID)}
                             >
-                              {cargandoValores ? 'Cargando...' : 'Editar'}
+                              Editar
                             </Button>
                           )}
                         </div>
@@ -1497,8 +1451,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInia.total}
-                                      onChange={(e) => actualizarValorInia('total', parseFloat(e.target.value) || 0)}
+                                      value={valoresInia.germinacion}
+                                      onChange={(e) => actualizarValorInia('germinacion', parseFloat(e.target.value) || 0)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1564,8 +1518,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInase.total}
-                                      onChange={(e) => actualizarValorInase('total', parseFloat(e.target.value) || 0)}
+                                      value={valoresInase.germinacion}
+                                      onChange={(e) => actualizarValorInase('germinacion', parseFloat(e.target.value) || 0)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1583,10 +1537,11 @@ export function TablasGerminacionSection({
                               
                               <Button
                                 onClick={() => handleGuardarValores(tabla.tablaGermID)}
+                                disabled={!hanCambiadoValores()}
                                 className={
                                   hanCambiadoValores() 
                                     ? 'bg-purple-600 hover:bg-purple-700' 
-                                    : 'bg-gray-400 hover:bg-gray-500'
+                                    : 'bg-gray-400 hover:bg-gray-500 cursor-not-allowed'
                                 }
                               >
                                 {hanCambiadoValores() ? 'Guardar Cambios' : 'Sin Cambios'}
@@ -1600,27 +1555,27 @@ export function TablasGerminacionSection({
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Normales</div>
-                                  <div>{tabla.porcentajeNormalesConRedondeo || 0}%</div>
+                                  <div>{valoresInia.normales || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Anormales</div>
-                                  <div>{tabla.porcentajeAnormalesConRedondeo || 0}%</div>
+                                  <div>{valoresInia.anormales || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Duras</div>
-                                  <div>{tabla.porcentajeDurasConRedondeo || 0}%</div>
+                                  <div>{valoresInia.duras || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Frescas</div>
-                                  <div>{tabla.porcentajeFrescasConRedondeo || 0}%</div>
+                                  <div>{valoresInia.frescas || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Muertas</div>
-                                  <div>{tabla.porcentajeMuertasConRedondeo || 0}%</div>
+                                  <div>{valoresInia.muertas || 0}</div>
                                 </div>
                                 <div className="text-center font-semibold">
                                   <div className="font-medium text-gray-600">Germinación</div>
-                                  <div>{tabla.porcentajeNormalesConRedondeo || 0}%</div>
+                                  <div>{valoresInia.germinacion || 0}</div>
                                 </div>
                               </div>
                             </div>
@@ -1650,7 +1605,7 @@ export function TablasGerminacionSection({
                                 </div>
                                 <div className="text-center font-semibold">
                                   <div className="font-medium text-gray-600">Germinación</div>
-                                  <div>-</div>
+                                  <div>{valoresInase.germinacion || 0}</div>
                                 </div>
                               </div>
                             </div>
