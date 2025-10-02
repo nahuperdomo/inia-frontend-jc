@@ -1,5 +1,5 @@
-// Usamos la IP local para poder acceder desde dispositivos en la misma red
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.1.18:8080";
+// URL para desarrollo local (frontend local y backend en Docker)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 function getToken() {
   // Método profesional: leer token de HttpOnly cookies
@@ -44,6 +44,20 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     if (!res.ok) {
       const errorText = await res.text();
       console.error(`❌ Error response body:`, errorText);
+      console.error(`❌ URL solicitada: ${API_BASE_URL}${endpoint}`);
+      console.error(`❌ Status: ${res.status} ${res.statusText}`);
+
+      // Intenta parsear como JSON si es posible para obtener más detalles
+      let errorDetail;
+      try {
+        if (errorText && errorText.trim().startsWith('{')) {
+          errorDetail = JSON.parse(errorText);
+          console.error('❌ Error JSON detallado:', errorDetail);
+        }
+      } catch (jsonError) {
+        // Si no se puede parsear como JSON, usar el texto como está
+      }
+
       throw new Error(`Error ${res.status}: ${errorText}`);
     }
 

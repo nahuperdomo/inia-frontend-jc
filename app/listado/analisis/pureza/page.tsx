@@ -55,7 +55,9 @@ export default function ListadoPurezaPage() {
     const fetchPurezas = async () => {
       try {
         setIsLoading(true)
+        console.log("🔍 Iniciando petición para obtener purezas...")
         const purezasData = await obtenerTodasPurezasActivas()
+        console.log("📊 Datos de purezas recibidos:", purezasData)
 
         // Transform API data to component format
         const purezasTransformed = purezasData.map((pureza: PurezaDTO) => {
@@ -105,8 +107,9 @@ export default function ListadoPurezaPage() {
 
         setAnalisis(purezasTransformed)
       } catch (err) {
-        console.error("Error fetching purezas:", err)
-        setError("Error al cargar los análisis de pureza. Intente nuevamente más tarde.")
+        console.error("❌ Error al obtener purezas:", err)
+        console.error("⚠️ Detalles completos:", err instanceof Error ? err.message : JSON.stringify(err))
+        setError(`Error al cargar los análisis de pureza: ${err instanceof Error ? err.message : 'Error desconocido'}. Intente nuevamente más tarde.`)
       } finally {
         setIsLoading(false)
       }

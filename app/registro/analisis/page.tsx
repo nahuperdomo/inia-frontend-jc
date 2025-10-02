@@ -3,31 +3,12 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Search, TestTube, Sprout, Scale, Microscope } from "lucide-react"
-// Create a custom MessageCircle component since the imported one seems to have issues
-const MessageCircle = (props: any) => {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={props.className}
-      {...props}
-    >
-      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
-    </svg>
-  )
-}
+import { Toaster, toast } from "sonner"
+
 import Link from "next/link"
 
 import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
@@ -36,6 +17,7 @@ import { obtenerLotesActivos } from "@/app/services/lote-service"
 import { LoteSimpleDTO } from "@/app/models"
 import { registrarAnalisis } from "@/app/services/analisis-service"
 import { crearGerminacion } from "@/app/services/germinacion-service"
+import PurezaFields from "./pureza/form-pureza"
 
 export type AnalysisFormData = {
   loteid: string
@@ -138,24 +120,30 @@ export default function RegistroAnalisisPage() {
   }
 
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+
+  // Función para obtener el nombre descriptivo del tipo de análisis
+  const getAnalysisTypeName = (typeId: string): string => {
+    const analysisType = analysisTypes.find(type => type.id === typeId);
+    return analysisType?.name || 'Desconocido';
+  }
 
   const toNum = (v: string) => (v === "" ? undefined : Number(v))
 
   const handleSubmit = async () => {
     setLoading(true)
-    setError(null)
-    setSuccess(false)
 
     if (!selectedAnalysisType) {
       setLoading(false)
-      setError("Selecciona el tipo de análisis.")
+      toast.error('Tipo de análisis requerido', {
+        description: 'Selecciona el tipo de análisis que deseas registrar.'
+      });
       return
     }
     if (!formData.loteid) {
       setLoading(false)
-      setError("Selecciona un lote.")
+      toast.error('Lote requerido', {
+        description: 'Selecciona un lote para realizar el análisis.'
+      });
       return
     }
 
@@ -237,27 +225,37 @@ export default function RegistroAnalisisPage() {
     } else if (selectedAnalysisType === "germinacion") {
       // Validaciones específicas para germinación
       if (!formData.fechaInicioGerm) {
-        setError("Fecha de inicio de germinación es requerida");
+        toast.error('Fecha de inicio requerida', {
+          description: 'La fecha de inicio de germinación es obligatoria.'
+        });
         setLoading(false);
         return;
       }
       if (!formData.fechaUltConteo) {
-        setError("Fecha del último conteo es requerida");
+        toast.error('Fecha de último conteo requerida', {
+          description: 'La fecha del último conteo es obligatoria.'
+        });
         setLoading(false);
         return;
       }
       if (!formData.numeroRepeticiones || formData.numeroRepeticiones < 1) {
-        setError("Número de repeticiones debe ser mayor a 0");
+        toast.error('Número de repeticiones inválido', {
+          description: 'El número de repeticiones debe ser mayor a 0.'
+        });
         setLoading(false);
         return;
       }
       if (!formData.numeroConteos || formData.numeroConteos < 1) {
-        setError("Número de conteos debe ser mayor a 0");
+        toast.error('Número de conteos inválido', {
+          description: 'El número de conteos debe ser mayor a 0.'
+        });
         setLoading(false);
         return;
       }
       if (!formData.fechaConteos || formData.fechaConteos.length === 0) {
-        setError("Debe especificar al menos una fecha de conteo");
+        toast.error('Fechas de conteo requeridas', {
+          description: 'Debe especificar al menos una fecha de conteo.'
+        });
         setLoading(false);
         return;
       }
@@ -265,7 +263,9 @@ export default function RegistroAnalisisPage() {
       // Filtrar fechas vacías
       const fechasValidas = formData.fechaConteos.filter((fecha: string) => fecha && fecha.trim() !== "");
       if (fechasValidas.length === 0) {
-        setError("Debe completar al menos una fecha de conteo");
+        toast.error('Fechas de conteo incompletas', {
+          description: 'Debe completar al menos una fecha de conteo válida.'
+        });
         setLoading(false);
         return;
       }
@@ -283,9 +283,6 @@ export default function RegistroAnalisisPage() {
     }
 
     try {
-      console.log("=== DEBUG INFO ===");
-      console.log("Tipo de análisis:", selectedAnalysisType);
-
       // Verificar cookies
       const cookies = document.cookie;
       console.log("Cookies disponibles:", cookies);
@@ -308,19 +305,31 @@ export default function RegistroAnalisisPage() {
         console.log("🚀 Ahora intentando crear germinación...");
         const result = await crearGerminacion(payload);
 
+        toast.success('Análisis de Germinación registrado exitosamente', {
+          description: `Se ha creado el análisis para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
+        });
+
         // Redirigir a la página de gestión del análisis creado
         setTimeout(() => {
           window.location.href = `/listado/analisis/germinacion/${result.analisisID}`;
         }, 1500);
       } else {
-        await registrarAnalisis(payload, selectedAnalysisType)
+        const response = await registrarAnalisis(payload, selectedAnalysisType);
+
+        toast.success('Análisis registrado exitosamente', {
+          description: `Se ha registrado el análisis de ${getAnalysisTypeName(selectedAnalysisType)} para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
+        });
       }
-      setSuccess(true)
     } catch (err: any) {
       console.error("Error al crear germinación:", err);
       console.error("Status del error:", err.status);
       console.error("Mensaje completo:", err.message);
-      setError(err?.message || "Error al registrar análisis")
+
+      const errorMsg = err?.message || "Error al registrar análisis";
+
+      toast.error('Error al registrar análisis', {
+        description: errorMsg,
+      });
     } finally {
       setLoading(false)
     }
@@ -337,8 +346,12 @@ export default function RegistroAnalisisPage() {
       try {
         const data = await obtenerLotesActivos()
         setLotes(data)
-      } catch {
-        setLotesError("Error al cargar lotes")
+      } catch (err) {
+        const errorMsg = "No se pudieron cargar los lotes disponibles";
+        setLotesError(errorMsg)
+        toast.error('Error al cargar lotes', {
+          description: 'No se pudieron obtener los lotes disponibles. Intente recargar la página.',
+        });
       } finally {
         setLotesLoading(false)
       }
@@ -350,6 +363,7 @@ export default function RegistroAnalisisPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <Toaster position="top-right" richColors closeButton />
       <div className="flex items-center gap-4">
         <Link href="/registro">
           <Button variant="ghost" size="sm">
@@ -378,7 +392,9 @@ export default function RegistroAnalisisPage() {
                   key={type.id}
                   className={`border-2 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${isSelected ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:border-gray-300"
                     }`}
-                  onClick={() => setSelectedAnalysisType(type.id)}
+                  onClick={() => {
+                    setSelectedAnalysisType(type.id);
+                  }}
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <IconComponent className={`h-5 w-5 ${isSelected ? "text-blue-600" : "text-gray-500"}`} />
@@ -410,6 +426,14 @@ export default function RegistroAnalisisPage() {
                   onValueChange={(value) => {
                     setSelectedLote(value)
                     handleInputChange("loteid", value)
+
+                    // Mostrar información del lote seleccionado
+                    const loteInfo = lotes.find(l => l.loteID.toString() === value);
+                    if (loteInfo) {
+                      toast.info('Lote seleccionado', {
+                        description: `Ficha: ${loteInfo.ficha} - ID: ${loteInfo.loteID}`
+                      });
+                    }
                   }}
                 >
                   <SelectTrigger>
@@ -441,173 +465,11 @@ export default function RegistroAnalisisPage() {
                   </div>
                 </div>
               )}
-
-              {/* Opcional: si usás estos campos en backend, habilitalos */}
-              {/* <div>
-                <Label htmlFor="responsable">Responsable</Label>
-                <Select value={formData.responsable} onValueChange={(v) => handleInputChange("responsable", v)}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar responsable" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="juan.perez">Juan Pérez</SelectItem>
-                    <SelectItem value="maria.garcia">María García</SelectItem>
-                    <SelectItem value="carlos.rodriguez">Carlos Rodríguez</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="prioridad">Prioridad</Label>
-                <Select value={formData.prioridad} onValueChange={(v) => handleInputChange("prioridad", v)}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar prioridad" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="alta">Alta</SelectItem>
-                    <SelectItem value="media">Media</SelectItem>
-                    <SelectItem value="baja">Baja</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div> */}
-            </div>
-
-            <div className="space-y-4">
-              {selectedLoteInfo && (
-                <Card className="bg-gray-50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm">Información del Lote</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Ficha:</span>
-                      <span className="font-medium">{selectedLoteInfo.ficha}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">ID:</span>
-                      <span>{selectedLoteInfo.loteID}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Número Ficha:</span>
-                      <span>{selectedLoteInfo.numeroFicha}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Activo:</span>
-                      <span>{selectedLoteInfo.activo ? "Sí" : "No"}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-
             </div>
           </div>
 
           {selectedAnalysisType === "pureza" && (
-            <Card className="border-blue-200 bg-blue-50">
-              <CardHeader>
-                <CardTitle className="text-blue-800">Campos Específicos - Pureza Física</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="pesoInicial">Peso Inicial (g)</Label>
-                    <Input
-                      id="pesoInicial"
-                      type="number"
-                      step="0.01"
-                      placeholder="0"
-                      value={formData.pesoInicial}
-                      onChange={(e) => handleInputChange("pesoInicial", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="semillaPura">Semilla Pura (g)</Label>
-                    <Input
-                      id="semillaPura"
-                      type="number"
-                      step="0.01"
-                      placeholder="0"
-                      value={formData.semillaPura}
-                      onChange={(e) => handleInputChange("semillaPura", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="materiaInerte">Materia Inerte (g)</Label>
-                    <Input
-                      id="materiaInerte"
-                      type="number"
-                      step="0.01"
-                      placeholder="0"
-                      value={formData.materiaInerte}
-                      onChange={(e) => handleInputChange("materiaInerte", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="otrosCultivos">Otros Cultivos (g)</Label>
-                    <Input
-                      id="otrosCultivos"
-                      type="number"
-                      step="0.01"
-                      placeholder="0"
-                      value={formData.otrosCultivos}
-                      onChange={(e) => handleInputChange("otrosCultivos", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="malezas">Malezas (g)</Label>
-                    <Input
-                      id="malezas"
-                      type="number"
-                      step="0.01"
-                      placeholder="0"
-                      value={formData.malezas}
-                      onChange={(e) => handleInputChange("malezas", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="malezasToleridas">Malezas Toleradas</Label>
-                    <Input
-                      id="malezasToleridas"
-                      placeholder="Especificar malezas toleradas"
-                      value={formData.malezasToleridas}
-                      onChange={(e) => handleInputChange("malezasToleridas", e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="pesoTotal">Peso Total</Label>
-                  <Select value={formData.pesoTotal} onValueChange={(v) => handleInputChange("pesoTotal", v)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar peso total" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5g">5g</SelectItem>
-                      <SelectItem value="10g">10g</SelectItem>
-                      <SelectItem value="25g">25g</SelectItem>
-                      <SelectItem value="50g">50g</SelectItem>
-                      <SelectItem value="100g">100g</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Sección dedicada para comentarios de pureza física */}
-                <div className="mt-6 pt-4 border-t border-blue-200">
-                  <Label htmlFor="comentariosPureza" className="text-blue-800 font-semibold flex items-center gap-2">
-                    <MessageCircle className="h-4 w-4" />
-                    Comentarios de Pureza Física
-                  </Label>
-                  <Textarea
-                    id="comentariosPureza"
-                    placeholder="Ingrese comentarios específicos del análisis de pureza física..."
-                    value={formData.observaciones}
-                    onChange={(e) => handleInputChange("observaciones", e.target.value)}
-                    rows={4}
-                    className="mt-2"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Incluya observaciones sobre la muestra, condiciones del análisis, particularidades
-                    encontradas u otra información relevante para documentar este análisis.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <PurezaFields formData={formData} handleInputChange={(field, value) => handleInputChange(field as keyof AnalysisFormData, value)} />
           )}
           {selectedAnalysisType === "dosn" && (
             <DosnFields
@@ -624,9 +486,6 @@ export default function RegistroAnalisisPage() {
             />
           )}
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <Button variant="outline" className="w-full sm:flex-1 bg-transparent" disabled={loading}>
-              Guardar como Borrador
-            </Button>
             <Button
               className="w-full sm:flex-1 bg-green-700 hover:bg-green-700"
               onClick={handleSubmit}
@@ -635,9 +494,6 @@ export default function RegistroAnalisisPage() {
               {loading ? "Registrando..." : "Registrar Análisis"}
             </Button>
           </div>
-
-          {error && <div className="text-red-600 mt-2">{error}</div>}
-          {success && <div className="text-green-600 mt-2">¡Análisis registrado exitosamente!</div>}
         </CardContent>
       </Card>
     </div>

@@ -2,6 +2,7 @@
 
 import { handleApiError } from "@/lib/error-handling/error-handler"
 
+// Para desarrollo local usar localhost, para Docker usar backend
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
 /**

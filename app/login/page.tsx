@@ -27,7 +27,7 @@ export default function LoginPage() {
 
   // Servicio de login
   async function login(usuario: string, password: string) {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.1.18:8080";
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
     console.log("🔄 Intentando login con:", { usuario, API_BASE_URL });
 
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
