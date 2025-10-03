@@ -320,7 +320,7 @@ export default function RegistroAnalisisPage() {
         const fechaFin = new Date(formData.fechaUltConteo);
         
         if (fechaInicio >= fechaFin) {
-          setError("La fecha de inicio debe ser anterior a la fecha de último conteo");
+          toast.error("La fecha de inicio debe ser anterior a la fecha de último conteo");
           setLoading(false);
           return;
         }
@@ -334,7 +334,7 @@ export default function RegistroAnalisisPage() {
         for (const fecha of fechasValidas) {
           const fechaConteo = new Date(fecha);
           if (fechaConteo < fechaInicio || fechaConteo > fechaFin) {
-            setError(`Todas las fechas de conteo deben estar entre ${fechaInicio.toLocaleDateString()} y ${fechaFin.toLocaleDateString()}`);
+            toast.error(`Todas las fechas de conteo deben estar entre ${fechaInicio.toLocaleDateString()} y ${fechaFin.toLocaleDateString()}`);
             setLoading(false);
             return;
           }
@@ -535,7 +535,7 @@ export default function RegistroAnalisisPage() {
                     />
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <div className="space-y-4">
