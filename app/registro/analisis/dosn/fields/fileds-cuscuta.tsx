@@ -17,7 +17,6 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
   const data = {
     gramos: formData.cuscutaGramos || "",
     numero: formData.cuscutaNumero || "",
-    fecha: formData.cuscutaFecha || "",
     cumple: formData.cuscutaCumple || "",
   }
 
@@ -25,14 +24,12 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
     const fieldMap: { [key: string]: string } = {
       gramos: "cuscutaGramos",
       numero: "cuscutaNumero",
-      fecha: "cuscutaFecha",
       cumple: "cuscutaCumple"
     }
 
     if (field === "cumple" && value === "no-contiene") {
       handleInputChange("cuscutaGramos", "")
       handleInputChange("cuscutaNumero", "")
-      handleInputChange("cuscutaFecha", "")
       handleInputChange("cuscutaCumple", "no-contiene")
     } else {
       handleInputChange(fieldMap[field], value)
@@ -65,19 +62,7 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Fecha */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Fecha de análisis</Label>
-            <Input
-              type="date"
-              value={data.fecha}
-              onChange={(e) => updateField("fecha", e.target.value)}
-              disabled={data.cumple === "no-contiene"}
-              className="w-full"
-            />
-          </div>
-
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Peso en gramos */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Peso (g)</Label>

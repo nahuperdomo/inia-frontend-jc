@@ -10,7 +10,43 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import { obtenerTodasDosnActivas } from "@/app/services/dosn-service"
 import { DosnDTO } from "@/app/models"
-import { EstadoAnalisis } from "@/app/models/types/enums"
+import { EstadoAnalisis, TipoListado } from "@/app/models/types/enums"
+
+// Función helper para mostrar nombres legibles de tipos de listado
+const getTipoListadoDisplay = (tipo: TipoListado) => {
+  switch (tipo) {
+    case "MAL_TOLERANCIA_CERO":
+      return "Maleza Tolerancia Cero"
+    case "MAL_TOLERANCIA":
+      return "Maleza Tolerancia"
+    case "MAL_COMUNES":
+      return "Malezas Comunes"
+    case "BRASSICA":
+      return "Brassica"
+    case "OTROS":
+      return "Otros Cultivos"
+    default:
+      return tipo
+  }
+}
+
+// Función helper para obtener el color del badge según el tipo
+const getTipoListadoBadgeColor = (tipo: TipoListado) => {
+  switch (tipo) {
+    case "MAL_TOLERANCIA_CERO":
+      return "bg-red-100 text-red-700 border-red-200"
+    case "MAL_TOLERANCIA":
+      return "bg-orange-100 text-orange-700 border-orange-200"
+    case "MAL_COMUNES":
+      return "bg-yellow-100 text-yellow-700 border-yellow-200"
+    case "BRASSICA":
+      return "bg-purple-100 text-purple-700 border-purple-200"
+    case "OTROS":
+      return "bg-green-100 text-green-700 border-green-200"
+    default:
+      return "bg-gray-100 text-gray-700 border-gray-200"
+  }
+}
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -270,14 +306,15 @@ export default function ListadoDOSNPage() {
                   <TableHead className="min-w-[120px]">Fecha Fin</TableHead>
                   <TableHead className="min-w-[100px]">Estado</TableHead>
                   <TableHead className="min-w-[120px]">Cumple Estándar</TableHead>
-                  <TableHead className="min-w-[200px]">Comentarios</TableHead>
+                  {/* <TableHead className="min-w-[200px]">Listados</TableHead> */}
+                  <TableHead className="min-w-[150px]">Comentarios</TableHead>
                   <TableHead className="min-w-[120px]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredAnalysis.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
+                    <TableCell colSpan={9} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <AlertTriangle className="h-8 w-8 text-muted-foreground" />
                         <p className="text-muted-foreground">No se encontraron análisis DOSN</p>
@@ -316,7 +353,24 @@ export default function ListadoDOSNPage() {
                         ) : (
                           <span className="text-muted-foreground text-sm">No evaluado</span>
                         )}
-                      </TableCell>
+                   </TableCell>
+                         {/* <TableCell className="max-w-xs">
+                        {analysis.listados && analysis.listados.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {analysis.listados.map((listado, index) => (
+                              <Badge 
+                                key={index}
+                                variant="outline" 
+                                className={`text-xs ${getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}`}
+                              >
+                                {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">Sin listados</span>
+                        )}
+                      </TableCell>*/}
                       <TableCell className="max-w-xs">
                         {analysis.comentarios ? (
                           <div className="truncate" title={analysis.comentarios}>

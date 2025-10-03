@@ -230,10 +230,12 @@ export default function RegistroAnalisisPage() {
         fechaINASE: formData.inaseFecha || null,
         gramosAnalizadosINASE: toNum(formData.inaseGramos),
         tipoINASE: mapTipoDosn(formData, "inase"),
-        // Cuscuta
+        // Cuscuta - usar fecha actual si hay datos de cuscuta y no se especificó fecha
         cuscuta_g: toNum(formData.cuscutaGramos),
         cuscutaNum: toNum(formData.cuscutaNumero),
-        fechaCuscuta: formData.cuscutaFecha || null,
+        fechaCuscuta: (toNum(formData.cuscutaGramos) > 0 || toNum(formData.cuscutaNumero) > 0) 
+          ? new Date().toISOString().split('T')[0] // Fecha actual en formato YYYY-MM-DD
+          : null,
         // Listados
         listados,
       };

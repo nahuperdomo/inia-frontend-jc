@@ -20,7 +20,43 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { obtenerDosnPorId } from "@/app/services/dosn-service"
 import type { DosnDTO } from "@/app/models"
-import type { EstadoAnalisis, TipoDOSN } from "@/app/models/types/enums"
+import type { EstadoAnalisis, TipoDOSN, TipoListado } from "@/app/models/types/enums"
+
+// Función helper para mostrar nombres legibles de tipos de listado
+const getTipoListadoDisplay = (tipo: TipoListado) => {
+  switch (tipo) {
+    case "MAL_TOLERANCIA_CERO":
+      return "Maleza Tolerancia Cero"
+    case "MAL_TOLERANCIA":
+      return "Maleza Tolerancia"
+    case "MAL_COMUNES":
+      return "Malezas Comunes"
+    case "BRASSICA":
+      return "Brassica"
+    case "OTROS":
+      return "Otros Cultivos"
+    default:
+      return tipo
+  }
+}
+
+// Función helper para obtener el color del badge según el tipo
+const getTipoListadoBadgeColor = (tipo: TipoListado) => {
+  switch (tipo) {
+    case "MAL_TOLERANCIA_CERO":
+      return "bg-red-100 text-red-700 border-red-200"
+    case "MAL_TOLERANCIA":
+      return "bg-orange-100 text-orange-700 border-orange-200"
+    case "MAL_COMUNES":
+      return "bg-yellow-100 text-yellow-700 border-yellow-200"
+    case "BRASSICA":
+      return "bg-purple-100 text-purple-700 border-purple-200"
+    case "OTROS":
+      return "bg-green-100 text-green-700 border-green-200"
+    default:
+      return "bg-gray-100 text-gray-700 border-gray-200"
+  }
+}
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -372,7 +408,7 @@ export default function DosnDetailPage() {
               </Card>
             )}
 
-            {(dosn.cuscuta_g || dosn.cuscutaNum || dosn.fechaCuscuta) && (
+            {(dosn.cuscuta_g || dosn.cuscutaNum) && (
               <Card className="overflow-hidden">
                 <CardHeader className="bg-muted/50 border-b">
                   <CardTitle className="flex items-center gap-2 text-xl">
@@ -383,25 +419,17 @@ export default function DosnDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {dosn.cuscuta_g && (
-                      <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-200/50 rounded-xl p-6 text-center space-y-2">
-                        <p className="text-4xl font-bold text-orange-600">{dosn.cuscuta_g}</p>
-                        <p className="text-sm font-medium text-muted-foreground">Gramos de Cuscuta</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {dosn.cuscuta_g !== undefined && dosn.cuscuta_g !== null && (
+                      <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-200/50 rounded-xl p-8 text-center space-y-3">
+                        <p className="text-5xl font-bold text-orange-600">{dosn.cuscuta_g}</p>
+                        <p className="text-base font-medium text-muted-foreground">Gramos de Cuscuta</p>
                       </div>
                     )}
-                    {dosn.cuscutaNum !== undefined && (
-                      <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 border border-red-200/50 rounded-xl p-6 text-center space-y-2">
-                        <p className="text-4xl font-bold text-red-600">{dosn.cuscutaNum}</p>
-                        <p className="text-sm font-medium text-muted-foreground">Número de Semillas</p>
-                      </div>
-                    )}
-                    {dosn.fechaCuscuta && (
-                      <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-200/50 rounded-xl p-6 text-center space-y-2">
-                        <p className="text-lg font-bold text-blue-600">
-                          {formatearFechaLocal(dosn.fechaCuscuta)}
-                        </p>
-                        <p className="text-sm font-medium text-muted-foreground">Fecha de Análisis</p>
+                    {dosn.cuscutaNum !== undefined && dosn.cuscutaNum !== null && (
+                      <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 border border-red-200/50 rounded-xl p-8 text-center space-y-3">
+                        <p className="text-5xl font-bold text-red-600">{dosn.cuscutaNum}</p>
+                        <p className="text-base font-medium text-muted-foreground">Número de Semillas</p>
                       </div>
                     )}
                   </div>
@@ -416,7 +444,7 @@ export default function DosnDetailPage() {
                     <div className="p-2 rounded-lg bg-green-500/10">
                       <FileText className="h-5 w-5 text-green-600" />
                     </div>
-                    Listados de Malezas y Cultivos
+                    Listados
                     <Badge variant="secondary" className="ml-auto">
                       {dosn.listados.length}
                     </Badge>
@@ -435,11 +463,17 @@ export default function DosnDetailPage() {
                               Especie
                             </label>
                             <p className="text-base font-semibold">
-                              {listado.catalogo?.nombreComun || "No especificado"}
+                              {listado.catalogo?.nombreComun || 
+                               (listado.listadoTipo === "BRASSICA" ? "Sin especificación" : "--")}
                             </p>
                             {listado.catalogo?.nombreCientifico && (
                               <p className="text-sm text-muted-foreground italic">
                                 {listado.catalogo.nombreCientifico}
+                              </p>
+                            )}
+                            {listado.listadoTipo === "BRASSICA" && !listado.catalogo?.nombreComun && (
+                              <p className="text-sm text-muted-foreground">
+                                Las brassicas no requieren especificación de catálogo
                               </p>
                             )}
                           </div>
@@ -447,8 +481,8 @@ export default function DosnDetailPage() {
                             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                               Tipo
                             </label>
-                            <Badge variant="outline" className="font-medium">
-                              {listado.listadoTipo}
+                            <Badge variant="outline" className={`font-medium ${getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}`}>
+                              {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
                             </Badge>
                           </div>
                           <div className="space-y-1">

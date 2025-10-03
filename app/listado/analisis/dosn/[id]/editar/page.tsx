@@ -26,11 +26,47 @@ const getCompatibleCatalogTypes = (listadoTipo: TipoListado): TipoMYCCatalogo[] 
     case "MAL_COMUNES":
       return ["MALEZA"]
     case "BRASSICA":
-      return ["BRASSICA"]
+      return [] // Las brassicas no tienen catálogo
     case "OTROS":
       return ["CULTIVO"]
     default:
-      return ["MALEZA", "CULTIVO", "BRASSICA"] // Todos por defecto
+      return ["MALEZA", "CULTIVO"] // Solo malezas y cultivos
+  }
+}
+
+// Función helper para mostrar nombres legibles de tipos de listado
+const getTipoListadoDisplay = (tipo: TipoListado) => {
+  switch (tipo) {
+    case "MAL_TOLERANCIA_CERO":
+      return "Maleza Tolerancia Cero"
+    case "MAL_TOLERANCIA":
+      return "Maleza Tolerancia"
+    case "MAL_COMUNES":
+      return "Malezas Comunes"
+    case "BRASSICA":
+      return "Brassica"
+    case "OTROS":
+      return "Otros Cultivos"
+    default:
+      return tipo
+  }
+}
+
+// Función helper para obtener el color del badge según el tipo
+const getTipoListadoBadgeColor = (tipo: TipoListado) => {
+  switch (tipo) {
+    case "MAL_TOLERANCIA_CERO":
+      return "bg-red-100 text-red-700 border-red-200"
+    case "MAL_TOLERANCIA":
+      return "bg-orange-100 text-orange-700 border-orange-200"
+    case "MAL_COMUNES":
+      return "bg-yellow-100 text-yellow-700 border-yellow-200"
+    case "BRASSICA":
+      return "bg-purple-100 text-purple-700 border-purple-200"
+    case "OTROS":
+      return "bg-green-100 text-green-700 border-green-200"
+    default:
+      return "bg-gray-100 text-gray-700 border-gray-200"
   }
 }
 
@@ -66,7 +102,6 @@ export default function EditarDosnPage() {
     tipoINASE: [] as string[],
     cuscuta_g: 0,
     cuscutaNum: 0,
-    fechaCuscuta: "",
     listados: [] as any[],
   })
 
@@ -173,15 +208,14 @@ export default function EditarDosnPage() {
           tipoINASE: dosnData.tipoINASE || [],
           cuscuta_g: dosnData.cuscuta_g || 0,
           cuscutaNum: dosnData.cuscutaNum || 0,
-          fechaCuscuta: formatDateForInput(dosnData.fechaCuscuta),
           listados:
             dosnData.listados?.map((listado) => ({
               listadoTipo: listado.listadoTipo,
               listadoInsti: listado.listadoInsti,
               listadoNum: listado.listadoNum,
-              idCatalogo: listado.catalogo.catalogoID,
-              catalogoNombre: listado.catalogo.nombreComun,
-              catalogoCientifico: listado.catalogo.nombreCientifico,
+              idCatalogo: listado.catalogo?.catalogoID || null,
+              catalogoNombre: listado.catalogo?.nombreComun || "",
+              catalogoCientifico: listado.catalogo?.nombreCientifico || "",
             })) || [],
         }
 
@@ -259,8 +293,9 @@ export default function EditarDosnPage() {
 
       console.log("Fechas antes del formateo:")
       console.log("- fechaINIA:", formData.fechaINIA)
-      console.log("- fechaINASE:", formData.fechaINASE)  
-      console.log("- fechaCuscuta:", formData.fechaCuscuta)
+      console.log("- fechaINASE:", formData.fechaINASE)
+      console.log("- cuscuta_g:", formData.cuscuta_g)
+      console.log("- cuscutaNum:", formData.cuscutaNum)
 
       const updateData: DosnRequestDTO = {
         idLote: dosn.idLote || 0,
@@ -274,7 +309,9 @@ export default function EditarDosnPage() {
         tipoINASE: formData.tipoINASE as any[],
         cuscuta_g: formData.cuscuta_g || undefined,
         cuscutaNum: formData.cuscutaNum || undefined,
-        fechaCuscuta: formatDateForBackend(formData.fechaCuscuta),
+        fechaCuscuta: (formData.cuscuta_g > 0 || formData.cuscutaNum > 0) 
+          ? (dosn.fechaCuscuta || new Date().toISOString().split('T')[0]) // Usar fecha existente o actual
+          : undefined,
         listados: formData.listados.map((listado) => ({
           listadoTipo: listado.listadoTipo,
           listadoInsti: listado.listadoInsti,
@@ -624,19 +661,7 @@ export default function EditarDosnPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="fechaCuscuta" className="text-sm font-medium">
-                  Fecha Análisis
-                </Label>
-                <Input
-                  id="fechaCuscuta"
-                  type="date"
-                  value={formData.fechaCuscuta}
-                  onChange={(e) => handleInputChange("fechaCuscuta", e.target.value)}
-                  className="text-base"
-                />
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="cuscuta_g" className="text-sm font-medium">
                   Peso Cuscuta
@@ -713,9 +738,9 @@ export default function EditarDosnPage() {
                         <SelectValue placeholder="Seleccionar tipo" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="MAL_TOLERANCIA_CERO">Mal. Tolerancia Cero</SelectItem>
-                        <SelectItem value="MAL_TOLERANCIA">Mal. Tolerancia</SelectItem>
-                        <SelectItem value="MAL_COMUNES">Mal. Comunes</SelectItem>
+                        <SelectItem value="MAL_TOLERANCIA_CERO">Maleza Tolerancia Cero</SelectItem>
+                        <SelectItem value="MAL_TOLERANCIA">Maleza Tolerancia</SelectItem>
+                        <SelectItem value="MAL_COMUNES">Malezas Comunes</SelectItem>
                         <SelectItem value="BRASSICA">Brassica</SelectItem>
                         <SelectItem value="OTROS">Otros Cultivos</SelectItem>
                       </SelectContent>
@@ -756,56 +781,61 @@ export default function EditarDosnPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Especie</Label>
-                    <Select
-                      value={newListado.idCatalogo.toString()}
-                      onValueChange={(value) =>
-                        setNewListado((prev) => ({ ...prev, idCatalogo: Number.parseInt(value) }))
-                      }
-                    >
-                      <SelectTrigger className="text-base">
-                        <SelectValue placeholder="Seleccionar especie" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(() => {
-                          const tiposCompatibles = newListado.listadoTipo
-                            ? getCompatibleCatalogTypes(newListado.listadoTipo as TipoListado)
-                            : ["MALEZA", "CULTIVO", "BRASSICA"]
+                    <Label className="text-sm font-medium">
+                      Especie {newListado.listadoTipo === "BRASSICA" && <span className="text-xs text-muted-foreground">(No requerido para Brassica)</span>}
+                    </Label>
+                    {newListado.listadoTipo === "BRASSICA" ? (
+                      <div className="p-3 rounded-lg bg-muted/50 border border-dashed">
+                        <p className="text-sm text-muted-foreground">
+                          Las brassicas no requieren especie específica del catálogo
+                        </p>
+                      </div>
+                    ) : (
+                      <Select
+                        value={newListado.idCatalogo.toString()}
+                        onValueChange={(value) =>
+                          setNewListado((prev) => ({ ...prev, idCatalogo: Number.parseInt(value) }))
+                        }
+                      >
+                        <SelectTrigger className="text-base">
+                          <SelectValue placeholder="Seleccionar especie" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(() => {
+                            const tiposCompatibles = newListado.listadoTipo
+                              ? getCompatibleCatalogTypes(newListado.listadoTipo as TipoListado)
+                              : ["MALEZA", "CULTIVO"]
 
-                          const catalogosFiltrados = catalogos.filter((cat) =>
-                            tiposCompatibles.includes(cat.tipoMYCCatalogo),
-                          )
-
-                          if (catalogosFiltrados.length === 0) {
-                            return (
-                              <SelectItem value="0" disabled>
-                                {newListado.listadoTipo ? `No hay especies disponibles` : "Selecciona primero el tipo"}
-                              </SelectItem>
+                            const catalogosFiltrados = catalogos.filter((cat) =>
+                              tiposCompatibles.includes(cat.tipoMYCCatalogo),
                             )
-                          }
 
-                          return catalogosFiltrados.map((catalogo) => (
-                            <SelectItem key={catalogo.catalogoID} value={catalogo.catalogoID.toString()}>
-                              {catalogo.nombreComun}
-                            </SelectItem>
-                          ))
-                        })()}
-                      </SelectContent>
-                    </Select>
-                    {(() => {
-                      const tiposCompatibles = newListado.listadoTipo
-                        ? getCompatibleCatalogTypes(newListado.listadoTipo as TipoListado)
-                        : ["MALEZA", "CULTIVO", "BRASSICA"]
+                            if (catalogosFiltrados.length === 0) {
+                              return (
+                                <SelectItem value="0" disabled>
+                                  {newListado.listadoTipo ? `No hay especies disponibles` : "Selecciona primero el tipo"}
+                                </SelectItem>
+                              )
+                            }
 
+                            return catalogosFiltrados.map((catalogo) => (
+                              <SelectItem key={catalogo.catalogoID} value={catalogo.catalogoID.toString()}>
+                                {catalogo.nombreComun}
+                              </SelectItem>
+                            ))
+                          })()}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    {newListado.listadoTipo && newListado.listadoTipo !== "BRASSICA" && (() => {
+                      const tiposCompatibles = getCompatibleCatalogTypes(newListado.listadoTipo as TipoListado)
                       const catalogosFiltrados = catalogos.filter((cat) =>
                         tiposCompatibles.includes(cat.tipoMYCCatalogo),
                       )
 
                       return (
                         <p className="text-xs text-muted-foreground mt-1">
-                          {newListado.listadoTipo
-                            ? `${catalogosFiltrados.length} especies disponibles`
-                            : "Selecciona primero el tipo"}
+                          {`${catalogosFiltrados.length} especies disponibles`}
                         </p>
                       )
                     })()}
@@ -815,12 +845,19 @@ export default function EditarDosnPage() {
                 <div className="flex gap-3">
                   <Button
                     onClick={() => {
-                      if (newListado.listadoTipo && newListado.listadoInsti && newListado.idCatalogo) {
-                        const catalogo = catalogos.find((c) => c.catalogoID === newListado.idCatalogo)
+                      // Para brassicas, no requerimos idCatalogo
+                      const isBrassica = newListado.listadoTipo === "BRASSICA"
+                      const hasRequiredFields = newListado.listadoTipo && 
+                        newListado.listadoInsti && 
+                        (isBrassica || newListado.idCatalogo)
+
+                      if (hasRequiredFields) {
+                        const catalogo = isBrassica ? null : catalogos.find((c) => c.catalogoID === newListado.idCatalogo)
                         handleListadoAdd({
                           ...newListado,
-                          catalogoNombre: catalogo?.nombreComun,
-                          catalogoCientifico: catalogo?.nombreCientifico,
+                          idCatalogo: isBrassica ? null : newListado.idCatalogo,
+                          catalogoNombre: catalogo?.nombreComun || (isBrassica ? "Brassica spp." : ""),
+                          catalogoCientifico: catalogo?.nombreCientifico || "",
                         })
                         setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0 })
                         setShowAddListado(false)
@@ -872,13 +909,23 @@ export default function EditarDosnPage() {
                       <TableRow key={index}>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{listado.catalogoNombre || "No especificado"}</div>
-                            <div className="text-sm text-muted-foreground italic">{listado.catalogoCientifico}</div>
+                            <div className="font-medium">
+                              {listado.catalogoNombre || 
+                               (listado.listadoTipo === "BRASSICA" ? "Sin especificación" : "--")}
+                            </div>
+                            <div className="text-sm text-muted-foreground italic">
+                              {listado.catalogoCientifico}
+                            </div>
+                            {listado.listadoTipo === "BRASSICA" && !listado.catalogoNombre && (
+                              <div className="text-xs text-muted-foreground mt-1">
+                                No requiere catálogo
+                              </div>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">
-                            {listado.listadoTipo}
+                          <Badge variant="outline" className={getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}>
+                            {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
                           </Badge>
                         </TableCell>
                         <TableCell>
