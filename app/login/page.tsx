@@ -4,12 +4,14 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Leaf } from "lucide-react"
-
+import { Leaf, UserPlus } from "lucide-react"
+import { toast } from 'sonner'
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 export default function LoginPage() {
   const [credentials, setCredentials] = useState({
     usuario: "",
@@ -20,24 +22,41 @@ export default function LoginPage() {
 
   // Función helper para manejar cookies
   function setCookie(name: string, value: string, days: number = 1) {
-    const maxAge = days * 24 * 60 * 60; // Convertir días a segundos
-    document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; secure; samesite=strict`;
+    const maxAge = days * 24 * 60 * 60;
+    // Usamos SameSite=Lax para compatibilidad con dispositivos móviles
+    document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
   }
 
   // Servicio de login
   async function login(usuario: string, password: string) {
-    const response = await fetch(`http://localhost:8080/api/v1/auth/login`, {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+    console.log("🔄 Intentando login con:", { usuario, API_BASE_URL });
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
       body: JSON.stringify({ usuario, password }),
+      credentials: "include"
     })
-    if (!response.ok) throw new Error(await response.text())
-    return response.json()
+
+    console.log("📥 Status de respuesta:", response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ Error:", errorText);
+      throw new Error(errorText);
+    }
+
+    return response.json();
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+
     try {
       const data = await login(credentials.usuario, credentials.password)
 
@@ -49,7 +68,10 @@ export default function LoginPage() {
 
       router.push("/dashboard")
     } catch (error) {
-      alert("Credenciales incorrectas")
+      // Toast de error en lugar de alert
+      toast.error('Credenciales incorrectas', {
+        description: 'Por favor verifica tu usuario y contraseña'
+      })
     } finally {
       setIsLoading(false)
     }
@@ -93,9 +115,37 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
+              {isLoading ? (
+                <>
+                  <LoadingSpinner className="mr-2" size={16} />
+                  Iniciando sesión...
+                </>
+              ) : (
+                "Iniciar sesión"
+              )}
             </Button>
           </form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">
+                ¿No tienes una cuenta?
+              </span>
+            </div>
+          </div>
+
+          <a
+            href="/registro/usuario"
+            className="no-underline w-full block"
+          >
+            <div className="w-full border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md flex items-center justify-center py-2 px-4">
+              <UserPlus className="mr-2 h-4 w-4" />
+              Registrar nuevo usuario
+            </div>
+          </a>
         </CardContent>
       </Card>
     </div>

@@ -1,14 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft } from "lucide-react"
+import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { obtenerLotesActivos } from "@/app/services/lote-service"
+import { LoteSimpleDTO } from "@/app/models"
 
 interface Lote {
   id: string
@@ -26,64 +28,41 @@ export default function ListadoLotesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState<string>("todos")
   const [filterCultivo, setFilterCultivo] = useState<string>("todos")
+  const [lotes, setLotes] = useState<Lote[]>([])
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const [lotes] = useState<Lote[]>([
-    {
-      id: "RG-LE-ex-0018",
-      empresa: "INIA",
-      cultivo: "Soja",
-      codigoCC: "CC001",
-      codigoFT: "FT001",
-      fechaRegistro: "2024-12-10",
-      estado: "Activo",
-      pureza: 98.5,
-      observaciones: "Lote en condiciones óptimas",
-    },
-    {
-      id: "RG-LE-ex-0019",
-      empresa: "INIA",
-      cultivo: "Maíz",
-      codigoCC: "CC002",
-      codigoFT: "FT002",
-      fechaRegistro: "2024-12-12",
-      estado: "En análisis",
-      pureza: 97.2,
-      observaciones: "Análisis de pureza en proceso",
-    },
-    {
-      id: "RG-LE-ex-0020",
-      empresa: "INIA",
-      cultivo: "Trigo",
-      codigoCC: "CC003",
-      codigoFT: "FT003",
-      fechaRegistro: "2024-12-08",
-      estado: "Completado",
-      pureza: 99.1,
-      observaciones: "Análisis completado satisfactoriamente",
-    },
-    {
-      id: "RG-LE-ex-0021",
-      empresa: "INIA",
-      cultivo: "Soja",
-      codigoCC: "CC004",
-      codigoFT: "FT004",
-      fechaRegistro: "2024-12-14",
-      estado: "Pendiente",
-      pureza: 0,
-      observaciones: "Esperando inicio de análisis",
-    },
-    {
-      id: "RG-LE-ex-0022",
-      empresa: "INIA",
-      cultivo: "Arroz",
-      codigoCC: "CC005",
-      codigoFT: "FT005",
-      fechaRegistro: "2024-12-13",
-      estado: "Activo",
-      pureza: 96.8,
-      observaciones: "Lote con características especiales",
-    },
-  ])
+  useEffect(() => {
+    const fetchLotes = async () => {
+      try {
+        setIsLoading(true)
+        const lotesData = await obtenerLotesActivos()
+
+        // Transform API data to component format
+        // Note: Some fields might not be available from the API, so we use placeholders
+        const lotesTransformed = lotesData.map((lote: LoteSimpleDTO) => ({
+          id: lote.ficha || `#${lote.loteID}`,
+          empresa: "INIA", // Placeholder - not available in LoteSimpleDTO
+          cultivo: "No especificado", // Placeholder - not available in LoteSimpleDTO
+          codigoCC: `CC-${lote.loteID}`, // Placeholder - not available in LoteSimpleDTO
+          codigoFT: `FT-${lote.loteID}`, // Placeholder - not available in LoteSimpleDTO
+          fechaRegistro: new Date().toISOString(), // Placeholder - not available in LoteSimpleDTO
+          estado: lote.activo ? "Activo" : "Pendiente" as any,
+          pureza: 0, // Placeholder - would need to fetch from pureza analysis
+          observaciones: "", // Placeholder - not available in LoteSimpleDTO
+        }))
+
+        setLotes(lotesTransformed)
+      } catch (err) {
+        console.error("Error fetching lotes:", err)
+        setError("Error al cargar los lotes. Intente nuevamente más tarde.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchLotes()
+  }, [])
 
   const filteredLotes = lotes.filter((lote) => {
     const matchesSearch =
@@ -153,7 +132,14 @@ export default function ListadoLotesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Lotes</p>
-                <p className="text-2xl font-bold">{lotes.length}</p>
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <span>Cargando...</span>
+                  </div>
+                ) : (
+                  <p className="text-2xl font-bold">{lotes.length}</p>
+                )}
               </div>
               <Package className="h-8 w-8 text-primary" />
             </div>
@@ -164,7 +150,14 @@ export default function ListadoLotesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Activos</p>
-                <p className="text-2xl font-bold">{lotes.filter((l) => l.estado === "Activo").length}</p>
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <span>Cargando...</span>
+                  </div>
+                ) : (
+                  <p className="text-2xl font-bold">{lotes.filter((l) => l.estado === "Activo").length}</p>
+                )}
               </div>
               <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
                 <div className="h-4 w-4 rounded-full bg-green-500"></div>
@@ -177,7 +170,14 @@ export default function ListadoLotesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">En Análisis</p>
-                <p className="text-2xl font-bold">{lotes.filter((l) => l.estado === "En análisis").length}</p>
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <span>Cargando...</span>
+                  </div>
+                ) : (
+                  <p className="text-2xl font-bold">{lotes.filter((l) => l.estado === "En análisis").length}</p>
+                )}
               </div>
               <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
                 <div className="h-4 w-4 rounded-full bg-yellow-500"></div>
@@ -190,7 +190,14 @@ export default function ListadoLotesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Completados</p>
-                <p className="text-2xl font-bold">{lotes.filter((l) => l.estado === "Completado").length}</p>
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <span>Cargando...</span>
+                  </div>
+                ) : (
+                  <p className="text-2xl font-bold">{lotes.filter((l) => l.estado === "Completado").length}</p>
+                )}
               </div>
               <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
                 <div className="h-4 w-4 rounded-full bg-blue-500"></div>
@@ -255,61 +262,89 @@ export default function ListadoLotesPage() {
         <CardHeader>
           <CardTitle>Lista de Lotes</CardTitle>
           <CardDescription>
-            {filteredLotes.length} lote{filteredLotes.length !== 1 ? "s" : ""} encontrado
-            {filteredLotes.length !== 1 ? "s" : ""}
+            {isLoading
+              ? "Cargando lotes..."
+              : `${filteredLotes.length} lote${filteredLotes.length !== 1 ? "s" : ""} encontrado${filteredLotes.length !== 1 ? "s" : ""}`
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID Lote</TableHead>
-                  <TableHead>Empresa</TableHead>
-                  <TableHead>Cultivo</TableHead>
-                  <TableHead>Código CC</TableHead>
-                  <TableHead>Código FT</TableHead>
-                  <TableHead>Fecha Registro</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Pureza (%)</TableHead>
-                  <TableHead>Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLotes.map((lote) => (
-                  <TableRow key={lote.id}>
-                    <TableCell className="font-medium">{lote.id}</TableCell>
-                    <TableCell>{lote.empresa}</TableCell>
-                    <TableCell>{lote.cultivo}</TableCell>
-                    <TableCell>{lote.codigoCC}</TableCell>
-                    <TableCell>{lote.codigoFT}</TableCell>
-                    <TableCell>{new Date(lote.fechaRegistro).toLocaleDateString("es-ES")}</TableCell>
-                    <TableCell>
-                      <Badge variant={getEstadoBadgeVariant(lote.estado)}>{lote.estado}</Badge>
-                    </TableCell>
-                    <TableCell>{lote.pureza > 0 ? `${lote.pureza}%` : "-"}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Link href={`/lotes/${lote.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Link href={`/lotes/${lote.id}/edit`}>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          {error ? (
+            <div className="text-center p-6 text-destructive">
+              <p>{error}</p>
+              <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+                Reintentar
+              </Button>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID Lote</TableHead>
+                    <TableHead>Empresa</TableHead>
+                    <TableHead>Cultivo</TableHead>
+                    <TableHead>Código CC</TableHead>
+                    <TableHead>Código FT</TableHead>
+                    <TableHead>Fecha Registro</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Pureza (%)</TableHead>
+                    <TableHead>Acciones</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-8">
+                        <div className="flex flex-col items-center justify-center">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+                          <p className="text-muted-foreground">Cargando datos de lotes...</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredLotes.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-8">
+                        <p className="text-muted-foreground">No se encontraron lotes que coincidan con los criterios de búsqueda.</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredLotes.map((lote) => (
+                      <TableRow key={lote.id}>
+                        <TableCell className="font-medium">{lote.id}</TableCell>
+                        <TableCell>{lote.empresa}</TableCell>
+                        <TableCell>{lote.cultivo}</TableCell>
+                        <TableCell>{lote.codigoCC}</TableCell>
+                        <TableCell>{lote.codigoFT}</TableCell>
+                        <TableCell>{new Date(lote.fechaRegistro).toLocaleDateString("es-ES")}</TableCell>
+                        <TableCell>
+                          <Badge variant={getEstadoBadgeVariant(lote.estado)}>{lote.estado}</Badge>
+                        </TableCell>
+                        <TableCell>{lote.pureza > 0 ? `${lote.pureza}%` : "-"}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Link href={`/lotes/${lote.id}`}>
+                              <Button variant="ghost" size="sm">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            <Link href={`/lotes/${lote.id}/edit`}>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

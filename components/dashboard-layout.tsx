@@ -53,10 +53,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               ))}
             </nav>
             <div className="flex-shrink-0 p-2">
-              <Button variant="outline" className="w-full justify-start bg-transparent">
-                <Settings className="mr-3 h-5 w-5" />
-                Configuración
-              </Button>
               <Button variant="ghost" className="w-full justify-start mt-2 text-destructive hover:text-destructive">
                 <LogOut className="mr-3 h-5 w-5" />
                 Cerrar Sesión

@@ -10,8 +10,11 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
-    // Si no hay token y no estamos en /login, redirigimos a /login
-    if (!token && request.nextUrl.pathname !== '/login') {
+    // Lista de rutas públicas que no requieren autenticación
+    const publicRoutes = ['/login', '/registro/usuario'];
+
+    // Si no hay token y no estamos en una ruta pública, redirigimos a /login
+    if (!token && !publicRoutes.includes(request.nextUrl.pathname)) {
         return NextResponse.redirect(new URL('/login', request.url))
     }
 
