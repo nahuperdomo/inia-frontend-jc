@@ -59,6 +59,7 @@ export function RepeticionesManager({
   const handleGuardarRepeticion = async (numeroRep: number, datos: RepGermRequestDTO) => {
     try {
       const repeticionExistente = repeticiones.find(r => r.numRep === numeroRep)
+      let repeticionesActualizadas: RepGermDTO[]
       
       if (repeticionExistente) {
         // Actualizar existente
@@ -69,19 +70,18 @@ export function RepeticionesManager({
           datos
         )
         
-        setRepeticiones(prev => 
-          prev.map(r => r.repGermID === repeticionExistente.repGermID ? repeticionActualizada : r)
+        repeticionesActualizadas = repeticiones.map(r => 
+          r.repGermID === repeticionExistente.repGermID ? repeticionActualizada : r
         )
+        setRepeticiones(repeticionesActualizadas)
       } else {
         // Crear nueva
         const nuevaRepeticion = await crearRepeticion(germinacionId, tabla.tablaGermID, datos)
-        setRepeticiones(prev => [...prev, nuevaRepeticion])
+        repeticionesActualizadas = [...repeticiones, nuevaRepeticion]
+        setRepeticiones(repeticionesActualizadas)
       }
       
-      // Actualizar callback
-      const repeticionesActualizadas = repeticiones.map(r => 
-        r.numRep === numeroRep ? { ...r, ...datos } : r
-      )
+      // Actualizar callback con las repeticiones realmente actualizadas
       onRepeticionesUpdated(repeticionesActualizadas)
       
     } catch (error) {

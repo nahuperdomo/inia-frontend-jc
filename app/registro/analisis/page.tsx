@@ -294,6 +294,33 @@ export default function RegistroAnalisisPage() {
         return;
       }
 
+      // Validar que la fecha de inicio sea anterior a la fecha de último conteo
+      if (formData.fechaInicioGerm && formData.fechaUltConteo) {
+        const fechaInicio = new Date(formData.fechaInicioGerm);
+        const fechaFin = new Date(formData.fechaUltConteo);
+        
+        if (fechaInicio >= fechaFin) {
+          setError("La fecha de inicio debe ser anterior a la fecha de último conteo");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Validar que todas las fechas de conteo estén entre la fecha de inicio y fin
+      if (formData.fechaInicioGerm && formData.fechaUltConteo) {
+        const fechaInicio = new Date(formData.fechaInicioGerm);
+        const fechaFin = new Date(formData.fechaUltConteo);
+        
+        for (const fecha of fechasValidas) {
+          const fechaConteo = new Date(fecha);
+          if (fechaConteo < fechaInicio || fechaConteo > fechaFin) {
+            setError(`Todas las fechas de conteo deben estar entre ${fechaInicio.toLocaleDateString()} y ${fechaFin.toLocaleDateString()}`);
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
       payload = {
         idLote: parseInt(formData.loteid), // Convertir a número
         comentarios: formData.observaciones || "",

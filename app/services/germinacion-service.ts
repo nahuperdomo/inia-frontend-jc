@@ -2,6 +2,7 @@ import { apiFetch } from "./api";
 import { 
   GerminacionDTO, 
   GerminacionRequestDTO, 
+  GerminacionEditRequestDTO,
   ResponseListadoGerminacion
 } from "../models/interfaces/germinacion";
 import {
@@ -30,7 +31,7 @@ export async function obtenerGerminacionPorId(id: number): Promise<GerminacionDT
   return apiFetch(`/api/germinaciones/${id}`);
 }
 
-export async function actualizarGerminacion(id: number, solicitud: GerminacionRequestDTO): Promise<GerminacionDTO> {
+export async function actualizarGerminacion(id: number, solicitud: GerminacionEditRequestDTO): Promise<GerminacionDTO> {
   return apiFetch(`/api/germinaciones/${id}`, {
     method: "PUT",
     body: JSON.stringify(solicitud),
