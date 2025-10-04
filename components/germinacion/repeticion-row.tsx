@@ -239,12 +239,12 @@ export function RepeticionRow({
                       type="number"
                       min="0"
                       max={numSemillasPRep}
-                      value={valor === 0 ? '' : valor}
+                      value={modoEdicion && valor === 0 ? '' : valor}
                       onChange={(e) => manejarCambioNumerico(e.target.value, valor, (nuevoValor) => 
                         actualizarNormal(indice, nuevoValor)
                       )}
                       disabled={!modoEdicion || !puedeIngresar}
-                      className={`text-center ${!puedeIngresar ? 'bg-gray-100 text-gray-400' : ''}`}
+                      className={`text-center text-black ${!puedeIngresar ? 'bg-gray-100 text-gray-400' : ''}`}
                       title={!puedeIngresar ? "No se puede ingresar datos para fechas futuras" : ""}
                     />
                     {fechasConteos && fechasConteos[indice] && (
@@ -266,12 +266,12 @@ export function RepeticionRow({
                 type="number"
                 min="0"
                 max={numSemillasPRep}
-                value={datos.anormales === 0 ? '' : datos.anormales}
+                value={modoEdicion && datos.anormales === 0 ? '' : datos.anormales}
                 onChange={(e) => manejarCambioNumerico(e.target.value, datos.anormales, (nuevoValor) => 
                   actualizarCampo('anormales', nuevoValor)
                 )}
                 disabled={!modoEdicion}
-                className="text-center"
+                className="text-center text-black"
               />
             </div>
             
@@ -281,12 +281,12 @@ export function RepeticionRow({
                 type="number"
                 min="0"
                 max={numSemillasPRep}
-                value={datos.duras === 0 ? '' : datos.duras}
+                value={modoEdicion && datos.duras === 0 ? '' : datos.duras}
                 onChange={(e) => manejarCambioNumerico(e.target.value, datos.duras, (nuevoValor) => 
                   actualizarCampo('duras', nuevoValor)
                 )}
                 disabled={!modoEdicion}
-                className="text-center"
+                className="text-center text-black"
               />
             </div>
             
@@ -296,12 +296,12 @@ export function RepeticionRow({
                 type="number"
                 min="0"
                 max={numSemillasPRep}
-                value={datos.frescas === 0 ? '' : datos.frescas}
+                value={modoEdicion && datos.frescas === 0 ? '' : datos.frescas}
                 onChange={(e) => manejarCambioNumerico(e.target.value, datos.frescas, (nuevoValor) => 
                   actualizarCampo('frescas', nuevoValor)
                 )}
                 disabled={!modoEdicion}
-                className="text-center"
+                className="text-center text-black"
               />
             </div>
             
@@ -311,12 +311,12 @@ export function RepeticionRow({
                 type="number"
                 min="0"
                 max={numSemillasPRep}
-                value={datos.muertas === 0 ? '' : datos.muertas}
+                value={modoEdicion && datos.muertas === 0 ? '' : datos.muertas}
                 onChange={(e) => manejarCambioNumerico(e.target.value, datos.muertas, (nuevoValor) => 
                   actualizarCampo('muertas', nuevoValor)
                 )}
                 disabled={!modoEdicion}
-                className="text-center"
+                className="text-center text-black"
               />
             </div>
           </div>
