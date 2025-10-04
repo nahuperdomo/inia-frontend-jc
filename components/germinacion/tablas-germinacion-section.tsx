@@ -14,7 +14,8 @@ import {
   finalizarTabla, 
   actualizarPorcentajes,
   crearTablaGerminacion,
-  actualizarTablaGerminacion
+  actualizarTablaGerminacion,
+  finalizarGerminacion
 } from '@/app/services/germinacion-service'
 import {
   obtenerValoresPorTabla,
@@ -42,6 +43,7 @@ export function TablasGerminacionSection({
   const [tablaExpandida, setTablaExpandida] = useState<number | null>(null)
   const [eliminandoTabla, setEliminandoTabla] = useState<number | null>(null)
   const [finalizandoTabla, setFinalizandoTabla] = useState<number | null>(null)
+  const [finalizandoGerminacion, setFinalizandoGerminacion] = useState<boolean>(false)
   const [editandoPorcentajes, setEditandoPorcentajes] = useState<number | null>(null)
   const [editandoValores, setEditandoValores] = useState<number | null>(null)
   const [editandoTablaGeneral, setEditandoTablaGeneral] = useState<number | null>(null)
@@ -52,25 +54,27 @@ export function TablasGerminacionSection({
   const [porcentajesOriginales, setPorcentajesOriginales] = useState<PorcentajesRedondeoRequestDTO | null>(null)
   const [valoresOriginalesInia, setValoresOriginalesInia] = useState<ValoresGermRequestDTO | null>(null)
   const [valoresOriginalesInase, setValoresOriginalesInase] = useState<ValoresGermRequestDTO | null>(null)
+  const [erroresValidacion, setErroresValidacion] = useState<{[key: string]: string}>({})
+  const [erroresValidacionNuevaTabla, setErroresValidacionNuevaTabla] = useState<{[key: string]: string}>({})
   const [tablaEditada, setTablaEditada] = useState<TablaGermRequestDTO>({
     tratamiento: '',
     productoYDosis: '',
-    numSemillasPRep: 100,
-    metodo: 'Papel',
-    temperatura: 20,
-    prefrio: 'No',
-    pretratamiento: 'Ninguno',
+    numSemillasPRep: 0,
+    metodo: '',
+    temperatura: 0,
+    prefrio: '',
+    pretratamiento: '',
     total: 0
   })
   const [tablaOriginal, setTablaOriginal] = useState<TablaGermRequestDTO | null>(null)
   const [nuevaTabla, setNuevaTabla] = useState<TablaGermRequestDTO>({
-    tratamiento: 'Control',
+    tratamiento: '',
     productoYDosis: '',
-    numSemillasPRep: 100,
-    metodo: 'Papel',
-    temperatura: 20,
-    prefrio: 'No',
-    pretratamiento: 'Ninguno',
+    numSemillasPRep: 0,
+    metodo: '',
+    temperatura: 0,
+    prefrio: '',
+    pretratamiento: '',
     total: 0
   })
   const [porcentajes, setPorcentajes] = useState<PorcentajesRedondeoRequestDTO>({
@@ -109,10 +113,10 @@ export function TablasGerminacionSection({
 
     try {
       setEliminandoTabla(tablaId)
-      console.log("🗑️ Eliminando tabla:", tablaId)
+      console.log("Eliminando tabla:", tablaId)
       
       await eliminarTablaGerminacion(germinacionId, tablaId)
-      console.log("✅ Tabla eliminada exitosamente")
+      console.log("Tabla eliminada exitosamente")
       
       // Actualizar estado local en lugar de recargar
       setTablasLocales(prev => prev.filter(tabla => tabla.tablaGermID !== tablaId))
@@ -122,7 +126,7 @@ export function TablasGerminacionSection({
         setTablaExpandida(null)
       }
     } catch (error) {
-      console.error("❌ Error eliminando tabla:", error)
+      console.error("Error eliminando tabla:", error)
       alert("Error al eliminar la tabla")
     } finally {
       setEliminandoTabla(null)
@@ -140,10 +144,10 @@ export function TablasGerminacionSection({
 
     try {
       setFinalizandoTabla(tablaId)
-      console.log("🏁 Finalizando tabla:", tablaId)
+      console.log("Finalizando tabla:", tablaId)
       
       await finalizarTabla(germinacionId, tablaId)
-      console.log("✅ Tabla finalizada exitosamente")
+      console.log("Tabla finalizada exitosamente")
       
       // Actualizar estado local en lugar de recargar
       setTablasLocales(prev => 
@@ -154,10 +158,29 @@ export function TablasGerminacionSection({
         )
       )
     } catch (error) {
-      console.error("❌ Error finalizando tabla:", error)
+      console.error("Error finalizando tabla:", error)
       alert("Error al finalizar la tabla")
     } finally {
       setFinalizandoTabla(null)
+    }
+  }
+
+  const handleFinalizarGerminacion = async () => {
+    if (!window.confirm("¿Está seguro que desea finalizar toda la germinación? Esto cambiará el estado del análisis.")) {
+      return
+    }
+
+    setFinalizandoGerminacion(true)
+    try {
+      await finalizarGerminacion(germinacionId)
+      alert("Germinación finalizada exitosamente")
+      // Opcional: redirigir o actualizar estado del componente padre
+      window.location.reload() // Recargar para reflejar cambios de estado
+    } catch (error) {
+      console.error("Error finalizando germinación:", error)
+      alert("Error al finalizar la germinación")
+    } finally {
+      setFinalizandoGerminacion(false)
     }
   }
 
@@ -168,7 +191,7 @@ export function TablasGerminacionSection({
     }
 
     try {
-      console.log("✏️ Editando tabla:", tablaId)
+      console.log("Editando tabla:", tablaId)
       
       // Actualizar estado local para marcar como no finalizada
       setTablasLocales(prev => 
@@ -179,16 +202,99 @@ export function TablasGerminacionSection({
         )
       )
       
-      console.log("✅ Tabla habilitada para edición")
+      console.log("Tabla habilitada para edición")
     } catch (error) {
-      console.error("❌ Error reabriendo tabla:", error)
+      console.error("Error reabriendo tabla:", error)
       alert("Error al reabrir la tabla")
+    }
+  }
+
+  const validarDatosTabla = (tabla: any) => {
+    const camposRequeridos = [
+      { campo: 'tratamiento', nombre: 'Tratamiento' },
+      { campo: 'metodo', nombre: 'Método' },
+      { campo: 'numSemillasPRep', nombre: 'Número de semillas por repetición' },
+      { campo: 'temperatura', nombre: 'Temperatura' }
+    ]
+    
+    const errores = []
+    
+    for (const { campo, nombre } of camposRequeridos) {
+      if (!tabla[campo] || tabla[campo] === '' || tabla[campo] === 0) {
+        errores.push(nombre)
+      }
+    }
+    
+    return errores
+  }
+
+  const validarCampoEnTiempoReal = (campo: string, valor: any, esNuevaTabla: boolean = false) => {
+    const setErrores = esNuevaTabla ? setErroresValidacionNuevaTabla : setErroresValidacion
+    
+    setErrores(prev => {
+      const nuevosErrores = { ...prev }
+      
+      if (!valor || valor === '' || valor === 0) {
+        const nombresCampos = {
+          'tratamiento': 'Tratamiento',
+          'metodo': 'Método',
+          'numSemillasPRep': 'Número de semillas por repetición',
+          'temperatura': 'Temperatura'
+        }
+        nuevosErrores[campo] = `${nombresCampos[campo as keyof typeof nombresCampos]} es requerido`
+      } else {
+        delete nuevosErrores[campo]
+      }
+      
+      return nuevosErrores
+    })
+  }
+
+  const tablaConRepeticionesGuardadas = (tablaId: number) => {
+    const tabla = tablasLocales.find(t => t.tablaGermID === tablaId)
+    return tabla && tabla.repGerm && tabla.repGerm.length > 0
+  }
+
+  const manejarCambioNumerico = (valor: string, valorActual: number, callback: (nuevoValor: number) => void, esDecimal: boolean = false) => {
+    // Si el campo está vacío, mantener vacío
+    if (valor === '') {
+      callback(0)
+      return
+    }
+    
+    // Si el valor actual es 0 y se está escribiendo algo, reemplazar completamente
+    if (valorActual === 0 && valor !== '0') {
+      const numeroIngresado = esDecimal ? (parseFloat(valor) || 0) : (parseInt(valor) || 0)
+      callback(numeroIngresado)
+    } else {
+      // Comportamiento normal
+      const numeroIngresado = esDecimal ? (parseFloat(valor) || 0) : (parseInt(valor) || 0)
+      callback(numeroIngresado)
     }
   }
 
   const handleCrearTabla = async () => {
     try {
-      console.log("🚀 Creando nueva tabla con datos:", nuevaTabla)
+      // Validar datos antes de crear
+      const errores = validarDatosTabla(nuevaTabla)
+      if (errores.length > 0) {
+        // Marcar errores en los campos
+        const nuevosErrores: {[key: string]: string} = {}
+        errores.forEach(error => {
+          const campo = error === 'Tratamiento' ? 'tratamiento' : 
+                       error === 'Método' ? 'metodo' :
+                       error === 'Número de semillas por repetición' ? 'numSemillasPRep' :
+                       error === 'Temperatura' ? 'temperatura' : error
+          nuevosErrores[campo] = `${error} es requerido`
+        })
+        setErroresValidacionNuevaTabla(nuevosErrores)
+        return
+      }
+      
+      // Limpiar errores si todo está bien
+      setErroresValidacionNuevaTabla({})
+      
+      console.log("Creando nueva tabla con datos:", nuevaTabla)
       
       const tablaCreada = await crearTablaGerminacion(germinacionId, nuevaTabla)
       console.log("✅ Tabla creada:", tablaCreada)
@@ -196,15 +302,15 @@ export function TablasGerminacionSection({
       // Actualizar estado local
       setTablasLocales(prev => [...prev, tablaCreada])
       
-      // Resetear formulario
+      // Resetear formulario con valores vacíos
       setNuevaTabla({
-        tratamiento: 'Control',
+        tratamiento: '',
         productoYDosis: '',
-        numSemillasPRep: 100,
-        metodo: 'Papel',
-        temperatura: 20,
-        prefrio: 'No',
-        pretratamiento: 'Ninguno',
+        numSemillasPRep: 0,
+        metodo: '',
+        temperatura: 0,
+        prefrio: '',
+        pretratamiento: '',
         total: 0
       })
       
@@ -278,7 +384,7 @@ export function TablasGerminacionSection({
     }
 
     try {
-      console.log("💾 Guardando porcentajes para tabla:", tablaId)
+      console.log("Guardando porcentajes para tabla:", tablaId)
       
       await actualizarPorcentajes(germinacionId, tablaId, porcentajes)
       console.log("✅ Porcentajes guardados exitosamente")
@@ -312,11 +418,11 @@ export function TablasGerminacionSection({
     const datosTabla = {
       tratamiento: tabla.tratamiento || '',
       productoYDosis: tabla.productoYDosis || '',
-      numSemillasPRep: tabla.numSemillasPRep || 100,
-      metodo: tabla.metodo || 'Papel',
-      temperatura: tabla.temperatura || 20,
-      prefrio: tabla.prefrio || 'No',
-      pretratamiento: tabla.pretratamiento || 'Ninguno',
+      numSemillasPRep: tabla.numSemillasPRep || 0,
+      metodo: tabla.metodo || '',
+      temperatura: tabla.temperatura || 0,
+      prefrio: tabla.prefrio || '',
+      pretratamiento: tabla.pretratamiento || '',
       total: tabla.total || 0
     }
     setTablaEditada(datosTabla)
@@ -330,6 +436,7 @@ export function TablasGerminacionSection({
     }
     setEditandoTablaGeneral(null)
     setTablaOriginal(null)
+    setErroresValidacion({}) // Limpiar errores al cancelar
   }
 
   const hanCambiadoTabla = (): boolean => {
@@ -344,8 +451,27 @@ export function TablasGerminacionSection({
       return
     }
 
+    // Validar datos antes de guardar
+    const errores = validarDatosTabla(tablaEditada)
+    if (errores.length > 0) {
+      // Marcar errores en los campos
+      const nuevosErrores: {[key: string]: string} = {}
+      errores.forEach(error => {
+        const campo = error === 'Tratamiento' ? 'tratamiento' : 
+                     error === 'Método' ? 'metodo' :
+                     error === 'Número de semillas por repetición' ? 'numSemillasPRep' :
+                     error === 'Temperatura' ? 'temperatura' : error
+        nuevosErrores[campo] = `${error} es requerido`
+      })
+      setErroresValidacion(nuevosErrores)
+      return
+    }
+
+    // Limpiar errores si todo está bien
+    setErroresValidacion({})
+
     try {
-      console.log("💾 Guardando datos generales para tabla:", tablaId)
+      console.log("Guardando datos generales para tabla:", tablaId)
       
       await actualizarTablaGerminacion(germinacionId, tablaId, tablaEditada)
       console.log("✅ Datos generales guardados exitosamente")
@@ -370,11 +496,14 @@ export function TablasGerminacionSection({
     }
   }
 
-  const actualizarPorcentaje = (campo: keyof PorcentajesRedondeoRequestDTO, valor: number) => {
-    setPorcentajes(prev => ({
-      ...prev,
-      [campo]: valor
-    }))
+  const actualizarPorcentaje = (campo: keyof PorcentajesRedondeoRequestDTO, valorString: string) => {
+    const valorActual = porcentajes[campo] || 0
+    manejarCambioNumerico(valorString, valorActual, (nuevoValor) => {
+      setPorcentajes(prev => ({
+        ...prev,
+        [campo]: nuevoValor
+      }))
+    }, true)
   }
 
   // Funciones para manejar valores INIA e INASE (siguiendo el patrón de porcentajes)
@@ -488,7 +617,7 @@ export function TablasGerminacionSection({
     }
 
     try {
-      console.log("💾 Guardando valores para tabla:", tablaId)
+      console.log("Guardando valores para tabla:", tablaId)
       
       // Guardar valores INIA solo si han cambiado
       if (hanCambiadoValoresInia()) {
@@ -497,7 +626,7 @@ export function TablasGerminacionSection({
         // Primero obtener el registro de INIA para conseguir su ID real
         const valoresIniaExistentes = await obtenerValoresIniaPorTabla(germinacionId, tablaId)
         const valoresIniaId = valoresIniaExistentes.valoresGermID
-        console.log("🔍 ID real de valores INIA:", valoresIniaId)
+        console.log("ID real de valores INIA:", valoresIniaId)
         
         await actualizarValores(germinacionId, tablaId, valoresIniaId, valoresInia)
         console.log("✅ Valores INIA guardados")
@@ -510,7 +639,7 @@ export function TablasGerminacionSection({
         // Primero obtener el registro de INASE para conseguir su ID real
         const valoresInaseExistentes = await obtenerValoresInasePorTabla(germinacionId, tablaId)
         const valoresInaseId = valoresInaseExistentes.valoresGermID
-        console.log("🔍 ID real de valores INASE:", valoresInaseId)
+        console.log("ID real de valores INASE:", valoresInaseId)
         
         await actualizarValores(germinacionId, tablaId, valoresInaseId, valoresInase)
         console.log("✅ Valores INASE guardados")
@@ -529,18 +658,24 @@ export function TablasGerminacionSection({
     }
   }
 
-  const actualizarValorInia = (campo: keyof ValoresGermRequestDTO, valor: number) => {
-    setValoresInia(prev => ({
-      ...prev,
-      [campo]: valor
-    }))
+  const actualizarValorInia = (campo: keyof ValoresGermRequestDTO, valorString: string) => {
+    const valorActual = valoresInia[campo] || 0
+    manejarCambioNumerico(valorString, valorActual, (nuevoValor) => {
+      setValoresInia(prev => ({
+        ...prev,
+        [campo]: nuevoValor
+      }))
+    }, true)
   }
 
-  const actualizarValorInase = (campo: keyof ValoresGermRequestDTO, valor: number) => {
-    setValoresInase(prev => ({
-      ...prev,
-      [campo]: valor
-    }))
+  const actualizarValorInase = (campo: keyof ValoresGermRequestDTO, valorString: string) => {
+    const valorActual = valoresInase[campo] || 0
+    manejarCambioNumerico(valorString, valorActual, (nuevoValor) => {
+      setValoresInase(prev => ({
+        ...prev,
+        [campo]: nuevoValor
+      }))
+    }, true)
   }
 
   // Función para actualizar repeticiones localmente
@@ -592,30 +727,74 @@ export function TablasGerminacionSection({
     return tieneNumeroCorrect && todasGuardadas
   }
 
+  // Efecto para cargar valores automáticamente cuando se muestra una tabla completada
+  useEffect(() => {
+    tablasLocales.forEach(async (tabla) => {
+      if (tieneTodasLasRepeticionesGuardadas(tabla)) {
+        // Cargar valores INIA automáticamente
+        try {
+          const valoresIniaData = await obtenerValoresIniaPorTabla(germinacionId, tabla.tablaGermID)
+          const valoresIniaActuales = {
+            normales: valoresIniaData.normales || 0,
+            anormales: valoresIniaData.anormales || 0,
+            duras: valoresIniaData.duras || 0,
+            frescas: valoresIniaData.frescas || 0,
+            muertas: valoresIniaData.muertas || 0,
+            germinacion: valoresIniaData.germinacion || 0
+          }
+          setValoresInia(valoresIniaActuales)
+          setValoresOriginalesInia({ ...valoresIniaActuales })
+        } catch (error) {
+          console.log("No hay valores INIA para cargar automáticamente")
+        }
+
+        // Cargar valores INASE automáticamente
+        try {
+          const valoresInaseData = await obtenerValoresInasePorTabla(germinacionId, tabla.tablaGermID)
+          const valoresInaseActuales = {
+            normales: valoresInaseData.normales || 0,
+            anormales: valoresInaseData.anormales || 0,
+            duras: valoresInaseData.duras || 0,
+            frescas: valoresInaseData.frescas || 0,
+            muertas: valoresInaseData.muertas || 0,
+            germinacion: valoresInaseData.germinacion || 0
+          }
+          setValoresInase(valoresInaseActuales)
+          setValoresOriginalesInase({ ...valoresInaseActuales })
+        } catch (error) {
+          console.log("No hay valores INASE para cargar automáticamente")
+        }
+
+        // Cargar porcentajes automáticamente
+        if (tabla.porcentajeNormalesConRedondeo !== undefined) {
+          const porcentajesActuales = {
+            porcentajeNormalesConRedondeo: tabla.porcentajeNormalesConRedondeo || 0,
+            porcentajeAnormalesConRedondeo: tabla.porcentajeAnormalesConRedondeo || 0,
+            porcentajeDurasConRedondeo: tabla.porcentajeDurasConRedondeo || 0,
+            porcentajeFrescasConRedondeo: tabla.porcentajeFrescasConRedondeo || 0,
+            porcentajeMuertasConRedondeo: tabla.porcentajeMuertasConRedondeo || 0
+          }
+          setPorcentajes(porcentajesActuales)
+          setPorcentajesOriginales({ ...porcentajesActuales })
+        }
+      }
+    })
+  }, [tablasLocales, germinacionId, germinacion?.numeroRepeticiones])
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Table className="h-5 w-5" />
-            Tablas de Germinación ({tablasLocales.length}/4)
+            Tablas de Germinación
           </CardTitle>
-          
-          {!isFinalized && tablasLocales.length < 4 && (
-            <Button
-              onClick={() => setMostrandoFormularioTabla(true)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Nueva Tabla
-            </Button>
-          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Formulario para crear nueva tabla */}
         {mostrandoFormularioTabla && (
-          <Card className="border-blue-200 bg-blue-50 mb-6">
+          <Card className="border-blue-200 border-2 mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-700">
                 <Plus className="h-5 w-5" />
@@ -628,9 +807,16 @@ export function TablasGerminacionSection({
                   <Label className="text-sm font-medium">Tratamiento</Label>
                   <Input
                     value={nuevaTabla.tratamiento}
-                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, tratamiento: e.target.value }))}
+                    onChange={(e) => {
+                      setNuevaTabla(prev => ({ ...prev, tratamiento: e.target.value }))
+                      validarCampoEnTiempoReal('tratamiento', e.target.value, true)
+                    }}
                     placeholder="Control, Tratamiento A, etc."
+                    className={erroresValidacionNuevaTabla.tratamiento ? "border-red-500 focus:border-red-500" : ""}
                   />
+                  {erroresValidacionNuevaTabla.tratamiento && (
+                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.tratamiento}</p>
+                  )}
                 </div>
 
                 <div>
@@ -642,29 +828,39 @@ export function TablasGerminacionSection({
                   />
                 </div>
 
-                <div>
-                  <Label className="text-sm font-medium">Número de Semillas por Repetición</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="500"
-                    value={nuevaTabla.numSemillasPRep}
-                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, numSemillasPRep: parseInt(e.target.value) || 100 }))}
-                  />
-                </div>
-
-                <div>
+                  <div>
+                    <Label className="text-sm font-medium">Número de Semillas por Repetición</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="500"
+                      value={nuevaTabla.numSemillasPRep === 0 ? '' : nuevaTabla.numSemillasPRep}
+                      onChange={(e) => {
+                        manejarCambioNumerico(e.target.value, nuevaTabla.numSemillasPRep, (valor) => 
+                          setNuevaTabla(prev => ({ ...prev, numSemillasPRep: valor }))
+                        )
+                        validarCampoEnTiempoReal('numSemillasPRep', parseInt(e.target.value) || 0, true)
+                      }}
+                      placeholder="Ej: 100"
+                      className={erroresValidacionNuevaTabla.numSemillasPRep ? "border-red-500 focus:border-red-500" : ""}
+                    />
+                    {erroresValidacionNuevaTabla.numSemillasPRep && (
+                      <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.numSemillasPRep}</p>
+                    )}
+                  </div>                <div>
                   <Label className="text-sm font-medium">Método</Label>
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                  <Input
                     value={nuevaTabla.metodo}
-                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, metodo: e.target.value }))}
-                  >
-                    <option value="Papel">Papel</option>
-                    <option value="Arena">Arena</option>
-                    <option value="Suelo">Suelo</option>
-                    <option value="Agar">Agar</option>
-                  </select>
+                    onChange={(e) => {
+                      setNuevaTabla(prev => ({ ...prev, metodo: e.target.value }))
+                      validarCampoEnTiempoReal('metodo', e.target.value, true)
+                    }}
+                    placeholder="Papel, Arena, Suelo, etc."
+                    className={erroresValidacionNuevaTabla.metodo ? "border-red-500 focus:border-red-500" : ""}
+                  />
+                  {erroresValidacionNuevaTabla.metodo && (
+                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.metodo}</p>
+                  )}
                 </div>
 
                 <div>
@@ -673,23 +869,28 @@ export function TablasGerminacionSection({
                     type="number"
                     min="-10"
                     max="50"
-                    value={nuevaTabla.temperatura}
-                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, temperatura: parseFloat(e.target.value) || 20 }))}
+                    value={nuevaTabla.temperatura === 0 ? '' : nuevaTabla.temperatura}
+                    onChange={(e) => {
+                      manejarCambioNumerico(e.target.value, nuevaTabla.temperatura, (valor) => 
+                        setNuevaTabla(prev => ({ ...prev, temperatura: valor })), true
+                      )
+                      validarCampoEnTiempoReal('temperatura', parseFloat(e.target.value) || 0, true)
+                    }}
+                    placeholder="Ej: 20"
+                    className={erroresValidacionNuevaTabla.temperatura ? "border-red-500 focus:border-red-500" : ""}
                   />
+                  {erroresValidacionNuevaTabla.temperatura && (
+                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.temperatura}</p>
+                  )}
                 </div>
 
                 <div>
                   <Label className="text-sm font-medium">Prefrío</Label>
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                  <Input
                     value={nuevaTabla.prefrio}
                     onChange={(e) => setNuevaTabla(prev => ({ ...prev, prefrio: e.target.value }))}
-                  >
-                    <option value="No">No</option>
-                    <option value="Sí - 5°C por 7 días">Sí - 5°C por 7 días</option>
-                    <option value="Sí - 5°C por 14 días">Sí - 5°C por 14 días</option>
-                    <option value="Personalizado">Personalizado</option>
-                  </select>
+                    placeholder="No, Sí - 5°C por 7 días, etc."
+                  />
                 </div>
 
                 <div className="md:col-span-2">
@@ -729,11 +930,11 @@ export function TablasGerminacionSection({
           </div>
         ) : (
           tablasLocales.map((tabla) => (
-            <Card key={tabla.tablaGermID} className="border-l-4 border-l-blue-500">
+            <Card key={tabla.tablaGermID} className="border-l-4 border-l-blue-200">
               <CardHeader className="pb-3">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
-                    <h3 className="font-semibold text-sm sm:text-base">Tabla #{tabla.numeroTabla || tabla.tablaGermID}</h3>
+                    <h3 className="font-semibold text-sm sm:text-base">{tabla.tratamiento || 'Tratamiento'}</h3>
                     <div className="flex flex-wrap gap-2">
                       <Badge variant={tabla.repGerm && tabla.repGerm.length > 0 ? "default" : "secondary"} className="text-xs">
                         {tabla.repGerm ? tabla.repGerm.length : 0} repeticiones
@@ -757,59 +958,8 @@ export function TablasGerminacionSection({
                       {tablaExpandida === tabla.tablaGermID ? "Contraer" : "Expandir"}
                     </Button>
 
-                    {/* Botones de porcentajes y valores - siempre visibles pero deshabilitados si no están todas las repeticiones guardadas */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setMostrandoPorcentajes(mostrandoPorcentajes === tabla.tablaGermID ? null : tabla.tablaGermID)}
-                      disabled={!tieneTodasLasRepeticionesGuardadas(tabla)}
-                      className="w-full sm:w-auto min-w-fit text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Calculator className="h-4 w-4 mr-1" />
-                      <span className="hidden sm:inline">
-                        {mostrandoPorcentajes === tabla.tablaGermID ? 'Ocultar Porcentajes' : 'Mostrar Porcentajes'}
-                      </span>
-                      <span className="sm:hidden">Porcentajes</span>
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (mostrandoValores === tabla.tablaGermID) {
-                          setMostrandoValores(null)
-                        } else {
-                          handleMostrarValores(tabla.tablaGermID)
-                        }
-                      }}
-                      disabled={!tieneTodasLasRepeticionesGuardadas(tabla)}
-                      className="w-full sm:w-auto min-w-fit text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Building className="h-4 w-4 mr-1" />
-                      <span className="hidden sm:inline">
-                        {mostrandoValores === tabla.tablaGermID ? 'Ocultar Valores' : 'Mostrar Valores'}
-                      </span>
-                      <span className="sm:hidden">Valores</span>
-                    </Button>
-
-                    {/* Botones para tabla finalizada - permitir edición */}
-                    {tabla.finalizada && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditarTabla(tabla.tablaGermID)}
-                          className="border-orange-600 text-orange-600 hover:bg-orange-50 w-full sm:w-auto min-w-fit text-xs sm:text-sm"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          <span className="hidden sm:inline">Reabrir Tabla</span>
-                          <span className="sm:hidden">Reabrir</span>
-                        </Button>
-                      </>
-                    )}
-
                     {/* Botón para finalizar tabla */}
-                    {!isFinalized && puedeFinalizarTabla(tabla) && (
+                    {!tabla.finalizada && puedeFinalizarTabla(tabla) && (
                       <Button
                         variant="default"
                         size="sm"
@@ -829,7 +979,7 @@ export function TablasGerminacionSection({
                       </Button>
                     )}
                     
-                    {!isFinalized && !tabla.finalizada && (
+                    {!isFinalized && (
                       <Button
                         variant="destructive"
                         size="sm"
@@ -861,16 +1011,14 @@ export function TablasGerminacionSection({
                           <Table className="h-4 w-4" />
                           Información General de la Tabla
                         </CardTitle>
-                        {!tabla.finalizada && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditarDatosGenerales(tabla)}
-                            className="w-full sm:w-auto min-w-fit text-xs sm:text-sm"
-                          >
-                            Editar Datos
-                          </Button>
-                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditarDatosGenerales(tabla)}
+                          className="w-full sm:w-auto min-w-fit text-xs sm:text-sm"
+                        >
+                          Editar Datos
+                        </Button>
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -881,9 +1029,16 @@ export function TablasGerminacionSection({
                               <Label className="text-sm font-medium">Tratamiento</Label>
                               <Input
                                 value={tablaEditada.tratamiento}
-                                onChange={(e) => setTablaEditada(prev => ({ ...prev, tratamiento: e.target.value }))}
+                                onChange={(e) => {
+                                  setTablaEditada(prev => ({ ...prev, tratamiento: e.target.value }))
+                                  validarCampoEnTiempoReal('tratamiento', e.target.value, false)
+                                }}
                                 placeholder="Control, Tratamiento A, etc."
+                                className={erroresValidacion.tratamiento ? "border-red-500 focus:border-red-500" : ""}
                               />
+                              {erroresValidacion.tratamiento && (
+                                <p className="text-red-500 text-xs mt-1">{erroresValidacion.tratamiento}</p>
+                              )}
                             </div>
 
                             <div>
@@ -901,51 +1056,64 @@ export function TablasGerminacionSection({
                                 type="number"
                                 min="1"
                                 max="500"
-                                value={tablaEditada.numSemillasPRep}
-                                onChange={(e) => setTablaEditada(prev => ({ ...prev, numSemillasPRep: parseInt(e.target.value) || 100 }))}
+                                value={tablaEditada.numSemillasPRep === 0 ? '' : tablaEditada.numSemillasPRep}
+                                onChange={(e) => manejarCambioNumerico(e.target.value, tablaEditada.numSemillasPRep, (valor) => 
+                                  setTablaEditada(prev => ({ ...prev, numSemillasPRep: valor }))
+                                )}
+                                placeholder="Ej: 100"
+                                disabled={tablaConRepeticionesGuardadas(editandoTablaGeneral!)}
+                                className={tablaConRepeticionesGuardadas(editandoTablaGeneral!) ? "bg-gray-100 text-gray-500" : ""}
                               />
+                              {tablaConRepeticionesGuardadas(editandoTablaGeneral!) && (
+                                <p className="text-xs text-orange-600 mt-1">
+                                  No se puede modificar el número de semillas porque ya hay repeticiones guardadas
+                                </p>
+                              )}
                             </div>
 
                             <div>
-                              <Label className="text-sm font-medium">Método</Label>
-                              <select
-                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                                value={tablaEditada.metodo}
-                                onChange={(e) => setTablaEditada(prev => ({ ...prev, metodo: e.target.value }))}
-                              >
-                                <option value="Papel">Papel</option>
-                                <option value="Arena">Arena</option>
-                                <option value="Suelo">Suelo</option>
-                                <option value="Agar">Agar</option>
-                              </select>
-                            </div>
+                  <Label className="text-sm font-medium">Método</Label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                    value={tablaEditada.metodo}
+                    onChange={(e) => setTablaEditada(prev => ({ ...prev, metodo: e.target.value }))}
+                  >
+                    <option value="">Seleccionar método</option>
+                    <option value="Papel">Papel</option>
+                    <option value="Arena">Arena</option>
+                    <option value="Suelo">Suelo</option>
+                    <option value="Agar">Agar</option>
+                  </select>
+                </div>
 
-                            <div>
-                              <Label className="text-sm font-medium">Temperatura (°C)</Label>
-                              <Input
-                                type="number"
-                                min="-10"
-                                max="50"
-                                value={tablaEditada.temperatura}
-                                onChange={(e) => setTablaEditada(prev => ({ ...prev, temperatura: parseFloat(e.target.value) || 20 }))}
-                              />
-                            </div>
+                <div>
+                  <Label className="text-sm font-medium">Temperatura (°C)</Label>
+                  <Input
+                    type="number"
+                    min="-10"
+                    max="50"
+                    value={tablaEditada.temperatura === 0 ? '' : tablaEditada.temperatura}
+                    onChange={(e) => manejarCambioNumerico(e.target.value, tablaEditada.temperatura, (valor) => 
+                      setTablaEditada(prev => ({ ...prev, temperatura: valor })), true
+                    )}
+                    placeholder="Ej: 20"
+                  />
+                </div>
 
-                            <div>
-                              <Label className="text-sm font-medium">Prefrío</Label>
-                              <select
-                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                                value={tablaEditada.prefrio}
-                                onChange={(e) => setTablaEditada(prev => ({ ...prev, prefrio: e.target.value }))}
-                              >
-                                <option value="No">No</option>
-                                <option value="Sí - 5°C por 7 días">Sí - 5°C por 7 días</option>
-                                <option value="Sí - 5°C por 14 días">Sí - 5°C por 14 días</option>
-                                <option value="Personalizado">Personalizado</option>
-                              </select>
-                            </div>
-
-                            <div className="md:col-span-2">
+                <div>
+                  <Label className="text-sm font-medium">Prefrío</Label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                    value={tablaEditada.prefrio}
+                    onChange={(e) => setTablaEditada(prev => ({ ...prev, prefrio: e.target.value }))}
+                  >
+                    <option value="">Seleccionar prefrío</option>
+                    <option value="No">No</option>
+                    <option value="Sí - 5°C por 7 días">Sí - 5°C por 7 días</option>
+                    <option value="Sí - 5°C por 14 días">Sí - 5°C por 14 días</option>
+                    <option value="Personalizado">Personalizado</option>
+                  </select>
+                </div>                            <div className="md:col-span-2">
                               <Label className="text-sm font-medium">Pretratamiento</Label>
                               <Input
                                 value={tablaEditada.pretratamiento}
@@ -980,38 +1148,32 @@ export function TablasGerminacionSection({
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                           <div>
                             <span className="font-medium text-gray-600">Tratamiento:</span>
-                            <p className="text-gray-800">{tabla.tratamiento}</p>
+                            <p className="text-gray-800">{tabla.tratamiento || 'No especificado'}</p>
                           </div>
-                          {tabla.productoYDosis && (
-                            <div>
-                              <span className="font-medium text-gray-600">Producto y Dosis:</span>
-                              <p className="text-gray-800">{tabla.productoYDosis}</p>
-                            </div>
-                          )}
+                          <div>
+                            <span className="font-medium text-gray-600">Producto y Dosis:</span>
+                            <p className="text-gray-800">{tabla.productoYDosis || 'No especificado'}</p>
+                          </div>
                           <div>
                             <span className="font-medium text-gray-600">Semillas por Rep.:</span>
                             <p className="text-gray-800">{tabla.numSemillasPRep}</p>
                           </div>
                           <div>
                             <span className="font-medium text-gray-600">Método:</span>
-                            <p className="text-gray-800">{tabla.metodo}</p>
+                            <p className="text-gray-800">{tabla.metodo || 'No especificado'}</p>
                           </div>
                           <div>
                             <span className="font-medium text-gray-600">Temperatura:</span>
                             <p className="text-gray-800">{tabla.temperatura}°C</p>
                           </div>
-                          {tabla.prefrio && tabla.prefrio !== 'No' && (
-                            <div>
-                              <span className="font-medium text-gray-600">Prefrío:</span>
-                              <p className="text-gray-800">{tabla.prefrio}</p>
-                            </div>
-                          )}
-                          {tabla.pretratamiento && tabla.pretratamiento !== 'Ninguno' && (
-                            <div>
-                              <span className="font-medium text-gray-600">Pretratamiento:</span>
-                              <p className="text-gray-800">{tabla.pretratamiento}</p>
-                            </div>
-                          )}
+                          <div>
+                            <span className="font-medium text-gray-600">Prefrío:</span>
+                            <p className="text-gray-800">{tabla.prefrio || 'No especificado'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-600">Pretratamiento:</span>
+                            <p className="text-gray-800">{tabla.pretratamiento || 'No especificado'}</p>
+                          </div>
                           {tabla.finalizada && tabla.fechaFinal && (
                             <div>
                               <span className="font-medium text-gray-600">Fecha Finalización:</span>
@@ -1037,9 +1199,9 @@ export function TablasGerminacionSection({
 
                   {/* Sección de Estadísticas Finales */}
                   {tabla.repGerm && tabla.repGerm.length > 0 && (
-                    <Card className="mt-4 border-green-200 bg-green-50">
+                    <Card className="border-green-200 border-2 mt-4">
                       <CardHeader className="pb-3">
-                        <CardTitle className="text-green-800 text-lg">📊 Resumen de Análisis</CardTitle>
+                        <CardTitle className="text-green-800 text-lg">Resumen de Análisis</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-6">
@@ -1203,7 +1365,7 @@ export function TablasGerminacionSection({
                           </div>
 
                           {/* Total de Semillas */}
-                          <div className="text-center p-4 bg-gradient-to-r from-green-100 to-green-200 rounded-lg">
+                          <div className="text-center p-4 border-green-200 border-2 bg-white rounded-lg">
                             <div className="text-sm font-medium text-green-700 mb-1">Total de Semillas Analizadas</div>
                             <div className="text-2xl font-bold text-green-800">
                               {(() => {
@@ -1222,9 +1384,9 @@ export function TablasGerminacionSection({
                     </Card>
                   )}
 
-                  {/* Sección de porcentajes con redondeo */}
-                  {mostrandoPorcentajes === tabla.tablaGermID && (
-                    <Card className="mt-4 border-blue-200 bg-blue-50">
+                  {/* Sección de porcentajes con redondeo - se muestra automáticamente */}
+                  {tieneTodasLasRepeticionesGuardadas(tabla) && (
+                    <Card className="border-blue-200 border-2 mt-4">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-lg flex items-center gap-2">
@@ -1253,8 +1415,8 @@ export function TablasGerminacionSection({
                                   min="0"
                                   max="100"
                                   step="0.1"
-                                  value={porcentajes.porcentajeNormalesConRedondeo}
-                                  onChange={(e) => actualizarPorcentaje('porcentajeNormalesConRedondeo', parseFloat(e.target.value) || 0)}
+                                  value={porcentajes.porcentajeNormalesConRedondeo === 0 ? '' : porcentajes.porcentajeNormalesConRedondeo}
+                                  onChange={(e) => actualizarPorcentaje('porcentajeNormalesConRedondeo', e.target.value)}
                                   className="text-center"
                                 />
                               </div>
@@ -1266,8 +1428,8 @@ export function TablasGerminacionSection({
                                   min="0"
                                   max="100"
                                   step="0.1"
-                                  value={porcentajes.porcentajeAnormalesConRedondeo}
-                                  onChange={(e) => actualizarPorcentaje('porcentajeAnormalesConRedondeo', parseFloat(e.target.value) || 0)}
+                                  value={porcentajes.porcentajeAnormalesConRedondeo === 0 ? '' : porcentajes.porcentajeAnormalesConRedondeo}
+                                  onChange={(e) => actualizarPorcentaje('porcentajeAnormalesConRedondeo', e.target.value)}
                                   className="text-center"
                                 />
                               </div>
@@ -1279,8 +1441,8 @@ export function TablasGerminacionSection({
                                   min="0"
                                   max="100"
                                   step="0.1"
-                                  value={porcentajes.porcentajeDurasConRedondeo}
-                                  onChange={(e) => actualizarPorcentaje('porcentajeDurasConRedondeo', parseFloat(e.target.value) || 0)}
+                                  value={porcentajes.porcentajeDurasConRedondeo === 0 ? '' : porcentajes.porcentajeDurasConRedondeo}
+                                  onChange={(e) => actualizarPorcentaje('porcentajeDurasConRedondeo', e.target.value)}
                                   className="text-center"
                                 />
                               </div>
@@ -1292,8 +1454,8 @@ export function TablasGerminacionSection({
                                   min="0"
                                   max="100"
                                   step="0.1"
-                                  value={porcentajes.porcentajeFrescasConRedondeo}
-                                  onChange={(e) => actualizarPorcentaje('porcentajeFrescasConRedondeo', parseFloat(e.target.value) || 0)}
+                                  value={porcentajes.porcentajeFrescasConRedondeo === 0 ? '' : porcentajes.porcentajeFrescasConRedondeo}
+                                  onChange={(e) => actualizarPorcentaje('porcentajeFrescasConRedondeo', e.target.value)}
                                   className="text-center"
                                 />
                               </div>
@@ -1305,8 +1467,8 @@ export function TablasGerminacionSection({
                                   min="0"
                                   max="100"
                                   step="0.1"
-                                  value={porcentajes.porcentajeMuertasConRedondeo}
-                                  onChange={(e) => actualizarPorcentaje('porcentajeMuertasConRedondeo', parseFloat(e.target.value) || 0)}
+                                  value={porcentajes.porcentajeMuertasConRedondeo === 0 ? '' : porcentajes.porcentajeMuertasConRedondeo}
+                                  onChange={(e) => actualizarPorcentaje('porcentajeMuertasConRedondeo', e.target.value)}
                                   className="text-center"
                                 />
                               </div>
@@ -1368,9 +1530,9 @@ export function TablasGerminacionSection({
                     </Card>
                   )}
 
-                  {/* Sección de valores INIA e INASE */}
-                  {mostrandoValores === tabla.tablaGermID && (
-                    <Card className="mt-4 border-purple-200 bg-purple-50">
+                  {/* Sección de valores INIA e INASE - se muestra automáticamente */}
+                  {tieneTodasLasRepeticionesGuardadas(tabla) && (
+                    <Card className="border-purple-200 border-2 mt-4">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-lg flex items-center gap-2">
@@ -1401,8 +1563,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInia.normales}
-                                      onChange={(e) => actualizarValorInia('normales', parseFloat(e.target.value) || 0)}
+                                      value={valoresInia.normales === 0 ? '' : valoresInia.normales}
+                                      onChange={(e) => actualizarValorInia('normales', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1411,8 +1573,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInia.anormales}
-                                      onChange={(e) => actualizarValorInia('anormales', parseFloat(e.target.value) || 0)}
+                                      value={valoresInia.anormales === 0 ? '' : valoresInia.anormales}
+                                      onChange={(e) => actualizarValorInia('anormales', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1421,8 +1583,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInia.duras}
-                                      onChange={(e) => actualizarValorInia('duras', parseFloat(e.target.value) || 0)}
+                                      value={valoresInia.duras === 0 ? '' : valoresInia.duras}
+                                      onChange={(e) => actualizarValorInia('duras', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1431,8 +1593,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInia.frescas}
-                                      onChange={(e) => actualizarValorInia('frescas', parseFloat(e.target.value) || 0)}
+                                      value={valoresInia.frescas === 0 ? '' : valoresInia.frescas}
+                                      onChange={(e) => actualizarValorInia('frescas', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1441,8 +1603,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInia.muertas}
-                                      onChange={(e) => actualizarValorInia('muertas', parseFloat(e.target.value) || 0)}
+                                      value={valoresInia.muertas === 0 ? '' : valoresInia.muertas}
+                                      onChange={(e) => actualizarValorInia('muertas', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1451,8 +1613,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInia.germinacion}
-                                      onChange={(e) => actualizarValorInia('germinacion', parseFloat(e.target.value) || 0)}
+                                      value={valoresInia.germinacion === 0 ? '' : valoresInia.germinacion}
+                                      onChange={(e) => actualizarValorInia('germinacion', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1468,8 +1630,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInase.normales}
-                                      onChange={(e) => actualizarValorInase('normales', parseFloat(e.target.value) || 0)}
+                                      value={valoresInase.normales === 0 ? '' : valoresInase.normales}
+                                      onChange={(e) => actualizarValorInase('normales', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1478,8 +1640,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInase.anormales}
-                                      onChange={(e) => actualizarValorInase('anormales', parseFloat(e.target.value) || 0)}
+                                      value={valoresInase.anormales === 0 ? '' : valoresInase.anormales}
+                                      onChange={(e) => actualizarValorInase('anormales', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1488,8 +1650,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInase.duras}
-                                      onChange={(e) => actualizarValorInase('duras', parseFloat(e.target.value) || 0)}
+                                      value={valoresInase.duras === 0 ? '' : valoresInase.duras}
+                                      onChange={(e) => actualizarValorInase('duras', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1498,8 +1660,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInase.frescas}
-                                      onChange={(e) => actualizarValorInase('frescas', parseFloat(e.target.value) || 0)}
+                                      value={valoresInase.frescas === 0 ? '' : valoresInase.frescas}
+                                      onChange={(e) => actualizarValorInase('frescas', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1508,8 +1670,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInase.muertas}
-                                      onChange={(e) => actualizarValorInase('muertas', parseFloat(e.target.value) || 0)}
+                                      value={valoresInase.muertas === 0 ? '' : valoresInase.muertas}
+                                      onChange={(e) => actualizarValorInase('muertas', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1518,8 +1680,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInase.germinacion}
-                                      onChange={(e) => actualizarValorInase('germinacion', parseFloat(e.target.value) || 0)}
+                                      value={valoresInase.germinacion === 0 ? '' : valoresInase.germinacion}
+                                      onChange={(e) => actualizarValorInase('germinacion', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1619,7 +1781,178 @@ export function TablasGerminacionSection({
             </Card>
           ))
         )}
+        
+        {/* Formulario para crear nueva tabla - aparece al final */}
+        {mostrandoFormularioTabla && (
+          <Card className="border-blue-200 border-2 mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-700">
+                <Plus className="h-5 w-5" />
+                Crear Nueva Tabla de Germinación
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Tratamiento</Label>
+                  <Input
+                    value={nuevaTabla.tratamiento}
+                    onChange={(e) => {
+                      setNuevaTabla(prev => ({ ...prev, tratamiento: e.target.value }))
+                      validarCampoEnTiempoReal('tratamiento', e.target.value, true)
+                    }}
+                    placeholder="Control, Tratamiento A, etc."
+                    className={erroresValidacionNuevaTabla.tratamiento ? "border-red-500 focus:border-red-500" : ""}
+                  />
+                  {erroresValidacionNuevaTabla.tratamiento && (
+                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.tratamiento}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Producto y Dosis</Label>
+                  <Input
+                    value={nuevaTabla.productoYDosis}
+                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, productoYDosis: e.target.value }))}
+                    placeholder="Fungicida 2ml/L, etc."
+                  />
+                </div>
+
+                  <div>
+                    <Label className="text-sm font-medium">Número de Semillas por Repetición</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="500"
+                      value={nuevaTabla.numSemillasPRep === 0 ? '' : nuevaTabla.numSemillasPRep}
+                      onChange={(e) => {
+                        manejarCambioNumerico(e.target.value, nuevaTabla.numSemillasPRep, (valor) => 
+                          setNuevaTabla(prev => ({ ...prev, numSemillasPRep: valor }))
+                        )
+                        validarCampoEnTiempoReal('numSemillasPRep', parseInt(e.target.value) || 0, true)
+                      }}
+                      placeholder="Ej: 100"
+                      className={erroresValidacionNuevaTabla.numSemillasPRep ? "border-red-500 focus:border-red-500" : ""}
+                    />
+                    {erroresValidacionNuevaTabla.numSemillasPRep && (
+                      <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.numSemillasPRep}</p>
+                    )}
+                  </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Método</Label>
+                  <Input
+                    value={nuevaTabla.metodo}
+                    onChange={(e) => {
+                      setNuevaTabla(prev => ({ ...prev, metodo: e.target.value }))
+                      validarCampoEnTiempoReal('metodo', e.target.value, true)
+                    }}
+                    placeholder="Papel, Arena, Suelo, etc."
+                    className={erroresValidacionNuevaTabla.metodo ? "border-red-500 focus:border-red-500" : ""}
+                  />
+                  {erroresValidacionNuevaTabla.metodo && (
+                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.metodo}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Temperatura (°C)</Label>
+                  <Input
+                    type="number"
+                    min="-10"
+                    max="50"
+                    value={nuevaTabla.temperatura === 0 ? '' : nuevaTabla.temperatura}
+                    onChange={(e) => {
+                      manejarCambioNumerico(e.target.value, nuevaTabla.temperatura, (valor) => 
+                        setNuevaTabla(prev => ({ ...prev, temperatura: valor })), true
+                      )
+                      validarCampoEnTiempoReal('temperatura', parseFloat(e.target.value) || 0, true)
+                    }}
+                    placeholder="Ej: 20"
+                    className={erroresValidacionNuevaTabla.temperatura ? "border-red-500 focus:border-red-500" : ""}
+                  />
+                  {erroresValidacionNuevaTabla.temperatura && (
+                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.temperatura}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Prefrío</Label>
+                  <Input
+                    value={nuevaTabla.prefrio}
+                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, prefrio: e.target.value }))}
+                    placeholder="Sí/No o condiciones específicas"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Pretratamiento</Label>
+                  <Input
+                    value={nuevaTabla.pretratamiento}
+                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, pretratamiento: e.target.value }))}
+                    placeholder="Ninguno, Inmersión, etc."
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={handleCrearTabla}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Crear Tabla
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setMostrandoFormularioTabla(false)}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </CardContent>
+      
+      {/* Sección de Acciones */}
+      <div className="border-t p-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Acciones</h3>
+            <p className="text-sm text-gray-600">Gestionar el estado del análisis de germinación</p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setMostrandoFormularioTabla(true)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar Tabla
+            </Button>
+            
+            {!isFinalized && (
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={handleFinalizarGerminacion}
+                disabled={finalizandoGerminacion}
+              >
+                {finalizandoGerminacion ? (
+                  "Finalizando..."
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Finalizar Análisis
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
     </Card>
   )
 }
