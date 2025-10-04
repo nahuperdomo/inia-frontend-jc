@@ -1,587 +1,862 @@
 "use client"
 
-import { useParams, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  obtenerGerminacionPorId, 
-  obtenerTablasGerminacion,
-  crearTablaGerminacion,
-  finalizarGerminacion,
-  actualizarGerminacion
-} from '@/app/services/germinacion-service'
-import { obtenerLotesActivos } from '@/app/services/lote-service'
-import { GerminacionDTO, GerminacionRequestDTO, GerminacionEditRequestDTO } from '@/app/models/interfaces/germinacion'
-import { LoteSimpleDTO } from '@/app/models/interfaces/lote-simple'
-import { TablaGermDTO, RepGermDTO } from '@/app/models/interfaces/repeticiones'
-import { TablasGerminacionSection } from '@/components/germinacion/tablas-germinacion-section'
-import { CalendarDays, Beaker, CheckCircle, Edit } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import {
+  ArrowLeft,
+  Edit,
+  Download,
+  Calendar,
+  FileText,
+  BarChart3,
+  CheckCircle,
+  AlertTriangle,
+  Loader2,
+  Sprout,
+  Target,
+  Thermometer,
+  Beaker,
+  Calculator,
+  Building,
+  Table,
+} from "lucide-react"
+import Link from "next/link"
+import { useParams } from "next/navigation"
+import { obtenerGerminacionPorId, obtenerTablasGerminacion } from "@/app/services/germinacion-service"
+import type { GerminacionDTO } from "@/app/models/interfaces/germinacion"
+import type { TablaGermDTO } from "@/app/models/interfaces/repeticiones"
+import type { EstadoAnalisis } from "@/app/models/types/enums"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
   if (!fechaString) return ''
   
-  // Crear fecha como fecha local en lugar de UTC para evitar problemas de zona horaria
-  const [year, month, day] = fechaString.split('-').map(Number)
-  const fecha = new Date(year, month - 1, day) // month - 1 porque los meses son 0-indexed
-  
-  return fecha.toLocaleDateString('es-UY', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  })
-}
-
-// Función para convertir fecha del backend al formato YYYY-MM-DD para inputs
-const convertirFechaParaInput = (fechaString: string): string => {
-  if (!fechaString) return ''
-  
-  // Si la fecha ya está en formato YYYY-MM-DD, devolverla tal como está
-  if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
+  try {
+    // Si la fecha ya está en formato YYYY-MM-DD, usarla directamente
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
+      const [year, month, day] = fechaString.split('-').map(Number)
+      const fecha = new Date(year, month - 1, day) // month - 1 porque los meses son 0-indexed
+      return fecha.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    }
+    
+    // Si viene en otro formato, parsearlo de manera segura
+    const fecha = new Date(fechaString)
+    return fecha.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  } catch (error) {
+    console.warn("Error al formatear fecha:", fechaString, error)
     return fechaString
   }
-  
-  // Si viene con hora o en otro formato, extraer solo la parte de fecha
-  const fecha = new Date(fechaString)
-  if (isNaN(fecha.getTime())) return '' // Fecha inválida
-  
-  // Formatear como YYYY-MM-DD
-  return fecha.toISOString().split('T')[0]
 }
 
 export default function GerminacionDetailPage() {
   const params = useParams()
-  const router = useRouter()
   const germinacionId = params.id as string
-
   const [germinacion, setGerminacion] = useState<GerminacionDTO | null>(null)
   const [tablas, setTablas] = useState<TablaGermDTO[]>([])
-  const [lotes, setLotes] = useState<LoteSimpleDTO[]>([])
   const [loading, setLoading] = useState(true)
-  const [creatingTable, setCreatingTable] = useState(false)
-  const [finalizing, setFinalizing] = useState(false)
-  const [error, setError] = useState<string>("")
-  const [editandoGerminacion, setEditandoGerminacion] = useState(false)
-  
-  // Simplificado para solo campos editables
-  const [germinacionEditada, setGerminacionEditada] = useState<{
-    idLote: number
-    comentarios: string
-  }>({
-    idLote: 0,
-    comentarios: ''
-  })
-  
-  const [germinacionOriginal, setGerminacionOriginal] = useState<{
-    idLote: number
-    comentarios: string
-  } | null>(null)
-
-  const cargarDatos = async () => {
-    try {
-      setLoading(true)
-      console.log("🔄 Cargando germinación y tablas para ID:", germinacionId)
-      
-      // Cargar datos en paralelo
-      const [germinacionData, lotesData] = await Promise.all([
-        obtenerGerminacionPorId(parseInt(germinacionId)),
-        obtenerLotesActivos()
-      ])
-      
-      console.log("✅ Germinación cargada:", germinacionData)
-      console.log("✅ Lotes cargados:", lotesData)
-      setGerminacion(germinacionData)
-      setLotes(lotesData)
-      
-      // Cargar tablas usando el endpoint correcto
-      try {
-        const tablasData = await obtenerTablasGerminacion(parseInt(germinacionId))
-        console.log("✅ Tablas cargadas:", tablasData)
-        setTablas(tablasData)
-      } catch (tablasError: any) {
-        console.warn("⚠️ No se pudieron cargar las tablas:", tablasError)
-        // Si es 404, significa que no hay tablas, lo cual es normal
-        if (tablasError.message && tablasError.message.includes('404')) {
-          console.log("📝 No hay tablas creadas todavía - esto es normal")
-          setTablas([])
-        } else {
-          throw tablasError // Re-lanzar si es otro tipo de error
-        }
-      }
-    } catch (err: any) {
-      console.error("❌ Error cargando datos:", err)
-      setError(err?.message || "Error al cargar datos")
-    } finally {
-      setLoading(false)
-    }
-  }
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        
+        // Cargar datos en paralelo
+        const [germinacionData, tablasData] = await Promise.all([
+          obtenerGerminacionPorId(Number.parseInt(germinacionId)),
+          obtenerTablasGerminacion(Number.parseInt(germinacionId)).catch(() => []) // Si no hay tablas, devolver array vacío
+        ])
+        
+        setGerminacion(germinacionData)
+        setTablas(tablasData)
+      } catch (err) {
+        setError("Error al cargar los detalles del análisis de germinación")
+        console.error("Error fetching germinacion:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     if (germinacionId) {
-      cargarDatos()
+      fetchData()
     }
   }, [germinacionId])
 
-  const handleCrearTabla = async () => {
-    try {
-      setCreatingTable(true)
-      setError("")
-      
-      console.log("🚀 Creando nueva tabla para germinación:", germinacionId)
-      
-      const nuevaTabla = await crearTablaGerminacion(parseInt(germinacionId))
-      console.log("✅ Tabla creada:", nuevaTabla)
-      
-      // Solo recargar las tablas en lugar de recargar todo
-      const tablasData = await obtenerTablasGerminacion(parseInt(germinacionId))
-      setTablas(tablasData)
-    } catch (err: any) {
-      console.error("❌ Error creando tabla:", err)
-      setError(err?.message || "Error al crear tabla")
-    } finally {
-      setCreatingTable(false)
-    }
-  }
-
-  const handleFinalizarAnalisis = async () => {
-    if (!window.confirm("¿Está seguro que desea finalizar este análisis? Esta acción no se puede deshacer.")) {
-      return
-    }
-
-    try {
-      setFinalizing(true)
-      setError("")
-      
-      console.log("🏁 Finalizando análisis:", germinacionId)
-      
-      await finalizarGerminacion(parseInt(germinacionId))
-      console.log("✅ Análisis finalizado")
-      
-      // Actualizar estado local en lugar de recargar
-      if (germinacion) {
-        setGerminacion({
-          ...germinacion,
-          estado: 'FINALIZADO',
-          fechaFin: new Date().toISOString()
-        })
-      }
-    } catch (err: any) {
-      console.error("❌ Error finalizando análisis:", err)
-      setError(err?.message || "Error al finalizar análisis")
-    } finally {
-      setFinalizing(false)
-    }
-  }
-
-  const handleReabrirAnalisis = async () => {
-    if (!window.confirm("¿Está seguro que desea editar este análisis? Podrá volver a modificarlo y sus tablas.")) {
-      return
-    }
-
-    try {
-      setFinalizing(true)
-      setError("")
-      
-      console.log("✏️ Editando análisis:", germinacionId)
-      
-      // Actualizar estado local para marcar como en proceso
-      if (germinacion) {
-        setGerminacion({
-          ...germinacion,
-          estado: 'EN_PROCESO',
-          fechaFin: undefined
-        })
-      }
-      
-      console.log("✅ Análisis habilitado para edición")
-    } catch (err: any) {
-      console.error("❌ Error editando análisis:", err)
-      setError(err?.message || "Error al editar análisis")
-    } finally {
-      setFinalizing(false)
-    }
-  }
-
-  const handleEditarGerminacion = () => {
-    if (!germinacion) return
-    
-    console.log("🔍 Iniciando edición de germinación")
-    
-    // Solo preparar los campos editables
-    const datosEdicion = {
-      idLote: germinacion.idLote || 0,
-      comentarios: germinacion.comentarios || ''
-    }
-    
-    setGerminacionEditada(datosEdicion)
-    setGerminacionOriginal({ ...datosEdicion })
-    setEditandoGerminacion(true)
-  }
-
-  const handleCancelarEdicionGerminacion = () => {
-    if (germinacionOriginal) {
-      setGerminacionEditada({ ...germinacionOriginal })
-    }
-    setEditandoGerminacion(false)
-    setGerminacionOriginal(null)
-  }
-
-  const hanCambiadoGerminacion = (): boolean => {
-    if (!germinacionOriginal) return true
-    return JSON.stringify(germinacionEditada) !== JSON.stringify(germinacionOriginal)
-  }
-
-  const handleGuardarGerminacion = async () => {
-    if (!hanCambiadoGerminacion()) {
-      setEditandoGerminacion(false)
-      setGerminacionOriginal(null)
-      return
-    }
-
-    try {
-      console.log("💾 Guardando cambios en germinación:", germinacionId)
-      
-      // Crear el DTO de edición con solo los campos permitidos
-      const datosEdicion: GerminacionEditRequestDTO = {
-        idLote: germinacionEditada.idLote,
-        comentarios: germinacionEditada.comentarios
-      }
-      
-      console.log("📊 Datos a enviar:", JSON.stringify(datosEdicion, null, 2))
-      
-      const germinacionActualizada = await actualizarGerminacion(parseInt(germinacionId), datosEdicion)
-      console.log("✅ Germinación actualizada exitosamente")
-      
-      // Actualizar estado local
-      setGerminacion(germinacionActualizada)
-      setEditandoGerminacion(false)
-      setGerminacionOriginal(null)
-    } catch (error: any) {
-      console.error("❌ Error guardando germinación:", error)
-      alert(`Error al guardar los cambios: ${error.message || 'Error desconocido'}`)
+  const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
+    switch (estado) {
+      case "FINALIZADO":
+        return "default"
+      case "EN_PROCESO":
+        return "secondary"
+      case "APROBADO":
+        return "outline"
+      case "PENDIENTE":
+        return "destructive"
+      default:
+        return "outline"
     }
   }
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <div className="space-y-2">
+            <p className="text-lg font-medium">Cargando análisis</p>
+            <p className="text-sm text-muted-foreground">Obteniendo detalles de germinación...</p>
+          </div>
         </div>
       </div>
     )
   }
 
-  if (!germinacion) {
+  if (error || !germinacion) {
     return (
-      <div className="p-6">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <p className="text-red-600">No se pudo cargar la información del análisis</p>
-            <Button 
-              onClick={() => router.back()} 
-              variant="outline" 
-              className="mt-4"
-            >
-              Volver
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="text-center space-y-6 max-w-md">
+          <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+            <AlertTriangle className="h-8 w-8 text-destructive" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-semibold text-balance">No se pudo cargar el análisis</h2>
+            <p className="text-muted-foreground text-pretty">{error || "El análisis solicitado no existe"}</p>
+          </div>
+          <Link href="/listado/analisis/germinacion">
+            <Button size="lg" className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Volver al listado
             </Button>
-          </CardContent>
-        </Card>
+          </Link>
+        </div>
       </div>
     )
   }
 
-  const isFinalized = germinacion.estado === 'FINALIZADO' || germinacion.fechaFin !== null
-  const canCreateTable = !isFinalized && tablas.length < 4 // Máximo 4 tablas según especificaciones
-  const canFinalize = !isFinalized && tablas.length > 0 && tablas.every(tabla => 
-    tabla.finalizada === true
-  )
+  // Calcular estadísticas de las tablas
+  const tablasFinalizadas = tablas.filter(tabla => tabla.finalizada).length
+  const promedioGerminacion = tablas.length > 0 ? 
+    (tablas.reduce((sum, tabla) => sum + (tabla.porcentajeNormalesConRedondeo || 0), 0) / tablas.length).toFixed(1) : 
+    null
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Análisis de Germinación</h1>
-          <p className="text-muted-foreground">ID: {germinacion.analisisID}</p>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Badge variant={isFinalized ? "default" : "secondary"}>
-            {isFinalized ? "Finalizado" : "En Proceso"}
-          </Badge>
+    <div className="min-h-screen bg-muted/30">
+      <div className="bg-background border-b sticky top-0 z-10">
+        <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col gap-6">
+            <Link href="/listado/analisis/germinacion">
+              <Button variant="ghost" size="sm" className="gap-2 -ml-2">
+                <ArrowLeft className="h-4 w-4" />
+                Volver
+              </Button>
+            </Link>
+
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="text-3xl lg:text-4xl font-bold text-balance">Análisis de Germinación #{germinacion.analisisID}</h1>
+                  <Badge variant={getEstadoBadgeVariant(germinacion.estado)} className="text-sm px-3 py-1">
+                    {germinacion.estado}
+                  </Badge>
+                </div>
+                <p className="text-base text-muted-foreground text-pretty">
+                  Ensayo de germinación estándar • Lote {germinacion.lote}
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button variant="outline" size="lg" className="gap-2 bg-transparent">
+                  <Download className="h-4 w-4" />
+                  Exportar
+                </Button>
+                <Link href={`/listado/analisis/germinacion/${germinacion.analisisID}/editar`}>
+                  <Button size="lg" className="gap-2 w-full sm:w-auto">
+                    <Edit className="h-4 w-4" />
+                    Editar análisis
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Error Display */}
-      {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-4">
-            <p className="text-red-600">{error}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Información del Análisis */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Beaker className="h-5 w-5" />
-              Información del Análisis
-            </CardTitle>
-            {!editandoGerminacion && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleEditarGerminacion}
-                className="min-w-fit"
-              >
-                <Edit className="h-4 w-4 mr-1" />
-                Editar
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {editandoGerminacion ? (
-            <div className="space-y-6">
-              <div className="text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p><strong>Modo de Edición:</strong> Solo se pueden modificar los campos que se muestran a continuación. Los datos como fechas, número de días y repeticiones no son editables una vez creado el análisis.</p>
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Lote Asociado *</Label>
-                    <Select
-                      value={germinacionEditada.idLote?.toString() || ""}
-                      onValueChange={(value) => setGerminacionEditada(prev => ({ 
-                        ...prev, 
-                        idLote: parseInt(value) 
-                      }))}
-                    >
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="Seleccionar lote..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {lotes.map((lote) => (
-                          <SelectItem key={lote.loteID} value={lote.loteID.toString()}>
-                            {lote.ficha} (ID: {lote.loteID})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-gray-500">
-                      Selecciona el lote que se analizará en este análisis de germinación
-                    </p>
+      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-muted/50 border-b">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <FileText className="h-5 w-5 text-primary" />
+                  </div>
+                  Información General
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      ID Análisis
+                    </label>
+                    <p className="text-2xl font-bold">{germinacion.analisisID}</p>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Comentarios</Label>
-                    <Input
-                      value={germinacionEditada.comentarios}
-                      onChange={(e) => setGerminacionEditada(prev => ({ 
-                        ...prev, 
-                        comentarios: e.target.value 
-                      }))}
-                      placeholder="Comentarios adicionales sobre el análisis..."
-                      className="h-11"
-                    />
-                    <p className="text-xs text-gray-500">
-                      Información adicional o observaciones sobre el análisis
-                    </p>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Lote</label>
+                    <p className="text-2xl font-semibold">{germinacion.lote}</p>
                   </div>
-                </div>
 
-                <div className="space-y-4">
-                  {/* Información del lote seleccionado */}
-                  {germinacionEditada.idLote && lotes.find(l => l.loteID === germinacionEditada.idLote) && (
-                    <Card className="bg-gray-50">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm">Información del Lote</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {(() => {
-                          const selectedLoteInfo = lotes.find(l => l.loteID === germinacionEditada.idLote);
-                          return selectedLoteInfo ? (
-                            <>
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Ficha:</span>
-                                <span className="font-medium">{selectedLoteInfo.ficha}</span>
-                              </div>
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">ID:</span>
-                                <span>{selectedLoteInfo.loteID}</span>
-                              </div>
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Número Ficha:</span>
-                                <span>{selectedLoteInfo.numeroFicha}</span>
-                              </div>
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Activo:</span>
-                                <span>{selectedLoteInfo.activo ? "Sí" : "No"}</span>
-                              </div>
-                            </>
-                          ) : null;
-                        })()}
-                      </CardContent>
-                    </Card>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Fecha de Inicio
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-lg font-medium">
+                        {formatearFechaLocal(germinacion.fechaInicioGerm)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Fecha Último Conteo
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-lg font-medium">
+                        {formatearFechaLocal(germinacion.fechaUltConteo)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {germinacion.fechaFin && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Fecha de Finalización
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <p className="text-lg font-medium">
+                          {formatearFechaLocal(germinacion.fechaFin)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {germinacion.numDias && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Días de Análisis
+                      </label>
+                      <p className="text-lg font-semibold">{germinacion.numDias}</p>
+                    </div>
+                  )}
+
+                  {germinacion.numeroRepeticiones && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Repeticiones
+                      </label>
+                      <p className="text-lg font-semibold">{germinacion.numeroRepeticiones}</p>
+                    </div>
+                  )}
+
+                  {germinacion.numeroConteos && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Número de Conteos
+                      </label>
+                      <p className="text-lg font-semibold">{germinacion.numeroConteos}</p>
+                    </div>
                   )}
                 </div>
-              </div>
-              
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button
-                  variant="outline"
-                  onClick={handleCancelarEdicionGerminacion}
-                  className="min-w-24"
-                >
-                  Cancelar
-                </Button>
-                
-                <Button
-                  onClick={handleGuardarGerminacion}
-                  disabled={!hanCambiadoGerminacion()}
-                  className={
-                    !hanCambiadoGerminacion()
-                      ? 'bg-gray-400 hover:bg-gray-500 min-w-32'
-                      : 'bg-green-600 hover:bg-green-700 min-w-32'
-                  }
-                >
-                  {!hanCambiadoGerminacion() ? 'Sin Cambios' : 'Guardar Cambios'}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">ID Análisis</p>
-                <p className="font-semibold">{germinacion.analisisID}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Lote</p>
-                <p className="font-semibold">{germinacion.lote || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Estado</p>
-                <p className="font-semibold">{germinacion.estado}</p>
-              </div>
-              {germinacion.fechaInicioGerm && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Fecha de Inicio</p>
-                  <p className="font-semibold flex items-center gap-1">
-                    <CalendarDays className="h-4 w-4" />
-                    {formatearFechaLocal(germinacion.fechaInicioGerm)}
-                  </p>
-                </div>
-              )}
-              {germinacion.numDias && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Días de Análisis</p>
-                  <p className="font-semibold">{germinacion.numDias}</p>
-                </div>
-              )}
-              {germinacion.numeroRepeticiones && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Repeticiones</p>
-                  <p className="font-semibold">{germinacion.numeroRepeticiones}</p>
-                </div>
-              )}
-              {germinacion.numeroConteos && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Conteos</p>
-                  <p className="font-semibold">{germinacion.numeroConteos}</p>
-                </div>
-              )}
-              {germinacion.fechaUltConteo && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Fecha Último Conteo</p>
-                  <p className="font-semibold flex items-center gap-1">
-                    <CalendarDays className="h-4 w-4" />
-                    {formatearFechaLocal(germinacion.fechaUltConteo)}
-                  </p>
-                </div>
-              )}
-              {germinacion.comentarios && (
-                <div className="md:col-span-2">
-                  <p className="text-sm font-medium text-muted-foreground">Comentarios</p>
-                  <p className="font-semibold">{germinacion.comentarios}</p>
-                </div>
-              )}
-              {germinacion.fechaConteos && germinacion.fechaConteos.length > 0 && (
-                <div className="md:col-span-3">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">Fechas de Conteos</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+
+                {germinacion.comentarios && (
+                  <>
+                    <Separator className="my-6" />
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Comentarios
+                      </label>
+                      <p className="text-base leading-relaxed bg-muted/50 p-4 rounded-lg">{germinacion.comentarios}</p>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Fechas de Conteo */}
+            {germinacion.fechaConteos && germinacion.fechaConteos.length > 0 && (
+              <Card className="overflow-hidden">
+                <CardHeader className="bg-muted/50 border-b">
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <div className="p-2 rounded-lg bg-blue-500/10">
+                      <Calendar className="h-5 w-5 text-blue-600" />
+                    </div>
+                    Cronograma de Conteos
+                    <Badge variant="secondary" className="ml-auto">
+                      {germinacion.fechaConteos.length} conteos
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {germinacion.fechaConteos.map((fecha, index) => (
-                      <div key={index} className="text-sm">
-                        <span className="text-gray-600">Conteo {index + 1}:</span> {formatearFechaLocal(fecha)}
+                      <div
+                        key={index}
+                        className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-200/50 rounded-xl p-4 text-center space-y-2"
+                      >
+                        <p className="text-sm font-medium text-muted-foreground">Conteo {index + 1}</p>
+                        <p className="text-lg font-bold text-blue-600">
+                          {formatearFechaLocal(fecha)}
+                        </p>
                       </div>
                     ))}
                   </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Resumen de Tablas de Germinación */}
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-muted/50 border-b">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <div className="p-2 rounded-lg bg-green-500/10">
+                    <Sprout className="h-5 w-5 text-green-600" />
+                  </div>
+                  Tablas de Germinación Detalladas
+                  <Badge variant="secondary" className="ml-auto">
+                    {tablas.length} tablas
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {tablas.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Sprout className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No hay tablas de germinación registradas</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Estadísticas generales */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 border border-green-200/50 rounded-xl p-4 text-center">
+                        <p className="text-2xl font-bold text-green-600">{tablasFinalizadas}</p>
+                        <p className="text-sm text-muted-foreground">Tablas Finalizadas</p>
+                      </div>
+                      <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-200/50 rounded-xl p-4 text-center">
+                        <p className="text-2xl font-bold text-blue-600">{tablas.length}</p>
+                        <p className="text-sm text-muted-foreground">Total de Tablas</p>
+                      </div>
+                      {promedioGerminacion && (
+                        <div className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-200/50 rounded-xl p-4 text-center">
+                          <p className="text-2xl font-bold text-purple-600">{promedioGerminacion}%</p>
+                          <p className="text-sm text-muted-foreground">Promedio Germinación</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Lista detallada de tablas */}
+                    <div className="space-y-6">
+                      {tablas.map((tabla) => (
+                        <Card key={tabla.tablaGermID} className="border-2">
+                          <CardHeader className="bg-muted/30">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-primary/10">
+                                  <Target className="h-5 w-5 text-primary" />
+                                </div>
+                                <div>
+                                  <h3 className="text-lg font-semibold">Tabla {tabla.numeroTabla}</h3>
+                                  <p className="text-sm text-muted-foreground">
+                                    {tabla.tratamiento || "Sin tratamiento especificado"}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant={tabla.finalizada ? "default" : "secondary"}>
+                                  {tabla.finalizada ? "Finalizada" : "En Proceso"}
+                                </Badge>
+                                {tabla.fechaFinal && (
+                                  <Badge variant="outline">
+                                    {formatearFechaLocal(tabla.fechaFinal)}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </CardHeader>
+                          
+                          <CardContent className="p-6">
+                            {/* Información General de la Tabla */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                              <div>
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Método</label>
+                                <p className="text-sm font-medium break-words">{tabla.metodo}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Temperatura</label>
+                                <p className="text-sm font-medium flex items-center gap-1">
+                                  <Thermometer className="h-3 w-3 flex-shrink-0" />
+                                  <span className="truncate">{tabla.temperatura}°C</span>
+                                </p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Semillas/Rep</label>
+                                <p className="text-sm font-medium">{tabla.numSemillasPRep}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total Semillas</label>
+                                <p className="text-sm font-medium">{tabla.total}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Prefrío</label>
+                                <p className="text-sm font-medium break-words">{tabla.prefrio}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pretratamiento</label>
+                                <p className="text-sm font-medium break-words">{tabla.pretratamiento}</p>
+                              </div>
+                              {tabla.productoYDosis && (
+                                <div className="sm:col-span-2">
+                                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Producto y Dosis</label>
+                                  <p className="text-sm font-medium break-words">{tabla.productoYDosis}</p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Promedios por Conteo (Calculados desde repeticiones) */}
+                            {tabla.repGerm && tabla.repGerm.length > 0 && germinacion?.numeroConteos && (
+                              <div className="mb-6">
+                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                  <BarChart3 className="h-4 w-4" />
+                                  Promedios de Normales por Conteo (Calculados)
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+                                  {Array.from({ length: germinacion.numeroConteos }, (_, conteoIndex) => {
+                                    const totalConteo = tabla.repGerm?.reduce((sum, rep) => {
+                                      return sum + (rep.normales && rep.normales[conteoIndex] ? rep.normales[conteoIndex] : 0)
+                                    }, 0) || 0
+                                    const numRepeticiones = tabla.repGerm?.length || 1
+                                    const promedio = totalConteo / numRepeticiones
+                                    
+                                    return (
+                                      <div key={conteoIndex} className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                                        <p className="text-sm sm:text-base font-bold text-blue-600 break-words">{promedio.toFixed(4)}</p>
+                                        <p className="text-xs text-muted-foreground">Conteo {conteoIndex + 1}</p>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Promedios Sin Redondeo de todas las categorías */}
+                            {tabla.repGerm && tabla.repGerm.length > 0 && (
+                              <div className="mb-6">
+                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                  <Calculator className="h-4 w-4" />
+                                  Promedios Calculados (Sin Redondeo)
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                                    <p className="text-base sm:text-lg font-bold text-green-600 break-words">
+                                      {((tabla.repGerm?.reduce((sum, rep) => {
+                                        return sum + (rep.normales ? rep.normales.reduce((s, n) => s + n, 0) : 0)
+                                      }, 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">Promedio Normales</p>
+                                  </div>
+                                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
+                                    <p className="text-base sm:text-lg font-bold text-orange-600 break-words">
+                                      {((tabla.repGerm?.reduce((sum, rep) => sum + (rep.anormales || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">Promedio Anormales</p>
+                                  </div>
+                                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+                                    <p className="text-base sm:text-lg font-bold text-yellow-600 break-words">
+                                      {((tabla.repGerm?.reduce((sum, rep) => sum + (rep.duras || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">Promedio Duras</p>
+                                  </div>
+                                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                                    <p className="text-base sm:text-lg font-bold text-blue-600 break-words">
+                                      {((tabla.repGerm?.reduce((sum, rep) => sum + (rep.frescas || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">Promedio Frescas</p>
+                                  </div>
+                                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+                                    <p className="text-base sm:text-lg font-bold text-gray-600 break-words">
+                                      {((tabla.repGerm?.reduce((sum, rep) => sum + (rep.muertas || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">Promedio Muertas</p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Porcentajes Calculados (Sin Redondeo) */}
+                            {tabla.repGerm && tabla.repGerm.length > 0 && (
+                              <div className="mb-6">
+                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                  <Calculator className="h-4 w-4" />
+                                  Porcentajes Calculados (Sin Redondeo)
+                                </h4>
+                                {(() => {
+                                  // Calcular totales reales desde las repeticiones
+                                  const totalNormales = tabla.repGerm?.reduce((sum, rep) => {
+                                    return sum + (rep.normales ? rep.normales.reduce((s, n) => s + n, 0) : 0)
+                                  }, 0) || 0
+                                  const totalAnormales = tabla.repGerm?.reduce((sum, rep) => sum + (rep.anormales || 0), 0) || 0
+                                  const totalDuras = tabla.repGerm?.reduce((sum, rep) => sum + (rep.duras || 0), 0) || 0
+                                  const totalFrescas = tabla.repGerm?.reduce((sum, rep) => sum + (rep.frescas || 0), 0) || 0
+                                  const totalMuertas = tabla.repGerm?.reduce((sum, rep) => sum + (rep.muertas || 0), 0) || 0
+                                  const totalGeneral = totalNormales + totalAnormales + totalDuras + totalFrescas + totalMuertas
+
+                                  return (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                                        <p className="text-sm sm:text-base font-bold text-green-600 break-words">
+                                          {totalGeneral > 0 ? ((totalNormales / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">% Normales</p>
+                                      </div>
+                                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
+                                        <p className="text-sm sm:text-base font-bold text-orange-600 break-words">
+                                          {totalGeneral > 0 ? ((totalAnormales / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">% Anormales</p>
+                                      </div>
+                                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+                                        <p className="text-sm sm:text-base font-bold text-yellow-600 break-words">
+                                          {totalGeneral > 0 ? ((totalDuras / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">% Duras</p>
+                                      </div>
+                                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                                        <p className="text-sm sm:text-base font-bold text-blue-600 break-words">
+                                          {totalGeneral > 0 ? ((totalFrescas / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">% Frescas</p>
+                                      </div>
+                                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+                                        <p className="text-sm sm:text-base font-bold text-gray-600 break-words">
+                                          {totalGeneral > 0 ? ((totalMuertas / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">% Muertas</p>
+                                      </div>
+                                    </div>
+                                  )
+                                })()}
+                              </div>
+                            )}
+
+                            {/* Porcentajes con Redondeo */}
+                            {(tabla.porcentajeNormalesConRedondeo !== undefined || 
+                              tabla.porcentajeAnormalesConRedondeo !== undefined ||
+                              tabla.porcentajeDurasConRedondeo !== undefined ||
+                              tabla.porcentajeFrescasConRedondeo !== undefined ||
+                              tabla.porcentajeMuertasConRedondeo !== undefined) && (
+                              <div className="mb-6">
+                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                  <Calculator className="h-4 w-4" />
+                                  Porcentajes Finales (Con Redondeo)
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                                  {tabla.porcentajeNormalesConRedondeo !== undefined && (
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                                      <p className="text-sm sm:text-base font-bold text-green-600 break-words">{tabla.porcentajeNormalesConRedondeo}%</p>
+                                      <p className="text-xs text-muted-foreground">Normales</p>
+                                    </div>
+                                  )}
+                                  {tabla.porcentajeAnormalesConRedondeo !== undefined && (
+                                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
+                                      <p className="text-sm sm:text-base font-bold text-orange-600 break-words">{tabla.porcentajeAnormalesConRedondeo}%</p>
+                                      <p className="text-xs text-muted-foreground">Anormales</p>
+                                    </div>
+                                  )}
+                                  {tabla.porcentajeDurasConRedondeo !== undefined && (
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+                                      <p className="text-sm sm:text-base font-bold text-yellow-600 break-words">{tabla.porcentajeDurasConRedondeo}%</p>
+                                      <p className="text-xs text-muted-foreground">Duras</p>
+                                    </div>
+                                  )}
+                                  {tabla.porcentajeFrescasConRedondeo !== undefined && (
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                                      <p className="text-sm sm:text-base font-bold text-blue-600 break-words">{tabla.porcentajeFrescasConRedondeo}%</p>
+                                      <p className="text-xs text-muted-foreground">Frescas</p>
+                                    </div>
+                                  )}
+                                  {tabla.porcentajeMuertasConRedondeo !== undefined && (
+                                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+                                      <p className="text-sm sm:text-base font-bold text-gray-600 break-words">{tabla.porcentajeMuertasConRedondeo}%</p>
+                                      <p className="text-xs text-muted-foreground">Muertas</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Repeticiones */}
+                            {tabla.repGerm && tabla.repGerm.length > 0 && (
+                              <div className="mb-6">
+                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                  <Table className="h-4 w-4" />
+                                  Repeticiones ({tabla.repGerm.length})
+                                </h4>
+                                <div className="overflow-x-auto">
+                                  <div className="min-w-full">
+                                    {/* Vista móvil - cards */}
+                                    <div className="block sm:hidden space-y-3">
+                                      {tabla.repGerm.map((rep) => (
+                                        <div key={rep.repGermID} className="bg-gray-50 border rounded-lg p-3">
+                                          <div className="flex justify-between items-center mb-2">
+                                            <span className="font-semibold text-sm">Rep {rep.numRep}</span>
+                                            <span className="text-xs text-muted-foreground font-semibold">Total: {rep.total}</span>
+                                          </div>
+                                          <div className="grid grid-cols-2 gap-2 text-xs">
+                                            <div>
+                                              <span className="font-medium text-green-700">Normales:</span>
+                                              <div className="flex flex-wrap gap-1 mt-1">
+                                                {rep.normales.map((valor, idx) => (
+                                                  <span key={idx} className="inline-block bg-green-100 text-green-800 px-1 py-0.5 rounded text-xs font-semibold">
+                                                    {valor}
+                                                  </span>
+                                                ))}
+                                              </div>
+                                            </div>
+                                            <div>
+                                              <span className="font-medium text-orange-700">Anormales:</span>
+                                              <span className="block mt-1 font-semibold">{rep.anormales}</span>
+                                            </div>
+                                            <div>
+                                              <span className="font-medium text-yellow-700">Duras:</span>
+                                              <span className="block mt-1 font-semibold">{rep.duras}</span>
+                                            </div>
+                                            <div>
+                                              <span className="font-medium text-blue-700">Frescas:</span>
+                                              <span className="block mt-1 font-semibold">{rep.frescas}</span>
+                                            </div>
+                                            <div>
+                                              <span className="font-medium text-gray-700">Muertas:</span>
+                                              <span className="block mt-1 font-semibold">{rep.muertas}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    
+                                    {/* Vista desktop - tabla */}
+                                    <table className="hidden sm:table w-full text-sm">
+                                      <thead>
+                                        <tr className="border-b bg-muted/50">
+                                          <th className="text-left p-2 font-medium min-w-[50px]">Rep</th>
+                                          <th className="text-left p-2 font-medium min-w-[100px]">Normales</th>
+                                          <th className="text-left p-2 font-medium min-w-[80px]">Anormales</th>
+                                          <th className="text-left p-2 font-medium min-w-[60px]">Duras</th>
+                                          <th className="text-left p-2 font-medium min-w-[60px]">Frescas</th>
+                                          <th className="text-left p-2 font-medium min-w-[60px]">Muertas</th>
+                                          <th className="text-left p-2 font-medium min-w-[60px]">Total</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {tabla.repGerm.map((rep) => (
+                                          <tr key={rep.repGermID} className="border-b">
+                                            <td className="p-2 font-semibold">{rep.numRep}</td>
+                                            <td className="p-2">
+                                              <div className="flex flex-wrap gap-1 max-w-[150px]">
+                                                {rep.normales.map((valor, idx) => (
+                                                  <span key={idx} className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs whitespace-nowrap font-semibold">
+                                                    {valor}
+                                                  </span>
+                                                ))}
+                                              </div>
+                                            </td>
+                                            <td className="p-2 font-semibold">{rep.anormales}</td>
+                                            <td className="p-2 font-semibold">{rep.duras}</td>
+                                            <td className="p-2 font-semibold">{rep.frescas}</td>
+                                            <td className="p-2 font-semibold">{rep.muertas}</td>
+                                            <td className="p-2 font-bold text-gray-900">{rep.total}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Valores de Germinación por Instituto */}
+                            {tabla.valoresGerm && tabla.valoresGerm.length > 0 && (
+                              <div>
+                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                  <Building className="h-4 w-4" />
+                                  Valores de Germinación por Instituto
+                                </h4>
+                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                                  {tabla.valoresGerm.map((valor, index) => (
+                                    <div key={index} className="border rounded-lg p-4 bg-purple-50/50 border-purple-200">
+                                      <div className="flex items-center gap-2 mb-3">
+                                        <Building className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                                        <span className="font-medium text-purple-700 break-words">{valor.instituto}</span>
+                                      </div>
+                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                                        <div className="text-center">
+                                          <label className="text-xs text-muted-foreground block">Normales</label>
+                                          <p className="font-medium break-words">{valor.normales}%</p>
+                                        </div>
+                                        <div className="text-center">
+                                          <label className="text-xs text-muted-foreground block">Anormales</label>
+                                          <p className="font-medium break-words">{valor.anormales}%</p>
+                                        </div>
+                                        <div className="text-center">
+                                          <label className="text-xs text-muted-foreground block">Duras</label>
+                                          <p className="font-medium break-words">{valor.duras}%</p>
+                                        </div>
+                                        <div className="text-center">
+                                          <label className="text-xs text-muted-foreground block">Frescas</label>
+                                          <p className="font-medium break-words">{valor.frescas}%</p>
+                                        </div>
+                                        <div className="text-center">
+                                          <label className="text-xs text-muted-foreground block">Muertas</label>
+                                          <p className="font-medium break-words">{valor.muertas}%</p>
+                                        </div>
+                                        <div className="text-center">
+                                          <label className="text-xs text-muted-foreground block">Germinación</label>
+                                          <p className="font-semibold text-base sm:text-lg text-green-600 break-words">{valor.germinacion}%</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-6">
+            {/* Quick Actions */}
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-muted/50 border-b">
+                <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <Link href={`/registro/analisis?tipo=germinacion&lote=${germinacion.idLote}`} className="block">
+                    <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
+                      <div className="p-1.5 rounded-md bg-primary/10">
+                        <Sprout className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="font-medium">Nuevo Análisis</span>
+                    </Button>
+                  </Link>
+                  <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
+                    <div className="p-1.5 rounded-md bg-primary/10">
+                      <Download className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="font-medium">Descargar Certificado</span>
+                  </Button>
+                  <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
+                    <div className="p-1.5 rounded-md bg-primary/10">
+                      <Calendar className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="font-medium">Programar Seguimiento</span>
+                  </Button>
                 </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </CardContent>
+            </Card>
 
-      {/* Sección de Tablas */}
-      <TablasGerminacionSection 
-        tablas={tablas}
-        germinacionId={parseInt(germinacionId)}
-        isFinalized={isFinalized}
-        onTablaUpdated={cargarDatos}
-        germinacion={germinacion}
-      />
+            {/* Estado del Análisis */}
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-muted/50 border-b">
+                <CardTitle className="text-lg">Estado del Análisis</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Progreso general</span>
+                    <span className="text-sm text-muted-foreground">{tablasFinalizadas}/{tablas.length}</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div 
+                      className="bg-primary h-2 rounded-full transition-all" 
+                      style={{ width: `${tablas.length > 0 ? (tablasFinalizadas / tablas.length) * 100 : 0}%` }}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Estado</p>
+                      <p className="font-medium">{germinacion.estado}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Completado</p>
+                      <p className="font-medium">{tablas.length > 0 ? Math.round((tablasFinalizadas / tablas.length) * 100) : 0}%</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-      {/* Acciones */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Acciones</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col sm:flex-row flex-wrap gap-4">          
-          {canFinalize && (
-            <Button 
-              onClick={handleFinalizarAnalisis}
-              disabled={finalizing}
-              variant="default"
-              size="lg"
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {finalizing ? "Finalizando..." : "Finalizar Análisis"}
-            </Button>
-          )}
-
-          {/* Botón para reabrir análisis finalizado */}
-          {isFinalized && (
-            <Button 
-              onClick={handleReabrirAnalisis}
-              disabled={finalizing}
-              variant="outline"
-              size="lg"
-              className="border-orange-600 text-orange-600 hover:bg-orange-50"
-            >
-              {finalizing ? "Editando..." : "Editar Análisis"}
-            </Button>
-          )}
-          
-          <Button 
-            onClick={() => router.push('/listado')}
-            variant="outline"
-            size="lg"
-          >
-            Volver al Listado
-          </Button>
-        </CardContent>
-      </Card>
+            {/* Historial de Actividades */}
+            {germinacion.historial && germinacion.historial.length > 0 && (
+              <Card className="overflow-hidden">
+                <CardHeader className="bg-muted/50 border-b">
+                  <CardTitle className="text-lg">Historial de Actividades</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {germinacion.historial.map((item, index) => (
+                      <div key={index} className="relative pl-6 pb-4 last:pb-0">
+                        <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
+                        {index !== germinacion.historial.length - 1 && (
+                          <div className="absolute left-[5px] top-5 bottom-0 w-0.5 bg-border" />
+                        )}
+                        <div className="space-y-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-sm font-semibold leading-tight">
+                              {item.estadoAnterior} → {item.estadoNuevo}
+                            </p>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(item.fechaCambio).toLocaleDateString("es-ES", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Por: {item.usuario}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

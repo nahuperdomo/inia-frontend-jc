@@ -380,9 +380,9 @@ export default function RegistroAnalisisPage() {
           description: `Se ha creado el análisis para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
         });
 
-        // Redirigir a la página de gestión del análisis creado
+        // Redirigir a la página de edición del análisis creado
         setTimeout(() => {
-          window.location.href = `/listado/analisis/germinacion/${result.analisisID}`;
+          window.location.href = `/listado/analisis/germinacion/${result.analisisID}/editar`;
         }, 1500);
       } else {
         const response = await registrarAnalisis(payload, selectedAnalysisType);
