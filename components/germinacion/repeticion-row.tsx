@@ -244,7 +244,8 @@ export function RepeticionRow({
                         actualizarNormal(indice, nuevoValor)
                       )}
                       disabled={!modoEdicion || !puedeIngresar}
-                      className={`text-center text-black ${!puedeIngresar ? 'bg-gray-100 text-gray-400' : ''}`}
+                      className={`text-center text-black disabled:text-black disabled:opacity-100 ${!puedeIngresar ? 'bg-gray-100' : ''}`}
+                      style={!puedeIngresar ? {} : { color: 'black !important' }}
                       title={!puedeIngresar ? "No se puede ingresar datos para fechas futuras" : ""}
                     />
                     {fechasConteos && fechasConteos[indice] && (
@@ -271,7 +272,7 @@ export function RepeticionRow({
                   actualizarCampo('anormales', nuevoValor)
                 )}
                 disabled={!modoEdicion}
-                className="text-center text-black"
+                className="text-center text-black disabled:text-black disabled:opacity-100"
               />
             </div>
             
@@ -286,7 +287,7 @@ export function RepeticionRow({
                   actualizarCampo('duras', nuevoValor)
                 )}
                 disabled={!modoEdicion}
-                className="text-center text-black"
+                className="text-center text-black disabled:text-black disabled:opacity-100"
               />
             </div>
             
@@ -301,7 +302,7 @@ export function RepeticionRow({
                   actualizarCampo('frescas', nuevoValor)
                 )}
                 disabled={!modoEdicion}
-                className="text-center text-black"
+                className="text-center text-black disabled:text-black disabled:opacity-100"
               />
             </div>
             
@@ -316,7 +317,7 @@ export function RepeticionRow({
                   actualizarCampo('muertas', nuevoValor)
                 )}
                 disabled={!modoEdicion}
-                className="text-center text-black"
+                className="text-center text-black disabled:text-black disabled:opacity-100"
               />
             </div>
           </div>
