@@ -19,3 +19,5 @@ export type EstadoLote = 'ACTIVO' | 'INACTIVO' | 'COMPLETADO';
 export type TipoAnalisis = 'PUREZA' | 'GERMINACION' | 'PMS' | 'TETRAZOLIO' | 'DOSN';
 
 export type TipoContacto = 'CLIENTE' | 'EMPRESA';
+
+export type TipoNotificacion = 'USUARIO_REGISTRO' | 'ANALISIS_FINALIZADO' | 'ANALISIS_APROBADO' | 'ANALISIS_REPETIR';

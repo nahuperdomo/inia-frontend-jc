@@ -20,3 +20,4 @@ export * from './interfaces/malezas';
 export * from './interfaces/repeticiones';
 export * from './interfaces/usuario';
 export * from './interfaces/valores-germ';
+export * from './interfaces/notificacion';
