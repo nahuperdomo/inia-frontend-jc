@@ -216,11 +216,16 @@ export default function RegistroAnalisisPage() {
     } else if (selectedAnalysisType === "pureza") {
       payload = {
         ...payload,
-        pesoInicial: toNum(formData.pesoInicial),
-        semillaPura: toNum(formData.semillaPura),
-        materiaInerte: toNum(formData.materiaInerte),
-        otrosCultivos: toNum(formData.otrosCultivos),
-        malezas: toNum(formData.malezas),
+        pesoInicial_g: toNum(formData.pesoInicial),
+        semillaPura_g: toNum(formData.semillaPura),
+        materiaInerte_g: toNum(formData.materiaInerte),
+        otrosCultivos_g: toNum(formData.otrosCultivos),
+        malezas_g: toNum(formData.malezas),
+        malezasToleradas_g: formData.malezasToleridas ? toNum(formData.malezasToleridas) : null,
+        pesoTotal_g: formData.pesoTotal ? parseFloat(formData.pesoTotal) : null,
+        fecha: new Date().toISOString().split('T')[0], // Fecha actual en formato ISO (YYYY-MM-DD)
+        observaciones: formData.observaciones,
+        otrasSemillas: [] // Array vacío de otras semillas o añadir lógica para incluirlas
       };
     } else if (selectedAnalysisType === "germinacion") {
       // Validaciones específicas para germinación

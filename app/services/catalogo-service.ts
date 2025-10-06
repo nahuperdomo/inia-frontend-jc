@@ -41,22 +41,22 @@ export async function eliminarCatalogoFisicamente(id: number): Promise<void> {
 }
 
 // Funciones específicas para tipos de catálogo
-export async function obtenerTiposHumedad(): Promise<CatalogoDTO[]> {
+export async function obtenerTiposHumedad(): Promise<any[]> {
   return apiFetch("/api/catalogo/humedad");
 }
 
-export async function obtenerNumerosArticulo(): Promise<CatalogoDTO[]> {
+export async function obtenerNumerosArticulo(): Promise<any[]> {
   return apiFetch("/api/catalogo/articulos");
 }
 
-export async function obtenerOrigenes(): Promise<CatalogoDTO[]> {
+export async function obtenerOrigenes(): Promise<any[]> {
   return apiFetch("/api/catalogo/origenes");
 }
 
-export async function obtenerEstados(): Promise<CatalogoDTO[]> {
+export async function obtenerEstados(): Promise<any[]> {
   return apiFetch("/api/catalogo/estados");
 }
 
-export async function obtenerDepositos(): Promise<CatalogoDTO[]> {
+export async function obtenerDepositos(): Promise<any[]> {
   return apiFetch("/api/catalogo/depositos");
 }
