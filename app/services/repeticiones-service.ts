@@ -130,21 +130,21 @@ export async function crearRepTetrazolioViabilidad(
   tetrazolioId: number,
   solicitud: RepTetrazolioViabilidadRequestDTO
 ): Promise<RepTetrazolioViabilidadDTO> {
-  return apiFetch(`/api/tetrazolio/${tetrazolioId}/repeticiones`, {
+  return apiFetch(`/api/tetrazolios/${tetrazolioId}/repeticiones`, {
     method: "POST",
     body: JSON.stringify(solicitud),
   });
 }
 
 export async function obtenerRepeticionesPorTetrazolio(tetrazolioId: number): Promise<RepTetrazolioViabilidadDTO[]> {
-  return apiFetch(`/api/tetrazolio/${tetrazolioId}/repeticiones`);
+  return apiFetch(`/api/tetrazolios/${tetrazolioId}/repeticiones`);
 }
 
 export async function obtenerRepTetrazolioViabilidadPorId(
   tetrazolioId: number,
   repeticionId: number
 ): Promise<RepTetrazolioViabilidadDTO> {
-  return apiFetch(`/api/tetrazolio/${tetrazolioId}/repeticiones/${repeticionId}`);
+  return apiFetch(`/api/tetrazolios/${tetrazolioId}/repeticiones/${repeticionId}`);
 }
 
 export async function actualizarRepTetrazolioViabilidad(
@@ -152,7 +152,7 @@ export async function actualizarRepTetrazolioViabilidad(
   repeticionId: number,
   solicitud: RepTetrazolioViabilidadRequestDTO
 ): Promise<RepTetrazolioViabilidadDTO> {
-  return apiFetch(`/api/tetrazolio/${tetrazolioId}/repeticiones/${repeticionId}`, {
+  return apiFetch(`/api/tetrazolios/${tetrazolioId}/repeticiones/${repeticionId}`, {
     method: "PUT",
     body: JSON.stringify(solicitud),
   });
@@ -162,7 +162,7 @@ export async function eliminarRepTetrazolioViabilidad(
   tetrazolioId: number,
   repeticionId: number
 ): Promise<void> {
-  return apiFetch(`/api/tetrazolio/${tetrazolioId}/repeticiones/${repeticionId}`, {
+  return apiFetch(`/api/tetrazolios/${tetrazolioId}/repeticiones/${repeticionId}`, {
     method: "DELETE",
   });
 }

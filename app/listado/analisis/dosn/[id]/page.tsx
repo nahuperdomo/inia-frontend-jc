@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+
 import {
   ArrowLeft,
   Edit,
@@ -159,6 +160,7 @@ export default function DosnDetailPage() {
           </div>
         </div>
       </div>
+    
     )
   }
 
@@ -186,52 +188,58 @@ export default function DosnDetailPage() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <div className="bg-background border-b sticky top-0 z-10">
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col gap-6">
-            <Link href="/listado/analisis/dosn">
-              <Button variant="ghost" size="sm" className="gap-2 -ml-2">
-                <ArrowLeft className="h-4 w-4" />
-                Volver
-              </Button>
-            </Link>
+      {/* Header sticky solo dentro del área con scroll */}
+      <div className="bg-background border-b sticky top-0 z-40">
+      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col gap-6">
+          <Link href="/listado/analisis/dosn">
+            <Button variant="ghost" size="sm" className="gap-2 -ml-2">
+              <ArrowLeft className="h-4 w-4" />
+              Volver
+            </Button>
+          </Link>
 
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-3xl lg:text-4xl font-bold text-balance">Análisis DOSN #{dosn.analisisID}</h1>
-                  <Badge variant={getEstadoBadgeVariant(dosn.estado)} className="text-sm px-3 py-1">
-                    {dosn.estado}
-                  </Badge>
-                </div>
-                <p className="text-base text-muted-foreground text-pretty">
-                  Determinación de otras semillas nocivas • Lote {dosn.lote}
-                </p>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-3xl lg:text-4xl font-bold text-balance">
+                  Análisis DOSN #{dosn.analisisID}
+                </h1>
+                <Badge
+                  variant={getEstadoBadgeVariant(dosn.estado)}
+                  className="text-sm px-3 py-1"
+                >
+                  {dosn.estado}
+                </Badge>
               </div>
+              <p className="text-base text-muted-foreground text-pretty">
+                Determinación de otras semillas nocivas • Lote {dosn.lote}
+              </p>
+            </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button variant="outline" size="lg" className="gap-2 bg-transparent">
-                  <Download className="h-4 w-4" />
-                  Exportar
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link href={`/listado/analisis/dosn/${dosn.analisisID}/editar`}>
+                <Button size="lg" className="gap-2 w-full sm:w-auto">
+                  <Edit className="h-4 w-4" />
+                  Editar análisis
                 </Button>
-                <Link href={`/listado/analisis/dosn/${dosn.analisisID}/editar`}>
-                  <Button size="lg" className="gap-2 w-full sm:w-auto">
-                    <Edit className="h-4 w-4" />
-                    Editar análisis
-                  </Button>
-                </Link>
-              </div>
+              </Link>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
+    {/* Compensar altura del header sticky */}
+    <div className="pt-4">
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-muted/50 border-b">
+      
+
+        <div className="grid grid-cols-1 gap-6 lg:gap-8">
+          {/* Main Content - Full width now */}
+          <div className="space-y-6">
+            <Card className="overflow-hidden bg-background">
+              <CardHeader className="bg-background border-b sticky top-[20px] z-20">
                 <CardTitle className="flex items-center gap-2 text-xl">
                   <div className="p-2 rounded-lg bg-primary/10">
                     <FileText className="h-5 w-5 text-primary" />
@@ -419,17 +427,17 @@ export default function DosnDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {dosn.cuscuta_g !== undefined && dosn.cuscuta_g !== null && (
-                      <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-200/50 rounded-xl p-8 text-center space-y-3">
-                        <p className="text-5xl font-bold text-orange-600">{dosn.cuscuta_g}</p>
-                        <p className="text-base font-medium text-muted-foreground">Gramos de Cuscuta</p>
+                      <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-200/50 rounded-lg p-4 text-center space-y-2">
+                        <p className="text-3xl font-bold text-orange-600">{dosn.cuscuta_g}</p>
+                        <p className="text-sm font-medium text-muted-foreground">Gramos de Cuscuta</p>
                       </div>
                     )}
                     {dosn.cuscutaNum !== undefined && dosn.cuscutaNum !== null && (
-                      <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 border border-red-200/50 rounded-xl p-8 text-center space-y-3">
-                        <p className="text-5xl font-bold text-red-600">{dosn.cuscutaNum}</p>
-                        <p className="text-base font-medium text-muted-foreground">Número de Semillas</p>
+                      <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 border border-red-200/50 rounded-lg p-4 text-center space-y-2">
+                        <p className="text-3xl font-bold text-red-600">{dosn.cuscutaNum}</p>
+                        <p className="text-sm font-medium text-muted-foreground">Número de Semillas</p>
                       </div>
                     )}
                   </div>
@@ -504,79 +512,82 @@ export default function DosnDetailPage() {
                 </CardContent>
               </Card>
             )}
-          </div>
-
-          <div className="space-y-6">
-            {/* Quick Actions */}
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-muted/50 border-b">
-                <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <Link href={`/registro/analisis/dosn?lote=${dosn.idLote}`} className="block">
-                    <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                      <div className="p-1.5 rounded-md bg-primary/10">
-                        <BarChart3 className="h-4 w-4 text-primary" />
-                      </div>
-                      <span className="font-medium">Nuevo Análisis</span>
-                    </Button>
-                  </Link>
-                  <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                    <div className="p-1.5 rounded-md bg-primary/10">
-                      <Download className="h-4 w-4 text-primary" />
-                    </div>
-                    <span className="font-medium">Descargar Certificado</span>
-                  </Button>
-                  <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                    <div className="p-1.5 rounded-md bg-primary/10">
-                      <Calendar className="h-4 w-4 text-primary" />
-                    </div>
-                    <span className="font-medium">Programar Seguimiento</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {dosn.historial && dosn.historial.length > 0 && (
+          
+            {/* 
+            TODO: Acciones Rápidas - Comentado temporalmente
+            <div className="space-y-6">
               <Card className="overflow-hidden">
                 <CardHeader className="bg-muted/50 border-b">
-                  <CardTitle className="text-lg">Historial de Actividades</CardTitle>
+                  <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {dosn.historial.map((item, index) => (
-                      <div key={index} className="relative pl-6 pb-4 last:pb-0">
-                        <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
-                        {index !== dosn.historial.length - 1 && (
-                          <div className="absolute left-[5px] top-5 bottom-0 w-0.5 bg-border" />
-                        )}
-                        <div className="space-y-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="text-sm font-semibold leading-tight">
-                              {item.estadoAnterior} → {item.estadoNuevo}
-                            </p>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(item.fechaCambio).toLocaleDateString("es-ES", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Por: {item.usuario}</p>
+                <CardContent className="p-4">
+                  <div className="space-y-2">
+                    <Link href={`/registro/analisis/dosn?lote=${dosn.idLote}`} className="block">
+                      <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
+                        <div className="p-1.5 rounded-md bg-primary/10">
+                          <BarChart3 className="h-4 w-4 text-primary" />
                         </div>
+                        <span className="font-medium">Nuevo Análisis</span>
+                      </Button>
+                    </Link>
+                    <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
+                      <div className="p-1.5 rounded-md bg-primary/10">
+                        <Download className="h-4 w-4 text-primary" />
                       </div>
-                    ))}
+                      <span className="font-medium">Descargar Certificado</span>
+                    </Button>
+                    <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
+                      <div className="p-1.5 rounded-md bg-primary/10">
+                        <Calendar className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="font-medium">Programar Seguimiento</span>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
-            )}
+
+              {dosn.historial && dosn.historial.length > 0 && (
+                <Card className="overflow-hidden">
+                  <CardHeader className="bg-muted/50 border-b">
+                    <CardTitle className="text-lg">Historial de Actividades</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      {dosn.historial.map((item, index) => (
+                        <div key={index} className="relative pl-6 pb-4 last:pb-0">
+                          <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
+                          {index !== dosn.historial.length - 1 && (
+                            <div className="absolute left-[5px] top-5 bottom-0 w-0.5 bg-border" />
+                          )}
+                          <div className="space-y-1">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="text-sm font-semibold leading-tight">
+                                {item.estadoAnterior} → {item.estadoNuevo}
+                              </p>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(item.fechaCambio).toLocaleDateString("es-ES", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                            <p className="text-xs text-muted-foreground">Por: {item.usuario}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+            */}
           </div>
         </div>
       </div>
+    </div>
     </div>
   )
 }

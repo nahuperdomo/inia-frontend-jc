@@ -386,7 +386,7 @@ export default function EditarDosnPage() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="sticky top-0 z-10 bg-background border-b">
         <div className="container max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div className="flex items-start gap-4 flex-1">
