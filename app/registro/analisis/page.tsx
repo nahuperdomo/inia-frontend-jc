@@ -272,7 +272,7 @@ export default function RegistroAnalisisPage() {
         // Cuscuta - usar fecha actual si hay datos de cuscuta y no se especificó fecha
         cuscuta_g: toNum(formData.cuscutaGramos),
         cuscutaNum: toNum(formData.cuscutaNumero),
-        fechaCuscuta: ((toNum(formData.cuscutaGramos) || 0) > 0 || (toNum(formData.cuscutaNumero) || 0) > 0) 
+        fechaCuscuta: ((toNum(formData.cuscutaGramos) || 0) > 0 || (toNum(formData.cuscutaNumero) || 0) > 0)
           ? new Date().toISOString().split('T')[0] // Fecha actual en formato YYYY-MM-DD
           : null,
         // Listados
@@ -356,7 +356,7 @@ export default function RegistroAnalisisPage() {
       if (formData.fechaInicioGerm && formData.fechaUltConteo) {
         const fechaInicio = new Date(formData.fechaInicioGerm);
         const fechaFin = new Date(formData.fechaUltConteo);
-        
+
         if (fechaInicio >= fechaFin) {
           toast.error("La fecha de inicio debe ser anterior a la fecha de último conteo");
           setLoading(false);
@@ -368,7 +368,7 @@ export default function RegistroAnalisisPage() {
       if (formData.fechaInicioGerm && formData.fechaUltConteo) {
         const fechaInicio = new Date(formData.fechaInicioGerm);
         const fechaFin = new Date(formData.fechaUltConteo);
-        
+
         for (const fecha of fechasValidas) {
           const fechaConteo = new Date(fecha);
           if (fechaConteo < fechaInicio || fechaConteo > fechaFin) {
@@ -392,46 +392,58 @@ export default function RegistroAnalisisPage() {
     } else if (selectedAnalysisType === "tetrazolio") {
       // Validaciones específicas para tetrazolio
       if (!formData.fecha) {
-        setError("Fecha del ensayo es requerida");
+        toast.error('Fecha del ensayo es requerida', {
+          description: 'La fecha del ensayo es obligatoria.'
+        });
         setLoading(false);
         return;
       }
       if (!formData.numSemillasPorRep || ![25, 50, 100].includes(formData.numSemillasPorRep)) {
-        setError("Número de semillas por repetición debe ser 25, 50 o 100");
+        toast.error('Número de semillas inválido', {
+          description: 'El número de semillas por repetición debe ser 25, 50 o 100.'
+        });
         setLoading(false);
         return;
       }
       if (!formData.numRepeticionesEsperadas || formData.numRepeticionesEsperadas < 2 || formData.numRepeticionesEsperadas > 8) {
-        setError("Número de repeticiones esperadas debe estar entre 2 y 8");
+        toast.error('Número de repeticiones inválido', {
+          description: 'El número de repeticiones esperadas debe estar entre 2 y 8.'
+        });
         setLoading(false);
         return;
       }
       if (!formData.concentracion) {
-        setError("Concentración de tetrazolio es requerida");
+        toast.error('Concentración requerida', {
+          description: 'La concentración de tetrazolio es requerida.'
+        });
         setLoading(false);
         return;
       }
       if (!formData.tincionTemp || (typeof formData.tincionTemp === 'number' && (formData.tincionTemp < 15 || formData.tincionTemp > 45))) {
-        setError("Temperatura de tinción debe estar entre 15 y 45°C");
+        toast.error('Temperatura inválida', {
+          description: 'La temperatura de tinción debe estar entre 15 y 45°C.'
+        });
         setLoading(false);
         return;
       }
       // Validar tiempo de tinción considerando que puede ser string o número
-      const tincionHsValue = formData.tincionHs === "Otra (especificar)" 
-        ? parseFloat(formData.tincionHsOtro) 
-        : typeof formData.tincionHs === 'string' 
+      const tincionHsValue = formData.tincionHs === "Otra (especificar)"
+        ? parseFloat(formData.tincionHsOtro)
+        : typeof formData.tincionHs === 'string'
           ? parseFloat(formData.tincionHs)
           : formData.tincionHs;
-      
+
       if (!tincionHsValue || tincionHsValue < 1 || tincionHsValue > 72) {
-        setError("Tiempo de tinción debe estar entre 1 y 72 horas");
+        toast.error('Tiempo de tinción inválido', {
+          description: 'El tiempo de tinción debe estar entre 1 y 72 horas.'
+        });
         setLoading(false);
         return;
       }
 
       // Preparar valores finales basados en las selecciones del usuario
-      const pretratamientoFinal = formData.pretratamiento === 'Otro (especificar)' 
-        ? formData.pretratamientoOtro 
+      const pretratamientoFinal = formData.pretratamiento === 'Otro (especificar)'
+        ? formData.pretratamientoOtro
         : formData.pretratamiento
 
       const concentracionFinal = formData.concentracion === 'Otro (especificar)'
@@ -440,7 +452,7 @@ export default function RegistroAnalisisPage() {
 
       const tincionHsFinal = formData.tincionHs === 'Otra (especificar)'
         ? parseFloat(formData.tincionHsOtro) || 24
-        : typeof formData.tincionHs === 'string' 
+        : typeof formData.tincionHs === 'string'
           ? parseFloat(formData.tincionHs) || 24
           : formData.tincionHs
 
@@ -510,9 +522,8 @@ export default function RegistroAnalisisPage() {
           router.push(`/listado/analisis/tetrazolio/${result.analisisID}/editar`);
         }, 1500);
       } else {
-        const result = const response = await registrarAnalisis(payload, selectedAnalysisType);
-;
-        
+        const result = await registrarAnalisis(payload, selectedAnalysisType);
+
         // Redirigir según el tipo de análisis
         setTimeout(() => {
           if (selectedAnalysisType === "dosn") {
@@ -729,9 +740,9 @@ export default function RegistroAnalisisPage() {
           )}
 
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <Button 
-              variant="outline" 
-              className="w-full sm:flex-1 bg-transparent" 
+            <Button
+              variant="outline"
+              className="w-full sm:flex-1 bg-transparent"
               disabled={loading}
               onClick={() => window.history.back()}
             >
