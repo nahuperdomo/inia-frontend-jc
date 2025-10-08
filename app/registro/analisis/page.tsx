@@ -29,20 +29,47 @@ export type AnalysisFormData = {
   prioridad: string
   observaciones: string
 
-  // Pureza
+  // Pureza - Datos en gramos
   pesoInicial: string
   semillaPura: string
   materiaInerte: string
-
-  // Otros Cultivos
   otrosCultivos: string
+  malezas: string
+  malezasToleridas: string
+  malezasToleranciasCero: string
+  pesoTotal: string
+
+  // Pureza - Porcentajes manuales
+  semillaPuraPorcentaje: string
+  materiaInertePorcentaje: string
+  otrosCultivosPorcentaje: string
+  malezasPorcentaje: string
+  malezasTolerididasPorcentaje: string
+  malezasToleranciasCeroPorcentaje: string
+
+  // Pureza - Porcentajes redondeados manuales
+  semillaPuraRedondeado: string
+  materiaInerteRedondeado: string
+  otrosCultivosRedondeado: string
+  malezasRedondeado: string
+  malezasTolerididasRedondeado: string
+  malezasToleranciasCeroRedondeado: string
+
+  // Pureza - Datos INIA manuales
+  iniaSemillaPuraPorcentaje: string
+  iniaMateriaInertePorcentaje: string
+  iniaOtrosCultivosPorcentaje: string
+  iniaMalezasPorcentaje: string
+  iniaMalezasTolerididasPorcentaje: string
+  iniaMalezasToleranciasCeroPorcentaje: string
+
+  // Pureza - Alerta diferencia
+  alertaDiferenciaPeso: string
+
+  // Otros Cultivos (para DOSN)
   otrosCultivosInsti: string
   otrosCultivosNum: string
   otrosCultivosIdCatalogo: string
-
-  malezas: string
-  malezasToleridas: string
-  pesoTotal: string
 
   // DOSN (INIA)
   iniaFecha: string
@@ -110,6 +137,9 @@ export default function RegistroAnalisisPage() {
   const [cultivosList, setCultivosList] = useState<any[]>([]);
   const [brassicasList, setBrassicasList] = useState<any[]>([]);
 
+  // Estado específico para malezas de pureza
+  const [purezaMalezasList, setPurezaMalezasList] = useState<any[]>([]);
+
   // Funciones de callback con logs para debugging - memoizadas para evitar re-renders infinitos
   const handleMalezasChange = useCallback((list: any[]) => {
     console.log("🐛 DEBUG - handleMalezasChange llamado con:", list);
@@ -125,21 +155,59 @@ export default function RegistroAnalisisPage() {
     console.log("🐛 DEBUG - handleBrassicasChange llamado con:", list);
     setBrassicasList(list);
   }, []);
+
+  // Callback específico para malezas de pureza
+  const handlePurezaMalezasChange = useCallback((list: any[]) => {
+    console.log("🐛 DEBUG - handlePurezaMalezasChange llamado con:", list);
+    setPurezaMalezasList(list);
+  }, []);
   const [formData, setFormData] = useState<AnalysisFormData>({
     loteid: "",
     responsable: "",
     prioridad: "",
     observaciones: "",
+
+    // Pureza - Datos en gramos
     pesoInicial: "",
     semillaPura: "",
     materiaInerte: "",
     otrosCultivos: "",
+    malezas: "",
+    malezasToleridas: "",
+    malezasToleranciasCero: "",
+    pesoTotal: "",
+
+    // Pureza - Porcentajes manuales
+    semillaPuraPorcentaje: "",
+    materiaInertePorcentaje: "",
+    otrosCultivosPorcentaje: "",
+    malezasPorcentaje: "",
+    malezasTolerididasPorcentaje: "",
+    malezasToleranciasCeroPorcentaje: "",
+
+    // Pureza - Porcentajes redondeados manuales
+    semillaPuraRedondeado: "",
+    materiaInerteRedondeado: "",
+    otrosCultivosRedondeado: "",
+    malezasRedondeado: "",
+    malezasTolerididasRedondeado: "",
+    malezasToleranciasCeroRedondeado: "",
+
+    // Pureza - Datos INIA manuales
+    iniaSemillaPuraPorcentaje: "",
+    iniaMateriaInertePorcentaje: "",
+    iniaOtrosCultivosPorcentaje: "",
+    iniaMalezasPorcentaje: "",
+    iniaMalezasTolerididasPorcentaje: "",
+    iniaMalezasToleranciasCeroPorcentaje: "",
+
+    // Pureza - Alerta diferencia
+    alertaDiferenciaPeso: "",
+
+    // Otros Cultivos (para DOSN)
     otrosCultivosInsti: "",
     otrosCultivosNum: "",
     otrosCultivosIdCatalogo: "",
-    malezas: "",
-    malezasToleridas: "",
-    pesoTotal: "",
     iniaFecha: "",
     iniaGramos: "",
     iniaCompleto: false,
@@ -291,17 +359,68 @@ export default function RegistroAnalisisPage() {
         console.log(`✅ Se enviarán ${listados.length} listados al backend`);
       }
     } else if (selectedAnalysisType === "pureza") {
+      // Debug: Verificar estado de la lista de malezas de pureza
+      console.log("🔍 DEBUG - Malezas de pureza antes de procesar:", purezaMalezasList);
+
+      // Procesar malezas de pureza similar a como se hace en DOSN
+      const malezasDetalladas = purezaMalezasList
+        .filter((m) => {
+          // Verificar que tenga los campos requeridos y no sea "NO_CONTIENE"
+          const hasRequiredFields = m.listadoTipo && m.listadoTipo !== "NO_CONTIENE" &&
+            m.listadoInsti && m.idCatalogo;
+          return hasRequiredFields;
+        })
+        .map((m) => ({
+          listadoTipo: m.listadoTipo,
+          listadoInsti: m.listadoInsti,
+          listadoNum: m.listadoNum !== null && m.listadoNum !== undefined ? m.listadoNum : null,
+          idCatalogo: m.idCatalogo,
+        }));
+
+      console.log("🔍 DEBUG - Malezas procesadas para envío:", malezasDetalladas);
+
       payload = {
         ...payload,
+        // Datos en gramos
         pesoInicial_g: toNum(formData.pesoInicial),
         semillaPura_g: toNum(formData.semillaPura),
         materiaInerte_g: toNum(formData.materiaInerte),
         otrosCultivos_g: toNum(formData.otrosCultivos),
         malezas_g: toNum(formData.malezas),
-        malezasToleradas_g: formData.malezasToleridas ? toNum(formData.malezasToleridas) : null,
+        malezasToleridas_g: toNum(formData.malezasToleridas),
+        malezasToleranciasCero_g: toNum(formData.malezasToleranciasCero),
         pesoTotal_g: formData.pesoTotal ? parseFloat(formData.pesoTotal) : null,
+
+        // Porcentajes manuales
+        semillaPuraPorcentaje: toNum(formData.semillaPuraPorcentaje),
+        materiaInertePorcentaje: toNum(formData.materiaInertePorcentaje),
+        otrosCultivosPorcentaje: toNum(formData.otrosCultivosPorcentaje),
+        malezasPorcentaje: toNum(formData.malezasPorcentaje),
+        malezasTolerididasPorcentaje: toNum(formData.malezasTolerididasPorcentaje),
+        malezasToleranciasCeroPorcentaje: toNum(formData.malezasToleranciasCeroPorcentaje),
+
+        // Porcentajes redondeados manuales
+        semillaPuraRedondeado: formData.semillaPuraRedondeado || null,
+        materiaInerteRedondeado: formData.materiaInerteRedondeado || null,
+        otrosCultivosRedondeado: formData.otrosCultivosRedondeado || null,
+        malezasRedondeado: formData.malezasRedondeado || null,
+        malezasTolerididasRedondeado: formData.malezasTolerididasRedondeado || null,
+        malezasToleranciasCeroRedondeado: formData.malezasToleranciasCeroRedondeado || null,
+
+        // Datos INIA manuales
+        iniaSemillaPuraPorcentaje: toNum(formData.iniaSemillaPuraPorcentaje),
+        iniaMateriaInertePorcentaje: toNum(formData.iniaMateriaInertePorcentaje),
+        iniaOtrosCultivosPorcentaje: toNum(formData.iniaOtrosCultivosPorcentaje),
+        iniaMalezasPorcentaje: toNum(formData.iniaMalezasPorcentaje),
+        iniaMalezasTolerididasPorcentaje: toNum(formData.iniaMalezasTolerididasPorcentaje),
+        iniaMalezasToleranciasCeroPorcentaje: toNum(formData.iniaMalezasToleranciasCeroPorcentaje),
+
+        // Alerta diferencia
+        alertaDiferenciaPeso: formData.alertaDiferenciaPeso || null,
+
         fecha: new Date().toISOString().split('T')[0], // Fecha actual en formato ISO (YYYY-MM-DD)
         observaciones: formData.observaciones,
+        malezasDetalladas: malezasDetalladas, // Incluir las malezas detalladas
         otrasSemillas: [] // Array vacío de otras semillas o añadir lógica para incluirlas
       };
     } else if (selectedAnalysisType === "germinacion") {
@@ -715,7 +834,11 @@ export default function RegistroAnalisisPage() {
           </div>
 
           {selectedAnalysisType === "pureza" && (
-            <PurezaFields formData={formData} handleInputChange={(field, value) => handleInputChange(field as keyof AnalysisFormData, value)} />
+            <PurezaFields
+              formData={formData}
+              handleInputChange={(field, value) => handleInputChange(field as keyof AnalysisFormData, value)}
+              onChangeMalezas={handlePurezaMalezasChange}
+            />
           )}
           {selectedAnalysisType === "dosn" && (
             <DosnFields

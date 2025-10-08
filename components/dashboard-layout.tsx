@@ -13,11 +13,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Leaf, Plus, List, BarChart3, Settings, LogOut, Shield } from "lucide-react"
+import { Leaf, Plus, List, BarChart3, Settings, LogOut, Shield, Bell } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { NotificationDropdown, useNotificationBadge } from "@/components/notificaciones"
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -27,6 +28,7 @@ const navigation = [
   { name: "Registro", href: "/registro", icon: Plus },
   { name: "Listado", href: "/listado", icon: List },
   { name: "Reportes", href: "/reportes", icon: BarChart3 },
+  { name: "Notificaciones", href: "/notificaciones", icon: Bell },
   { name: "Administración", href: "/administracion", icon: Shield },
 ]
 
@@ -34,6 +36,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+
+  // Hook para badge de notificaciones en el sidebar
+  const { unreadCount } = useNotificationBadge()
 
   const handleLogout = async () => {
     try {
@@ -88,7 +93,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                    "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors relative",
                     pathname === item.href || pathname.startsWith(item.href + "/")
                       ? "bg-primary text-primary-foreground"
                       : "text-foreground hover:bg-accent hover:text-accent-foreground",
@@ -96,6 +101,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 >
                   <item.icon className="mr-3 h-5 w-5" />
                   {item.name}
+                  {/* Badge para notificaciones no leídas */}
+                  {item.href === "/notificaciones" && unreadCount > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
                 </Link>
               ))}
             </nav>
@@ -114,7 +125,43 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* Main content */}
-      <div className="flex flex-col flex-1 overflow-y-auto">{children}</div>
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200 px-4 py-3">
+          <div className="flex items-center justify-between">
+            {/* Title/Breadcrumb area */}
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {navigation.find(item => pathname === item.href || pathname.startsWith(item.href + "/"))?.name || "Dashboard"}
+              </h2>
+            </div>
+
+            {/* Right side - Notifications and user menu */}
+            <div className="flex items-center gap-4">
+              <NotificationDropdown
+                onNotificationClick={(notification) => {
+                  toast.info(`Notificación: ${notification.nombre}`, {
+                    description: notification.mensaje
+                  });
+                }}
+                onViewAll={() => {
+                  router.push('/notificaciones');
+                }}
+              />
+
+              {/* User info/avatar placeholder */}
+              <div className="text-sm text-gray-600">
+                Usuario INIA
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Content area */}
+        <div className="flex-1 overflow-y-auto">
+          {children}
+        </div>
+      </div>
 
       {/* Logout confirmation dialog */}
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>

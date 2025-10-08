@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
     Card,
     CardContent,
@@ -18,31 +18,82 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
+    Tabs,
+    TabsList,
+    TabsTrigger,
+    TabsContent,
+} from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
     MessageCircle,
     Scale,
     Search,
     FlaskConical,
     Microscope,
     PieChart,
-    BarChartHorizontal
+    BarChartHorizontal,
+    FileText,
+    ClipboardList,
+    Percent,
+    Building2,
+    AlertTriangle,
+    CheckCircle
 } from "lucide-react";
+
+// Importar el componente de malezas
+import MalezaFields from "@/components/malezas-u-otros-cultivos/fields-maleza";
 
 type Props = {
     formData: {
+        // Datos en gramos
         pesoInicial?: string;
         semillaPura?: string;
         materiaInerte?: string;
         otrosCultivos?: string;
         malezas?: string;
         malezasToleridas?: string;
+        malezasToleranciasCero?: string;
         pesoTotal?: string;
+
+        // Porcentajes manuales
+        semillaPuraPorcentaje?: string;
+        materiaInertePorcentaje?: string;
+        otrosCultivosPorcentaje?: string;
+        malezasPorcentaje?: string;
+        malezasTolerididasPorcentaje?: string;
+        malezasToleranciasCeroPorcentaje?: string;
+
+        // Porcentajes redondeados manuales
+        semillaPuraRedondeado?: string;
+        materiaInerteRedondeado?: string;
+        otrosCultivosRedondeado?: string;
+        malezasRedondeado?: string;
+        malezasTolerididasRedondeado?: string;
+        malezasToleranciasCeroRedondeado?: string;
+
+        // Datos INIA manuales
+        iniaSemillaPuraPorcentaje?: string;
+        iniaMateriaInertePorcentaje?: string;
+        iniaOtrosCultivosPorcentaje?: string;
+        iniaMalezasPorcentaje?: string;
+        iniaMalezasTolerididasPorcentaje?: string;
+        iniaMalezasToleranciasCeroPorcentaje?: string;
+
+        // Alerta diferencia
+        alertaDiferenciaPeso?: string;
+
         observaciones?: string;
-        [key: string]: any; // Para permitir campos adicionales
+        [key: string]: any;
     };
     handleInputChange: (field: string, value: any) => void;
+    onChangeMalezas?: (list: any[]) => void;
 }
 
-export default function PurezaFields({ formData = {}, handleInputChange = () => { } }: Props = { formData: {}, handleInputChange: () => { } }) {
+export default function PurezaFields({
+    formData = {},
+    handleInputChange = () => { },
+    onChangeMalezas
+}: Props) {
     // Para usar el componente de forma independiente (con estado propio)
     const [localFormData, setLocalFormData] = React.useState({
         pesoInicial: '',
@@ -51,9 +102,35 @@ export default function PurezaFields({ formData = {}, handleInputChange = () => 
         otrosCultivos: '',
         malezas: '',
         malezasToleridas: '',
+        malezasToleranciasCero: '',
         pesoTotal: '',
-        observaciones: ''
+        observaciones: '',
+        // Porcentajes
+        semillaPuraPorcentaje: '',
+        materiaInertePorcentaje: '',
+        otrosCultivosPorcentaje: '',
+        malezasPorcentaje: '',
+        malezasTolerididasPorcentaje: '',
+        malezasToleranciasCeroPorcentaje: '',
+        // Redondeados
+        semillaPuraRedondeado: '',
+        materiaInerteRedondeado: '',
+        otrosCultivosRedondeado: '',
+        malezasRedondeado: '',
+        malezasTolerididasRedondeado: '',
+        malezasToleranciasCeroRedondeado: '',
+        // INIA
+        iniaSemillaPuraPorcentaje: '',
+        iniaMateriaInertePorcentaje: '',
+        iniaOtrosCultivosPorcentaje: '',
+        iniaMalezasPorcentaje: '',
+        iniaMalezasTolerididasPorcentaje: '',
+        iniaMalezasToleranciasCeroPorcentaje: '',
+        alertaDiferenciaPeso: ''
     });
+
+    // Estado para manejar la pestaña activa
+    const [activeTab, setActiveTab] = useState("datos-principales");
 
     // Función para manejar cambios en campos cuando se usa de forma independiente
     const handleLocalChange = (field: string, value: any) => {
@@ -64,27 +141,150 @@ export default function PurezaFields({ formData = {}, handleInputChange = () => 
     const data = Object.keys(formData).length > 0 ? formData : localFormData;
     const handleChange = handleInputChange || handleLocalChange;
 
-    // Calcular la suma total de los componentes
-    React.useEffect(() => {
+    // Calcular automáticamente la diferencia de peso
+    const calculoDiferenciaPeso = useMemo(() => {
         const pesoInicial = parseFloat(data.pesoInicial || "0");
         const semillaPura = parseFloat(data.semillaPura || "0");
         const materiaInerte = parseFloat(data.materiaInerte || "0");
         const otrosCultivos = parseFloat(data.otrosCultivos || "0");
         const malezas = parseFloat(data.malezas || "0");
+        const malezasToleridas = parseFloat(data.malezasToleridas || "0");
+        const malezasToleranciasCero = parseFloat(data.malezasToleranciasCero || "0");
 
-        const total = semillaPura + materiaInerte + otrosCultivos + malezas;
+        const totalComponentes = semillaPura + materiaInerte + otrosCultivos + malezas + malezasToleridas + malezasToleranciasCero;
 
-        // Solo actualizar si hay una diferencia significativa
-        if (Math.abs(pesoInicial - total) > 0.01 && pesoInicial > 0) {
-            // Agregar información de diferencia si existe
-            const diferencia = (pesoInicial - total).toFixed(2);
-            const mensaje = `Diferencia con peso inicial: ${diferencia}g`;
-
-            if (data.observaciones && !data.observaciones.includes(mensaje)) {
-                handleChange("observaciones", `${data.observaciones || ""}\n${mensaje}`);
-            }
+        if (pesoInicial <= 0) {
+            return {
+                formula: "",
+                porcentaje: 0,
+                esAlerta: false,
+                mensaje: "Ingrese peso inicial para calcular"
+            };
         }
-    }, [data.pesoInicial, data.semillaPura, data.materiaInerte, data.otrosCultivos, data.malezas]);
+
+        const diferencia = totalComponentes - pesoInicial;
+        const porcentajeDiferencia = (diferencia / pesoInicial) * 100;
+        const porcentajeAbsoluto = Math.abs(porcentajeDiferencia);
+
+        const formula = `(${totalComponentes.toFixed(3)}-${pesoInicial.toFixed(3)})/${pesoInicial.toFixed(3)}*100=${porcentajeDiferencia.toFixed(1)}%`;
+        const esAlerta = porcentajeAbsoluto >= 5;
+        const mensaje = esAlerta
+            ? `≥5% - ALERTA: Diferencia significativa`
+            : `<5% - OK: Diferencia aceptable`;
+
+        return {
+            formula,
+            porcentaje: porcentajeDiferencia,
+            porcentajeAbsoluto,
+            esAlerta,
+            mensaje
+        };
+    }, [data.pesoInicial, data.semillaPura, data.materiaInerte, data.otrosCultivos, data.malezas, data.malezasToleridas, data.malezasToleranciasCero]);
+
+    // Actualizar automáticamente el campo de alerta cuando cambie el cálculo
+    useEffect(() => {
+        if (calculoDiferenciaPeso.formula && handleChange) {
+            const alertaTexto = `${calculoDiferenciaPeso.formula} ${calculoDiferenciaPeso.mensaje}`;
+            handleChange("alertaDiferenciaPeso", alertaTexto);
+        }
+    }, [calculoDiferenciaPeso, handleChange]);
+
+    // Componente reutilizable para una fila de datos de pureza
+    const PurezaRow = ({
+        label,
+        icon: Icon,
+        gramosField,
+        porcentajeField,
+        redondeadoField,
+        required = false,
+        isAlert = false
+    }: {
+        label: string;
+        icon: any;
+        gramosField: string;
+        porcentajeField?: string;
+        redondeadoField?: string;
+        required?: boolean;
+        isAlert?: boolean;
+    }) => (
+        <div className={`grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-lg border ${isAlert ? 'border-red-200 bg-red-50' : 'border-border/50 bg-background'
+            }`}>
+            <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                    {label} (g) {required && '*'}
+                </Label>
+                <Input
+                    type="number"
+                    step="0.001"
+                    placeholder="0.000"
+                    value={(data as any)[gramosField] || ""}
+                    onChange={(e) => handleChange(gramosField, e.target.value)}
+                    className="h-11"
+                    required={required}
+                />
+            </div>
+
+            {porcentajeField && (
+                <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                        <Percent className="h-4 w-4 text-muted-foreground" />
+                        % Manual
+                    </Label>
+                    <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={(data as any)[porcentajeField] || ""}
+                        onChange={(e) => handleChange(porcentajeField, e.target.value)}
+                        className="h-11"
+                    />
+                </div>
+            )}
+
+            {redondeadoField && (
+                <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                        <Percent className="h-4 w-4 text-muted-foreground" />
+                        % Redondeado
+                    </Label>
+                    <Input
+                        type="text"
+                        placeholder="0"
+                        value={(data as any)[redondeadoField] || ""}
+                        onChange={(e) => handleChange(redondeadoField, e.target.value)}
+                        className="h-11"
+                    />
+                </div>
+            )}
+        </div>
+    );
+
+    // Componente para fila INIA
+    const IniaRow = ({
+        label,
+        icon: Icon,
+        field
+    }: {
+        label: string;
+        icon: any;
+        field: string;
+    }) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 rounded-lg border border-emerald-200 bg-emerald-50">
+            <div className="flex items-center gap-2">
+                <Icon className="h-4 w-4 text-emerald-600" />
+                <span className="text-sm font-medium text-emerald-800">{label}</span>
+            </div>
+            <Input
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={(data as any)[field] || ""}
+                onChange={(e) => handleChange(field, e.target.value)}
+                className="h-10 bg-white border-emerald-300"
+            />
+        </div>
+    );
 
     return (
         <Card className="border-0 shadow-sm bg-card">
@@ -98,249 +298,281 @@ export default function PurezaFields({ formData = {}, handleInputChange = () => 
                             Análisis de Pureza Física
                         </CardTitle>
                         <p className="text-sm text-muted-foreground mt-1">
-                            Registra los componentes de pureza para la muestra seleccionada
+                            Sistema de registro manual como en Excel - sin cálculos automáticos
                         </p>
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className="space-y-8">
-                {/* Componentes de pureza */}
-                <div className="space-y-6">
-                    <div className="flex items-center gap-2 mb-4">
-                        <Scale className="h-5 w-5 text-blue-600" />
-                        <h3 className="text-lg font-semibold">Componentes de la Muestra</h3>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="pesoInicial" className="text-sm font-medium flex items-center gap-2">
-                                <Scale className="h-4 w-4 text-muted-foreground" />
-                                Peso Inicial (g) *
-                            </Label>
-                            <Input
-                                id="pesoInicial"
-                                type="number"
-                                step="0.01"
-                                placeholder="0"
-                                value={data.pesoInicial || ""}
-                                onChange={(e) => handleChange("pesoInicial", e.target.value)}
-                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-200"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="semillaPura" className="text-sm font-medium flex items-center gap-2">
-                                <FlaskConical className="h-4 w-4 text-muted-foreground" />
-                                Semilla Pura (g) *
-                            </Label>
-                            <Input
-                                id="semillaPura"
-                                type="number"
-                                step="0.01"
-                                placeholder="0"
-                                value={data.semillaPura || ""}
-                                onChange={(e) => handleChange("semillaPura", e.target.value)}
-                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-200"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="materiaInerte" className="text-sm font-medium flex items-center gap-2">
-                                <BarChartHorizontal className="h-4 w-4 text-muted-foreground" />
-                                Materia Inerte (g) *
-                            </Label>
-                            <Input
-                                id="materiaInerte"
-                                type="number"
-                                step="0.01"
-                                placeholder="0"
-                                value={data.materiaInerte || ""}
-                                onChange={(e) => handleChange("materiaInerte", e.target.value)}
-                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-200"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="otrosCultivos" className="text-sm font-medium flex items-center gap-2">
-                                <PieChart className="h-4 w-4 text-muted-foreground" />
-                                Otros Cultivos (g) *
-                            </Label>
-                            <Input
-                                id="otrosCultivos"
-                                type="number"
-                                step="0.01"
-                                placeholder="0"
-                                value={data.otrosCultivos || ""}
-                                onChange={(e) => handleChange("otrosCultivos", e.target.value)}
-                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-200"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="malezas" className="text-sm font-medium flex items-center gap-2">
-                                <Microscope className="h-4 w-4 text-muted-foreground" />
-                                Malezas (g) *
-                            </Label>
-                            <Input
-                                id="malezas"
-                                type="number"
-                                step="0.01"
-                                placeholder="0"
-                                value={data.malezas || ""}
-                                onChange={(e) => handleChange("malezas", e.target.value)}
-                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-200"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="malezasToleridas" className="text-sm font-medium flex items-center gap-2">
-                                <Microscope className="h-4 w-4 text-muted-foreground" />
-                                Malezas Toleradas
-                            </Label>
-                            <Input
-                                id="malezasToleridas"
-                                placeholder="Especificar malezas toleradas"
-                                value={data.malezasToleridas || ""}
-                                onChange={(e) => handleChange("malezasToleridas", e.target.value)}
-                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-200"
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                Detalle las malezas toleradas encontradas en el análisis
-                            </p>
-                        </div>
-                    </div>
-                </div>
+            <CardContent>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="flex flex-wrap gap-2 w-full mb-6">
+                        <TabsTrigger value="datos-principales" className="flex items-center gap-2 px-3 py-2 text-sm">
+                            <Scale className="h-4 w-4" />
+                            Datos Principales
+                        </TabsTrigger>
+                        <TabsTrigger value="inia-porcentajes" className="flex items-center gap-2 px-3 py-2 text-sm">
+                            <Building2 className="h-4 w-4" />
+                            INIA %
+                        </TabsTrigger>
+                        <TabsTrigger value="detalle-malezas" className="flex items-center gap-2 px-3 py-2 text-sm">
+                            <Microscope className="h-4 w-4" />
+                            Detalle Malezas
+                        </TabsTrigger>
+                        <TabsTrigger value="observaciones" className="flex items-center gap-2 px-3 py-2 text-sm">
+                            <FileText className="h-4 w-4" />
+                            Observaciones
+                        </TabsTrigger>
+                    </TabsList>
 
-                {/* Configuración de peso total */}
-                <div className="space-y-6">
-                    <div className="flex items-center gap-2 mb-4">
-                        <PieChart className="h-5 w-5 text-blue-600" />
-                        <h3 className="text-lg font-semibold">Configuración Adicional</h3>
-                    </div>
+                    {/* TAB: Datos Principales - Como en Excel */}
+                    <TabsContent value="datos-principales" className="space-y-6">
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Scale className="h-5 w-5 text-blue-600" />
+                                <h3 className="text-lg font-semibold">Datos de Pureza Física</h3>
+                                <p className="text-sm text-muted-foreground ml-2">(Entrada manual como Excel)</p>
+                            </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="pesoTotal" className="text-sm font-medium flex items-center gap-2">
-                                <Scale className="h-4 w-4 text-muted-foreground" />
-                                Peso Total de Muestra
-                            </Label>
-                            <Select
-                                value={data.pesoTotal || ""}
-                                onValueChange={(v) => handleChange("pesoTotal", v)}
-                            >
-                                <SelectTrigger className="h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-200">
-                                    <SelectValue placeholder="Seleccionar peso total" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="5g">5g</SelectItem>
-                                    <SelectItem value="10g">10g</SelectItem>
-                                    <SelectItem value="25g">25g</SelectItem>
-                                    <SelectItem value="50g">50g</SelectItem>
-                                    <SelectItem value="100g">100g</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <p className="text-xs text-muted-foreground">
-                                Tamaño estándar de muestra utilizada para el análisis
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Resumen de pesos y cálculo de totales */}
-                {parseFloat(data.pesoInicial || "0") > 0 && (
-                    <Card className="bg-blue-50 border-blue-200">
-                        <CardContent className="pt-4">
-                            <div className="flex items-start gap-3">
-                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-200">
-                                    <Scale className="h-4 w-4 text-blue-700" />
-                                </div>
-                                <div className="flex-1">
-                                    <h4 className="font-medium text-blue-900 mb-2">Resumen de Componentes</h4>
-                                    <div className="space-y-2 text-sm text-blue-800">
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <span className="text-blue-700">Peso inicial:</span>
-                                                <span className="font-medium float-right">{parseFloat(data.pesoInicial || "0").toFixed(2)}g</span>
-                                            </div>
-                                            <div>
-                                                <span className="text-blue-700">Semilla pura:</span>
-                                                <span className="float-right">{parseFloat(data.semillaPura || "0").toFixed(2)}g</span>
-                                            </div>
-                                            <div>
-                                                <span className="text-blue-700">Materia inerte:</span>
-                                                <span className="float-right">{parseFloat(data.materiaInerte || "0").toFixed(2)}g</span>
-                                            </div>
-                                            <div>
-                                                <span className="text-blue-700">Otros cultivos:</span>
-                                                <span className="float-right">{parseFloat(data.otrosCultivos || "0").toFixed(2)}g</span>
-                                            </div>
-                                            <div>
-                                                <span className="text-blue-700">Malezas:</span>
-                                                <span className="float-right">{parseFloat(data.malezas || "0").toFixed(2)}g</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="h-px bg-blue-200 my-2"></div>
-
-                                        <div className="font-medium flex justify-between">
-                                            <span>Total componentes:</span>
-                                            <span>{(
-                                                parseFloat(data.semillaPura || "0") +
-                                                parseFloat(data.materiaInerte || "0") +
-                                                parseFloat(data.otrosCultivos || "0") +
-                                                parseFloat(data.malezas || "0")
-                                            ).toFixed(2)}g</span>
-                                        </div>
-
-                                        {Math.abs(parseFloat(data.pesoInicial || "0") - (
-                                            parseFloat(data.semillaPura || "0") +
-                                            parseFloat(data.materiaInerte || "0") +
-                                            parseFloat(data.otrosCultivos || "0") +
-                                            parseFloat(data.malezas || "0")
-                                        )) > 0.01 && (
-                                                <div className="flex justify-between text-red-600 font-medium">
-                                                    <span>Diferencia:</span>
-                                                    <span>{(parseFloat(data.pesoInicial || "0") - (
-                                                        parseFloat(data.semillaPura || "0") +
-                                                        parseFloat(data.materiaInerte || "0") +
-                                                        parseFloat(data.otrosCultivos || "0") +
-                                                        parseFloat(data.malezas || "0")
-                                                    )).toFixed(2)}g</span>
-                                                </div>
-                                            )}
+                            {/* Peso Inicial - Solo gramos */}
+                            <div className="p-4 rounded-lg border border-blue-200 bg-blue-50">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-medium flex items-center gap-2">
+                                            <Scale className="h-4 w-4 text-blue-600" />
+                                            1. Peso inicial (g) *
+                                        </Label>
+                                        <Input
+                                            type="number"
+                                            step="0.001"
+                                            placeholder="3.000"
+                                            value={data.pesoInicial || ""}
+                                            onChange={(e) => handleChange("pesoInicial", e.target.value)}
+                                            className="h-11 font-medium bg-white"
+                                            required
+                                        />
                                     </div>
+                                    <div></div>
+                                    <div></div>
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
-                )}
 
-                {/* Sección dedicada para comentarios de pureza física */}
-                <div className="space-y-6">
-                    <div className="flex items-center gap-2 mb-4">
-                        <MessageCircle className="h-5 w-5 text-blue-600" />
-                        <h3 className="text-lg font-semibold">Comentarios y Observaciones</h3>
-                    </div>
+                            {/* Semilla Pura */}
+                            <PurezaRow
+                                label="2. Semilla pura"
+                                icon={FlaskConical}
+                                gramosField="semillaPura"
+                                porcentajeField="semillaPuraPorcentaje"
+                                redondeadoField="semillaPuraRedondeado"
+                                required
+                            />
 
-                    <div className="space-y-2">
-                        <Label htmlFor="comentariosPureza" className="text-sm font-medium flex items-center gap-2">
-                            <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                            Comentarios de Pureza Física
-                        </Label>
-                        <Textarea
-                            id="comentariosPureza"
-                            placeholder="Ingrese comentarios específicos del análisis de pureza física..."
-                            value={data.observaciones || ""}
-                            onChange={(e) => handleChange("observaciones", e.target.value)}
-                            rows={4}
-                            className="resize-y min-h-[100px] transition-all duration-200 focus:ring-2 focus:ring-blue-200"
+                            {/* Materia Inerte */}
+                            <PurezaRow
+                                label="3. Materia inerte"
+                                icon={BarChartHorizontal}
+                                gramosField="materiaInerte"
+                                porcentajeField="materiaInertePorcentaje"
+                                redondeadoField="materiaInerteRedondeado"
+                                required
+                            />
+
+                            {/* Otros Cultivos */}
+                            <PurezaRow
+                                label="4. Otros cultivos"
+                                icon={PieChart}
+                                gramosField="otrosCultivos"
+                                porcentajeField="otrosCultivosPorcentaje"
+                                redondeadoField="otrosCultivosRedondeado"
+                                required
+                            />
+
+                            {/* Malezas */}
+                            <PurezaRow
+                                label="5. Malezas"
+                                icon={Microscope}
+                                gramosField="malezas"
+                                porcentajeField="malezasPorcentaje"
+                                redondeadoField="malezasRedondeado"
+                                required
+                            />
+
+                            {/* Malezas Toleradas */}
+                            <PurezaRow
+                                label="6. Malezas toleradas"
+                                icon={Microscope}
+                                gramosField="malezasToleridas"
+                                porcentajeField="malezasTolerididasPorcentaje"
+                                redondeadoField="malezasTolerididasRedondeado"
+                            />
+
+                            {/* Malezas con Tolerancia Cero */}
+                            <PurezaRow
+                                label="7. Malezas con tolerancia cero"
+                                icon={Microscope}
+                                gramosField="malezasToleranciasCero"
+                                porcentajeField="malezasToleranciasCeroPorcentaje"
+                                redondeadoField="malezasToleranciasCeroRedondeado"
+                            />
+
+                            {/* Peso Total */}
+                            <div className="p-4 rounded-lg border border-purple-200 bg-purple-50">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-medium flex items-center gap-2">
+                                            <Scale className="h-4 w-4 text-purple-600" />
+                                            8. Peso total
+                                        </Label>
+                                        <Select
+                                            value={data.pesoTotal || ""}
+                                            onValueChange={(v) => handleChange("pesoTotal", v)}
+                                        >
+                                            <SelectTrigger className="h-11 bg-white">
+                                                <SelectValue placeholder="Seleccionar peso" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="3.000">3.000g</SelectItem>
+                                                <SelectItem value="5.000">5.000g</SelectItem>
+                                                <SelectItem value="10.000">10.000g</SelectItem>
+                                                <SelectItem value="25.000">25.000g</SelectItem>
+                                                <SelectItem value="50.000">50.000g</SelectItem>
+                                                <SelectItem value="100.000">100.000g</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div></div>
+                                    <div></div>
+                                </div>
+                            </div>
+
+                            {/* Alerta Diferencia de Peso - Cálculo Automático */}
+                            <div className={`p-4 rounded-lg border ${calculoDiferenciaPeso.esAlerta
+                                    ? 'border-red-200 bg-red-50'
+                                    : 'border-green-200 bg-green-50'
+                                }`}>
+                                <div className="space-y-3">
+                                    <Label className={`text-sm font-medium flex items-center gap-2 ${calculoDiferenciaPeso.esAlerta ? 'text-red-700' : 'text-green-700'
+                                        }`}>
+                                        {calculoDiferenciaPeso.esAlerta ? (
+                                            <AlertTriangle className="h-4 w-4" />
+                                        ) : (
+                                            <CheckCircle className="h-4 w-4" />
+                                        )}
+                                        9. Alerta Diferencia de peso (automático)
+                                    </Label>
+
+                                    {/* Campo readonly que muestra el cálculo automático */}
+                                    <div className={`p-3 rounded border ${calculoDiferenciaPeso.esAlerta
+                                            ? 'bg-red-100 border-red-300'
+                                            : 'bg-green-100 border-green-300'
+                                        }`}>
+                                        <div className="space-y-2">
+                                            <div className="font-mono text-sm">
+                                                <strong>Fórmula:</strong> {calculoDiferenciaPeso.formula || "Esperando datos..."}
+                                            </div>
+                                            <div className={`text-sm font-medium ${calculoDiferenciaPeso.esAlerta ? 'text-red-800' : 'text-green-800'
+                                                }`}>
+                                                <strong>Estado:</strong> {calculoDiferenciaPeso.mensaje}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Campo oculto para mantener el valor en el formulario */}
+                                    <input
+                                        type="hidden"
+                                        value={data.alertaDiferenciaPeso || ""}
+                                        onChange={(e) => handleChange("alertaDiferenciaPeso", e.target.value)}
+                                    />
+
+                                    <p className={`text-xs ${calculoDiferenciaPeso.esAlerta ? 'text-red-600' : 'text-green-600'
+                                        }`}>
+                                        ✨ Cálculo automático: (Total componentes - Peso inicial) / Peso inicial × 100
+                                        {calculoDiferenciaPeso.esAlerta && (
+                                            <span className="block mt-1 font-medium">
+                                                ⚠️ ATENCIÓN: La diferencia es ≥5%, revisar los datos ingresados
+                                            </span>
+                                        )}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </TabsContent>
+
+                    {/* TAB: INIA Porcentajes */}
+                    <TabsContent value="inia-porcentajes" className="space-y-6">
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Building2 className="h-5 w-5 text-emerald-600" />
+                                <h3 className="text-lg font-semibold">Registro INIA - Porcentajes Manuales</h3>
+                            </div>
+
+                            <Card className="border-emerald-200 bg-emerald-50">
+                                <CardHeader className="pb-4">
+                                    <div className="flex items-center gap-2">
+                                        <Building2 className="h-5 w-5 text-emerald-600" />
+                                        <CardTitle className="text-lg text-emerald-800">INIA - Instituto Nacional de Investigación Agropecuaria</CardTitle>
+                                    </div>
+                                    <p className="text-sm text-emerald-700">Ingrese los porcentajes manualmente para el registro de INIA</p>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <IniaRow label="Semilla pura %" icon={FlaskConical} field="iniaSemillaPuraPorcentaje" />
+                                    <IniaRow label="Materia inerte %" icon={BarChartHorizontal} field="iniaMateriaInertePorcentaje" />
+                                    <IniaRow label="Otros cultivos %" icon={PieChart} field="iniaOtrosCultivosPorcentaje" />
+                                    <IniaRow label="Malezas %" icon={Microscope} field="iniaMalezasPorcentaje" />
+                                    <IniaRow label="Malezas toleradas %" icon={Microscope} field="iniaMalezasTolerididasPorcentaje" />
+                                    <IniaRow label="Malezas tolerancia cero %" icon={Microscope} field="iniaMalezasToleranciasCeroPorcentaje" />
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </TabsContent>
+
+                    {/* TAB: Detalle de Malezas */}
+                    <TabsContent value="detalle-malezas" className="space-y-6">
+                        <MalezaFields
+                            titulo="Identificación Detallada de Malezas"
+                            registros={[]}
+                            onChangeListados={onChangeMalezas}
                         />
-                        <p className="text-xs text-muted-foreground">
-                            Incluya observaciones sobre la muestra, condiciones del análisis, particularidades
-                            encontradas u otra información relevante para documentar este análisis.
-                        </p>
-                    </div>
-                </div>
+                        <Alert>
+                            <Microscope className="h-4 w-4" />
+                            <AlertDescription>
+                                Esta sección permite registrar el detalle específico de las malezas encontradas
+                                durante el análisis de pureza física. Los pesos registrados aquí deben coincidir
+                                con los totales ingresados en la pestaña "Datos Principales".
+                            </AlertDescription>
+                        </Alert>
+                    </TabsContent>
+
+                    {/* TAB: Observaciones */}
+                    <TabsContent value="observaciones" className="space-y-6">
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <MessageCircle className="h-5 w-5 text-blue-600" />
+                                <h3 className="text-lg font-semibold">Comentarios y Observaciones</h3>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="observaciones" className="text-sm font-medium flex items-center gap-2">
+                                    <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                                    Observaciones del Análisis de Pureza
+                                </Label>
+                                <Textarea
+                                    id="observaciones"
+                                    placeholder="Ingrese observaciones específicas del análisis de pureza física..."
+                                    value={data.observaciones || ""}
+                                    onChange={(e) => handleChange("observaciones", e.target.value)}
+                                    rows={8}
+                                    className="resize-y min-h-[200px]"
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    Incluya observaciones sobre la muestra, condiciones del análisis,
+                                    particularidades encontradas u otra información relevante.
+                                </p>
+                            </div>
+                        </div>
+                    </TabsContent>
+                </Tabs>
             </CardContent>
-        </Card>);
+        </Card>
+    );
 }
