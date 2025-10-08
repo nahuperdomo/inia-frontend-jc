@@ -7,20 +7,20 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { 
-  obtenerNotificacionesNoLeidas, 
-  contarNotificacionesNoLeidas,
+  obtenerMisNotificacionesNoLeidas, 
+  contarMisNotificacionesNoLeidas,
   marcarComoLeida,
-  marcarTodasComoLeidas,
+  marcarTodasMisNotificacionesComoLeidas,
   eliminarNotificacion
 } from "@/app/services/notificacion-service"
 import type { NotificacionDTO } from "@/app/models/interfaces/notificacion"
 import type { TipoNotificacion } from "@/app/models/types/enums"
 
 interface NotificacionesDropdownProps {
-  usuarioId: number;
+  // Ya no necesitamos usuarioId porque usamos el usuario autenticado
 }
 
-export function NotificacionesDropdown({ usuarioId }: NotificacionesDropdownProps) {
+export function NotificacionesDropdown({}: NotificacionesDropdownProps) {
   const [notificaciones, setNotificaciones] = useState<NotificacionDTO[]>([])
   const [count, setCount] = useState<number>(0)
   const [loading, setLoading] = useState<boolean>(false)
@@ -31,8 +31,8 @@ export function NotificacionesDropdown({ usuarioId }: NotificacionesDropdownProp
     try {
       setLoading(true)
       const [notificacionesData, countData] = await Promise.all([
-        obtenerNotificacionesNoLeidas(usuarioId),
-        contarNotificacionesNoLeidas(usuarioId)
+        obtenerMisNotificacionesNoLeidas(),
+        contarMisNotificacionesNoLeidas()
       ])
       setNotificaciones(notificacionesData)
       setCount(countData)
@@ -44,13 +44,11 @@ export function NotificacionesDropdown({ usuarioId }: NotificacionesDropdownProp
   }
 
   useEffect(() => {
-    if (usuarioId) {
-      fetchNotificaciones()
-      // Actualizar cada 30 segundos
-      const interval = setInterval(fetchNotificaciones, 30000)
-      return () => clearInterval(interval)
-    }
-  }, [usuarioId])
+    fetchNotificaciones()
+    // Actualizar cada 30 segundos
+    const interval = setInterval(fetchNotificaciones, 30000)
+    return () => clearInterval(interval)
+  }, []) // Sin dependencias porque ya no usamos usuarioId
 
   // Cerrar dropdown al hacer click fuera
   useEffect(() => {
@@ -77,7 +75,7 @@ export function NotificacionesDropdown({ usuarioId }: NotificacionesDropdownProp
 
   const handleMarcarTodasComoLeidas = async () => {
     try {
-      await marcarTodasComoLeidas(usuarioId)
+      await marcarTodasMisNotificacionesComoLeidas()
       fetchNotificaciones() // Refrescar
     } catch (error) {
       console.error("Error al marcar todas como leídas:", error)

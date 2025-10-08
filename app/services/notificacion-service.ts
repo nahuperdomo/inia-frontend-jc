@@ -5,7 +5,7 @@ import type {
   PaginatedNotificaciones 
 } from "@/app/models/interfaces/notificacion";
 
-// Crear notificación manual
+// Crear notificación manual (solo administradores)
 export async function crearNotificacion(request: NotificacionRequestDTO): Promise<NotificacionDTO> {
   return apiFetch("/api/notificaciones", {
     method: "POST",
@@ -13,7 +13,36 @@ export async function crearNotificacion(request: NotificacionRequestDTO): Promis
   });
 }
 
-// Obtener notificaciones de un usuario con paginación
+// === ENDPOINTS SEGUROS PARA EL USUARIO ACTUAL ===
+
+// Obtener MIS notificaciones con paginación
+export async function obtenerMisNotificaciones(
+  page: number = 0, 
+  size: number = 10
+): Promise<PaginatedNotificaciones> {
+  return apiFetch(`/api/notificaciones/mis-notificaciones?page=${page}&size=${size}`);
+}
+
+// Obtener MIS notificaciones no leídas
+export async function obtenerMisNotificacionesNoLeidas(): Promise<NotificacionDTO[]> {
+  return apiFetch(`/api/notificaciones/mis-notificaciones/no-leidas`);
+}
+
+// Contar MIS notificaciones no leídas
+export async function contarMisNotificacionesNoLeidas(): Promise<number> {
+  return apiFetch(`/api/notificaciones/mis-notificaciones/contar-no-leidas`);
+}
+
+// Marcar todas MIS notificaciones como leídas
+export async function marcarTodasMisNotificacionesComoLeidas(): Promise<void> {
+  return apiFetch(`/api/notificaciones/mis-notificaciones/marcar-todas-leidas`, {
+    method: "PUT",
+  });
+}
+
+// === ENDPOINTS ADMINISTRATIVOS (requieren validación de acceso) ===
+
+// Obtener notificaciones de un usuario específico (solo admin o el mismo usuario)
 export async function obtenerNotificacionesPorUsuario(
   usuarioId: number, 
   page: number = 0, 
@@ -22,38 +51,43 @@ export async function obtenerNotificacionesPorUsuario(
   return apiFetch(`/api/notificaciones/usuario/${usuarioId}?page=${page}&size=${size}`);
 }
 
-// Obtener notificaciones no leídas de un usuario
+// Obtener notificaciones no leídas de un usuario específico (solo admin o el mismo usuario)
 export async function obtenerNotificacionesNoLeidas(usuarioId: number): Promise<NotificacionDTO[]> {
   return apiFetch(`/api/notificaciones/usuario/${usuarioId}/no-leidas`);
 }
 
-// Contar notificaciones no leídas
+// Contar notificaciones no leídas de un usuario específico (solo admin o el mismo usuario)
 export async function contarNotificacionesNoLeidas(usuarioId: number): Promise<number> {
   return apiFetch(`/api/notificaciones/usuario/${usuarioId}/contar-no-leidas`);
 }
 
-// Marcar notificación como leída
-export async function marcarComoLeida(notificacionId: number): Promise<NotificacionDTO> {
-  return apiFetch(`/api/notificaciones/${notificacionId}/marcar-leida`, {
-    method: "PUT",
-  });
-}
-
-// Marcar todas las notificaciones de un usuario como leídas
+// Marcar todas las notificaciones de un usuario específico como leídas (solo admin o el mismo usuario)
 export async function marcarTodasComoLeidas(usuarioId: number): Promise<void> {
   return apiFetch(`/api/notificaciones/usuario/${usuarioId}/marcar-todas-leidas`, {
     method: "PUT",
   });
 }
 
-// Eliminar notificación (marcar como inactiva)
+// === ENDPOINTS PARA NOTIFICACIONES INDIVIDUALES ===
+
+// Marcar notificación como leída (solo el propietario o admin)
+export async function marcarComoLeida(notificacionId: number): Promise<NotificacionDTO> {
+  return apiFetch(`/api/notificaciones/${notificacionId}/marcar-leida`, {
+    method: "PUT",
+  });
+}
+
+// Eliminar notificación (solo el propietario o admin)
 export async function eliminarNotificacion(notificacionId: number): Promise<void> {
   return apiFetch(`/api/notificaciones/${notificacionId}`, {
     method: "DELETE",
   });
 }
 
-// Funciones para notificaciones automáticas (uso interno del sistema)
+// === FUNCIONES DEPRECADAS - USAR LOS ENDPOINTS SEGUROS ===
+// Estas funciones se mantienen por compatibilidad pero se recomienda usar los nuevos endpoints
+
+// DEPRECATED: Funciones para notificaciones automáticas (uso interno del sistema - REMOVER EN PRODUCCIÓN)
 export async function notificarNuevoUsuario(usuarioId: number): Promise<void> {
   return apiFetch(`/api/notificaciones/interno/nuevo-usuario/${usuarioId}`, {
     method: "POST",
