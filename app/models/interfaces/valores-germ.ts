@@ -8,18 +8,16 @@ export interface ValoresGermDTO {
   duras: number;
   frescas: number;
   muertas: number;
-  total: number;
-  tablaGerm?: {
-    tablaGermID: number;
-  };
+  germinacion: number; // Cambiado de 'total' a 'germinacion'
+  tablaGermId?: number; // Cambiado de tablaGerm.tablaGermID a tablaGermId
 }
 
 export interface ValoresGermRequestDTO {
-  instituto: Instituto;
+  // NO incluir instituto - el backend lo determina por el ID
   normales: number;
   anormales: number;
   duras: number;
   frescas: number;
   muertas: number;
-  total: number;
+  germinacion: number; // Cambiado de 'total' a 'germinacion'
 }

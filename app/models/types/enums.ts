@@ -3,7 +3,7 @@ export type EstadoAnalisis = 'PENDIENTE' | 'EN_PROCESO' | 'FINALIZADO' | 'PENDIE
 
 export type TipoMYCCatalogo = 'MALEZA' | 'CULTIVO' | 'BRASSICA';
 
-export type TipoListado = 'OTRAS_SEMILLAS' | 'MALEZAS' | 'OTROS_CULTIVOS';
+export type TipoListado = | 'MAL_TOLERANCIA' | 'MAL_TOLERANCIA_CERO' | 'MAL_COMUNES' | 'BRASSICA' | 'OTROS';
 
 export type Instituto = 'INIA' | 'INASE';
 
@@ -18,3 +18,5 @@ export type EstadoLote = 'ACTIVO' | 'INACTIVO' | 'COMPLETADO';
 export type TipoAnalisis = 'PUREZA' | 'GERMINACION' | 'PMS' | 'TETRAZOLIO' | 'DOSN';
 
 export type TipoContacto = 'CLIENTE' | 'EMPRESA';
+
+export type TipoNotificacion = 'USUARIO_REGISTRO' | 'USUARIO_APROBADO' | 'USUARIO_RECHAZADO' | 'ANALISIS_FINALIZADO' | 'ANALISIS_APROBADO' | 'ANALISIS_REPETIR';

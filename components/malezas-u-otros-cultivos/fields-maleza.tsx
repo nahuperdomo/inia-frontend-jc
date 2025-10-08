@@ -8,14 +8,15 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Trash2, Plus, Leaf, AlertTriangle, CheckCircle, XCircle } from "lucide-react"
-import { obtenerMalezas, MalezaCatalogo } from "@/app/services/malezas-service"
+import { obtenerMalezas } from "@/app/services/malezas-service"
+import { MalezasYCultivosCatalogoDTO } from "@/app/models"
 
 type Maleza = {
-  tipoMaleza: string
+  tipoMaleza: "MAL_TOLERANCIA" | "MAL_TOLERANCIA_CERO" | "MAL_COMUNES" | "NO_CONTIENE" | ""
   listado: string
   entidad: string
   numero: string
-  catalogoID: number | null
+  idCatalogo: number | null
 }
 
 type Props = {
@@ -28,16 +29,17 @@ export default function MalezaFields({ titulo, registros, onChangeListados }: Pr
   const [malezas, setMalezas] = useState<Maleza[]>(
     registros && registros.length > 0
       ? registros.map((r) => ({
-        tipoMaleza: r.listadoTipo?.toLowerCase() || "",
+        tipoMaleza: r.listadoTipo || "",
         listado: r.catalogo?.nombreComun || "",
         entidad: r.listadoInsti?.toLowerCase() || "",
         numero: r.listadoNum?.toString() || "",
-        catalogoID: r.catalogo?.catalogoID || null,
+        idCatalogo: r.catalogo?.catalogoID || null,
       }))
-      : [{ tipoMaleza: "", listado: "", entidad: "", numero: "", catalogoID: null }]
+      : [{ tipoMaleza: "", listado: "", entidad: "", numero: "", idCatalogo: null }]
   )
 
-  const [opcionesMalezas, setOpcionesMalezas] = useState<MalezaCatalogo[]>([])
+
+  const [opcionesMalezas, setOpcionesMalezas] = useState<MalezasYCultivosCatalogoDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -46,7 +48,6 @@ export default function MalezaFields({ titulo, registros, onChangeListados }: Pr
     const fetchMalezas = async () => {
       try {
         const data = await obtenerMalezas()
-        console.log("Opciones malezas:", data)
         setOpcionesMalezas(data)
       } catch (err) {
         setError("Error al cargar malezas")
@@ -61,44 +62,26 @@ export default function MalezaFields({ titulo, registros, onChangeListados }: Pr
   useEffect(() => {
     if (onChangeListados) {
       const listados = malezas
-        .filter((m) => m.listado && m.entidad) // ya no filtro por numero
-        .map((m) => {
-          let listadoTipo = "MAL_COMUNES" // fallback
-
-          switch (m.tipoMaleza) {
-            case "tolerancia-cero":
-              listadoTipo = "MAL_TOLERANCIA_CERO"
-              break
-            case "con-tolerancia":
-              listadoTipo = "MAL_TOLERANCIA"
-              break
-            case "comunes":
-              listadoTipo = "MAL_COMUNES"
-              break
-            case "no-contiene":
-              listadoTipo = "MAL_COMUNES"
-              return {
-                listadoTipo,
-                listadoInsti: m.entidad.toUpperCase(),
-                listadoNum: 0,
-                catalogoID: m.catalogoID,
-              }
-          }
-
-          return {
-            listadoTipo,
-            listadoInsti: m.entidad.toUpperCase(),
-            listadoNum: Number(m.numero) || 0,
-            catalogoID: m.catalogoID,
-          }
+        .filter((m) => {
+          // Verificar que tenga los campos requeridos y no sea "NO_CONTIENE"
+          const hasRequiredFields = m.listado && m.listado.trim() !== "" &&
+            m.entidad && m.entidad.trim() !== "" &&
+            m.tipoMaleza && m.tipoMaleza !== "NO_CONTIENE" && m.tipoMaleza !== "" as any;
+          return hasRequiredFields;
         })
+        .map((m) => ({
+          listadoTipo: m.tipoMaleza,
+          listadoInsti: m.entidad.toUpperCase(),
+          listadoNum: m.numero !== "" ? Number(m.numero) : null,
+          idCatalogo: m.idCatalogo,
+        }))
 
       onChangeListados(listados)
     }
   }, [malezas, onChangeListados])
 
   const addMaleza = () => {
-    setMalezas([...malezas, { tipoMaleza: "", listado: "", entidad: "", numero: "", catalogoID: null }])
+    setMalezas([...malezas, { tipoMaleza: "", listado: "", entidad: "", numero: "", idCatalogo: null }])
   }
 
   const removeMaleza = (index: number) => {
@@ -118,13 +101,9 @@ export default function MalezaFields({ titulo, registros, onChangeListados }: Pr
 
   const handleEspecieSelect = (index: number, especie: string) => {
     const catalogo = opcionesMalezas.find((e) => e.nombreComun === especie)
-    const catalogoID = catalogo ? catalogo.catalogoid : null;
+    const idCatalogo = catalogo ? catalogo.catalogoID : null
     const updated = [...malezas]
-    updated[index] = {
-      ...updated[index],
-      listado: especie,
-      catalogoID,
-    }
+    updated[index] = { ...updated[index], listado: especie, idCatalogo }
     setMalezas(updated)
   }
 
@@ -167,32 +146,32 @@ export default function MalezaFields({ titulo, registros, onChangeListados }: Pr
                     <Label className="text-sm font-medium text-foreground">Tipo de Maleza</Label>
                     <Select
                       value={maleza.tipoMaleza || ""}
-                      onValueChange={(val) => updateMaleza(index, "tipoMaleza", val)}
+                      onValueChange={(val) => updateMaleza(index, "tipoMaleza", val as Maleza["tipoMaleza"])}
                       disabled={isDisabled}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Seleccionar tipo" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="tolerancia-cero">
+                        <SelectItem value="MAL_TOLERANCIA_CERO">
                           <div className="flex items-center gap-2">
                             <AlertTriangle className="h-4 w-4 text-red-500" />
                             Tolerancia cero
                           </div>
                         </SelectItem>
-                        <SelectItem value="comunes">
+                        <SelectItem value="MAL_COMUNES">
                           <div className="flex items-center gap-2">
                             <Leaf className="h-4 w-4 text-amber-500" />
                             Comunes
                           </div>
                         </SelectItem>
-                        <SelectItem value="con-tolerancia">
+                        <SelectItem value="MAL_TOLERANCIA">
                           <div className="flex items-center gap-2">
                             <CheckCircle className="h-4 w-4 text-green-500" />
                             Con tolerancia
                           </div>
                         </SelectItem>
-                        <SelectItem value="no-contiene">
+                        <SelectItem value="NO_CONTIENE">
                           <div className="flex items-center gap-2">
                             <XCircle className="h-4 w-4 text-slate-500" />
                             No contiene
@@ -206,9 +185,9 @@ export default function MalezaFields({ titulo, registros, onChangeListados }: Pr
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-foreground">Especie</Label>
                     <Select
-                      value={maleza.listado || ""} 
+                      value={maleza.listado || ""}
                       onValueChange={(val: string) => handleEspecieSelect(index, val)}
-                      disabled={isDisabled || loading}
+                      disabled={isDisabled || loading || maleza.tipoMaleza === "NO_CONTIENE"}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder={loading ? "Cargando..." : "Seleccionar especie"} />
@@ -217,11 +196,10 @@ export default function MalezaFields({ titulo, registros, onChangeListados }: Pr
                         {error && <SelectItem value="error" disabled>{error}</SelectItem>}
                         {!loading &&
                           !error &&
-                          opcionesMalezas.map((opcion, idx) => (
-                            <SelectItem key={opcion.catalogoid + "-" + idx} value={opcion.nombreComun}>
-                              <span className="italic">{opcion.nombreComun}</span>
+                          opcionesMalezas.map((opcion) => (
+                            <SelectItem key={opcion.catalogoID} value={opcion.nombreComun}>
+                              {opcion.nombreComun}
                             </SelectItem>
-
                           ))}
                       </SelectContent>
                     </Select>
@@ -233,7 +211,7 @@ export default function MalezaFields({ titulo, registros, onChangeListados }: Pr
                     <Select
                       value={maleza.entidad || ""}
                       onValueChange={(val) => updateMaleza(index, "entidad", val)}
-                      disabled={isDisabled}
+                      disabled={isDisabled || maleza.tipoMaleza === "NO_CONTIENE"}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Seleccionar entidad" />
@@ -251,7 +229,9 @@ export default function MalezaFields({ titulo, registros, onChangeListados }: Pr
                     <Input
                       value={maleza.numero}
                       onChange={(e) => updateMaleza(index, "numero", e.target.value)}
-                      disabled={isDisabled}
+                      disabled={isDisabled || maleza.tipoMaleza === "NO_CONTIENE"}
+                      type="number"
+                      placeholder="Ingrese número"
                     />
                   </div>
                 </div>

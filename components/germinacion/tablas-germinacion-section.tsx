@@ -14,7 +14,8 @@ import {
   finalizarTabla, 
   actualizarPorcentajes,
   crearTablaGerminacion,
-  actualizarTablaGerminacion
+  actualizarTablaGerminacion,
+  finalizarGerminacion
 } from '@/app/services/germinacion-service'
 import {
   obtenerValoresPorTabla,
@@ -42,6 +43,7 @@ export function TablasGerminacionSection({
   const [tablaExpandida, setTablaExpandida] = useState<number | null>(null)
   const [eliminandoTabla, setEliminandoTabla] = useState<number | null>(null)
   const [finalizandoTabla, setFinalizandoTabla] = useState<number | null>(null)
+  const [finalizandoGerminacion, setFinalizandoGerminacion] = useState<boolean>(false)
   const [editandoPorcentajes, setEditandoPorcentajes] = useState<number | null>(null)
   const [editandoValores, setEditandoValores] = useState<number | null>(null)
   const [editandoTablaGeneral, setEditandoTablaGeneral] = useState<number | null>(null)
@@ -52,25 +54,27 @@ export function TablasGerminacionSection({
   const [porcentajesOriginales, setPorcentajesOriginales] = useState<PorcentajesRedondeoRequestDTO | null>(null)
   const [valoresOriginalesInia, setValoresOriginalesInia] = useState<ValoresGermRequestDTO | null>(null)
   const [valoresOriginalesInase, setValoresOriginalesInase] = useState<ValoresGermRequestDTO | null>(null)
+  const [erroresValidacion, setErroresValidacion] = useState<{[key: string]: string}>({})
+  const [erroresValidacionNuevaTabla, setErroresValidacionNuevaTabla] = useState<{[key: string]: string}>({})
   const [tablaEditada, setTablaEditada] = useState<TablaGermRequestDTO>({
     tratamiento: '',
     productoYDosis: '',
-    numSemillasPRep: 100,
-    metodo: 'Papel',
-    temperatura: 20,
-    prefrio: 'No',
-    pretratamiento: 'Ninguno',
+    numSemillasPRep: 0,
+    metodo: '',
+    temperatura: 0,
+    prefrio: '',
+    pretratamiento: '',
     total: 0
   })
   const [tablaOriginal, setTablaOriginal] = useState<TablaGermRequestDTO | null>(null)
   const [nuevaTabla, setNuevaTabla] = useState<TablaGermRequestDTO>({
-    tratamiento: 'Control',
+    tratamiento: '',
     productoYDosis: '',
-    numSemillasPRep: 100,
-    metodo: 'Papel',
-    temperatura: 20,
-    prefrio: 'No',
-    pretratamiento: 'Ninguno',
+    numSemillasPRep: 0,
+    metodo: '',
+    temperatura: 0,
+    prefrio: '',
+    pretratamiento: '',
     total: 0
   })
   const [porcentajes, setPorcentajes] = useState<PorcentajesRedondeoRequestDTO>({
@@ -81,22 +85,20 @@ export function TablasGerminacionSection({
     porcentajeMuertasConRedondeo: 0
   })
   const [valoresInia, setValoresInia] = useState<ValoresGermRequestDTO>({
-    instituto: 'INIA',
     normales: 0,
     anormales: 0,
     duras: 0,
     frescas: 0,
     muertas: 0,
-    total: 0
+    germinacion: 0
   })
   const [valoresInase, setValoresInase] = useState<ValoresGermRequestDTO>({
-    instituto: 'INASE',
     normales: 0,
     anormales: 0,
     duras: 0,
     frescas: 0,
     muertas: 0,
-    total: 0
+    germinacion: 0
   })
 
   // Actualizar tablas locales cuando cambien las props
@@ -111,10 +113,10 @@ export function TablasGerminacionSection({
 
     try {
       setEliminandoTabla(tablaId)
-      console.log("🗑️ Eliminando tabla:", tablaId)
+      console.log("Eliminando tabla:", tablaId)
       
       await eliminarTablaGerminacion(germinacionId, tablaId)
-      console.log("✅ Tabla eliminada exitosamente")
+      console.log("Tabla eliminada exitosamente")
       
       // Actualizar estado local en lugar de recargar
       setTablasLocales(prev => prev.filter(tabla => tabla.tablaGermID !== tablaId))
@@ -124,7 +126,7 @@ export function TablasGerminacionSection({
         setTablaExpandida(null)
       }
     } catch (error) {
-      console.error("❌ Error eliminando tabla:", error)
+      console.error("Error eliminando tabla:", error)
       alert("Error al eliminar la tabla")
     } finally {
       setEliminandoTabla(null)
@@ -142,10 +144,10 @@ export function TablasGerminacionSection({
 
     try {
       setFinalizandoTabla(tablaId)
-      console.log("🏁 Finalizando tabla:", tablaId)
+      console.log("Finalizando tabla:", tablaId)
       
       await finalizarTabla(germinacionId, tablaId)
-      console.log("✅ Tabla finalizada exitosamente")
+      console.log("Tabla finalizada exitosamente")
       
       // Actualizar estado local en lugar de recargar
       setTablasLocales(prev => 
@@ -156,10 +158,29 @@ export function TablasGerminacionSection({
         )
       )
     } catch (error) {
-      console.error("❌ Error finalizando tabla:", error)
+      console.error("Error finalizando tabla:", error)
       alert("Error al finalizar la tabla")
     } finally {
       setFinalizandoTabla(null)
+    }
+  }
+
+  const handleFinalizarGerminacion = async () => {
+    if (!window.confirm("¿Está seguro que desea finalizar toda la germinación? Esto cambiará el estado del análisis.")) {
+      return
+    }
+
+    setFinalizandoGerminacion(true)
+    try {
+      await finalizarGerminacion(germinacionId)
+      alert("Germinación finalizada exitosamente")
+      // Opcional: redirigir o actualizar estado del componente padre
+      window.location.reload() // Recargar para reflejar cambios de estado
+    } catch (error) {
+      console.error("Error finalizando germinación:", error)
+      alert("Error al finalizar la germinación")
+    } finally {
+      setFinalizandoGerminacion(false)
     }
   }
 
@@ -170,7 +191,7 @@ export function TablasGerminacionSection({
     }
 
     try {
-      console.log("✏️ Editando tabla:", tablaId)
+      console.log("Editando tabla:", tablaId)
       
       // Actualizar estado local para marcar como no finalizada
       setTablasLocales(prev => 
@@ -181,16 +202,99 @@ export function TablasGerminacionSection({
         )
       )
       
-      console.log("✅ Tabla habilitada para edición")
+      console.log("Tabla habilitada para edición")
     } catch (error) {
-      console.error("❌ Error reabriendo tabla:", error)
+      console.error("Error reabriendo tabla:", error)
       alert("Error al reabrir la tabla")
+    }
+  }
+
+  const validarDatosTabla = (tabla: any) => {
+    const camposRequeridos = [
+      { campo: 'tratamiento', nombre: 'Tratamiento' },
+      { campo: 'metodo', nombre: 'Método' },
+      { campo: 'numSemillasPRep', nombre: 'Número de semillas por repetición' },
+      { campo: 'temperatura', nombre: 'Temperatura' }
+    ]
+    
+    const errores = []
+    
+    for (const { campo, nombre } of camposRequeridos) {
+      if (!tabla[campo] || tabla[campo] === '' || tabla[campo] === 0) {
+        errores.push(nombre)
+      }
+    }
+    
+    return errores
+  }
+
+  const validarCampoEnTiempoReal = (campo: string, valor: any, esNuevaTabla: boolean = false) => {
+    const setErrores = esNuevaTabla ? setErroresValidacionNuevaTabla : setErroresValidacion
+    
+    setErrores(prev => {
+      const nuevosErrores = { ...prev }
+      
+      if (!valor || valor === '' || valor === 0) {
+        const nombresCampos = {
+          'tratamiento': 'Tratamiento',
+          'metodo': 'Método',
+          'numSemillasPRep': 'Número de semillas por repetición',
+          'temperatura': 'Temperatura'
+        }
+        nuevosErrores[campo] = `${nombresCampos[campo as keyof typeof nombresCampos]} es requerido`
+      } else {
+        delete nuevosErrores[campo]
+      }
+      
+      return nuevosErrores
+    })
+  }
+
+  const tablaConRepeticionesGuardadas = (tablaId: number) => {
+    const tabla = tablasLocales.find(t => t.tablaGermID === tablaId)
+    return tabla && tabla.repGerm && tabla.repGerm.length > 0
+  }
+
+  const manejarCambioNumerico = (valor: string, valorActual: number, callback: (nuevoValor: number) => void, esDecimal: boolean = false) => {
+    // Si el campo está vacío, mantener vacío
+    if (valor === '') {
+      callback(0)
+      return
+    }
+    
+    // Si el valor actual es 0 y se está escribiendo algo, reemplazar completamente
+    if (valorActual === 0 && valor !== '0') {
+      const numeroIngresado = esDecimal ? (parseFloat(valor) || 0) : (parseInt(valor) || 0)
+      callback(numeroIngresado)
+    } else {
+      // Comportamiento normal
+      const numeroIngresado = esDecimal ? (parseFloat(valor) || 0) : (parseInt(valor) || 0)
+      callback(numeroIngresado)
     }
   }
 
   const handleCrearTabla = async () => {
     try {
-      console.log("🚀 Creando nueva tabla con datos:", nuevaTabla)
+      // Validar datos antes de crear
+      const errores = validarDatosTabla(nuevaTabla)
+      if (errores.length > 0) {
+        // Marcar errores en los campos
+        const nuevosErrores: {[key: string]: string} = {}
+        errores.forEach(error => {
+          const campo = error === 'Tratamiento' ? 'tratamiento' : 
+                       error === 'Método' ? 'metodo' :
+                       error === 'Número de semillas por repetición' ? 'numSemillasPRep' :
+                       error === 'Temperatura' ? 'temperatura' : error
+          nuevosErrores[campo] = `${error} es requerido`
+        })
+        setErroresValidacionNuevaTabla(nuevosErrores)
+        return
+      }
+      
+      // Limpiar errores si todo está bien
+      setErroresValidacionNuevaTabla({})
+      
+      console.log("Creando nueva tabla con datos:", nuevaTabla)
       
       const tablaCreada = await crearTablaGerminacion(germinacionId, nuevaTabla)
       console.log("✅ Tabla creada:", tablaCreada)
@@ -198,15 +302,15 @@ export function TablasGerminacionSection({
       // Actualizar estado local
       setTablasLocales(prev => [...prev, tablaCreada])
       
-      // Resetear formulario
+      // Resetear formulario con valores vacíos
       setNuevaTabla({
-        tratamiento: 'Control',
+        tratamiento: '',
         productoYDosis: '',
-        numSemillasPRep: 100,
-        metodo: 'Papel',
-        temperatura: 20,
-        prefrio: 'No',
-        pretratamiento: 'Ninguno',
+        numSemillasPRep: 0,
+        metodo: '',
+        temperatura: 0,
+        prefrio: '',
+        pretratamiento: '',
         total: 0
       })
       
@@ -280,7 +384,7 @@ export function TablasGerminacionSection({
     }
 
     try {
-      console.log("💾 Guardando porcentajes para tabla:", tablaId)
+      console.log("Guardando porcentajes para tabla:", tablaId)
       
       await actualizarPorcentajes(germinacionId, tablaId, porcentajes)
       console.log("✅ Porcentajes guardados exitosamente")
@@ -314,11 +418,11 @@ export function TablasGerminacionSection({
     const datosTabla = {
       tratamiento: tabla.tratamiento || '',
       productoYDosis: tabla.productoYDosis || '',
-      numSemillasPRep: tabla.numSemillasPRep || 100,
-      metodo: tabla.metodo || 'Papel',
-      temperatura: tabla.temperatura || 20,
-      prefrio: tabla.prefrio || 'No',
-      pretratamiento: tabla.pretratamiento || 'Ninguno',
+      numSemillasPRep: tabla.numSemillasPRep || 0,
+      metodo: tabla.metodo || '',
+      temperatura: tabla.temperatura || 0,
+      prefrio: tabla.prefrio || '',
+      pretratamiento: tabla.pretratamiento || '',
       total: tabla.total || 0
     }
     setTablaEditada(datosTabla)
@@ -332,6 +436,7 @@ export function TablasGerminacionSection({
     }
     setEditandoTablaGeneral(null)
     setTablaOriginal(null)
+    setErroresValidacion({}) // Limpiar errores al cancelar
   }
 
   const hanCambiadoTabla = (): boolean => {
@@ -346,8 +451,27 @@ export function TablasGerminacionSection({
       return
     }
 
+    // Validar datos antes de guardar
+    const errores = validarDatosTabla(tablaEditada)
+    if (errores.length > 0) {
+      // Marcar errores en los campos
+      const nuevosErrores: {[key: string]: string} = {}
+      errores.forEach(error => {
+        const campo = error === 'Tratamiento' ? 'tratamiento' : 
+                     error === 'Método' ? 'metodo' :
+                     error === 'Número de semillas por repetición' ? 'numSemillasPRep' :
+                     error === 'Temperatura' ? 'temperatura' : error
+        nuevosErrores[campo] = `${error} es requerido`
+      })
+      setErroresValidacion(nuevosErrores)
+      return
+    }
+
+    // Limpiar errores si todo está bien
+    setErroresValidacion({})
+
     try {
-      console.log("💾 Guardando datos generales para tabla:", tablaId)
+      console.log("Guardando datos generales para tabla:", tablaId)
       
       await actualizarTablaGerminacion(germinacionId, tablaId, tablaEditada)
       console.log("✅ Datos generales guardados exitosamente")
@@ -372,79 +496,81 @@ export function TablasGerminacionSection({
     }
   }
 
-  const actualizarPorcentaje = (campo: keyof PorcentajesRedondeoRequestDTO, valor: number) => {
-    setPorcentajes(prev => ({
-      ...prev,
-      [campo]: valor
-    }))
+  const actualizarPorcentaje = (campo: keyof PorcentajesRedondeoRequestDTO, valorString: string) => {
+    const valorActual = porcentajes[campo] || 0
+    manejarCambioNumerico(valorString, valorActual, (nuevoValor) => {
+      setPorcentajes(prev => ({
+        ...prev,
+        [campo]: nuevoValor
+      }))
+    }, true)
   }
 
-  // Funciones para manejar valores INIA e INASE
+  // Funciones para manejar valores INIA e INASE (siguiendo el patrón de porcentajes)
   const handleMostrarValores = async (tablaId: number) => {
     try {
       setCargandoValores(true)
       
-      // Cargar valores existentes si los hay
-      try {
-        const valoresIniaData = await obtenerValoresIniaPorTabla(germinacionId, tablaId)
-        const valoresIniaActuales = {
-          instituto: 'INIA' as Instituto,
-          normales: valoresIniaData.normales,
-          anormales: valoresIniaData.anormales,
-          duras: valoresIniaData.duras,
-          frescas: valoresIniaData.frescas,
-          muertas: valoresIniaData.muertas,
-          total: valoresIniaData.total
-        }
-        setValoresInia(valoresIniaActuales)
-        setValoresOriginalesInia({ ...valoresIniaActuales })
-      } catch (error) {
-        console.log("No hay valores INIA existentes")
-        const valoresIniaDefault = {
-          instituto: 'INIA' as Instituto,
-          normales: 0,
-          anormales: 0,
-          duras: 0,
-          frescas: 0,
-          muertas: 0,
-          total: 0
-        }
-        setValoresInia(valoresIniaDefault)
-        setValoresOriginalesInia({ ...valoresIniaDefault })
-      }
-
-      try {
-        const valoresInaseData = await obtenerValoresInasePorTabla(germinacionId, tablaId)
-        const valoresInaseActuales = {
-          instituto: 'INASE' as Instituto,
-          normales: valoresInaseData.normales,
-          anormales: valoresInaseData.anormales,
-          duras: valoresInaseData.duras,
-          frescas: valoresInaseData.frescas,
-          muertas: valoresInaseData.muertas,
-          total: valoresInaseData.total
-        }
-        setValoresInase(valoresInaseActuales)
-        setValoresOriginalesInase({ ...valoresInaseActuales })
-      } catch (error) {
-        console.log("No hay valores INASE existentes")
-        const valoresInaseDefault = {
-          instituto: 'INASE' as Instituto,
-          normales: 0,
-          anormales: 0,
-          duras: 0,
-          frescas: 0,
-          muertas: 0,
-          total: 0
-        }
-        setValoresInase(valoresInaseDefault)
-        setValoresOriginalesInase({ ...valoresInaseDefault })
+      // Cargar valores INIA existentes
+      let valoresIniaActuales = {
+        normales: 0,
+        anormales: 0,
+        duras: 0,
+        frescas: 0,
+        muertas: 0,
+        germinacion: 0
       }
       
+      try {
+        const valoresIniaData = await obtenerValoresIniaPorTabla(germinacionId, tablaId)
+        valoresIniaActuales = {
+          normales: valoresIniaData.normales || 0,
+          anormales: valoresIniaData.anormales || 0,
+          duras: valoresIniaData.duras || 0,
+          frescas: valoresIniaData.frescas || 0,
+          muertas: valoresIniaData.muertas || 0,
+          germinacion: valoresIniaData.germinacion || 0
+        }
+      } catch (error) {
+        console.log("No hay valores INIA existentes, usando valores por defecto")
+      }
+      
+      // Cargar valores INASE existentes
+      let valoresInaseActuales = {
+        normales: 0,
+        anormales: 0,
+        duras: 0,
+        frescas: 0,
+        muertas: 0,
+        germinacion: 0
+      }
+      
+      try {
+        const valoresInaseData = await obtenerValoresInasePorTabla(germinacionId, tablaId)
+        valoresInaseActuales = {
+          normales: valoresInaseData.normales || 0,
+          anormales: valoresInaseData.anormales || 0,
+          duras: valoresInaseData.duras || 0,
+          frescas: valoresInaseData.frescas || 0,
+          muertas: valoresInaseData.muertas || 0,
+          germinacion: valoresInaseData.germinacion || 0
+        }
+      } catch (error) {
+        console.log("No hay valores INASE existentes, usando valores por defecto")
+      }
+      
+      // Establecer estados (como hace porcentajes)
+      setValoresInia(valoresIniaActuales)
+      setValoresOriginalesInia({ ...valoresIniaActuales })
+      setValoresInase(valoresInaseActuales)
+      setValoresOriginalesInase({ ...valoresInaseActuales })
+      
       setMostrandoValores(tablaId)
-      setEditandoValores(tablaId)
+      // NO activar edición automáticamente - solo mostrar valores
+      
     } catch (error) {
       console.error("Error cargando valores:", error)
+      alert("Error al cargar los valores")
     } finally {
       setCargandoValores(false)
     }
@@ -458,14 +584,28 @@ export function TablasGerminacionSection({
       setValoresInase({ ...valoresOriginalesInase })
     }
     setEditandoValores(null)
-    setValoresOriginalesInia(null)
-    setValoresOriginalesInase(null)
+    // NO limpiar los valores originales - se mantienen para futuras ediciones
+    // setValoresOriginalesInia(null)
+    // setValoresOriginalesInase(null)
+  }
+
+  const handleEditarValores = (tablaId: number) => {
+    // Activar modo edición para la tabla especificada
+    setEditandoValores(tablaId)
   }
 
   const hanCambiadoValores = (): boolean => {
-    if (!valoresOriginalesInia || !valoresOriginalesInase) return true
-    return JSON.stringify(valoresInia) !== JSON.stringify(valoresOriginalesInia) ||
-           JSON.stringify(valoresInase) !== JSON.stringify(valoresOriginalesInase)
+    return hanCambiadoValoresInia() || hanCambiadoValoresInase()
+  }
+
+  const hanCambiadoValoresInia = (): boolean => {
+    if (!valoresOriginalesInia) return false // Si no hay originales, no hay cambios
+    return JSON.stringify(valoresInia) !== JSON.stringify(valoresOriginalesInia)
+  }
+
+  const hanCambiadoValoresInase = (): boolean => {
+    if (!valoresOriginalesInase) return false // Si no hay originales, no hay cambios
+    return JSON.stringify(valoresInase) !== JSON.stringify(valoresOriginalesInase)
   }
 
   const handleGuardarValores = async (tablaId: number) => {
@@ -477,49 +617,65 @@ export function TablasGerminacionSection({
     }
 
     try {
-      console.log("💾 Guardando valores INIA e INASE para tabla:", tablaId)
+      console.log("Guardando valores para tabla:", tablaId)
       
-      let guardadoExitoso = false
-      
-      // Guardar valores INIA
-      if (valoresInia.total > 0) {
-        await actualizarValores(germinacionId, tablaId, 1, valoresInia)
+      // Guardar valores INIA solo si han cambiado
+      if (hanCambiadoValoresInia()) {
+        console.log("📤 Enviando valores INIA:", valoresInia)
+        
+        // Primero obtener el registro de INIA para conseguir su ID real
+        const valoresIniaExistentes = await obtenerValoresIniaPorTabla(germinacionId, tablaId)
+        const valoresIniaId = valoresIniaExistentes.valoresGermID
+        console.log("ID real de valores INIA:", valoresIniaId)
+        
+        await actualizarValores(germinacionId, tablaId, valoresIniaId, valoresInia)
         console.log("✅ Valores INIA guardados")
-        guardadoExitoso = true
       }
       
-      // Guardar valores INASE
-      if (valoresInase.total > 0) {
-        await actualizarValores(germinacionId, tablaId, 2, valoresInase)
+      // Guardar valores INASE solo si han cambiado
+      if (hanCambiadoValoresInase()) {
+        console.log("📤 Enviando valores INASE:", valoresInase)
+        
+        // Primero obtener el registro de INASE para conseguir su ID real
+        const valoresInaseExistentes = await obtenerValoresInasePorTabla(germinacionId, tablaId)
+        const valoresInaseId = valoresInaseExistentes.valoresGermID
+        console.log("ID real de valores INASE:", valoresInaseId)
+        
+        await actualizarValores(germinacionId, tablaId, valoresInaseId, valoresInase)
         console.log("✅ Valores INASE guardados")
-        guardadoExitoso = true
       }
       
-      if (guardadoExitoso) {
-        setEditandoValores(null)
-        setValoresOriginalesInia(null)
-        setValoresOriginalesInase(null)
-      } else {
-        alert("No hay valores para guardar")
-      }
+      // Actualizar valores originales para reflejar el estado guardado
+      setValoresOriginalesInia({ ...valoresInia })
+      setValoresOriginalesInase({ ...valoresInase })
+      
+      setEditandoValores(null)
+      console.log("✅ Valores guardados exitosamente")
+      
     } catch (error) {
       console.error("❌ Error guardando valores:", error)
       alert("Error al guardar valores")
     }
   }
 
-  const actualizarValorInia = (campo: keyof Omit<ValoresGermRequestDTO, 'instituto'>, valor: number) => {
-    setValoresInia(prev => ({
-      ...prev,
-      [campo]: valor
-    }))
+  const actualizarValorInia = (campo: keyof ValoresGermRequestDTO, valorString: string) => {
+    const valorActual = valoresInia[campo] || 0
+    manejarCambioNumerico(valorString, valorActual, (nuevoValor) => {
+      setValoresInia(prev => ({
+        ...prev,
+        [campo]: nuevoValor
+      }))
+    }, true)
   }
 
-  const actualizarValorInase = (campo: keyof Omit<ValoresGermRequestDTO, 'instituto'>, valor: number) => {
-    setValoresInase(prev => ({
-      ...prev,
-      [campo]: valor
-    }))
+  const actualizarValorInase = (campo: keyof ValoresGermRequestDTO, valorString: string) => {
+    const valorActual = valoresInase[campo] || 0
+    manejarCambioNumerico(valorString, valorActual, (nuevoValor) => {
+      setValoresInase(prev => ({
+        ...prev,
+        [campo]: nuevoValor
+      }))
+    }, true)
   }
 
   // Función para actualizar repeticiones localmente
@@ -558,30 +714,87 @@ export function TablasGerminacionSection({
     return tabla.repGerm !== undefined && tabla.repGerm.length > 0
   }
 
+  // Función helper para verificar si todas las repeticiones requeridas están guardadas
+  const tieneTodasLasRepeticionesGuardadas = (tabla: TablaGermDTO): boolean => {
+    if (!tabla.repGerm || !germinacion?.numeroRepeticiones) return false
+    
+    // Verificar que tengamos el número correcto de repeticiones
+    const tieneNumeroCorrect = tabla.repGerm.length === germinacion.numeroRepeticiones
+    
+    // Verificar que todas las repeticiones estén guardadas (tengan repGermID)
+    const todasGuardadas = tabla.repGerm.every((rep: any) => rep.repGermID)
+    
+    return tieneNumeroCorrect && todasGuardadas
+  }
+
+  // Efecto para cargar valores automáticamente cuando se muestra una tabla completada
+  useEffect(() => {
+    tablasLocales.forEach(async (tabla) => {
+      if (tieneTodasLasRepeticionesGuardadas(tabla)) {
+        // Cargar valores INIA automáticamente
+        try {
+          const valoresIniaData = await obtenerValoresIniaPorTabla(germinacionId, tabla.tablaGermID)
+          const valoresIniaActuales = {
+            normales: valoresIniaData.normales || 0,
+            anormales: valoresIniaData.anormales || 0,
+            duras: valoresIniaData.duras || 0,
+            frescas: valoresIniaData.frescas || 0,
+            muertas: valoresIniaData.muertas || 0,
+            germinacion: valoresIniaData.germinacion || 0
+          }
+          setValoresInia(valoresIniaActuales)
+          setValoresOriginalesInia({ ...valoresIniaActuales })
+        } catch (error) {
+          console.log("No hay valores INIA para cargar automáticamente")
+        }
+
+        // Cargar valores INASE automáticamente
+        try {
+          const valoresInaseData = await obtenerValoresInasePorTabla(germinacionId, tabla.tablaGermID)
+          const valoresInaseActuales = {
+            normales: valoresInaseData.normales || 0,
+            anormales: valoresInaseData.anormales || 0,
+            duras: valoresInaseData.duras || 0,
+            frescas: valoresInaseData.frescas || 0,
+            muertas: valoresInaseData.muertas || 0,
+            germinacion: valoresInaseData.germinacion || 0
+          }
+          setValoresInase(valoresInaseActuales)
+          setValoresOriginalesInase({ ...valoresInaseActuales })
+        } catch (error) {
+          console.log("No hay valores INASE para cargar automáticamente")
+        }
+
+        // Cargar porcentajes automáticamente
+        if (tabla.porcentajeNormalesConRedondeo !== undefined) {
+          const porcentajesActuales = {
+            porcentajeNormalesConRedondeo: tabla.porcentajeNormalesConRedondeo || 0,
+            porcentajeAnormalesConRedondeo: tabla.porcentajeAnormalesConRedondeo || 0,
+            porcentajeDurasConRedondeo: tabla.porcentajeDurasConRedondeo || 0,
+            porcentajeFrescasConRedondeo: tabla.porcentajeFrescasConRedondeo || 0,
+            porcentajeMuertasConRedondeo: tabla.porcentajeMuertasConRedondeo || 0
+          }
+          setPorcentajes(porcentajesActuales)
+          setPorcentajesOriginales({ ...porcentajesActuales })
+        }
+      }
+    })
+  }, [tablasLocales, germinacionId, germinacion?.numeroRepeticiones])
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Table className="h-5 w-5" />
-            Tablas de Germinación ({tablasLocales.length}/4)
+            Tablas de Germinación
           </CardTitle>
-          
-          {!isFinalized && tablasLocales.length < 4 && (
-            <Button
-              onClick={() => setMostrandoFormularioTabla(true)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Nueva Tabla
-            </Button>
-          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Formulario para crear nueva tabla */}
         {mostrandoFormularioTabla && (
-          <Card className="border-blue-200 bg-blue-50 mb-6">
+          <Card className="border-blue-200 border-2 mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-700">
                 <Plus className="h-5 w-5" />
@@ -594,9 +807,16 @@ export function TablasGerminacionSection({
                   <Label className="text-sm font-medium">Tratamiento</Label>
                   <Input
                     value={nuevaTabla.tratamiento}
-                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, tratamiento: e.target.value }))}
+                    onChange={(e) => {
+                      setNuevaTabla(prev => ({ ...prev, tratamiento: e.target.value }))
+                      validarCampoEnTiempoReal('tratamiento', e.target.value, true)
+                    }}
                     placeholder="Control, Tratamiento A, etc."
+                    className={erroresValidacionNuevaTabla.tratamiento ? "border-red-500 focus:border-red-500" : ""}
                   />
+                  {erroresValidacionNuevaTabla.tratamiento && (
+                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.tratamiento}</p>
+                  )}
                 </div>
 
                 <div>
@@ -608,29 +828,39 @@ export function TablasGerminacionSection({
                   />
                 </div>
 
-                <div>
-                  <Label className="text-sm font-medium">Número de Semillas por Repetición</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="500"
-                    value={nuevaTabla.numSemillasPRep}
-                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, numSemillasPRep: parseInt(e.target.value) || 100 }))}
-                  />
-                </div>
-
-                <div>
+                  <div>
+                    <Label className="text-sm font-medium">Número de Semillas por Repetición</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="500"
+                      value={nuevaTabla.numSemillasPRep === 0 ? '' : nuevaTabla.numSemillasPRep}
+                      onChange={(e) => {
+                        manejarCambioNumerico(e.target.value, nuevaTabla.numSemillasPRep, (valor) => 
+                          setNuevaTabla(prev => ({ ...prev, numSemillasPRep: valor }))
+                        )
+                        validarCampoEnTiempoReal('numSemillasPRep', parseInt(e.target.value) || 0, true)
+                      }}
+                      placeholder="Ej: 100"
+                      className={erroresValidacionNuevaTabla.numSemillasPRep ? "border-red-500 focus:border-red-500" : ""}
+                    />
+                    {erroresValidacionNuevaTabla.numSemillasPRep && (
+                      <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.numSemillasPRep}</p>
+                    )}
+                  </div>                <div>
                   <Label className="text-sm font-medium">Método</Label>
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                  <Input
                     value={nuevaTabla.metodo}
-                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, metodo: e.target.value }))}
-                  >
-                    <option value="Papel">Papel</option>
-                    <option value="Arena">Arena</option>
-                    <option value="Suelo">Suelo</option>
-                    <option value="Agar">Agar</option>
-                  </select>
+                    onChange={(e) => {
+                      setNuevaTabla(prev => ({ ...prev, metodo: e.target.value }))
+                      validarCampoEnTiempoReal('metodo', e.target.value, true)
+                    }}
+                    placeholder="Papel, Arena, Suelo, etc."
+                    className={erroresValidacionNuevaTabla.metodo ? "border-red-500 focus:border-red-500" : ""}
+                  />
+                  {erroresValidacionNuevaTabla.metodo && (
+                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.metodo}</p>
+                  )}
                 </div>
 
                 <div>
@@ -639,23 +869,28 @@ export function TablasGerminacionSection({
                     type="number"
                     min="-10"
                     max="50"
-                    value={nuevaTabla.temperatura}
-                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, temperatura: parseFloat(e.target.value) || 20 }))}
+                    value={nuevaTabla.temperatura === 0 ? '' : nuevaTabla.temperatura}
+                    onChange={(e) => {
+                      manejarCambioNumerico(e.target.value, nuevaTabla.temperatura, (valor) => 
+                        setNuevaTabla(prev => ({ ...prev, temperatura: valor })), true
+                      )
+                      validarCampoEnTiempoReal('temperatura', parseFloat(e.target.value) || 0, true)
+                    }}
+                    placeholder="Ej: 20"
+                    className={erroresValidacionNuevaTabla.temperatura ? "border-red-500 focus:border-red-500" : ""}
                   />
+                  {erroresValidacionNuevaTabla.temperatura && (
+                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.temperatura}</p>
+                  )}
                 </div>
 
                 <div>
                   <Label className="text-sm font-medium">Prefrío</Label>
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                  <Input
                     value={nuevaTabla.prefrio}
                     onChange={(e) => setNuevaTabla(prev => ({ ...prev, prefrio: e.target.value }))}
-                  >
-                    <option value="No">No</option>
-                    <option value="Sí - 5°C por 7 días">Sí - 5°C por 7 días</option>
-                    <option value="Sí - 5°C por 14 días">Sí - 5°C por 14 días</option>
-                    <option value="Personalizado">Personalizado</option>
-                  </select>
+                    placeholder="No, Sí - 5°C por 7 días, etc."
+                  />
                 </div>
 
                 <div className="md:col-span-2">
@@ -695,111 +930,69 @@ export function TablasGerminacionSection({
           </div>
         ) : (
           tablasLocales.map((tabla) => (
-            <Card key={tabla.tablaGermID} className="border-l-4 border-l-blue-500">
+            <Card key={tabla.tablaGermID} className="border-l-4 border-l-blue-200">
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <h3 className="font-semibold">Tabla #{tabla.numeroTabla || tabla.tablaGermID}</h3>
-                    <Badge variant={tabla.repGerm && tabla.repGerm.length > 0 ? "default" : "secondary"}>
-                      {tabla.repGerm ? tabla.repGerm.length : 0} repeticiones
-                    </Badge>
-                    {tabla.finalizada && (
-                      <Badge variant="default" className="bg-green-600">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Finalizada
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+                    <h3 className="font-semibold text-sm sm:text-base">{tabla.tratamiento || 'Tratamiento'}</h3>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant={tabla.repGerm && tabla.repGerm.length > 0 ? "default" : "secondary"} className="text-xs">
+                        {tabla.repGerm ? tabla.repGerm.length : 0} repeticiones
                       </Badge>
-                    )}
+                      {tabla.finalizada && (
+                        <Badge variant="default" className="bg-green-600 text-xs">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Finalizada
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => toggleTablaExpansion(tabla.tablaGermID)}
-                      className="min-w-fit"
+                      className="w-full sm:w-auto min-w-fit text-xs sm:text-sm"
                     >
                       {tablaExpandida === tabla.tablaGermID ? "Contraer" : "Expandir"}
                     </Button>
 
-                    {/* Mostrar botones de porcentajes y valores si hay repeticiones */}
-                    {tabla.repGerm && tabla.repGerm.length > 0 && tablaExpandida === tabla.tablaGermID && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setMostrandoPorcentajes(mostrandoPorcentajes === tabla.tablaGermID ? null : tabla.tablaGermID)}
-                          className="min-w-fit text-xs sm:text-sm"
-                        >
-                          <Calculator className="h-4 w-4 mr-1" />
-                          <span className="hidden sm:inline">
-                            {mostrandoPorcentajes === tabla.tablaGermID ? 'Ocultar Porcentajes' : 'Mostrar Porcentajes'}
-                          </span>
-                          <span className="sm:hidden">%</span>
-                        </Button>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setMostrandoValores(mostrandoValores === tabla.tablaGermID ? null : tabla.tablaGermID)}
-                          className="min-w-fit text-xs sm:text-sm"
-                        >
-                          <Building className="h-4 w-4 mr-1" />
-                          <span className="hidden sm:inline">
-                            {mostrandoValores === tabla.tablaGermID ? 'Ocultar Valores' : 'Mostrar Valores'}
-                          </span>
-                          <span className="sm:hidden">Val</span>
-                        </Button>
-                      </>
-                    )}
-
-                    {/* Botones para tabla finalizada - permitir edición */}
-                    {tabla.finalizada && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditarTabla(tabla.tablaGermID)}
-                          className="border-orange-600 text-orange-600 hover:bg-orange-50 min-w-fit text-xs sm:text-sm"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          <span className="hidden sm:inline">Reabrir Tabla</span>
-                          <span className="sm:hidden">Reabrir</span>
-                        </Button>
-                      </>
-                    )}
-
                     {/* Botón para finalizar tabla */}
-                    {!isFinalized && puedeFinalizarTabla(tabla) && (
+                    {!tabla.finalizada && puedeFinalizarTabla(tabla) && (
                       <Button
                         variant="default"
                         size="sm"
                         onClick={() => handleFinalizarTabla(tabla.tablaGermID)}
                         disabled={finalizandoTabla === tabla.tablaGermID}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-green-600 hover:bg-green-700 w-full sm:w-auto text-xs sm:text-sm"
                       >
                         {finalizandoTabla === tabla.tablaGermID ? (
                           "Finalizando..."
                         ) : (
                           <>
                             <CheckCircle className="h-4 w-4 mr-1" />
-                            Finalizar
+                            <span className="hidden sm:inline">Finalizar</span>
+                            <span className="sm:hidden">✓</span>
                           </>
                         )}
                       </Button>
                     )}
                     
-                    {!isFinalized && !tabla.finalizada && (
+                    {!isFinalized && (
                       <Button
                         variant="destructive"
                         size="sm"
                         onClick={() => handleEliminarTabla(tabla.tablaGermID)}
                         disabled={eliminandoTabla === tabla.tablaGermID}
+                        className="w-full sm:w-auto text-xs sm:text-sm"
                       >
                         {eliminandoTabla === tabla.tablaGermID ? (
                           "Eliminando..."
                         ) : (
                           <>
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4 mr-1 sm:mr-0" />
+                            <span className="sm:hidden">Eliminar</span>
                           </>
                         )}
                       </Button>
@@ -813,34 +1006,39 @@ export function TablasGerminacionSection({
                   {/* Card con información general de la tabla */}
                   <Card className="mb-4 border-gray-200 bg-gray-50">
                     <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <CardTitle className="text-base sm:text-lg flex items-center gap-2">
                           <Table className="h-4 w-4" />
                           Información General de la Tabla
                         </CardTitle>
-                        {!tabla.finalizada && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditarDatosGenerales(tabla)}
-                            className="min-w-fit"
-                          >
-                            Editar Datos
-                          </Button>
-                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditarDatosGenerales(tabla)}
+                          className="w-full sm:w-auto min-w-fit text-xs sm:text-sm"
+                        >
+                          Editar Datos
+                        </Button>
                       </div>
                     </CardHeader>
                     <CardContent>
                       {editandoTablaGeneral === tabla.tablaGermID ? (
                         <div className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div>
                               <Label className="text-sm font-medium">Tratamiento</Label>
                               <Input
                                 value={tablaEditada.tratamiento}
-                                onChange={(e) => setTablaEditada(prev => ({ ...prev, tratamiento: e.target.value }))}
+                                onChange={(e) => {
+                                  setTablaEditada(prev => ({ ...prev, tratamiento: e.target.value }))
+                                  validarCampoEnTiempoReal('tratamiento', e.target.value, false)
+                                }}
                                 placeholder="Control, Tratamiento A, etc."
+                                className={erroresValidacion.tratamiento ? "border-red-500 focus:border-red-500" : ""}
                               />
+                              {erroresValidacion.tratamiento && (
+                                <p className="text-red-500 text-xs mt-1">{erroresValidacion.tratamiento}</p>
+                              )}
                             </div>
 
                             <div>
@@ -858,51 +1056,64 @@ export function TablasGerminacionSection({
                                 type="number"
                                 min="1"
                                 max="500"
-                                value={tablaEditada.numSemillasPRep}
-                                onChange={(e) => setTablaEditada(prev => ({ ...prev, numSemillasPRep: parseInt(e.target.value) || 100 }))}
+                                value={tablaEditada.numSemillasPRep === 0 ? '' : tablaEditada.numSemillasPRep}
+                                onChange={(e) => manejarCambioNumerico(e.target.value, tablaEditada.numSemillasPRep, (valor) => 
+                                  setTablaEditada(prev => ({ ...prev, numSemillasPRep: valor }))
+                                )}
+                                placeholder="Ej: 100"
+                                disabled={tablaConRepeticionesGuardadas(editandoTablaGeneral!)}
+                                className={tablaConRepeticionesGuardadas(editandoTablaGeneral!) ? "bg-gray-100 text-gray-500" : ""}
                               />
+                              {tablaConRepeticionesGuardadas(editandoTablaGeneral!) && (
+                                <p className="text-xs text-orange-600 mt-1">
+                                  No se puede modificar el número de semillas porque ya hay repeticiones guardadas
+                                </p>
+                              )}
                             </div>
 
                             <div>
-                              <Label className="text-sm font-medium">Método</Label>
-                              <select
-                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                                value={tablaEditada.metodo}
-                                onChange={(e) => setTablaEditada(prev => ({ ...prev, metodo: e.target.value }))}
-                              >
-                                <option value="Papel">Papel</option>
-                                <option value="Arena">Arena</option>
-                                <option value="Suelo">Suelo</option>
-                                <option value="Agar">Agar</option>
-                              </select>
-                            </div>
+                  <Label className="text-sm font-medium">Método</Label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                    value={tablaEditada.metodo}
+                    onChange={(e) => setTablaEditada(prev => ({ ...prev, metodo: e.target.value }))}
+                  >
+                    <option value="">Seleccionar método</option>
+                    <option value="Papel">Papel</option>
+                    <option value="Arena">Arena</option>
+                    <option value="Suelo">Suelo</option>
+                    <option value="Agar">Agar</option>
+                  </select>
+                </div>
 
-                            <div>
-                              <Label className="text-sm font-medium">Temperatura (°C)</Label>
-                              <Input
-                                type="number"
-                                min="-10"
-                                max="50"
-                                value={tablaEditada.temperatura}
-                                onChange={(e) => setTablaEditada(prev => ({ ...prev, temperatura: parseFloat(e.target.value) || 20 }))}
-                              />
-                            </div>
+                <div>
+                  <Label className="text-sm font-medium">Temperatura (°C)</Label>
+                  <Input
+                    type="number"
+                    min="-10"
+                    max="50"
+                    value={tablaEditada.temperatura === 0 ? '' : tablaEditada.temperatura}
+                    onChange={(e) => manejarCambioNumerico(e.target.value, tablaEditada.temperatura, (valor) => 
+                      setTablaEditada(prev => ({ ...prev, temperatura: valor })), true
+                    )}
+                    placeholder="Ej: 20"
+                  />
+                </div>
 
-                            <div>
-                              <Label className="text-sm font-medium">Prefrío</Label>
-                              <select
-                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                                value={tablaEditada.prefrio}
-                                onChange={(e) => setTablaEditada(prev => ({ ...prev, prefrio: e.target.value }))}
-                              >
-                                <option value="No">No</option>
-                                <option value="Sí - 5°C por 7 días">Sí - 5°C por 7 días</option>
-                                <option value="Sí - 5°C por 14 días">Sí - 5°C por 14 días</option>
-                                <option value="Personalizado">Personalizado</option>
-                              </select>
-                            </div>
-
-                            <div className="md:col-span-2">
+                <div>
+                  <Label className="text-sm font-medium">Prefrío</Label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                    value={tablaEditada.prefrio}
+                    onChange={(e) => setTablaEditada(prev => ({ ...prev, prefrio: e.target.value }))}
+                  >
+                    <option value="">Seleccionar prefrío</option>
+                    <option value="No">No</option>
+                    <option value="Sí - 5°C por 7 días">Sí - 5°C por 7 días</option>
+                    <option value="Sí - 5°C por 14 días">Sí - 5°C por 14 días</option>
+                    <option value="Personalizado">Personalizado</option>
+                  </select>
+                </div>                            <div className="md:col-span-2">
                               <Label className="text-sm font-medium">Pretratamiento</Label>
                               <Input
                                 value={tablaEditada.pretratamiento}
@@ -912,62 +1123,57 @@ export function TablasGerminacionSection({
                             </div>
                           </div>
                           
-                          <div className="flex justify-end gap-2">
+                          <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
                             <Button
                               variant="outline"
                               onClick={handleCancelarEdicionTabla}
+                              className="w-full sm:w-auto"
                             >
                               Cancelar
                             </Button>
                             
                             <Button
                               onClick={() => handleGuardarTablaGeneral(tabla.tablaGermID)}
-                              className={
+                              className={`w-full sm:w-auto ${
                                 hanCambiadoTabla() 
                                   ? 'bg-green-600 hover:bg-green-700' 
                                   : 'bg-gray-400 hover:bg-gray-500'
-                              }
+                              }`}
                             >
                               {hanCambiadoTabla() ? 'Guardar Cambios' : 'Sin Cambios'}
                             </Button>
                           </div>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                           <div>
                             <span className="font-medium text-gray-600">Tratamiento:</span>
-                            <p className="text-gray-800">{tabla.tratamiento}</p>
+                            <p className="text-gray-800">{tabla.tratamiento || 'No especificado'}</p>
                           </div>
-                          {tabla.productoYDosis && (
-                            <div>
-                              <span className="font-medium text-gray-600">Producto y Dosis:</span>
-                              <p className="text-gray-800">{tabla.productoYDosis}</p>
-                            </div>
-                          )}
+                          <div>
+                            <span className="font-medium text-gray-600">Producto y Dosis:</span>
+                            <p className="text-gray-800">{tabla.productoYDosis || 'No especificado'}</p>
+                          </div>
                           <div>
                             <span className="font-medium text-gray-600">Semillas por Rep.:</span>
                             <p className="text-gray-800">{tabla.numSemillasPRep}</p>
                           </div>
                           <div>
                             <span className="font-medium text-gray-600">Método:</span>
-                            <p className="text-gray-800">{tabla.metodo}</p>
+                            <p className="text-gray-800">{tabla.metodo || 'No especificado'}</p>
                           </div>
                           <div>
                             <span className="font-medium text-gray-600">Temperatura:</span>
                             <p className="text-gray-800">{tabla.temperatura}°C</p>
                           </div>
-                          {tabla.prefrio && tabla.prefrio !== 'No' && (
-                            <div>
-                              <span className="font-medium text-gray-600">Prefrío:</span>
-                              <p className="text-gray-800">{tabla.prefrio}</p>
-                            </div>
-                          )}
-                          {tabla.pretratamiento && tabla.pretratamiento !== 'Ninguno' && (
-                            <div>
-                              <span className="font-medium text-gray-600">Pretratamiento:</span>
-                              <p className="text-gray-800">{tabla.pretratamiento}</p>
-                            </div>
-                          )}
+                          <div>
+                            <span className="font-medium text-gray-600">Prefrío:</span>
+                            <p className="text-gray-800">{tabla.prefrio || 'No especificado'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-600">Pretratamiento:</span>
+                            <p className="text-gray-800">{tabla.pretratamiento || 'No especificado'}</p>
+                          </div>
                           {tabla.finalizada && tabla.fechaFinal && (
                             <div>
                               <span className="font-medium text-gray-600">Fecha Finalización:</span>
@@ -987,12 +1193,200 @@ export function TablasGerminacionSection({
                     numeroRepeticiones={germinacion?.numeroRepeticiones || 4}
                     numeroConteos={germinacion?.numeroConteos || 3}
                     isFinalized={isFinalized}
+                    fechasConteos={germinacion?.fechaConteos}
                     onRepeticionesUpdated={(repeticiones) => handleRepeticionesUpdated(tabla.tablaGermID, repeticiones)}
                   />
 
-                  {/* Sección de porcentajes con redondeo */}
-                  {mostrandoPorcentajes === tabla.tablaGermID && (
-                    <Card className="mt-4 border-blue-200 bg-blue-50">
+                  {/* Sección de Estadísticas Finales */}
+                  {tabla.repGerm && tabla.repGerm.length > 0 && (
+                    <Card className="border-green-200 border-2 mt-4">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-green-800 text-lg">Resumen de Análisis</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-6">
+                          {/* Totales por Campo y Conteo */}
+                          <div>
+                            <h5 className="font-semibold text-green-700 mb-3">Totales por Campo</h5>
+                            
+                            {/* Totales de Normales por Conteo */}
+                            <div className="mb-4">
+                              <h6 className="font-medium text-gray-700 mb-2">Normales por Conteo</h6>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                {Array.from({ length: germinacion?.numeroConteos || 3 }, (_, conteoIndex) => {
+                                  const totalConteo = tabla.repGerm?.reduce((sum: number, rep: any) => {
+                                    return sum + (rep.normales && rep.normales[conteoIndex] ? rep.normales[conteoIndex] : 0)
+                                  }, 0) || 0
+                                  
+                                  return (
+                                    <div key={conteoIndex} className="text-center p-2 bg-white rounded border">
+                                      <div className="font-medium text-gray-600">Conteo {conteoIndex + 1}</div>
+                                      <div className="text-lg font-semibold text-green-600">{totalConteo}</div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Totales de otros campos */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Total Anormales</div>
+                                <div className="text-lg font-semibold text-orange-600">
+                                  {tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.anormales || 0), 0) || 0}
+                                </div>
+                              </div>
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Total Duras</div>
+                                <div className="text-lg font-semibold text-blue-600">
+                                  {tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.duras || 0), 0) || 0}
+                                </div>
+                              </div>
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Total Frescas</div>
+                                <div className="text-lg font-semibold text-cyan-600">
+                                  {tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.frescas || 0), 0) || 0}
+                                </div>
+                              </div>
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Total Muertas</div>
+                                <div className="text-lg font-semibold text-red-600">
+                                  {tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.muertas || 0), 0) || 0}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Promedios Sin Redondeo */}
+                          <div>
+                            <h5 className="font-semibold text-green-700 mb-3">Promedios Sin Redondeo</h5>
+                            
+                            {/* Promedios de Normales por Conteo */}
+                            <div className="mb-4">
+                              <h6 className="font-medium text-gray-700 mb-2">Promedios Normales por Conteo</h6>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                {Array.from({ length: germinacion?.numeroConteos || 3 }, (_, conteoIndex) => {
+                                  const totalConteo = tabla.repGerm?.reduce((sum: number, rep: any) => {
+                                    return sum + (rep.normales && rep.normales[conteoIndex] ? rep.normales[conteoIndex] : 0)
+                                  }, 0) || 0
+                                  const numRepeticiones = tabla.repGerm?.length || 1
+                                  const promedio = totalConteo / numRepeticiones
+                                  
+                                  return (
+                                    <div key={conteoIndex} className="text-center p-2 bg-white rounded border">
+                                      <div className="font-medium text-gray-600">Conteo {conteoIndex + 1}</div>
+                                      <div className="text-lg font-semibold text-green-600">{promedio.toFixed(4)}</div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Promedios de otros campos */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Promedio Anormales</div>
+                                <div className="text-lg font-semibold text-orange-600">
+                                  {((tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.anormales || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
+                                </div>
+                              </div>
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Promedio Duras</div>
+                                <div className="text-lg font-semibold text-blue-600">
+                                  {((tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.duras || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
+                                </div>
+                              </div>
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Promedio Frescas</div>
+                                <div className="text-lg font-semibold text-cyan-600">
+                                  {((tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.frescas || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
+                                </div>
+                              </div>
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className="font-medium text-gray-600">Promedio Muertas</div>
+                                <div className="text-lg font-semibold text-red-600">
+                                  {((tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.muertas || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Porcentajes Calculados Sin Redondeo */}
+                          <div>
+                            <h5 className="font-semibold text-green-700 mb-3">Porcentajes Calculados (Sin Redondeo)</h5>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                              {(() => {
+                                // Calcular totales reales
+                                const totalNormales = tabla.repGerm?.reduce((sum: number, rep: any) => {
+                                  return sum + (rep.normales ? rep.normales.reduce((s: number, n: number) => s + n, 0) : 0)
+                                }, 0) || 0
+                                const totalAnormales = tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.anormales || 0), 0) || 0
+                                const totalDuras = tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.duras || 0), 0) || 0
+                                const totalFrescas = tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.frescas || 0), 0) || 0
+                                const totalMuertas = tabla.repGerm?.reduce((sum: number, rep: any) => sum + (rep.muertas || 0), 0) || 0
+                                const totalGeneral = totalNormales + totalAnormales + totalDuras + totalFrescas + totalMuertas
+                                
+                                return (
+                                  <>
+                                    <div className="text-center p-2 bg-white rounded">
+                                      <div className="font-medium text-gray-600">% Normales</div>
+                                      <div className="text-lg font-semibold text-green-600">
+                                        {totalGeneral > 0 ? ((totalNormales / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                      </div>
+                                    </div>
+                                    <div className="text-center p-2 bg-white rounded">
+                                      <div className="font-medium text-gray-600">% Anormales</div>
+                                      <div className="text-lg font-semibold text-orange-600">
+                                        {totalGeneral > 0 ? ((totalAnormales / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                      </div>
+                                    </div>
+                                    <div className="text-center p-2 bg-white rounded">
+                                      <div className="font-medium text-gray-600">% Duras</div>
+                                      <div className="text-lg font-semibold text-blue-600">
+                                        {totalGeneral > 0 ? ((totalDuras / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                      </div>
+                                    </div>
+                                    <div className="text-center p-2 bg-white rounded">
+                                      <div className="font-medium text-gray-600">% Frescas</div>
+                                      <div className="text-lg font-semibold text-cyan-600">
+                                        {totalGeneral > 0 ? ((totalFrescas / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                      </div>
+                                    </div>
+                                    <div className="text-center p-2 bg-white rounded">
+                                      <div className="font-medium text-gray-600">% Muertas</div>
+                                      <div className="text-lg font-semibold text-red-600">
+                                        {totalGeneral > 0 ? ((totalMuertas / totalGeneral) * 100).toFixed(4) : '0.0000'}%
+                                      </div>
+                                    </div>
+                                  </>
+                                )
+                              })()}
+                            </div>
+                          </div>
+
+                          {/* Total de Semillas */}
+                          <div className="text-center p-4 border-green-200 border-2 bg-white rounded-lg">
+                            <div className="text-sm font-medium text-green-700 mb-1">Total de Semillas Analizadas</div>
+                            <div className="text-2xl font-bold text-green-800">
+                              {(() => {
+                                const totalNormales = tabla.repGerm?.reduce((sum: number, rep: any) => {
+                                  return sum + (rep.normales ? rep.normales.reduce((s: number, n: number) => s + n, 0) : 0)
+                                }, 0) || 0
+                                const totalOtras = tabla.repGerm?.reduce((sum: number, rep: any) => 
+                                  sum + (rep.anormales || 0) + (rep.duras || 0) + (rep.frescas || 0) + (rep.muertas || 0), 0
+                                ) || 0
+                                return totalNormales + totalOtras
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Sección de porcentajes con redondeo - se muestra automáticamente */}
+                  {tieneTodasLasRepeticionesGuardadas(tabla) && (
+                    <Card className="border-blue-200 border-2 mt-4">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-lg flex items-center gap-2">
@@ -1013,7 +1407,7 @@ export function TablasGerminacionSection({
                       <CardContent>
                         {editandoPorcentajes === tabla.tablaGermID ? (
                           <div className="space-y-4">
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                               <div>
                                 <Label className="text-sm">% Normales</Label>
                                 <Input
@@ -1021,8 +1415,8 @@ export function TablasGerminacionSection({
                                   min="0"
                                   max="100"
                                   step="0.1"
-                                  value={porcentajes.porcentajeNormalesConRedondeo}
-                                  onChange={(e) => actualizarPorcentaje('porcentajeNormalesConRedondeo', parseFloat(e.target.value) || 0)}
+                                  value={porcentajes.porcentajeNormalesConRedondeo === 0 ? '' : porcentajes.porcentajeNormalesConRedondeo}
+                                  onChange={(e) => actualizarPorcentaje('porcentajeNormalesConRedondeo', e.target.value)}
                                   className="text-center"
                                 />
                               </div>
@@ -1034,8 +1428,8 @@ export function TablasGerminacionSection({
                                   min="0"
                                   max="100"
                                   step="0.1"
-                                  value={porcentajes.porcentajeAnormalesConRedondeo}
-                                  onChange={(e) => actualizarPorcentaje('porcentajeAnormalesConRedondeo', parseFloat(e.target.value) || 0)}
+                                  value={porcentajes.porcentajeAnormalesConRedondeo === 0 ? '' : porcentajes.porcentajeAnormalesConRedondeo}
+                                  onChange={(e) => actualizarPorcentaje('porcentajeAnormalesConRedondeo', e.target.value)}
                                   className="text-center"
                                 />
                               </div>
@@ -1047,8 +1441,8 @@ export function TablasGerminacionSection({
                                   min="0"
                                   max="100"
                                   step="0.1"
-                                  value={porcentajes.porcentajeDurasConRedondeo}
-                                  onChange={(e) => actualizarPorcentaje('porcentajeDurasConRedondeo', parseFloat(e.target.value) || 0)}
+                                  value={porcentajes.porcentajeDurasConRedondeo === 0 ? '' : porcentajes.porcentajeDurasConRedondeo}
+                                  onChange={(e) => actualizarPorcentaje('porcentajeDurasConRedondeo', e.target.value)}
                                   className="text-center"
                                 />
                               </div>
@@ -1060,8 +1454,8 @@ export function TablasGerminacionSection({
                                   min="0"
                                   max="100"
                                   step="0.1"
-                                  value={porcentajes.porcentajeFrescasConRedondeo}
-                                  onChange={(e) => actualizarPorcentaje('porcentajeFrescasConRedondeo', parseFloat(e.target.value) || 0)}
+                                  value={porcentajes.porcentajeFrescasConRedondeo === 0 ? '' : porcentajes.porcentajeFrescasConRedondeo}
+                                  onChange={(e) => actualizarPorcentaje('porcentajeFrescasConRedondeo', e.target.value)}
                                   className="text-center"
                                 />
                               </div>
@@ -1073,8 +1467,8 @@ export function TablasGerminacionSection({
                                   min="0"
                                   max="100"
                                   step="0.1"
-                                  value={porcentajes.porcentajeMuertasConRedondeo}
-                                  onChange={(e) => actualizarPorcentaje('porcentajeMuertasConRedondeo', parseFloat(e.target.value) || 0)}
+                                  value={porcentajes.porcentajeMuertasConRedondeo === 0 ? '' : porcentajes.porcentajeMuertasConRedondeo}
+                                  onChange={(e) => actualizarPorcentaje('porcentajeMuertasConRedondeo', e.target.value)}
                                   className="text-center"
                                 />
                               </div>
@@ -1109,7 +1503,7 @@ export function TablasGerminacionSection({
                             </div>
                           </div>
                         ) : (
-                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
                             <div>
                               <div className="text-sm font-medium text-gray-600">Normales</div>
                               <div className="text-lg">{tabla.porcentajeNormalesConRedondeo || 0}%</div>
@@ -1136,9 +1530,9 @@ export function TablasGerminacionSection({
                     </Card>
                   )}
 
-                  {/* Sección de valores INIA e INASE */}
-                  {mostrandoValores === tabla.tablaGermID && (
-                    <Card className="mt-4 border-purple-200 bg-purple-50">
+                  {/* Sección de valores INIA e INASE - se muestra automáticamente */}
+                  {tieneTodasLasRepeticionesGuardadas(tabla) && (
+                    <Card className="border-purple-200 border-2 mt-4">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-lg flex items-center gap-2">
@@ -1149,10 +1543,9 @@ export function TablasGerminacionSection({
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleMostrarValores(tabla.tablaGermID)}
-                              disabled={cargandoValores}
+                              onClick={() => setEditandoValores(tabla.tablaGermID)}
                             >
-                              {cargandoValores ? 'Cargando...' : 'Editar'}
+                              Editar
                             </Button>
                           )}
                         </div>
@@ -1164,14 +1557,14 @@ export function TablasGerminacionSection({
                               {/* INIA */}
                               <div className="space-y-3">
                                 <h5 className="font-medium text-purple-700">INIA</h5>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   <div>
                                     <Label className="text-xs">Normales</Label>
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInia.normales}
-                                      onChange={(e) => actualizarValorInia('normales', parseFloat(e.target.value) || 0)}
+                                      value={valoresInia.normales === 0 ? '' : valoresInia.normales}
+                                      onChange={(e) => actualizarValorInia('normales', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1180,8 +1573,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInia.anormales}
-                                      onChange={(e) => actualizarValorInia('anormales', parseFloat(e.target.value) || 0)}
+                                      value={valoresInia.anormales === 0 ? '' : valoresInia.anormales}
+                                      onChange={(e) => actualizarValorInia('anormales', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1190,8 +1583,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInia.duras}
-                                      onChange={(e) => actualizarValorInia('duras', parseFloat(e.target.value) || 0)}
+                                      value={valoresInia.duras === 0 ? '' : valoresInia.duras}
+                                      onChange={(e) => actualizarValorInia('duras', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1200,8 +1593,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInia.frescas}
-                                      onChange={(e) => actualizarValorInia('frescas', parseFloat(e.target.value) || 0)}
+                                      value={valoresInia.frescas === 0 ? '' : valoresInia.frescas}
+                                      onChange={(e) => actualizarValorInia('frescas', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1210,8 +1603,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInia.muertas}
-                                      onChange={(e) => actualizarValorInia('muertas', parseFloat(e.target.value) || 0)}
+                                      value={valoresInia.muertas === 0 ? '' : valoresInia.muertas}
+                                      onChange={(e) => actualizarValorInia('muertas', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1220,8 +1613,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInia.total}
-                                      onChange={(e) => actualizarValorInia('total', parseFloat(e.target.value) || 0)}
+                                      value={valoresInia.germinacion === 0 ? '' : valoresInia.germinacion}
+                                      onChange={(e) => actualizarValorInia('germinacion', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1231,14 +1624,14 @@ export function TablasGerminacionSection({
                               {/* INASE */}
                               <div className="space-y-3">
                                 <h5 className="font-medium text-purple-700">INASE</h5>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   <div>
                                     <Label className="text-xs">Normales</Label>
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInase.normales}
-                                      onChange={(e) => actualizarValorInase('normales', parseFloat(e.target.value) || 0)}
+                                      value={valoresInase.normales === 0 ? '' : valoresInase.normales}
+                                      onChange={(e) => actualizarValorInase('normales', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1247,8 +1640,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInase.anormales}
-                                      onChange={(e) => actualizarValorInase('anormales', parseFloat(e.target.value) || 0)}
+                                      value={valoresInase.anormales === 0 ? '' : valoresInase.anormales}
+                                      onChange={(e) => actualizarValorInase('anormales', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1257,8 +1650,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInase.duras}
-                                      onChange={(e) => actualizarValorInase('duras', parseFloat(e.target.value) || 0)}
+                                      value={valoresInase.duras === 0 ? '' : valoresInase.duras}
+                                      onChange={(e) => actualizarValorInase('duras', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1267,8 +1660,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInase.frescas}
-                                      onChange={(e) => actualizarValorInase('frescas', parseFloat(e.target.value) || 0)}
+                                      value={valoresInase.frescas === 0 ? '' : valoresInase.frescas}
+                                      onChange={(e) => actualizarValorInase('frescas', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1277,8 +1670,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInase.muertas}
-                                      onChange={(e) => actualizarValorInase('muertas', parseFloat(e.target.value) || 0)}
+                                      value={valoresInase.muertas === 0 ? '' : valoresInase.muertas}
+                                      onChange={(e) => actualizarValorInase('muertas', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1287,8 +1680,8 @@ export function TablasGerminacionSection({
                                     <Input
                                       type="number"
                                       min="0"
-                                      value={valoresInase.total}
-                                      onChange={(e) => actualizarValorInase('total', parseFloat(e.target.value) || 0)}
+                                      value={valoresInase.germinacion === 0 ? '' : valoresInase.germinacion}
+                                      onChange={(e) => actualizarValorInase('germinacion', e.target.value)}
                                       className="text-center text-sm"
                                     />
                                   </div>
@@ -1306,10 +1699,11 @@ export function TablasGerminacionSection({
                               
                               <Button
                                 onClick={() => handleGuardarValores(tabla.tablaGermID)}
+                                disabled={!hanCambiadoValores()}
                                 className={
                                   hanCambiadoValores() 
                                     ? 'bg-purple-600 hover:bg-purple-700' 
-                                    : 'bg-gray-400 hover:bg-gray-500'
+                                    : 'bg-gray-400 hover:bg-gray-500 cursor-not-allowed'
                                 }
                               >
                                 {hanCambiadoValores() ? 'Guardar Cambios' : 'Sin Cambios'}
@@ -1320,60 +1714,60 @@ export function TablasGerminacionSection({
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div className="space-y-3">
                               <h5 className="font-medium text-purple-700">INIA</h5>
-                              <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Normales</div>
-                                  <div>{valoresInia.normales}</div>
+                                  <div>{valoresInia.normales || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Anormales</div>
-                                  <div>{valoresInia.anormales}</div>
+                                  <div>{valoresInia.anormales || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Duras</div>
-                                  <div>{valoresInia.duras}</div>
+                                  <div>{valoresInia.duras || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Frescas</div>
-                                  <div>{valoresInia.frescas}</div>
+                                  <div>{valoresInia.frescas || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Muertas</div>
-                                  <div>{valoresInia.muertas}</div>
+                                  <div>{valoresInia.muertas || 0}</div>
                                 </div>
                                 <div className="text-center font-semibold">
                                   <div className="font-medium text-gray-600">Germinación</div>
-                                  <div>{valoresInia.total}</div>
+                                  <div>{valoresInia.germinacion || 0}</div>
                                 </div>
                               </div>
                             </div>
 
                             <div className="space-y-3">
                               <h5 className="font-medium text-purple-700">INASE</h5>
-                              <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Normales</div>
-                                  <div>{valoresInase.normales}</div>
+                                  <div>{valoresInase.normales || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Anormales</div>
-                                  <div>{valoresInase.anormales}</div>
+                                  <div>{valoresInase.anormales || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Duras</div>
-                                  <div>{valoresInase.duras}</div>
+                                  <div>{valoresInase.duras || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Frescas</div>
-                                  <div>{valoresInase.frescas}</div>
+                                  <div>{valoresInase.frescas || 0}</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium text-gray-600">Muertas</div>
-                                  <div>{valoresInase.muertas}</div>
+                                  <div>{valoresInase.muertas || 0}</div>
                                 </div>
                                 <div className="text-center font-semibold">
                                   <div className="font-medium text-gray-600">Germinación</div>
-                                  <div>{valoresInase.total}</div>
+                                  <div>{valoresInase.germinacion || 0}</div>
                                 </div>
                               </div>
                             </div>
@@ -1387,7 +1781,178 @@ export function TablasGerminacionSection({
             </Card>
           ))
         )}
+        
+        {/* Formulario para crear nueva tabla - aparece al final */}
+        {mostrandoFormularioTabla && (
+          <Card className="border-blue-200 border-2 mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-700">
+                <Plus className="h-5 w-5" />
+                Crear Nueva Tabla de Germinación
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Tratamiento</Label>
+                  <Input
+                    value={nuevaTabla.tratamiento}
+                    onChange={(e) => {
+                      setNuevaTabla(prev => ({ ...prev, tratamiento: e.target.value }))
+                      validarCampoEnTiempoReal('tratamiento', e.target.value, true)
+                    }}
+                    placeholder="Control, Tratamiento A, etc."
+                    className={erroresValidacionNuevaTabla.tratamiento ? "border-red-500 focus:border-red-500" : ""}
+                  />
+                  {erroresValidacionNuevaTabla.tratamiento && (
+                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.tratamiento}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Producto y Dosis</Label>
+                  <Input
+                    value={nuevaTabla.productoYDosis}
+                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, productoYDosis: e.target.value }))}
+                    placeholder="Fungicida 2ml/L, etc."
+                  />
+                </div>
+
+                  <div>
+                    <Label className="text-sm font-medium">Número de Semillas por Repetición</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="500"
+                      value={nuevaTabla.numSemillasPRep === 0 ? '' : nuevaTabla.numSemillasPRep}
+                      onChange={(e) => {
+                        manejarCambioNumerico(e.target.value, nuevaTabla.numSemillasPRep, (valor) => 
+                          setNuevaTabla(prev => ({ ...prev, numSemillasPRep: valor }))
+                        )
+                        validarCampoEnTiempoReal('numSemillasPRep', parseInt(e.target.value) || 0, true)
+                      }}
+                      placeholder="Ej: 100"
+                      className={erroresValidacionNuevaTabla.numSemillasPRep ? "border-red-500 focus:border-red-500" : ""}
+                    />
+                    {erroresValidacionNuevaTabla.numSemillasPRep && (
+                      <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.numSemillasPRep}</p>
+                    )}
+                  </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Método</Label>
+                  <Input
+                    value={nuevaTabla.metodo}
+                    onChange={(e) => {
+                      setNuevaTabla(prev => ({ ...prev, metodo: e.target.value }))
+                      validarCampoEnTiempoReal('metodo', e.target.value, true)
+                    }}
+                    placeholder="Papel, Arena, Suelo, etc."
+                    className={erroresValidacionNuevaTabla.metodo ? "border-red-500 focus:border-red-500" : ""}
+                  />
+                  {erroresValidacionNuevaTabla.metodo && (
+                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.metodo}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Temperatura (°C)</Label>
+                  <Input
+                    type="number"
+                    min="-10"
+                    max="50"
+                    value={nuevaTabla.temperatura === 0 ? '' : nuevaTabla.temperatura}
+                    onChange={(e) => {
+                      manejarCambioNumerico(e.target.value, nuevaTabla.temperatura, (valor) => 
+                        setNuevaTabla(prev => ({ ...prev, temperatura: valor })), true
+                      )
+                      validarCampoEnTiempoReal('temperatura', parseFloat(e.target.value) || 0, true)
+                    }}
+                    placeholder="Ej: 20"
+                    className={erroresValidacionNuevaTabla.temperatura ? "border-red-500 focus:border-red-500" : ""}
+                  />
+                  {erroresValidacionNuevaTabla.temperatura && (
+                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.temperatura}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Prefrío</Label>
+                  <Input
+                    value={nuevaTabla.prefrio}
+                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, prefrio: e.target.value }))}
+                    placeholder="Sí/No o condiciones específicas"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Pretratamiento</Label>
+                  <Input
+                    value={nuevaTabla.pretratamiento}
+                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, pretratamiento: e.target.value }))}
+                    placeholder="Ninguno, Inmersión, etc."
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={handleCrearTabla}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Crear Tabla
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setMostrandoFormularioTabla(false)}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </CardContent>
+      
+      {/* Sección de Acciones */}
+      <div className="border-t p-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Acciones</h3>
+            <p className="text-sm text-gray-600">Gestionar el estado del análisis de germinación</p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setMostrandoFormularioTabla(true)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar Tabla
+            </Button>
+            
+            {!isFinalized && (
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={handleFinalizarGerminacion}
+                disabled={finalizandoGerminacion}
+              >
+                {finalizandoGerminacion ? (
+                  "Finalizando..."
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Finalizar Análisis
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
     </Card>
   )
 }

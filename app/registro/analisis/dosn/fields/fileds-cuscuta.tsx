@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -8,18 +8,34 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { FlaskConical, CheckCircle2, XCircle, AlertCircle } from "lucide-react"
 
-export default function CuscutaSection() {
-  const [data, setData] = useState({
-    gramos: "",
-    numero: "",
-    cumple: "",
-  })
+type Props = {
+  formData: any
+  handleInputChange: (field: string, value: any) => void
+}
 
-  const updateField = (field: keyof typeof data, value: string) => {
+export default function CuscutaSection({ formData, handleInputChange }: Props) {
+  const data = {
+    gramos: formData.cuscutaGramos || "",
+    numero: formData.cuscutaNumero || "",
+    fecha: formData.cuscutaFecha || "",
+    cumple: formData.cuscutaCumple || "",
+  }
+
+  const updateField = (field: string, value: string) => {
+    const fieldMap: { [key: string]: string } = {
+      gramos: "cuscutaGramos",
+      numero: "cuscutaNumero",
+      fecha: "cuscutaFecha",
+      cumple: "cuscutaCumple"
+    }
+
     if (field === "cumple" && value === "no-contiene") {
-      setData({ gramos: "", numero: "", cumple: "no-contiene" })
+      handleInputChange("cuscutaGramos", "")
+      handleInputChange("cuscutaNumero", "")
+      handleInputChange("cuscutaFecha", "")
+      handleInputChange("cuscutaCumple", "no-contiene")
     } else {
-      setData({ ...data, [field]: value })
+      handleInputChange(fieldMap[field], value)
     }
   }
 
@@ -49,13 +65,26 @@ export default function CuscutaSection() {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Fecha */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Fecha de análisis</Label>
+            <Input
+              type="date"
+              value={data.fecha}
+              onChange={(e) => updateField("fecha", e.target.value)}
+              disabled={data.cumple === "no-contiene"}
+              className="w-full"
+            />
+          </div>
+
           {/* Peso en gramos */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Peso (g)</Label>
             <Input
               type="number"
-              placeholder="Ej: 5"
+              placeholder="Ej: 5.5"
+              step="0.01"
               value={data.gramos}
               onChange={(e) => updateField("gramos", e.target.value)}
               disabled={data.cumple === "no-contiene"}
@@ -67,6 +96,7 @@ export default function CuscutaSection() {
           <div className="space-y-2">
             <Label className="text-sm font-medium">Número de semillas</Label>
             <Input
+              type="number"
               placeholder="Ej: 789"
               value={data.numero}
               onChange={(e) => updateField("numero", e.target.value)}

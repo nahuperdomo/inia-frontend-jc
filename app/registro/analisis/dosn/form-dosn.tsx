@@ -16,13 +16,6 @@ import {
   TabsTrigger,
   TabsContent,
 } from "@/components/ui/tabs"
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectValue,
-  SelectItem,
-} from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import {
   Microscope,
@@ -30,51 +23,57 @@ import {
   Weight,
   FileText,
   Building2,
-  CheckCircle2,
-  XCircle,
   ClipboardList,
 } from "lucide-react"
 
-// Subcomponentes de registros
+// Subcomponentes
 import MalezaFields from "@/components/malezas-u-otros-cultivos/fields-maleza"
 import BrassicaFields from "@/app/registro/analisis/dosn/fields/fields-brassica"
 import CuscutaFields from "@/app/registro/analisis/dosn/fields/fileds-cuscuta"
 import CumplimientoEstandarFields from "@/app/registro/analisis/dosn/fields/fields-cumplio-estandar"
 import OtrosCultivosFields from "../../../../components/malezas-u-otros-cultivos/fields-otros-cultivos"
 
-
 type Props = {
-  formData: any;
-  handleInputChange: (field: string, value: any) => void;
-  dosn?: any;
-  modoDetalle?: boolean;
-  onChangeListadosMalezas?: (list: any[]) => void;
-  onChangeListadosCultivos?: (list: any[]) => void;
-};
+  formData: any
+  handleInputChange: (field: string, value: any) => void
+  dosn?: any
+  modoDetalle?: boolean
+  onChangeListadosMalezas?: (list: any[]) => void
+  onChangeListadosCultivos?: (list: any[]) => void
+  onChangeListadosBrassicas?: (list: any[]) => void
+}
 
-export default function DosnFields({ formData, handleInputChange, dosn, modoDetalle, onChangeListadosMalezas, onChangeListadosCultivos }: Props) {
-  // Si hay dosn, usarlo como fuente de datos
-  const data = dosn || formData || {};
-  const isReadOnly = !!modoDetalle;
+export default function DosnFields({
+  formData,
+  handleInputChange,
+  dosn,
+  modoDetalle,
+  onChangeListadosMalezas,
+  onChangeListadosCultivos,
+  onChangeListadosBrassicas,
+}: Props) {
+  const data = dosn || formData || {}
+  const isReadOnly = !!modoDetalle
+
   const analysisTypes = [
     { key: "Completo", field: "Completo", description: "Análisis exhaustivo de todas las categorías" },
     { key: "Reducido", field: "Reducido", description: "Análisis de categorías principales" },
     { key: "Limitado", field: "Limitado", description: "Análisis básico de categorías críticas" },
     { key: "Reducido - Limitado", field: "ReducidoLimitado", description: "Análisis híbrido optimizado" },
-  ];
+  ]
 
-  // Separar listados en malezas y cultivos
-  const listados = dosn?.listados || [];
-  // Separar listados en malezas y cultivos
+  // listados que vienen del backend (cuando existe dosn)
+  const listados = dosn?.listados || []
+
+  // separar por tipo
   const malezas = listados.filter(
     (l: any) =>
       l.listadoTipo === "MAL_TOLERANCIA_CERO" ||
       l.listadoTipo === "MAL_TOLERANCIA" ||
       l.listadoTipo === "MAL_COMUNES"
-  );
-
-  const cultivos = listados.filter((l: any) => l.listadoTipo === "OTROS");
-
+  )
+  const cultivos = listados.filter((l: any) => l.listadoTipo === "OTROS")
+  const brassicas = listados.filter((l: any) => l.listadoTipo === "BRASSICA")
 
   const renderInstitutionSection = (
     institution: "INIA" | "INASE",
@@ -103,13 +102,10 @@ export default function DosnFields({ formData, handleInputChange, dosn, modoDeta
 
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Datos básicos */}
+            {/* fecha */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label
-                  htmlFor={`${prefix}Fecha`}
-                  className="text-sm font-medium flex items-center gap-2"
-                >
+                <Label htmlFor={`${prefix}Fecha`} className="text-sm font-medium flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   Fecha de análisis
                 </Label>
@@ -117,17 +113,18 @@ export default function DosnFields({ formData, handleInputChange, dosn, modoDeta
                   id={`${prefix}Fecha`}
                   type="date"
                   value={data[`${prefix}Fecha`] || ""}
-                  onChange={isReadOnly ? undefined : (e) => handleInputChange && handleInputChange(`${prefix}Fecha`, e.target.value)}
-                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20${isReadOnly ? ' bg-gray-100 cursor-not-allowed' : ''}`}
+                  onChange={
+                    isReadOnly ? undefined : (e) =>
+                      handleInputChange && handleInputChange(`${prefix}Fecha`, e.target.value)
+                  }
+                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20${isReadOnly ? " bg-gray-100 cursor-not-allowed" : ""
+                    }`}
                   readOnly={isReadOnly}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label
-                  htmlFor={`${prefix}Gramos`}
-                  className="text-sm font-medium flex items-center gap-2"
-                >
+                <Label htmlFor={`${prefix}Gramos`} className="text-sm font-medium flex items-center gap-2">
                   <Weight className="h-4 w-4 text-muted-foreground" />
                   Gramos analizados
                 </Label>
@@ -137,14 +134,18 @@ export default function DosnFields({ formData, handleInputChange, dosn, modoDeta
                   step="0.01"
                   placeholder="0.00"
                   value={data[`${prefix}Gramos`] || ""}
-                  onChange={isReadOnly ? undefined : (e) => handleInputChange && handleInputChange(`${prefix}Gramos`, e.target.value)}
-                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20${isReadOnly ? ' bg-gray-100 cursor-not-allowed' : ''}`}
+                  onChange={
+                    isReadOnly ? undefined : (e) =>
+                      handleInputChange && handleInputChange(`${prefix}Gramos`, e.target.value)
+                  }
+                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20${isReadOnly ? " bg-gray-100 cursor-not-allowed" : ""
+                    }`}
                   readOnly={isReadOnly}
                 />
               </div>
             </div>
 
-            {/* Tipos de análisis */}
+            {/* tipos de análisis */}
             <div className="space-y-4">
               <Label className="text-sm font-medium flex items-center gap-2">
                 <ClipboardList className="h-4 w-4 text-muted-foreground" />
@@ -161,20 +162,18 @@ export default function DosnFields({ formData, handleInputChange, dosn, modoDeta
                       <Checkbox
                         id={fieldName}
                         checked={data[fieldName] || false}
-                        onCheckedChange={isReadOnly ? undefined : (checked) => handleInputChange && handleInputChange(fieldName, checked)}
+                        onCheckedChange={
+                          isReadOnly ? undefined : (checked) =>
+                            handleInputChange && handleInputChange(fieldName, checked)
+                        }
                         disabled={isReadOnly}
                         className="mt-1 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                       />
                       <div className="flex-1 min-w-0">
-                        <label
-                          htmlFor={fieldName}
-                          className="text-sm font-medium cursor-pointer"
-                        >
+                        <label htmlFor={fieldName} className="text-sm font-medium cursor-pointer">
                           {key}
                         </label>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {description}
-                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">{description}</p>
                       </div>
                     </div>
                   )
@@ -218,36 +217,26 @@ export default function DosnFields({ formData, handleInputChange, dosn, modoDeta
             </TabsTrigger>
           </TabsList>
 
-          {/* --- TAB: Datos generales --- */}
+          {/* TAB: Datos generales */}
           <TabsContent value="generales" className="space-y-6">
-            {renderInstitutionSection(
-              "INIA",
-              <Building2 className="h-5 w-5 text-emerald-600" />,
-              "bg-emerald-50"
-            )}
-            {renderInstitutionSection(
-              "INASE",
-              <Building2 className="h-5 w-5 text-blue-600" />,
-              "bg-blue-50"
-            )}
+            {renderInstitutionSection("INIA", <Building2 className="h-5 w-5 text-emerald-600" />, "bg-emerald-50")}
+            {renderInstitutionSection("INASE", <Building2 className="h-5 w-5 text-blue-600" />, "bg-blue-50")}
           </TabsContent>
 
-          {/* --- TAB: Registros --- */}
+          {/* TAB: Registros */}
           <TabsContent value="registros" className="space-y-6 mt-6">
-            <MalezaFields
-              titulo="Malezas"
-              registros={malezas}
-              onChangeListados={onChangeListadosMalezas}
+            <MalezaFields titulo="Malezas" registros={malezas} onChangeListados={onChangeListadosMalezas} />
+            <OtrosCultivosFields registros={cultivos} onChangeListados={onChangeListadosCultivos} />
+            <BrassicaFields registros={brassicas} onChangeListados={onChangeListadosBrassicas} />
+            <CuscutaFields
+              formData={formData}
+              handleInputChange={handleInputChange ?? (() => { })}
             />
-            <OtrosCultivosFields
-              registros={cultivos}
-              onChangeListados={onChangeListadosCultivos}
-            />
-            <BrassicaFields />
-            <CuscutaFields />
             <Separator />
-
-            <CumplimientoEstandarFields formData={formData} handleInputChange={handleInputChange ?? (() => { })} />
+            <CumplimientoEstandarFields
+              formData={formData}
+              handleInputChange={handleInputChange ?? (() => { })}
+            />
           </TabsContent>
         </Tabs>
       </CardContent>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -18,6 +18,7 @@ import { LoteSimpleDTO } from "@/app/models"
 import { registrarAnalisis } from "@/app/services/analisis-service"
 import { crearGerminacion } from "@/app/services/germinacion-service"
 import PurezaFields from "./pureza/form-pureza"
+
 
 export type AnalysisFormData = {
   loteid: string
@@ -56,6 +57,16 @@ export type AnalysisFormData = {
   inaseLimitado: boolean
   inaseReducidoLimitado: boolean
 
+  // Cuscuta
+  cuscutaGramos: string
+  cuscutaNumero: string
+  cuscutaFecha: string
+  cuscutaCumple: string
+
+  // Cumple estándar
+  cumpleEstandar: string
+  cumpleFecha: string
+
   // Germinación
   fechaInicioGerm: string
   fechaConteos: string[]
@@ -76,9 +87,26 @@ const analysisTypes = [
 export default function RegistroAnalisisPage() {
   const [selectedAnalysisType, setSelectedAnalysisType] = useState("");
   const [selectedLote, setSelectedLote] = useState("");
-  // Estados para listados de malezas y cultivos
+  // Estados para listados de malezas, cultivos y brassicas
   const [malezasList, setMalezasList] = useState<any[]>([]);
   const [cultivosList, setCultivosList] = useState<any[]>([]);
+  const [brassicasList, setBrassicasList] = useState<any[]>([]);
+
+  // Funciones de callback con logs para debugging - memoizadas para evitar re-renders infinitos
+  const handleMalezasChange = useCallback((list: any[]) => {
+    console.log("🐛 DEBUG - handleMalezasChange llamado con:", list);
+    setMalezasList(list);
+  }, []);
+
+  const handleCultivosChange = useCallback((list: any[]) => {
+    console.log("🐛 DEBUG - handleCultivosChange llamado con:", list);
+    setCultivosList(list);
+  }, []);
+
+  const handleBrassicasChange = useCallback((list: any[]) => {
+    console.log("🐛 DEBUG - handleBrassicasChange llamado con:", list);
+    setBrassicasList(list);
+  }, []);
   const [formData, setFormData] = useState<AnalysisFormData>({
     loteid: "",
     responsable: "",
@@ -106,6 +134,14 @@ export default function RegistroAnalisisPage() {
     inaseReducido: false,
     inaseLimitado: false,
     inaseReducidoLimitado: false,
+    // Cuscuta
+    cuscutaGramos: "",
+    cuscutaNumero: "",
+    cuscutaFecha: "",
+    cuscutaCumple: "",
+    // Cumple estándar
+    cumpleEstandar: "",
+    cumpleFecha: "",
     // Germinación
     fechaInicioGerm: "",
     fechaConteos: [],
@@ -115,10 +151,6 @@ export default function RegistroAnalisisPage() {
     numeroConteos: 0,
   });
 
-  const handleInputChange = (field: keyof AnalysisFormData, value: string | number | boolean) => {
-    setFormData((prev) => ({ ...prev, [field]: value as any }))
-  }
-
   const [loading, setLoading] = useState(false)
 
   // Función para obtener el nombre descriptivo del tipo de análisis
@@ -126,6 +158,10 @@ export default function RegistroAnalisisPage() {
     const analysisType = analysisTypes.find(type => type.id === typeId);
     return analysisType?.name || 'Desconocido';
   }
+
+  const handleInputChange = useCallback((field: keyof AnalysisFormData, value: string | number | boolean) => {
+    setFormData((prev) => ({ ...prev, [field]: value as any }))
+  }, [])
 
   const toNum = (v: string) => (v === "" ? undefined : Number(v))
 
@@ -162,6 +198,12 @@ export default function RegistroAnalisisPage() {
         obj[`${prefix}ReducidoLimitado`] ? "REDUCIDO_LIMITADO" : null,
       ].filter(Boolean);
 
+      // Debug: Verificar estados de los arrays antes de procesar
+      console.log("🔍 DEBUG - Estados de arrays antes de procesar:");
+      console.log("  - malezasList.length:", malezasList.length);
+      console.log("  - cultivosList.length:", cultivosList.length);
+      console.log("  - brassicasList.length:", brassicasList.length);
+
       // Agregar otrosCultivos
       let cultivosListWithOtros = [...cultivosList];
       if (formData.otrosCultivos && formData.otrosCultivos !== "") {
@@ -173,35 +215,21 @@ export default function RegistroAnalisisPage() {
         });
       }
 
-      // mapeo de malezas
-      const mapMalezaTipo = (m: any) => {
-        switch (m.tipoMaleza) {
-          case "tolerancia-cero":
-            return "MAL_TOLERANCIA_CERO";
-          case "con-tolerancia":
-            return "MAL_TOLERANCIA";
-          case "comunes":
-            return "MAL_COMUNES";
-          case "no-contiene":
-            return "MAL_COMUNES";
-          default:
-            return "MAL_COMUNES";
-        }
-      };
-
+      // mapeo de malezas - ya no es necesario mapear porque el componente envía los valores correctos
       const listados = [
         ...malezasList.map((m) => ({
           ...m,
-          listadoTipo: mapMalezaTipo(m),
-          listadoNum: m.numero ? Number(m.numero) : 0, // si no hay valor → 0
+          listadoNum: m.listadoNum !== null && m.listadoNum !== undefined ? m.listadoNum : null, // mantener null si no hay valor
         })),
         ...cultivosListWithOtros.map((c) => ({ ...c, listadoTipo: "OTROS" })),
+        ...brassicasList.map((b) => ({ ...b, listadoTipo: "BRASSICA" })),
       ];
 
       payload = {
         idLote: formData.loteid,
         comentarios: formData.observaciones,
-        estado: "REGISTRADO",
+        // Cumple estándar
+        cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : null,
         // INIA
         fechaINIA: formData.iniaFecha || null,
         gramosAnalizadosINIA: toNum(formData.iniaGramos),
@@ -210,9 +238,25 @@ export default function RegistroAnalisisPage() {
         fechaINASE: formData.inaseFecha || null,
         gramosAnalizadosINASE: toNum(formData.inaseGramos),
         tipoINASE: mapTipoDosn(formData, "inase"),
+        // Cuscuta
+        cuscuta_g: toNum(formData.cuscutaGramos),
+        cuscutaNum: toNum(formData.cuscutaNumero),
+        fechaCuscuta: formData.cuscutaFecha || null,
         // Listados
         listados,
       };
+
+      // Debug logs para verificar datos antes de enviar
+      console.log("🔍 DEBUG - Datos de DOSN antes de enviar:");
+      console.log("  - listados finales:", listados);
+      console.log("  - payload.listados:", payload.listados);
+
+      // Validación adicional para asegurar que hay datos para enviar
+      if (listados.length === 0) {
+        console.warn("⚠️ WARNING: No hay listados para enviar. Esto podría ser normal si el análisis no requiere listados.");
+      } else {
+        console.log(`✅ Se enviarán ${listados.length} listados al backend`);
+      }
     } else if (selectedAnalysisType === "pureza") {
       payload = {
         ...payload,
@@ -275,6 +319,33 @@ export default function RegistroAnalisisPage() {
         return;
       }
 
+      // Validar que la fecha de inicio sea anterior a la fecha de último conteo
+      if (formData.fechaInicioGerm && formData.fechaUltConteo) {
+        const fechaInicio = new Date(formData.fechaInicioGerm);
+        const fechaFin = new Date(formData.fechaUltConteo);
+        
+        if (fechaInicio >= fechaFin) {
+          toast.error("La fecha de inicio debe ser anterior a la fecha de último conteo");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Validar que todas las fechas de conteo estén entre la fecha de inicio y fin
+      if (formData.fechaInicioGerm && formData.fechaUltConteo) {
+        const fechaInicio = new Date(formData.fechaInicioGerm);
+        const fechaFin = new Date(formData.fechaUltConteo);
+        
+        for (const fecha of fechasValidas) {
+          const fechaConteo = new Date(fecha);
+          if (fechaConteo < fechaInicio || fechaConteo > fechaFin) {
+            toast.error(`Todas las fechas de conteo deben estar entre ${fechaInicio.toLocaleDateString()} y ${fechaFin.toLocaleDateString()}`);
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
       payload = {
         idLote: parseInt(formData.loteid), // Convertir a número
         comentarios: formData.observaciones || "",
@@ -314,9 +385,9 @@ export default function RegistroAnalisisPage() {
           description: `Se ha creado el análisis para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
         });
 
-        // Redirigir a la página de gestión del análisis creado
+        // Redirigir a la página de edición del análisis creado
         setTimeout(() => {
-          window.location.href = `/listado/analisis/germinacion/${result.analisisID}`;
+          window.location.href = `/listado/analisis/germinacion/${result.analisisID}/editar`;
         }, 1500);
       } else {
         const response = await registrarAnalisis(payload, selectedAnalysisType);
@@ -471,6 +542,34 @@ export default function RegistroAnalisisPage() {
                 </div>
               )}
             </div>
+
+            <div className="space-y-4">
+              {selectedLoteInfo && (
+                <Card className="bg-gray-50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Información del Lote</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Ficha:</span>
+                      <span className="font-medium">{selectedLoteInfo.ficha}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">ID:</span>
+                      <span>{selectedLoteInfo.loteID}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Número Ficha:</span>
+                      <span>{selectedLoteInfo.numeroFicha}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Activo:</span>
+                      <span>{selectedLoteInfo.activo ? "Sí" : "No"}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
 
           {selectedAnalysisType === "pureza" && (
@@ -480,8 +579,9 @@ export default function RegistroAnalisisPage() {
             <DosnFields
               formData={formData}
               handleInputChange={handleInputChange as (field: string, value: any) => void}
-              onChangeListadosMalezas={setMalezasList}
-              onChangeListadosCultivos={setCultivosList}
+              onChangeListadosMalezas={handleMalezasChange}
+              onChangeListadosCultivos={handleCultivosChange}
+              onChangeListadosBrassicas={handleBrassicasChange}
             />
           )}
           {selectedAnalysisType === "germinacion" && (
@@ -490,6 +590,7 @@ export default function RegistroAnalisisPage() {
               handleInputChange={handleInputChange as (field: string, value: any) => void}
             />
           )}
+
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Button
               className="w-full sm:flex-1 bg-green-700 hover:bg-green-700"

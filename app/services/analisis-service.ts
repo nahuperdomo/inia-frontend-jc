@@ -1,13 +1,12 @@
 import { apiFetch } from "./api";
 import { 
-  AnalisisPayload, 
   AnalisisGenerico, 
   ResumenAnalisis,
   AnalisisPorLoteResponse 
 } from "../models";
 
 // Funciones genéricas para análisis
-export async function registrarAnalisis(payload: AnalisisPayload, tipo: string) {
+export async function registrarAnalisis(payload: any, tipo: string) {
   let endpoint = "";
   switch (tipo) {
     case "pureza":
@@ -28,6 +27,16 @@ export async function registrarAnalisis(payload: AnalisisPayload, tipo: string) 
     default:
       throw new Error("Tipo de análisis no soportado");
   }
+
+  // Debug log para verificar datos antes de enviar al backend
+  console.log("🚀 DEBUG - Enviando al backend:");
+  console.log("  - Endpoint:", endpoint);
+  if (tipo === "dosn" && payload.listados) {
+    console.log(`  - Cantidad de listados: ${payload.listados.length}`);
+  } else {
+    console.log("  - Tipo de análisis:", tipo);
+  }
+
   return apiFetch(endpoint, {
     method: "POST",
     body: JSON.stringify(payload),

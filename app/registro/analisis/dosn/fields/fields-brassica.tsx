@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -8,22 +8,78 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Trash2, Plus, Sprout, XCircle } from "lucide-react"
+import { obtenerBrassicas } from "@/app/services/malezas-service"
+import { MalezasYCultivosCatalogoDTO } from "@/app/models"
 
 type Brassica = {
-  estado: string
+  contiene: "si" | "no" | ""
   listado: string
   entidad: string
   numero: string
+  idCatalogo: number | null
 }
 
-export default function BrassicaSection() {
-  const [brassicas, setBrassicas] = useState<Brassica[]>([
-    { estado: "", listado: "", entidad: "", numero: "" },
-  ])
+type Props = {
+  registros?: any[]
+  onChangeListados?: (listados: any[]) => void
+}
 
-  const addBrassica = () => {
-    setBrassicas([...brassicas, { estado: "", listado: "", entidad: "", numero: "" }])
-  }
+export default function BrassicaSection({ registros, onChangeListados }: Props) {
+  const [brassicas, setBrassicas] = useState<Brassica[]>(
+    registros && registros.length > 0
+      ? registros.map((r) => ({
+        contiene: "si",
+        listado: r.catalogo?.nombreComun || "",
+        entidad: r.listadoInsti?.toLowerCase() || "",
+        numero: r.listadoNum?.toString() || "",
+        idCatalogo: r.catalogo?.catalogoID ?? null,
+      }))
+      : [{ contiene: "", listado: "", entidad: "", numero: "", idCatalogo: null }]
+  )
+
+  const [opcionesBrassicas, setOpcionesBrassicas] = useState<MalezasYCultivosCatalogoDTO[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // cargar catálogo de brassicas
+  useEffect(() => {
+    const fetchBrassicas = async () => {
+      try {
+        const data = await obtenerBrassicas()
+        setOpcionesBrassicas(data)
+      } catch (err) {
+        setError("Error al cargar brassicas")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchBrassicas()
+  }, [])
+
+  // notificar cambios al padre
+  useEffect(() => {
+    if (onChangeListados) {
+      const listados = brassicas
+        .filter((b) => {
+          // Solo cuando contiene y tiene los campos requeridos
+          const hasRequiredFields = b.contiene === "si" &&
+            b.listado && b.listado.trim() !== "" &&
+            b.entidad && b.entidad.trim() !== "";
+          return hasRequiredFields;
+        })
+        .map((b) => ({
+          listadoTipo: "BRASSICA",
+          listadoInsti: b.entidad.toUpperCase(),
+          listadoNum: b.numero !== "" ? Number(b.numero) : null,
+          idCatalogo: b.idCatalogo,
+        }))
+
+      onChangeListados(listados)
+    }
+  }, [brassicas, onChangeListados])
+
+  const addBrassica = () =>
+    setBrassicas([...brassicas, { contiene: "", listado: "", entidad: "", numero: "", idCatalogo: null }])
 
   const removeBrassica = (index: number) => {
     if (brassicas.length > 1) {
@@ -31,22 +87,23 @@ export default function BrassicaSection() {
     }
   }
 
-  const updateBrassica = (index: number, field: keyof Brassica, value: string) => {
+  const updateBrassica = (index: number, field: keyof Brassica, value: any) => {
     const updated = [...brassicas]
-    if (field === "estado" && value === "no-contiene") {
-      updated[index] = { estado: "no-contiene", listado: "", entidad: "", numero: "" }
+    if (field === "contiene" && value === "no") {
+      updated[index] = { contiene: "no", listado: "", entidad: "", numero: "", idCatalogo: null }
     } else {
-      updated[index][field] = value
+      updated[index] = { ...updated[index], [field]: value }
     }
     setBrassicas(updated)
   }
 
-  const opcionesBrassicas = [
-    "Brassica napus (Colza)",
-    "Brassica rapa (Nabo)",
-    "Brassica juncea (Mostaza parda)",
-    "Brassica oleracea (Col)",
-  ]
+  const handleEspecieSelect = (index: number, especie: string) => {
+    const catalogo = opcionesBrassicas.find((e) => e.nombreComun === especie)
+    const idCatalogo = catalogo ? catalogo.catalogoID : null
+    const updated = [...brassicas]
+    updated[index] = { ...updated[index], listado: especie, idCatalogo }
+    setBrassicas(updated)
+  }
 
   return (
     <Card className="border-border/50 bg-background shadow-sm">
@@ -59,17 +116,16 @@ export default function BrassicaSection() {
 
       <CardContent className="space-y-6">
         {brassicas.map((brassica, index) => {
-          const isDisabled = brassica.estado === "no-contiene"
+          const isDisabled = brassica.contiene === "no"
 
           return (
             <Card key={index} className="bg-background border shadow-sm transition-all duration-200">
               <CardContent className="p-4">
-                {/* Header de cada registro */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <Sprout className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium text-sm">Registro {index + 1}</span>
-                    {brassica.estado && <Badge>{brassica.estado}</Badge>}
+                    {brassica.contiene && <Badge>{brassica.contiene === "si" ? "Contiene" : "No contiene"}</Badge>}
                   </div>
                   {brassicas.length > 1 && (
                     <Button
@@ -83,18 +139,17 @@ export default function BrassicaSection() {
                   )}
                 </div>
 
-                {/* Campos */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Estado */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-foreground">Estado</Label>
-                    <Select value={brassica.estado} onValueChange={(val) => updateBrassica(index, "estado", val)}>
+                    <Label className="text-sm font-medium text-foreground">¿Contiene Brassica?</Label>
+                    <Select value={brassica.contiene} onValueChange={(val) => updateBrassica(index, "contiene", val)}>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Seleccionar estado" />
+                        <SelectValue placeholder="Seleccionar" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="contiene">Contiene</SelectItem>
-                        <SelectItem value="no-contiene">
+                        <SelectItem value="si">Sí, contiene</SelectItem>
+                        <SelectItem value="no">
                           <div className="flex items-center gap-2">
                             <XCircle className="h-4 w-4 text-slate-500" />
                             No contiene
@@ -107,22 +162,25 @@ export default function BrassicaSection() {
                   {/* Listado */}
                   <div className="space-y-2">
                     <Label className={`text-sm font-medium ${isDisabled ? "text-muted-foreground" : "text-foreground"}`}>
-                      Listado
+                      Especie
                     </Label>
                     <Select
                       value={brassica.listado}
-                      onValueChange={(val) => updateBrassica(index, "listado", val)}
-                      disabled={isDisabled}
+                      onValueChange={(val) => handleEspecieSelect(index, val)}
+                      disabled={isDisabled || loading}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Seleccionar especie" />
+                        <SelectValue placeholder={loading ? "Cargando..." : "Seleccionar especie"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {opcionesBrassicas.map((opcion) => (
-                          <SelectItem key={opcion} value={opcion}>
-                            {opcion}
-                          </SelectItem>
-                        ))}
+                        {error && <SelectItem value="error" disabled>{error}</SelectItem>}
+                        {!loading &&
+                          !error &&
+                          opcionesBrassicas.map((op) => (
+                            <SelectItem key={op.catalogoID} value={op.nombreComun}>
+                              {op.nombreComun}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -130,7 +188,7 @@ export default function BrassicaSection() {
                   {/* INIA / INASE */}
                   <div className="space-y-2">
                     <Label className={`text-sm font-medium ${isDisabled ? "text-muted-foreground" : "text-foreground"}`}>
-                      INIA / INASE
+                      Entidad
                     </Label>
                     <Select
                       value={brassica.entidad}
@@ -154,7 +212,8 @@ export default function BrassicaSection() {
                     </Label>
                     <Input
                       className="w-full"
-                      placeholder="Ej: 456"
+                      placeholder="Ingrese número"
+                      type="number"
                       value={brassica.numero}
                       onChange={(e) => updateBrassica(index, "numero", e.target.value)}
                       disabled={isDisabled}
@@ -171,13 +230,12 @@ export default function BrassicaSection() {
             onClick={addBrassica}
             variant="outline"
             className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent 
-               text-sm px-2 py-1 [@media(max-width:350px)]:text-xs [@media(max-width:350px)]:px-1"
+               text-sm px-2 py-1"
           >
-            <Plus className="h-3 w-3 mr-1 [@media(max-width:350px)]:h-2.5 [@media(max-width:350px)]:w-2.5" />
+            <Plus className="h-3 w-3 mr-1" />
             Agregar registro
           </Button>
         </div>
-
       </CardContent>
     </Card>
   )
