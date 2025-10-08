@@ -1,7 +1,7 @@
 //Enums centralizados para todo el sistema
 export type EstadoAnalisis = 'PENDIENTE' | 'EN_PROCESO' | 'FINALIZADO' | 'PENDIENTE_APROBACION' | 'APROBADO' | 'PARA_REPETIR';
 
-export type TipoMYCCatalogo = 'MALEZA' | 'CULTIVO' | 'BRASSICA';
+export type TipoMYCCatalogo = 'MALEZA' | 'CULTIVO';
 
 export type TipoListado = | 'MAL_TOLERANCIA' | 'MAL_TOLERANCIA_CERO' | 'MAL_COMUNES' | 'BRASSICA' | 'OTROS';
 

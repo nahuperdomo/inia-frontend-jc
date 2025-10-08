@@ -6,7 +6,7 @@ import {
 } from "../models";
 
 // ========================
-// MALEZAS, CULTIVOS Y BRASSICAS - ALL IN ONE SERVICE
+// MALEZAS Y CULTIVOS SERVICE
 // ========================
 
 // Obtener activos
@@ -28,11 +28,7 @@ export async function obtenerCultivos(): Promise<MalezasYCultivosCatalogoDTO[]> 
   return apiFetch("/api/malezas-cultivos/cultivos");
 }
 
-export async function obtenerBrassicas(): Promise<MalezasYCultivosCatalogoDTO[]> {
-  return apiFetch("/api/malezas-cultivos/brassicas");
-}
-
-export async function obtenerPorTipo(tipo: 'MALEZA' | 'CULTIVO' | 'BRASSICA'): Promise<MalezasYCultivosCatalogoDTO[]> {
+export async function obtenerPorTipo(tipo: 'MALEZA' | 'CULTIVO'): Promise<MalezasYCultivosCatalogoDTO[]> {
   return apiFetch(`/api/malezas-cultivos/tipo/${tipo}`);
 }
 

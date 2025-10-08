@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -13,10 +14,12 @@ import Link from "next/link"
 
 import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
 import GerminacionFields from "@/app/registro/analisis/germinacion/form-germinacion"
+import TetrazolioFields from "@/app/registro/analisis/tetrazolio/form-tetrazolio"
 import { obtenerLotesActivos } from "@/app/services/lote-service"
 import { LoteSimpleDTO } from "@/app/models"
 import { registrarAnalisis } from "@/app/services/analisis-service"
 import { crearGerminacion } from "@/app/services/germinacion-service"
+import { crearTetrazolio } from "@/app/services/tetrazolio-service"
 import PurezaFields from "./pureza/form-pureza"
 
 
@@ -74,6 +77,20 @@ export type AnalysisFormData = {
   numDias: string
   numeroRepeticiones: number
   numeroConteos: number
+
+  // Tetrazolio
+  fecha: string
+  numSemillasPorRep: number
+  pretratamiento: string
+  pretratamientoOtro: string
+  concentracion: string
+  concentracionOtro: string
+  tincionHs: number | string
+  tincionHsOtro: string
+  tincionTemp: number
+  tincionTempOtro: string
+  comentarios: string
+  numRepeticionesEsperadas: number
 }
 
 const analysisTypes = [
@@ -85,6 +102,7 @@ const analysisTypes = [
 ]
 
 export default function RegistroAnalisisPage() {
+  const router = useRouter()
   const [selectedAnalysisType, setSelectedAnalysisType] = useState("");
   const [selectedLote, setSelectedLote] = useState("");
   // Estados para listados de malezas, cultivos y brassicas
@@ -149,6 +167,19 @@ export default function RegistroAnalisisPage() {
     numDias: "",
     numeroRepeticiones: 1,
     numeroConteos: 0,
+    // Tetrazolio
+    fecha: "",
+    numSemillasPorRep: 50,
+    pretratamiento: "",
+    pretratamientoOtro: "",
+    concentracion: "",
+    concentracionOtro: "",
+    tincionHs: 24,
+    tincionHsOtro: "",
+    tincionTemp: 30,
+    tincionTempOtro: "",
+    comentarios: "",
+    numRepeticionesEsperadas: 4,
   });
 
   const [loading, setLoading] = useState(false)
@@ -238,10 +269,12 @@ export default function RegistroAnalisisPage() {
         fechaINASE: formData.inaseFecha || null,
         gramosAnalizadosINASE: toNum(formData.inaseGramos),
         tipoINASE: mapTipoDosn(formData, "inase"),
-        // Cuscuta
+        // Cuscuta - usar fecha actual si hay datos de cuscuta y no se especificó fecha
         cuscuta_g: toNum(formData.cuscutaGramos),
         cuscutaNum: toNum(formData.cuscutaNumero),
-        fechaCuscuta: formData.cuscutaFecha || null,
+        fechaCuscuta: ((toNum(formData.cuscutaGramos) || 0) > 0 || (toNum(formData.cuscutaNumero) || 0) > 0) 
+          ? new Date().toISOString().split('T')[0] // Fecha actual en formato YYYY-MM-DD
+          : null,
         // Listados
         listados,
       };
@@ -356,6 +389,76 @@ export default function RegistroAnalisisPage() {
         numeroRepeticiones: formData.numeroRepeticiones || 1,
         numeroConteos: formData.numeroConteos || 1,
       };
+    } else if (selectedAnalysisType === "tetrazolio") {
+      // Validaciones específicas para tetrazolio
+      if (!formData.fecha) {
+        setError("Fecha del ensayo es requerida");
+        setLoading(false);
+        return;
+      }
+      if (!formData.numSemillasPorRep || ![25, 50, 100].includes(formData.numSemillasPorRep)) {
+        setError("Número de semillas por repetición debe ser 25, 50 o 100");
+        setLoading(false);
+        return;
+      }
+      if (!formData.numRepeticionesEsperadas || formData.numRepeticionesEsperadas < 2 || formData.numRepeticionesEsperadas > 8) {
+        setError("Número de repeticiones esperadas debe estar entre 2 y 8");
+        setLoading(false);
+        return;
+      }
+      if (!formData.concentracion) {
+        setError("Concentración de tetrazolio es requerida");
+        setLoading(false);
+        return;
+      }
+      if (!formData.tincionTemp || (typeof formData.tincionTemp === 'number' && (formData.tincionTemp < 15 || formData.tincionTemp > 45))) {
+        setError("Temperatura de tinción debe estar entre 15 y 45°C");
+        setLoading(false);
+        return;
+      }
+      // Validar tiempo de tinción considerando que puede ser string o número
+      const tincionHsValue = formData.tincionHs === "Otra (especificar)" 
+        ? parseFloat(formData.tincionHsOtro) 
+        : typeof formData.tincionHs === 'string' 
+          ? parseFloat(formData.tincionHs)
+          : formData.tincionHs;
+      
+      if (!tincionHsValue || tincionHsValue < 1 || tincionHsValue > 72) {
+        setError("Tiempo de tinción debe estar entre 1 y 72 horas");
+        setLoading(false);
+        return;
+      }
+
+      // Preparar valores finales basados en las selecciones del usuario
+      const pretratamientoFinal = formData.pretratamiento === 'Otro (especificar)' 
+        ? formData.pretratamientoOtro 
+        : formData.pretratamiento
+
+      const concentracionFinal = formData.concentracion === 'Otro (especificar)'
+        ? formData.concentracionOtro
+        : formData.concentracion
+
+      const tincionHsFinal = formData.tincionHs === 'Otra (especificar)'
+        ? parseFloat(formData.tincionHsOtro) || 24
+        : typeof formData.tincionHs === 'string' 
+          ? parseFloat(formData.tincionHs) || 24
+          : formData.tincionHs
+
+      const tincionTempFinal = formData.tincionTemp === 0
+        ? parseFloat(formData.tincionTempOtro) || 30
+        : formData.tincionTemp
+
+      payload = {
+        idLote: parseInt(formData.loteid),
+        comentarios: formData.comentarios || formData.observaciones || "",
+        fecha: formData.fecha,
+        numSemillasPorRep: formData.numSemillasPorRep,
+        pretratamiento: pretratamientoFinal || "",
+        concentracion: concentracionFinal,
+        tincionHs: tincionHsFinal,
+        tincionTemp: tincionTempFinal,
+        numRepeticionesEsperadas: formData.numRepeticionesEsperadas,
+      };
     }
 
     try {
@@ -387,11 +490,39 @@ export default function RegistroAnalisisPage() {
 
         // Redirigir a la página de edición del análisis creado
         setTimeout(() => {
-          window.location.href = `/listado/analisis/germinacion/${result.analisisID}/editar`;
+          router.push(`/listado/analisis/germinacion/${result.analisisID}`);
+        }, 1500);
+      } else if (selectedAnalysisType === "tetrazolio") {
+        console.log("🧪 TETRAZOLIO: Vamos a probar primero obtener lotes para verificar auth...");
+        try {
+          const lotesTest = await obtenerLotesActivos();
+          console.log("✅ Test de auth exitoso - lotes obtenidos:", lotesTest.length);
+        } catch (authError) {
+          console.error("❌ Test de auth falló:", authError);
+          throw new Error("Problema de autenticación detectado");
+        }
+
+        console.log("🚀 Ahora intentando crear tetrazolio...");
+        const result = await crearTetrazolio(payload);
+
+        // Redirigir a la página de gestión del análisis creado
+        setTimeout(() => {
+          router.push(`/listado/analisis/tetrazolio/${result.analisisID}/editar`);
         }, 1500);
       } else {
-        const response = await registrarAnalisis(payload, selectedAnalysisType);
-
+        const result = const response = await registrarAnalisis(payload, selectedAnalysisType);
+;
+        
+        // Redirigir según el tipo de análisis
+        setTimeout(() => {
+          if (selectedAnalysisType === "dosn") {
+            router.push(`/listado/analisis/dosn/${result.analisisID}`);
+          } else if (selectedAnalysisType === "pureza") {
+            router.push(`/listado/analisis/pureza/${result.analisisID}`);
+          } else {
+            router.push(`/listado/analisis/${selectedAnalysisType}/${result.analisisID}`);
+          }
+        }, 1500);
         toast.success('Análisis registrado exitosamente', {
           description: `Se ha registrado el análisis de ${getAnalysisTypeName(selectedAnalysisType)} para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
         });
@@ -590,8 +721,22 @@ export default function RegistroAnalisisPage() {
               handleInputChange={handleInputChange as (field: string, value: any) => void}
             />
           )}
+          {selectedAnalysisType === "tetrazolio" && (
+            <TetrazolioFields
+              formData={formData}
+              handleInputChange={handleInputChange as (field: string, value: any) => void}
+            />
+          )}
 
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <Button 
+              variant="outline" 
+              className="w-full sm:flex-1 bg-transparent" 
+              disabled={loading}
+              onClick={() => window.history.back()}
+            >
+              Cancelar
+            </Button>
             <Button
               className="w-full sm:flex-1 bg-green-700 hover:bg-green-700"
               onClick={handleSubmit}

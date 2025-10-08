@@ -8,15 +8,11 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Trash2, Plus, Sprout, XCircle } from "lucide-react"
-import { obtenerBrassicas } from "@/app/services/malezas-service"
-import { MalezasYCultivosCatalogoDTO } from "@/app/models"
 
 type Brassica = {
   contiene: "si" | "no" | ""
-  listado: string
   entidad: string
   numero: string
-  idCatalogo: number | null
 }
 
 type Props = {
@@ -29,32 +25,11 @@ export default function BrassicaSection({ registros, onChangeListados }: Props) 
     registros && registros.length > 0
       ? registros.map((r) => ({
         contiene: "si",
-        listado: r.catalogo?.nombreComun || "",
         entidad: r.listadoInsti?.toLowerCase() || "",
         numero: r.listadoNum?.toString() || "",
-        idCatalogo: r.catalogo?.catalogoID ?? null,
       }))
-      : [{ contiene: "", listado: "", entidad: "", numero: "", idCatalogo: null }]
+      : [{ contiene: "", entidad: "", numero: "" }]
   )
-
-  const [opcionesBrassicas, setOpcionesBrassicas] = useState<MalezasYCultivosCatalogoDTO[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  // cargar catálogo de brassicas
-  useEffect(() => {
-    const fetchBrassicas = async () => {
-      try {
-        const data = await obtenerBrassicas()
-        setOpcionesBrassicas(data)
-      } catch (err) {
-        setError("Error al cargar brassicas")
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchBrassicas()
-  }, [])
 
   // notificar cambios al padre
   useEffect(() => {
@@ -63,7 +38,6 @@ export default function BrassicaSection({ registros, onChangeListados }: Props) 
         .filter((b) => {
           // Solo cuando contiene y tiene los campos requeridos
           const hasRequiredFields = b.contiene === "si" &&
-            b.listado && b.listado.trim() !== "" &&
             b.entidad && b.entidad.trim() !== "";
           return hasRequiredFields;
         })
@@ -71,7 +45,7 @@ export default function BrassicaSection({ registros, onChangeListados }: Props) 
           listadoTipo: "BRASSICA",
           listadoInsti: b.entidad.toUpperCase(),
           listadoNum: b.numero !== "" ? Number(b.numero) : null,
-          idCatalogo: b.idCatalogo,
+          idCatalogo: null, // Las brassicas no tienen catálogo
         }))
 
       onChangeListados(listados)
@@ -79,7 +53,7 @@ export default function BrassicaSection({ registros, onChangeListados }: Props) 
   }, [brassicas, onChangeListados])
 
   const addBrassica = () =>
-    setBrassicas([...brassicas, { contiene: "", listado: "", entidad: "", numero: "", idCatalogo: null }])
+    setBrassicas([...brassicas, { contiene: "", entidad: "", numero: "" }])
 
   const removeBrassica = (index: number) => {
     if (brassicas.length > 1) {
@@ -90,18 +64,10 @@ export default function BrassicaSection({ registros, onChangeListados }: Props) 
   const updateBrassica = (index: number, field: keyof Brassica, value: any) => {
     const updated = [...brassicas]
     if (field === "contiene" && value === "no") {
-      updated[index] = { contiene: "no", listado: "", entidad: "", numero: "", idCatalogo: null }
+      updated[index] = { contiene: "no", entidad: "", numero: "" }
     } else {
       updated[index] = { ...updated[index], [field]: value }
     }
-    setBrassicas(updated)
-  }
-
-  const handleEspecieSelect = (index: number, especie: string) => {
-    const catalogo = opcionesBrassicas.find((e) => e.nombreComun === especie)
-    const idCatalogo = catalogo ? catalogo.catalogoID : null
-    const updated = [...brassicas]
-    updated[index] = { ...updated[index], listado: especie, idCatalogo }
     setBrassicas(updated)
   }
 
@@ -125,7 +91,17 @@ export default function BrassicaSection({ registros, onChangeListados }: Props) 
                   <div className="flex items-center gap-2">
                     <Sprout className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium text-sm">Registro {index + 1}</span>
-                    {brassica.contiene && <Badge>{brassica.contiene === "si" ? "Contiene" : "No contiene"}</Badge>}
+                    {brassica.contiene && (
+                      <Badge 
+                        className={
+                          brassica.contiene === "si" 
+                            ? "bg-purple-100 text-purple-700 border-purple-200" 
+                            : "bg-gray-100 text-gray-700 border-gray-200"
+                        }
+                      >
+                        {brassica.contiene === "si" ? "Contiene" : "No contiene"}
+                      </Badge>
+                    )}
                   </div>
                   {brassicas.length > 1 && (
                     <Button
@@ -139,7 +115,7 @@ export default function BrassicaSection({ registros, onChangeListados }: Props) 
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {/* Estado */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-foreground">¿Contiene Brassica?</Label>
@@ -155,32 +131,6 @@ export default function BrassicaSection({ registros, onChangeListados }: Props) 
                             No contiene
                           </div>
                         </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Listado */}
-                  <div className="space-y-2">
-                    <Label className={`text-sm font-medium ${isDisabled ? "text-muted-foreground" : "text-foreground"}`}>
-                      Especie
-                    </Label>
-                    <Select
-                      value={brassica.listado}
-                      onValueChange={(val) => handleEspecieSelect(index, val)}
-                      disabled={isDisabled || loading}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={loading ? "Cargando..." : "Seleccionar especie"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {error && <SelectItem value="error" disabled>{error}</SelectItem>}
-                        {!loading &&
-                          !error &&
-                          opcionesBrassicas.map((op) => (
-                            <SelectItem key={op.catalogoID} value={op.nombreComun}>
-                              {op.nombreComun}
-                            </SelectItem>
-                          ))}
                       </SelectContent>
                     </Select>
                   </div>
