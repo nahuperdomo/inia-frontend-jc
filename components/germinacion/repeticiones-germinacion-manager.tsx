@@ -202,12 +202,10 @@ export function RepeticionesGerminacionManager({
           Repeticiones ({repeticiones.length})
         </h4>
         
-        {repeticiones.length < 8 && (
-          <Button onClick={handleCrearRepeticion} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Agregar Repetición
-          </Button>
-        )}
+        <Button onClick={handleCrearRepeticion} size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          Agregar Repetición
+        </Button>
       </div>
 
       {/* Lista de Repeticiones */}

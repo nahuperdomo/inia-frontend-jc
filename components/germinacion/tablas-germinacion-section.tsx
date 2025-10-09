@@ -30,6 +30,7 @@ interface TablasGerminacionSectionProps {
   isFinalized: boolean
   onTablaUpdated: () => void
   germinacion?: any // Para acceder a numeroRepeticiones y numeroConteos
+  onAnalysisFinalized?: () => void // Callback opcional para cuando se finaliza el análisis
 }
 
 export function TablasGerminacionSection({
@@ -37,7 +38,8 @@ export function TablasGerminacionSection({
   germinacionId,
   isFinalized,
   onTablaUpdated,
-  germinacion
+  germinacion,
+  onAnalysisFinalized
 }: TablasGerminacionSectionProps) {
   const [tablasLocales, setTablasLocales] = useState<TablaGermDTO[]>(tablas || [])
   const [tablaExpandida, setTablaExpandida] = useState<number | null>(null)
@@ -57,25 +59,25 @@ export function TablasGerminacionSection({
   const [erroresValidacion, setErroresValidacion] = useState<{[key: string]: string}>({})
   const [erroresValidacionNuevaTabla, setErroresValidacionNuevaTabla] = useState<{[key: string]: string}>({})
   const [tablaEditada, setTablaEditada] = useState<TablaGermRequestDTO>({
+    fechaFinal: '',
     tratamiento: '',
     productoYDosis: '',
     numSemillasPRep: 0,
     metodo: '',
     temperatura: 0,
     prefrio: '',
-    pretratamiento: '',
-    total: 0
+    pretratamiento: ''
   })
   const [tablaOriginal, setTablaOriginal] = useState<TablaGermRequestDTO | null>(null)
   const [nuevaTabla, setNuevaTabla] = useState<TablaGermRequestDTO>({
+    fechaFinal: '',
     tratamiento: '',
     productoYDosis: '',
     numSemillasPRep: 0,
     metodo: '',
     temperatura: 0,
     prefrio: '',
-    pretratamiento: '',
-    total: 0
+    pretratamiento: ''
   })
   const [porcentajes, setPorcentajes] = useState<PorcentajesRedondeoRequestDTO>({
     porcentajeNormalesConRedondeo: 0,
@@ -174,8 +176,13 @@ export function TablasGerminacionSection({
     try {
       await finalizarGerminacion(germinacionId)
       alert("Germinación finalizada exitosamente")
-      // Opcional: redirigir o actualizar estado del componente padre
-      window.location.reload() // Recargar para reflejar cambios de estado
+      
+      // Usar el callback si está disponible, sino recargar
+      if (onAnalysisFinalized) {
+        onAnalysisFinalized()
+      } else {
+        window.location.reload() 
+      }
     } catch (error) {
       console.error("Error finalizando germinación:", error)
       alert("Error al finalizar la germinación")
@@ -211,6 +218,7 @@ export function TablasGerminacionSection({
 
   const validarDatosTabla = (tabla: any) => {
     const camposRequeridos = [
+      { campo: 'fechaFinal', nombre: 'Fecha final' },
       { campo: 'tratamiento', nombre: 'Tratamiento' },
       { campo: 'metodo', nombre: 'Método' },
       { campo: 'numSemillasPRep', nombre: 'Número de semillas por repetición' },
@@ -225,6 +233,19 @@ export function TablasGerminacionSection({
       }
     }
     
+    // Validación adicional para fechaFinal
+    if (tabla.fechaFinal) {
+      const fechaFinal = new Date(tabla.fechaFinal)
+      const fechaInicio = germinacion?.fechaInicioGerm ? new Date(germinacion.fechaInicioGerm) : null
+      const fechaUltConteo = germinacion?.fechaUltConteo ? new Date(germinacion.fechaUltConteo) : null
+      
+      if (fechaInicio && fechaFinal < fechaInicio) {
+        errores.push('Fecha final debe ser posterior a la fecha de inicio de germinación')
+      } else if (fechaUltConteo && fechaFinal > fechaUltConteo) {
+        errores.push('Fecha final debe ser anterior o igual a la fecha de último conteo')
+      }
+    }
+    
     return errores
   }
 
@@ -234,7 +255,24 @@ export function TablasGerminacionSection({
     setErrores(prev => {
       const nuevosErrores = { ...prev }
       
-      if (!valor || valor === '' || valor === 0) {
+      if (campo === 'fechaFinal') {
+        if (!valor || valor === '') {
+          nuevosErrores[campo] = 'Fecha final es requerida'
+        } else {
+          // Validar que esté en el rango correcto
+          const fechaFinal = new Date(valor)
+          const fechaInicio = germinacion?.fechaInicioGerm ? new Date(germinacion.fechaInicioGerm) : null
+          const fechaUltConteo = germinacion?.fechaUltConteo ? new Date(germinacion.fechaUltConteo) : null
+          
+          if (fechaInicio && fechaFinal < fechaInicio) {
+            nuevosErrores[campo] = 'La fecha final debe ser posterior a la fecha de inicio de germinación'
+          } else if (fechaUltConteo && fechaFinal > fechaUltConteo) {
+            nuevosErrores[campo] = 'La fecha final debe ser anterior o igual a la fecha de último conteo'
+          } else {
+            delete nuevosErrores[campo]
+          }
+        }
+      } else if (!valor || valor === '' || valor === 0) {
         const nombresCampos = {
           'tratamiento': 'Tratamiento',
           'metodo': 'Método',
@@ -281,7 +319,8 @@ export function TablasGerminacionSection({
         // Marcar errores en los campos
         const nuevosErrores: {[key: string]: string} = {}
         errores.forEach(error => {
-          const campo = error === 'Tratamiento' ? 'tratamiento' : 
+          const campo = error === 'Fecha final' ? 'fechaFinal' :
+                       error === 'Tratamiento' ? 'tratamiento' : 
                        error === 'Método' ? 'metodo' :
                        error === 'Número de semillas por repetición' ? 'numSemillasPRep' :
                        error === 'Temperatura' ? 'temperatura' : error
@@ -304,14 +343,14 @@ export function TablasGerminacionSection({
       
       // Resetear formulario con valores vacíos
       setNuevaTabla({
+        fechaFinal: '',
         tratamiento: '',
         productoYDosis: '',
         numSemillasPRep: 0,
         metodo: '',
         temperatura: 0,
         prefrio: '',
-        pretratamiento: '',
-        total: 0
+        pretratamiento: ''
       })
       
       setMostrandoFormularioTabla(false)
@@ -416,14 +455,14 @@ export function TablasGerminacionSection({
   // Funciones para manejar la edición de datos generales de la tabla
   const handleEditarDatosGenerales = (tabla: TablaGermDTO) => {
     const datosTabla = {
+      fechaFinal: tabla.fechaFinal || '',
       tratamiento: tabla.tratamiento || '',
       productoYDosis: tabla.productoYDosis || '',
       numSemillasPRep: tabla.numSemillasPRep || 0,
       metodo: tabla.metodo || '',
       temperatura: tabla.temperatura || 0,
       prefrio: tabla.prefrio || '',
-      pretratamiento: tabla.pretratamiento || '',
-      total: tabla.total || 0
+      pretratamiento: tabla.pretratamiento || ''
     }
     setTablaEditada(datosTabla)
     setTablaOriginal({ ...datosTabla })
@@ -499,6 +538,13 @@ export function TablasGerminacionSection({
   const actualizarPorcentaje = (campo: keyof PorcentajesRedondeoRequestDTO, valorString: string) => {
     const valorActual = porcentajes[campo] || 0
     manejarCambioNumerico(valorString, valorActual, (nuevoValor) => {
+      // Validar rango 0-100 para porcentajes
+      if (nuevoValor < 0) {
+        nuevoValor = 0
+      } else if (nuevoValor > 100) {
+        nuevoValor = 100
+      }
+      
       setPorcentajes(prev => ({
         ...prev,
         [campo]: nuevoValor
@@ -616,6 +662,20 @@ export function TablasGerminacionSection({
       return
     }
 
+    // Validar suma de valores INIA antes de guardar
+    const sumaInia = calcularSumaValores(valoresInia)
+    if (sumaInia > 100) {
+      alert(`La suma de valores INIA (${sumaInia}) no puede superar 100. Por favor, ajuste los valores.`)
+      return
+    }
+
+    // Validar suma de valores INASE antes de guardar
+    const sumaInase = calcularSumaValores(valoresInase)
+    if (sumaInase > 100) {
+      alert(`La suma de valores INASE (${sumaInase}) no puede superar 100. Por favor, ajuste los valores.`)
+      return
+    }
+
     try {
       console.log("Guardando valores para tabla:", tablaId)
       
@@ -658,9 +718,35 @@ export function TablasGerminacionSection({
     }
   }
 
+  // Función para calcular la suma de valores (excluyendo germinación)
+  const calcularSumaValores = (valores: ValoresGermRequestDTO): number => {
+    return (valores.normales || 0) + (valores.anormales || 0) + (valores.duras || 0) + 
+           (valores.frescas || 0) + (valores.muertas || 0)
+  }
+
   const actualizarValorInia = (campo: keyof ValoresGermRequestDTO, valorString: string) => {
     const valorActual = valoresInia[campo] || 0
     manejarCambioNumerico(valorString, valorActual, (nuevoValor) => {
+      // Si el campo es 'germinacion', no aplicar validación de suma
+      if (campo === 'germinacion') {
+        setValoresInia(prev => ({
+          ...prev,
+          [campo]: nuevoValor
+        }))
+        return
+      }
+
+      // Calcular la nueva suma sin incluir el campo actual y luego agregar el nuevo valor
+      const valoresSinCampoActual = { ...valoresInia, [campo]: 0 }
+      const sumaSinCampoActual = calcularSumaValores(valoresSinCampoActual)
+      const nuevaSuma = sumaSinCampoActual + nuevoValor
+
+      // Validar que la suma no supere 100
+      if (nuevaSuma > 100) {
+        alert(`La suma de valores INIA (normales + anormales + duras + frescas + muertas) no puede superar 100. Suma actual sería: ${nuevaSuma}`)
+        return
+      }
+
       setValoresInia(prev => ({
         ...prev,
         [campo]: nuevoValor
@@ -671,6 +757,26 @@ export function TablasGerminacionSection({
   const actualizarValorInase = (campo: keyof ValoresGermRequestDTO, valorString: string) => {
     const valorActual = valoresInase[campo] || 0
     manejarCambioNumerico(valorString, valorActual, (nuevoValor) => {
+      // Si el campo es 'germinacion', no aplicar validación de suma
+      if (campo === 'germinacion') {
+        setValoresInase(prev => ({
+          ...prev,
+          [campo]: nuevoValor
+        }))
+        return
+      }
+
+      // Calcular la nueva suma sin incluir el campo actual y luego agregar el nuevo valor
+      const valoresSinCampoActual = { ...valoresInase, [campo]: 0 }
+      const sumaSinCampoActual = calcularSumaValores(valoresSinCampoActual)
+      const nuevaSuma = sumaSinCampoActual + nuevoValor
+
+      // Validar que la suma no supere 100
+      if (nuevaSuma > 100) {
+        alert(`La suma de valores INASE (normales + anormales + duras + frescas + muertas) no puede superar 100. Suma actual sería: ${nuevaSuma}`)
+        return
+      }
+
       setValoresInase(prev => ({
         ...prev,
         [campo]: nuevoValor
@@ -803,6 +909,27 @@ export function TablasGerminacionSection({
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Fecha Final *</Label>
+                  <Input
+                    type="date"
+                    value={nuevaTabla.fechaFinal}
+                    onChange={(e) => {
+                      setNuevaTabla(prev => ({ ...prev, fechaFinal: e.target.value }))
+                      validarCampoEnTiempoReal('fechaFinal', e.target.value, true)
+                    }}
+                    min={germinacion?.fechaInicioGerm || undefined}
+                    max={germinacion?.fechaUltConteo || undefined}
+                    className={erroresValidacionNuevaTabla.fechaFinal ? "border-red-500 focus:border-red-500" : ""}
+                  />
+                  {erroresValidacionNuevaTabla.fechaFinal && (
+                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.fechaFinal}</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    Debe estar entre {germinacion?.fechaInicioGerm} y {germinacion?.fechaUltConteo}
+                  </p>
+                </div>
+
                 <div>
                   <Label className="text-sm font-medium">Tratamiento</Label>
                   <Input
@@ -1025,6 +1152,27 @@ export function TablasGerminacionSection({
                       {editandoTablaGeneral === tabla.tablaGermID ? (
                         <div className="space-y-4">
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                              <Label className="text-sm font-medium">Fecha Final *</Label>
+                              <Input
+                                type="date"
+                                value={tablaEditada.fechaFinal}
+                                onChange={(e) => {
+                                  setTablaEditada(prev => ({ ...prev, fechaFinal: e.target.value }))
+                                  validarCampoEnTiempoReal('fechaFinal', e.target.value, false)
+                                }}
+                                min={germinacion?.fechaInicioGerm || undefined}
+                                max={germinacion?.fechaUltConteo || undefined}
+                                className={erroresValidacion.fechaFinal ? "border-red-500 focus:border-red-500" : ""}
+                              />
+                              {erroresValidacion.fechaFinal && (
+                                <p className="text-red-500 text-xs mt-1">{erroresValidacion.fechaFinal}</p>
+                              )}
+                              <p className="text-xs text-gray-500 mt-1">
+                                Entre {germinacion?.fechaInicioGerm} y {germinacion?.fechaUltConteo}
+                              </p>
+                            </div>
+
                             <div>
                               <Label className="text-sm font-medium">Tratamiento</Label>
                               <Input
@@ -1688,6 +1836,46 @@ export function TablasGerminacionSection({
                                 </div>
                               </div>
                             </div>
+
+                            {/* Indicadores de suma */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                              <div className="text-center">
+                                <div className={`p-3 rounded-lg border-2 ${
+                                  calcularSumaValores(valoresInia) > 100 
+                                    ? 'bg-red-50 border-red-300 text-red-700' 
+                                    : calcularSumaValores(valoresInia) === 100 
+                                      ? 'bg-green-50 border-green-300 text-green-700'
+                                      : 'bg-gray-50 border-gray-300 text-gray-700'
+                                }`}>
+                                  <p className="text-sm font-medium">
+                                    Suma INIA: {calcularSumaValores(valoresInia)}/100
+                                    {calcularSumaValores(valoresInia) > 100 && ' ❌ Excede el límite'}
+                                    {calcularSumaValores(valoresInia) === 100 && ' ✅ Completo'}
+                                  </p>
+                                  <p className="text-xs opacity-75">
+                                    (Excluye germinación)
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className={`p-3 rounded-lg border-2 ${
+                                  calcularSumaValores(valoresInase) > 100 
+                                    ? 'bg-red-50 border-red-300 text-red-700' 
+                                    : calcularSumaValores(valoresInase) === 100 
+                                      ? 'bg-green-50 border-green-300 text-green-700'
+                                      : 'bg-gray-50 border-gray-300 text-gray-700'
+                                }`}>
+                                  <p className="text-sm font-medium">
+                                    Suma INASE: {calcularSumaValores(valoresInase)}/100
+                                    {calcularSumaValores(valoresInase) > 100 && ' ❌ Excede el límite'}
+                                    {calcularSumaValores(valoresInase) === 100 && ' ✅ Completo'}
+                                  </p>
+                                  <p className="text-xs opacity-75">
+                                    (Excluye germinación)
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
                             
                             <div className="flex justify-end gap-2">
                               <Button
@@ -1780,137 +1968,6 @@ export function TablasGerminacionSection({
               )}
             </Card>
           ))
-        )}
-        
-        {/* Formulario para crear nueva tabla - aparece al final */}
-        {mostrandoFormularioTabla && (
-          <Card className="border-blue-200 border-2 mt-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-blue-700">
-                <Plus className="h-5 w-5" />
-                Crear Nueva Tabla de Germinación
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">Tratamiento</Label>
-                  <Input
-                    value={nuevaTabla.tratamiento}
-                    onChange={(e) => {
-                      setNuevaTabla(prev => ({ ...prev, tratamiento: e.target.value }))
-                      validarCampoEnTiempoReal('tratamiento', e.target.value, true)
-                    }}
-                    placeholder="Control, Tratamiento A, etc."
-                    className={erroresValidacionNuevaTabla.tratamiento ? "border-red-500 focus:border-red-500" : ""}
-                  />
-                  {erroresValidacionNuevaTabla.tratamiento && (
-                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.tratamiento}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Producto y Dosis</Label>
-                  <Input
-                    value={nuevaTabla.productoYDosis}
-                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, productoYDosis: e.target.value }))}
-                    placeholder="Fungicida 2ml/L, etc."
-                  />
-                </div>
-
-                  <div>
-                    <Label className="text-sm font-medium">Número de Semillas por Repetición</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="500"
-                      value={nuevaTabla.numSemillasPRep === 0 ? '' : nuevaTabla.numSemillasPRep}
-                      onChange={(e) => {
-                        manejarCambioNumerico(e.target.value, nuevaTabla.numSemillasPRep, (valor) => 
-                          setNuevaTabla(prev => ({ ...prev, numSemillasPRep: valor }))
-                        )
-                        validarCampoEnTiempoReal('numSemillasPRep', parseInt(e.target.value) || 0, true)
-                      }}
-                      placeholder="Ej: 100"
-                      className={erroresValidacionNuevaTabla.numSemillasPRep ? "border-red-500 focus:border-red-500" : ""}
-                    />
-                    {erroresValidacionNuevaTabla.numSemillasPRep && (
-                      <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.numSemillasPRep}</p>
-                    )}
-                  </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Método</Label>
-                  <Input
-                    value={nuevaTabla.metodo}
-                    onChange={(e) => {
-                      setNuevaTabla(prev => ({ ...prev, metodo: e.target.value }))
-                      validarCampoEnTiempoReal('metodo', e.target.value, true)
-                    }}
-                    placeholder="Papel, Arena, Suelo, etc."
-                    className={erroresValidacionNuevaTabla.metodo ? "border-red-500 focus:border-red-500" : ""}
-                  />
-                  {erroresValidacionNuevaTabla.metodo && (
-                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.metodo}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Temperatura (°C)</Label>
-                  <Input
-                    type="number"
-                    min="-10"
-                    max="50"
-                    value={nuevaTabla.temperatura === 0 ? '' : nuevaTabla.temperatura}
-                    onChange={(e) => {
-                      manejarCambioNumerico(e.target.value, nuevaTabla.temperatura, (valor) => 
-                        setNuevaTabla(prev => ({ ...prev, temperatura: valor })), true
-                      )
-                      validarCampoEnTiempoReal('temperatura', parseFloat(e.target.value) || 0, true)
-                    }}
-                    placeholder="Ej: 20"
-                    className={erroresValidacionNuevaTabla.temperatura ? "border-red-500 focus:border-red-500" : ""}
-                  />
-                  {erroresValidacionNuevaTabla.temperatura && (
-                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.temperatura}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Prefrío</Label>
-                  <Input
-                    value={nuevaTabla.prefrio}
-                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, prefrio: e.target.value }))}
-                    placeholder="Sí/No o condiciones específicas"
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Pretratamiento</Label>
-                  <Input
-                    value={nuevaTabla.pretratamiento}
-                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, pretratamiento: e.target.value }))}
-                    placeholder="Ninguno, Inmersión, etc."
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button
-                  onClick={handleCrearTabla}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  Crear Tabla
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setMostrandoFormularioTabla(false)}
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         )}
       </CardContent>
       

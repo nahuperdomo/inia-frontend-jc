@@ -162,14 +162,8 @@ export default function GerminacionDetailPage() {
       await finalizarGerminacion(parseInt(germinacionId))
       console.log("✅ Análisis finalizado")
       
-      // Actualizar estado local en lugar de recargar
-      if (germinacion) {
-        setGerminacion({
-          ...germinacion,
-          estado: 'FINALIZADO',
-          fechaFin: new Date().toISOString()
-        })
-      }
+      // Redirigir a la página de visualización (sin /editar)
+      router.push(`/listado/analisis/germinacion/${germinacionId}`)
     } catch (err: any) {
       console.error("❌ Error finalizando análisis:", err)
       setError(err?.message || "Error al finalizar análisis")
@@ -540,6 +534,7 @@ export default function GerminacionDetailPage() {
         isFinalized={isFinalized}
         onTablaUpdated={cargarDatos}
         germinacion={germinacion}
+        onAnalysisFinalized={() => router.push(`/listado/analisis/germinacion/${germinacionId}`)}
       />
 
       {/* Acciones */}
@@ -560,18 +555,6 @@ export default function GerminacionDetailPage() {
             </Button>
           )}
 
-          {/* Botón para reabrir análisis finalizado */}
-          {isFinalized && (
-            <Button 
-              onClick={handleReabrirAnalisis}
-              disabled={finalizing}
-              variant="outline"
-              size="lg"
-              className="border-orange-600 text-orange-600 hover:bg-orange-50"
-            >
-              {finalizing ? "Editando..." : "Editar Análisis"}
-            </Button>
-          )}
           
           <Button 
             onClick={() => router.push('/listado')}

@@ -86,13 +86,28 @@ export function RepeticionRow({
   }, [datos.normales, datos.anormales, datos.duras, datos.frescas, datos.muertas])
 
   const handleGuardar = async () => {
+    // Validación: total no puede superar numSemillasPRep
     if (datos.total > numSemillasPRep) {
-      alert(`El total no puede exceder ${numSemillasPRep} semillas`)
+      alert(`El total (${datos.total}) no puede superar el número de semillas por repetición (${numSemillasPRep})`)
       return
     }
 
+    // Validación: debe haber al menos un valor mayor a 0
     if (datos.total === 0) {
-      alert("Debe ingresar al menos un valor")
+      alert("Debe ingresar al menos un valor mayor a 0")
+      return
+    }
+
+    // Validación: valores no pueden ser negativos (validación adicional por seguridad)
+    const valoresNegativos = []
+    if (datos.anormales < 0) valoresNegativos.push("Anormales")
+    if (datos.duras < 0) valoresNegativos.push("Duras")
+    if (datos.frescas < 0) valoresNegativos.push("Frescas")
+    if (datos.muertas < 0) valoresNegativos.push("Muertas")
+    if (datos.normales.some(val => val < 0)) valoresNegativos.push("Normales")
+    
+    if (valoresNegativos.length > 0) {
+      alert(`Los siguientes campos no pueden ser negativos: ${valoresNegativos.join(", ")}`)
       return
     }
 

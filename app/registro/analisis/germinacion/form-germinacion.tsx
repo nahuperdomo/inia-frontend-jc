@@ -78,7 +78,7 @@ const generarFechasConteo = (fechaInicio: string, fechaUltConteo: string, numero
 export default function GerminacionFields({ formData, handleInputChange }: Props) {
   const data = formData || {}
   
-  // Funciones de validación
+  // Funciones de validación (exactamente como en el backend)
   const validarFechaInicio = (): boolean => {
     if (!data.fechaInicioGerm || !data.fechaUltConteo) return true
     
@@ -103,6 +103,14 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
     return fechaFin > fechaInicio
   }
 
+  const validarNumeroRepeticiones = (): boolean => {
+    return data.numeroRepeticiones != null && data.numeroRepeticiones > 0
+  }
+
+  const validarNumeroConteos = (): boolean => {
+    return data.numeroConteos != null && data.numeroConteos > 0
+  }
+
   const validarFechaConteo = (fecha: string): boolean => {
     return validarFechaEnRango(fecha, data.fechaInicioGerm, data.fechaUltConteo)
   }
@@ -111,8 +119,10 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
     const fechaInicioValida = validarFechaInicio()
     const fechaFinValida = validarFechaUltimoConteo()
     const fechasConteosValidas = (data.fechaConteos || []).every((fecha: string) => validarFechaConteo(fecha))
+    const repeticionesValidas = validarNumeroRepeticiones()
+    const conteosValidos = validarNumeroConteos()
     
-    return fechaInicioValida && fechaFinValida && fechasConteosValidas
+    return fechaInicioValida && fechaFinValida && fechasConteosValidas && repeticionesValidas && conteosValidos
   }
   
   const handleFechaConteoChange = (index: number, value: string) => {
@@ -334,14 +344,20 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
                 id="numeroRepeticiones"
                 type="number"
                 min="1"
-                max="20"
                 value={data.numeroRepeticiones || ""}
                 onChange={(e) => handleInputChange("numeroRepeticiones", parseInt(e.target.value) || 1)}
-                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-green-200"
+                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-green-200 ${
+                  !validarNumeroRepeticiones() ? 'border-red-500 bg-red-50' : ''
+                }`}
                 required
               />
+              {!validarNumeroRepeticiones() && (
+                <p className="text-xs text-red-600">
+                  Debe especificar un número válido de repeticiones (mayor a 0)
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
-                Controla cuántas repeticiones se podrán crear (1-20)
+                Controla cuántas repeticiones se podrán crear (mayor a 0)
               </p>
             </div>
 
@@ -354,17 +370,23 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
                 id="numeroConteos"
                 type="number"
                 min="1"
-                max="10"
                 value={data.numeroConteos || 1}
                 onChange={(e) => {
                   const newValue = Math.max(1, parseInt(e.target.value) || 1)
                   handleInputChange("numeroConteos", newValue)
                 }}
-                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-green-200"
+                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-green-200 ${
+                  !validarNumeroConteos() ? 'border-red-500 bg-red-50' : ''
+                }`}
                 required
               />
+              {!validarNumeroConteos() && (
+                <p className="text-xs text-red-600">
+                  Debe especificar un número válido de conteos (mayor a 0)
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
-                Controla el tamaño del array "normales" por repetición (mínimo 1, máximo 10)
+                Controla el tamaño del array "normales" por repetición (mayor a 0)
               </p>
             </div>
           </div>

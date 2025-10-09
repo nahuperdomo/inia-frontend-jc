@@ -103,6 +103,7 @@ export interface TablaGermDTO {
 }
 
 export interface TablaGermRequestDTO {
+  fechaFinal: string;
   tratamiento: string;
   productoYDosis: string;
   numSemillasPRep: number;
@@ -110,7 +111,6 @@ export interface TablaGermRequestDTO {
   temperatura: number;
   prefrio: string;
   pretratamiento: string;
-  total: number;
 }
 
 export interface PorcentajesRedondeoRequestDTO {
