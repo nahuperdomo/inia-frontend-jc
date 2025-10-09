@@ -1,14 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Microscope, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft } from "lucide-react"
+import { Microscope, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle } from "lucide-react"
 import Link from "next/link"
+import { obtenerTodosTetrazolio } from '@/app/services/tetrazolio-service'
 
 interface AnalisisTetrazolio {
   id: string
@@ -33,42 +34,43 @@ export default function ListadoTetrazolioPage() {
   const [filterEstado, setFilterEstado] = useState<string>("todos")
   const [filterPrioridad, setFilterPrioridad] = useState<string>("todos")
 
-  const [analisis] = useState<AnalisisTetrazolio[]>([
-    {
-      id: "TZ001",
-      loteId: "RG-LE-ex-0018",
-      loteName: "Trigo Don Mario",
-      analyst: "Dr. María González",
-      fechaInicio: "2024-09-15",
-      fechaFin: "2024-09-17",
-      estado: "Completado",
-      prioridad: "Alta",
-      concentracion: "1%",
-      temperatura: "30°C",
-      duracion: "18 horas",
-      viabilidad: 93,
-      vigor: "Alto",
-      semillasViables: 186,
-      semillasNoViables: 14,
-    },
-    {
-      id: "TZ002",
-      loteId: "RG-LE-ex-0020",
-      loteName: "Maíz Pioneer",
-      analyst: "Ana Martínez",
-      fechaInicio: "2024-09-18",
-      fechaFin: null,
-      estado: "En Proceso",
-      prioridad: "Media",
-      concentracion: "1%",
-      temperatura: "30°C",
-      duracion: "24 horas",
-      viabilidad: 0,
-      vigor: "",
-      semillasViables: 0,
-      semillasNoViables: 0,
-    },
-  ])
+  const [analisis, setAnalisis] = useState<AnalisisTetrazolio[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string>("")
+
+  const cargarAnalisis = async () => {
+    try {
+      setLoading(true)
+      setError("")
+      const res = await obtenerTodosTetrazolio()
+      // Mapear TetrazolioDTO a AnalisisTetrazolio (llenar campos faltantes con defaults)
+      const mapped = (res || []).map((t: any) => ({
+        id: t.analisisID?.toString() || t.id?.toString() || "-",
+        loteId: t.loteID?.toString() || "-",
+        loteName: t.lote || t.ficha || "-",
+        analyst: t.analista || t.usuario || "-",
+        fechaInicio: t.fecha || new Date().toISOString(),
+        fechaFin: t.fechaFin || null,
+        estado: t.estado || "Pendiente",
+        prioridad: t.prioridad || "Media",
+        concentracion: t.concentracion || "-",
+        temperatura: t.tincionTemp ? `${t.tincionTemp}°C` : "-",
+        duracion: t.tincionHs ? `${t.tincionHs} horas` : "-",
+        viabilidad: t.porcViablesRedondeo || t.porcViables || 0,
+        vigor: t.vigor || "",
+        semillasViables: t.semillasViables || 0,
+        semillasNoViables: t.semillasNoViables || 0,
+      })) as AnalisisTetrazolio[]
+      setAnalisis(mapped)
+    } catch (err: any) {
+      console.error("Error cargando tetrazolios:", err)
+      setError(err?.message || 'Error al cargar análisis de tetrazolio')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { cargarAnalisis() }, [])
 
   const filteredAnalisis = analisis.filter((item) => {
     const matchesSearch =
@@ -109,8 +111,36 @@ export default function ListadoTetrazolioPage() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="flex-1 space-y-6 p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Cargando análisis de Tetrazolio...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 space-y-6 p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-lg font-semibold mb-2">Error al cargar</p>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={cargarAnalisis}>Reintentar</Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="flex-1 space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -142,9 +172,9 @@ export default function ListadoTetrazolioPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Análisis</p>
@@ -155,7 +185,7 @@ export default function ListadoTetrazolioPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Completados</p>
@@ -168,7 +198,7 @@ export default function ListadoTetrazolioPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">En Proceso</p>
@@ -181,7 +211,7 @@ export default function ListadoTetrazolioPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Promedio Viabilidad</p>
@@ -259,26 +289,33 @@ export default function ListadoTetrazolioPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID Análisis</TableHead>
-                  <TableHead>Lote</TableHead>
-                  <TableHead>Nombre Lote</TableHead>
-                  <TableHead>Analista</TableHead>
-                  <TableHead>Fecha Inicio</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Prioridad</TableHead>
-                  <TableHead>Viabilidad (%)</TableHead>
-                  <TableHead>Acciones</TableHead>
+                  <TableHead className="min-w-[100px]">ID Análisis</TableHead>
+                  <TableHead className="min-w-[150px]">Lote</TableHead>
+                  <TableHead className="min-w-[120px]">Nombre Lote</TableHead>
+                  <TableHead className="min-w-[120px]">Analista</TableHead>
+                  <TableHead className="min-w-[120px]">Fecha Inicio</TableHead>
+                  <TableHead className="min-w-[100px]">Estado</TableHead>
+                  <TableHead className="min-w-[120px]">Prioridad</TableHead>
+                  <TableHead className="min-w-[120px]">Viabilidad (%)</TableHead>
+                  <TableHead className="min-w-[120px]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredAnalisis.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.id}</TableCell>
-                    <TableCell>{item.loteId}</TableCell>
+                    <TableCell className="font-medium">TETRA-{item.id}</TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{item.loteName}</div>
+                        {item.loteId && (
+                          <div className="text-sm text-muted-foreground">ID: {item.loteId}</div>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{item.loteName}</TableCell>
                     <TableCell>{item.analyst}</TableCell>
                     <TableCell>{new Date(item.fechaInicio).toLocaleDateString("es-ES")}</TableCell>
@@ -291,13 +328,13 @@ export default function ListadoTetrazolioPage() {
                     <TableCell>{item.viabilidad > 0 ? `${item.viabilidad}%` : "-"}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Link href={`/analisis/tetrazolio/${item.id}`}>
-                          <Button variant="ghost" size="sm">
+                        <Link href={`/listado/analisis/tetrazolio/${item.id}`}>
+                          <Button variant="ghost" size="sm" title="Ver detalles">
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Link href={`/analisis/tetrazolio/${item.id}/edit`}>
-                          <Button variant="ghost" size="sm">
+                        <Link href={`/listado/analisis/tetrazolio/${item.id}`}>
+                          <Button variant="ghost" size="sm" title="Editar análisis">
                             <Edit className="h-4 w-4" />
                           </Button>
                         </Link>

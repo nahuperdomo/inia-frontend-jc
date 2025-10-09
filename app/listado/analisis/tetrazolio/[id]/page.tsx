@@ -39,8 +39,11 @@ import {
   Target,
   AlertTriangle,
   Save,
-  X
+  X,
+  ArrowLeft
 } from 'lucide-react'
+import Link from 'next/link'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 // Función utilitaria para formatear fechas
 const formatearFechaLocal = (fechaString: string): string => {
@@ -89,6 +92,7 @@ export default function TetrazolioDetailPage() {
     idLote: number
     comentarios: string
     numSemillasPorRep: number
+    numRepeticionesEsperadas: number
     pretratamiento: string
     pretratamientoOtro: string
     concentracion: string
@@ -102,6 +106,7 @@ export default function TetrazolioDetailPage() {
     idLote: 0,
     comentarios: '',
     numSemillasPorRep: 50,
+    numRepeticionesEsperadas: 0,
     pretratamiento: '',
     pretratamientoOtro: '',
     concentracion: '',
@@ -132,6 +137,81 @@ export default function TetrazolioDetailPage() {
     duras: 0
   })
 
+  // Estado para confirmar cancelar edición si hay cambios
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+
+  const populateTetrazolioEditadoFromTetrazolio = () => {
+    if (!tetrazolio) return
+    setTetrazolioEditado({
+      idLote: tetrazolio.idLote || 0,
+      comentarios: tetrazolio.comentarios || '',
+      numSemillasPorRep: tetrazolio.numSemillasPorRep || 50,
+      numRepeticionesEsperadas: tetrazolio.numRepeticionesEsperadas || 0,
+      pretratamiento: tetrazolio.pretratamiento || '',
+      pretratamientoOtro: '',
+      concentracion: tetrazolio.concentracion || '',
+      concentracionOtro: '',
+      tincionHs: tetrazolio.tincionHs || 24,
+      tincionHsOtro: '',
+      tincionTemp: tetrazolio.tincionTemp || 30,
+      tincionTempOtro: '',
+      fecha: convertirFechaParaInput(tetrazolio.fecha || '')
+    })
+  }
+
+  const tieneCambios = () => {
+    if (!tetrazolio) return false
+
+    const original = {
+      idLote: tetrazolio.idLote || 0,
+      comentarios: tetrazolio.comentarios || '',
+      numSemillasPorRep: tetrazolio.numSemillasPorRep || 50,
+      numRepeticionesEsperadas: tetrazolio.numRepeticionesEsperadas || 0,
+      pretratamiento: tetrazolio.pretratamiento || '',
+      pretratamientoOtro: '',
+      concentracion: tetrazolio.concentracion || '',
+      concentracionOtro: '',
+      tincionHs: tetrazolio.tincionHs || 24,
+      tincionHsOtro: '',
+      tincionTemp: tetrazolio.tincionTemp || 30,
+      tincionTempOtro: '',
+      fecha: convertirFechaParaInput(tetrazolio.fecha || '')
+    }
+
+    // Comparar campo por campo
+    return (
+      original.idLote !== tetrazolioEditado.idLote ||
+      original.comentarios !== tetrazolioEditado.comentarios ||
+      original.numSemillasPorRep !== tetrazolioEditado.numSemillasPorRep ||
+      original.numRepeticionesEsperadas !== tetrazolioEditado.numRepeticionesEsperadas ||
+      original.pretratamiento !== tetrazolioEditado.pretratamiento ||
+      original.pretratamientoOtro !== tetrazolioEditado.pretratamientoOtro ||
+      original.concentracion !== tetrazolioEditado.concentracion ||
+      original.concentracionOtro !== tetrazolioEditado.concentracionOtro ||
+      String(original.tincionHs) !== String(tetrazolioEditado.tincionHs) ||
+      original.tincionHsOtro !== tetrazolioEditado.tincionHsOtro ||
+      original.tincionTemp !== tetrazolioEditado.tincionTemp ||
+      original.tincionTempOtro !== tetrazolioEditado.tincionTempOtro ||
+      original.fecha !== tetrazolioEditado.fecha
+    )
+  }
+
+  const handleRequestCancelEdit = () => {
+    if (tieneCambios()) {
+      setShowCancelConfirm(true)
+    } else {
+      // No hay cambios, cerrar directamente y resetear
+      setEditandoTetrazolio(false)
+      populateTetrazolioEditadoFromTetrazolio()
+    }
+  }
+
+  const confirmarDescartarCambios = () => {
+    setShowCancelConfirm(false)
+    setEditandoTetrazolio(false)
+    populateTetrazolioEditadoFromTetrazolio()
+  }
+
   const cargarDatos = async () => {
     try {
       setLoading(true)
@@ -151,6 +231,7 @@ export default function TetrazolioDetailPage() {
         idLote: tetrazolioData.idLote || 0,
         comentarios: tetrazolioData.comentarios || '',
         numSemillasPorRep: tetrazolioData.numSemillasPorRep || 50,
+        numRepeticionesEsperadas: tetrazolioData.numRepeticionesEsperadas || 0,
         pretratamiento: tetrazolioData.pretratamiento || '',
         pretratamientoOtro: '',
         concentracion: tetrazolioData.concentracion || '',
@@ -218,6 +299,7 @@ export default function TetrazolioDetailPage() {
         idLote: tetrazolioEditado.idLote,
         comentarios: tetrazolioEditado.comentarios,
         numSemillasPorRep: tetrazolioEditado.numSemillasPorRep,
+        numRepeticionesEsperadas: tetrazolioEditado.numRepeticionesEsperadas,
         pretratamiento: pretratamientoFinal,
         concentracion: concentracionFinal,
         tincionHs: tincionHsFinal,
@@ -332,7 +414,7 @@ export default function TetrazolioDetailPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="p-6 space-y-6">
         <div className="flex items-center gap-2">
           <TestTube className="h-6 w-6 text-orange-600" />
           <h1 className="text-2xl font-bold">Cargando análisis de tetrazolio...</h1>
@@ -343,7 +425,7 @@ export default function TetrazolioDetailPage() {
 
   if (error) {
     return (
-      <div className="space-y-6">
+      <div className="p-6 space-y-6">
         <Card>
           <CardContent className="pt-6">
             <div className="text-center text-red-600">
@@ -357,7 +439,7 @@ export default function TetrazolioDetailPage() {
 
   if (!tetrazolio) {
     return (
-      <div className="space-y-6">
+      <div className="p-6 space-y-6">
         <Card>
           <CardContent className="pt-6">
             <div className="text-center text-muted-foreground">
@@ -370,37 +452,79 @@ export default function TetrazolioDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100">
-            <TestTube className="h-6 w-6 text-orange-600" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">Análisis de Tetrazolio #{tetrazolio.analisisID}</h1>
-            <p className="text-muted-foreground">
-              Lote: {tetrazolio.lote} | Estado: {getEstadoBadge(tetrazolio.estado || 'REGISTRADO')}
-            </p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          {puedeFinalizarse && tetrazolio.estado === 'PENDIENTE' && (
-            <Button onClick={handleFinalizarAnalisis} disabled={finalizing}>
-              <CheckCircle className="h-4 w-4 mr-2" />
-              {finalizing ? 'Finalizando...' : 'Finalizar Análisis'}
+    <div className="min-h-screen bg-muted/30">
+      {/* Header sticky solo dentro del área con scroll */}
+      <div className="bg-background border-b sticky top-0 z-40">
+      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col gap-6">
+          <Link href="/listado/analisis/tetrazolio">
+            <Button variant="ghost" size="sm" className="gap-2 -ml-2">
+              <ArrowLeft className="h-4 w-4" />
+              Volver
             </Button>
-          )}
-          <Button
-            variant="outline"
-            onClick={() => setEditandoTetrazolio(!editandoTetrazolio)}
-          >
-            <Edit className="h-4 w-4 mr-2" />
-            {editandoTetrazolio ? 'Cancelar' : 'Editar'}
-          </Button>
+          </Link>
+
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-3xl lg:text-4xl font-bold text-balance">
+                  Análisis de Tetrazolio #{tetrazolio.analisisID}
+                </h1>
+                {getEstadoBadge(tetrazolio.estado || 'REGISTRADO')}
+              </div>
+              <p className="text-base text-muted-foreground text-pretty">
+                Viabilidad con tetrazolio • Lote {tetrazolio.lote}
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              {editandoTetrazolio ? (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="gap-2 w-full sm:w-auto"
+                  onClick={handleRequestCancelEdit}
+                >
+                  <X className="h-4 w-4" />
+                  Cancelar edición
+                </Button>
+              ) : (
+                <Button
+                  size="lg"
+                  className="gap-2 w-full sm:w-auto"
+                  onClick={() => {
+                    // Cargar valores actuales en el formulario de edición antes de abrir
+                    setTetrazolioEditado({
+                      idLote: tetrazolio.idLote || 0,
+                      comentarios: tetrazolio.comentarios || '',
+                      numSemillasPorRep: tetrazolio.numSemillasPorRep || 50,
+                      numRepeticionesEsperadas: tetrazolio.numRepeticionesEsperadas || 0,
+                      pretratamiento: tetrazolio.pretratamiento || '',
+                      pretratamientoOtro: '',
+                      concentracion: tetrazolio.concentracion || '',
+                      concentracionOtro: '',
+                      tincionHs: tetrazolio.tincionHs || 24,
+                      tincionHsOtro: '',
+                      tincionTemp: tetrazolio.tincionTemp || 30,
+                      tincionTempOtro: '',
+                      fecha: convertirFechaParaInput(tetrazolio.fecha || '')
+                    })
+                    setEditandoTetrazolio(true)
+                  }}
+                >
+                  <Edit className="h-4 w-4" />
+                  Editar análisis
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
+    </div>
+
+    {/* Compensar altura del header sticky */}
+    <div className="pt-4">
+      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
       {/* Información del análisis */}
       <Card>
@@ -417,7 +541,7 @@ export default function TetrazolioDetailPage() {
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  onClick={() => setEditandoTetrazolio(false)}
+                  onClick={handleRequestCancelEdit}
                 >
                   <X className="h-4 w-4 mr-2" />
                   Cancelar
@@ -476,19 +600,12 @@ export default function TetrazolioDetailPage() {
                 Número de semillas por repetición
               </Label>
               {editandoTetrazolio ? (
-                <Select
-                  value={tetrazolioEditado.numSemillasPorRep.toString()}
-                  onValueChange={(value) => setTetrazolioEditado(prev => ({ ...prev, numSemillasPorRep: parseInt(value) }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="25">25</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input
+                  type="number"
+                  value={tetrazolioEditado.numSemillasPorRep}
+                  disabled
+                  onChange={() => { /* campo deshabilitado intencionalmente */ }}
+                />
               ) : (
                 <div className="text-sm">{tetrazolio.numSemillasPorRep}</div>
               )}
@@ -548,7 +665,8 @@ export default function TetrazolioDetailPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="1%">1%</SelectItem>
-                      <SelectItem value="0,5%">0,5%</SelectItem>
+                      <SelectItem value="0%">0%</SelectItem>
+                      <SelectItem value="5%">5%</SelectItem>
                       <SelectItem value="0,75%">0,75%</SelectItem>
                       <SelectItem value="Otro (especificar)">Otro (especificar)</SelectItem>
                     </SelectContent>
@@ -661,7 +779,17 @@ export default function TetrazolioDetailPage() {
                 <Target className="h-4 w-4" />
                 Repeticiones Esperadas
               </Label>
-              <div className="text-sm">{tetrazolio.numRepeticionesEsperadas}</div>
+              {editandoTetrazolio ? (
+                <Input
+                  type="number"
+                  min={0}
+                  value={tetrazolioEditado.numRepeticionesEsperadas}
+                  disabled
+                  onChange={() => { /* campo deshabilitado intencionalmente */ }}
+                />
+              ) : (
+                <div className="text-sm">{tetrazolio.numRepeticionesEsperadas}</div>
+              )}
             </div>
           </div>
 
@@ -927,7 +1055,10 @@ export default function TetrazolioDetailPage() {
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      onClick={() => setEditandoPorcentajes(false)}
+                      onClick={() => {
+                        // Si hay edición de porcentajes no necesitamos confirmación de tetrazolio edits
+                        setEditandoPorcentajes(false)
+                      }}
                     >
                       <X className="h-4 w-4 mr-2" />
                       Cancelar
@@ -1012,6 +1143,29 @@ export default function TetrazolioDetailPage() {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
+    <CancelEditDialog open={showCancelConfirm} onClose={() => setShowCancelConfirm(false)} onDiscard={confirmarDescartarCambios} />
+  </div>
   )
 }
+
+// Nota: el Dialog se coloca fuera del return principal si se desea, pero aquí lo dejamos dentro del módulo y lo invocamos desde estado
+function CancelEditDialog({ open, onClose, onDiscard }: { open: boolean, onClose: () => void, onDiscard: () => void }) {
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Descartar cambios</DialogTitle>
+          <DialogDescription>Hay cambios sin guardar en el formulario. ¿Deseas descartarlos?</DialogDescription>
+        </DialogHeader>
+        <div className="mt-4 flex gap-2 justify-end">
+          <Button variant="outline" onClick={() => onClose()}>Continuar editando</Button>
+          <Button onClick={() => { onDiscard() }}>Descartar cambios</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// fin del archivo

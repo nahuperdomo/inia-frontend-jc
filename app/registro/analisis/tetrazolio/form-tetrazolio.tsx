@@ -56,8 +56,10 @@ export default function TetrazolioFields({ formData, handleInputChange }: Props)
   ]
 
   const opcionesConcentracion = [
+    
     "1%",
-    "0,5%",
+    "0%",
+    "5%",
     "0,75%",
     "Otro (especificar)"
   ]
@@ -383,7 +385,7 @@ export default function TetrazolioFields({ formData, handleInputChange }: Props)
               className="resize-none transition-all duration-200 focus:ring-2 focus:ring-orange-200"
             />
             <p className="text-xs text-muted-foreground">
-              Campo abierto para notas del analista.
+              Campo abierto para notas.
             </p>
           </div>
         </div>
@@ -396,15 +398,13 @@ export default function TetrazolioFields({ formData, handleInputChange }: Props)
             </div>
             <div className="flex-1">
               <h4 className="text-sm font-semibold text-orange-800 mb-2">
-                💡 <strong>Notas Generales del Análisis de Tetrazolio:</strong>
+                 <strong>Notas Generales del Análisis de Tetrazolio:</strong>
               </h4>
               <ul className="text-xs text-orange-700 space-y-1 ml-4 list-disc">
-                <li>El orden de registro es: Viables → Duras → No viables</li>
                 <li>Si la suma total no coincide con el número de semillas, se ajusta ±1 en Viables</li>
                 <li>Los campos 'Pretratamiento', 'Tinción (hs)' y 'Tinción (°C)' pueden modificarse según la especie analizada</li>
-                <li>Las semillas viables se tiñen de rojo debido a la actividad enzimática</li>
                 <li>Se permite ajuste de redondeo de ±1 semilla en el conteo final</li>
-                <li>Campo de comentarios disponible para observaciones del analista</li>
+                <li>Campo de comentarios disponible para observaciones</li>
               </ul>
             </div>
           </div>
