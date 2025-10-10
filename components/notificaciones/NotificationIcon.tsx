@@ -203,12 +203,25 @@ export const InteractiveNotificationIcon: React.FC<InteractiveNotificationIconPr
 }) => {
     const variant = hasUnread ? 'active' : hasNotifications ? 'default' : 'muted';
 
+    // Use a non-button root to avoid nesting a <button> inside another <button>.
+    // Expose keyboard accessibility (Enter/Space) and role/tabIndex for screen readers.
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (!onClick) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+        }
+    };
+
     return (
-        <button
+        <div
+            role="button"
+            tabIndex={0}
             onClick={onClick}
+            onKeyDown={handleKeyDown}
             className={cn(
                 'relative p-2 rounded-lg transition-all duration-200',
-                'hover:bg-gray-100 active:bg-gray-200',
+                'hover:bg-gray-100',
                 'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
                 hasUnread && 'text-blue-600 hover:bg-blue-50',
                 animated && 'hover:scale-105 active:scale-95',
@@ -225,7 +238,7 @@ export const InteractiveNotificationIcon: React.FC<InteractiveNotificationIconPr
             {hasUnread && animated && (
                 <span className="absolute inset-0 rounded-lg bg-blue-400 opacity-20 animate-ping" />
             )}
-        </button>
+        </div>
     );
 };
 
