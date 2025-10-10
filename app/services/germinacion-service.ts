@@ -3,7 +3,8 @@ import {
   GerminacionDTO, 
   GerminacionRequestDTO, 
   GerminacionEditRequestDTO,
-  ResponseListadoGerminacion
+  ResponseListadoGerminacion,
+  GerminacionListadoDTO
 } from "../models/interfaces/germinacion";
 import {
   TablaGermDTO,
@@ -25,6 +26,10 @@ export async function crearGerminacion(solicitud: GerminacionRequestDTO): Promis
 export async function obtenerTodasGerminaciones(): Promise<GerminacionDTO[]> {
   const res = await apiFetch("/api/germinaciones") as ResponseListadoGerminacion;
   return res.germinaciones || [];
+}
+
+export async function obtenerGerminacionesPaginadas(page: number = 0, size: number = 10): Promise<{ content: GerminacionListadoDTO[], totalElements: number, totalPages: number, last: boolean, first: boolean }> {
+  return apiFetch(`/api/germinaciones/listado?page=${page}&size=${size}`);
 }
 
 export async function obtenerGerminacionPorId(id: number): Promise<GerminacionDTO> {

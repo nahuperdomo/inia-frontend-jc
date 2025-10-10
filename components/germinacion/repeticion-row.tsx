@@ -41,6 +41,25 @@ export function RepeticionRow({
     total: 0
   })
 
+  // Función para manejar el comportamiento de reemplazo del 0 inicial
+  const manejarCambioNumerico = (valorString: string, valorActual: number, callback: (nuevoValor: number) => void) => {
+    // Si el campo está vacío, usar 0
+    if (valorString === '') {
+      callback(0)
+      return
+    }
+    
+    // Si el valor actual es 0 y se está escribiendo algo diferente de '0', reemplazar completamente
+    if (valorActual === 0 && valorString !== '0') {
+      const numeroIngresado = parseInt(valorString) || 0
+      callback(numeroIngresado)
+    } else {
+      // Comportamiento normal
+      const numeroIngresado = parseInt(valorString) || 0
+      callback(numeroIngresado)
+    }
+  }
+
   // Cargar datos existentes si hay repetición
   useEffect(() => {
     if (repeticion) {
@@ -67,13 +86,28 @@ export function RepeticionRow({
   }, [datos.normales, datos.anormales, datos.duras, datos.frescas, datos.muertas])
 
   const handleGuardar = async () => {
+    // Validación: total no puede superar numSemillasPRep
     if (datos.total > numSemillasPRep) {
-      alert(`El total no puede exceder ${numSemillasPRep} semillas`)
+      alert(`El total (${datos.total}) no puede superar el número de semillas por repetición (${numSemillasPRep})`)
       return
     }
 
+    // Validación: debe haber al menos un valor mayor a 0
     if (datos.total === 0) {
-      alert("Debe ingresar al menos un valor")
+      alert("Debe ingresar al menos un valor mayor a 0")
+      return
+    }
+
+    // Validación: valores no pueden ser negativos (validación adicional por seguridad)
+    const valoresNegativos = []
+    if (datos.anormales < 0) valoresNegativos.push("Anormales")
+    if (datos.duras < 0) valoresNegativos.push("Duras")
+    if (datos.frescas < 0) valoresNegativos.push("Frescas")
+    if (datos.muertas < 0) valoresNegativos.push("Muertas")
+    if (datos.normales.some(val => val < 0)) valoresNegativos.push("Normales")
+    
+    if (valoresNegativos.length > 0) {
+      alert(`Los siguientes campos no pueden ser negativos: ${valoresNegativos.join(", ")}`)
       return
     }
 
@@ -90,7 +124,7 @@ export function RepeticionRow({
 
   const handleCancelar = () => {
     if (repeticion) {
-      // Restaurar valores originales
+      // Restaurar valores originales si existe repetición y salir del modo edición
       setDatos({
         numRep: repeticion.numRep,
         normales: repeticion.normales || new Array(numeroConteos).fill(0),
@@ -100,8 +134,20 @@ export function RepeticionRow({
         muertas: repeticion.muertas,
         total: repeticion.total
       })
+      setModoEdicion(false)
+    } else {
+      // Si no hay repetición, resetear a valores por defecto
+      // Los botones se mantienen visibles porque !repeticion siempre será true
+      setDatos({
+        numRep: numeroRepeticion,
+        normales: new Array(numeroConteos).fill(0),
+        anormales: 0,
+        duras: 0,
+        frescas: 0,
+        muertas: 0,
+        total: 0
+      })
     }
-    setModoEdicion(false)
   }
 
   const actualizarNormal = (indice: number, valor: number) => {
@@ -146,45 +192,45 @@ export function RepeticionRow({
             )}
           </div>
           
-          {!isFinalized && (
-            <div className="flex gap-2">
-              {repeticion && !modoEdicion && (
+          <div className="flex gap-2">
+            {/* Si hay repetición guardada y no está en modo edición, mostrar botón Editar */}
+            {repeticion && !modoEdicion && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setModoEdicion(true)}
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Editar
+              </Button>
+            )}
+            
+            {/* Si está en modo edición O no hay repetición creada, mostrar botones de acción */}
+            {(modoEdicion || !repeticion) && (
+              <>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setModoEdicion(true)}
+                  onClick={handleCancelar}
+                  disabled={guardando}
                 >
-                  <Edit className="h-4 w-4 mr-1" />
-                  Editar
+                  <X className="h-4 w-4 mr-1" />
+                  Cancelar
                 </Button>
-              )}
-              
-              {modoEdicion && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCancelar}
-                    disabled={guardando}
-                  >
-                    <X className="h-4 w-4 mr-1" />
-                    Cancelar
-                  </Button>
-                  
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={handleGuardar}
-                    disabled={!puedeGuardar || guardando}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    <Save className="h-4 w-4 mr-1" />
-                    {guardando ? "Guardando..." : "Guardar"}
-                  </Button>
-                </>
-              )}
-            </div>
-          )}
+                
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleGuardar}
+                  disabled={!puedeGuardar || guardando}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  {guardando ? "Guardando..." : "Guardar"}
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -208,10 +254,13 @@ export function RepeticionRow({
                       type="number"
                       min="0"
                       max={numSemillasPRep}
-                      value={valor}
-                      onChange={(e) => actualizarNormal(indice, parseInt(e.target.value) || 0)}
+                      value={modoEdicion && valor === 0 ? '' : valor}
+                      onChange={(e) => manejarCambioNumerico(e.target.value, valor, (nuevoValor) => 
+                        actualizarNormal(indice, nuevoValor)
+                      )}
                       disabled={!modoEdicion || !puedeIngresar}
-                      className={`text-center ${!puedeIngresar ? 'bg-gray-100 text-gray-400' : ''}`}
+                      className={`text-center text-black disabled:text-black disabled:opacity-100 ${!puedeIngresar ? 'bg-gray-100' : ''}`}
+                      style={!puedeIngresar ? {} : { color: 'black !important' }}
                       title={!puedeIngresar ? "No se puede ingresar datos para fechas futuras" : ""}
                     />
                     {fechasConteos && fechasConteos[indice] && (
@@ -233,10 +282,12 @@ export function RepeticionRow({
                 type="number"
                 min="0"
                 max={numSemillasPRep}
-                value={datos.anormales}
-                onChange={(e) => actualizarCampo('anormales', parseInt(e.target.value) || 0)}
+                value={modoEdicion && datos.anormales === 0 ? '' : datos.anormales}
+                onChange={(e) => manejarCambioNumerico(e.target.value, datos.anormales, (nuevoValor) => 
+                  actualizarCampo('anormales', nuevoValor)
+                )}
                 disabled={!modoEdicion}
-                className="text-center"
+                className="text-center text-black disabled:text-black disabled:opacity-100"
               />
             </div>
             
@@ -246,10 +297,12 @@ export function RepeticionRow({
                 type="number"
                 min="0"
                 max={numSemillasPRep}
-                value={datos.duras}
-                onChange={(e) => actualizarCampo('duras', parseInt(e.target.value) || 0)}
+                value={modoEdicion && datos.duras === 0 ? '' : datos.duras}
+                onChange={(e) => manejarCambioNumerico(e.target.value, datos.duras, (nuevoValor) => 
+                  actualizarCampo('duras', nuevoValor)
+                )}
                 disabled={!modoEdicion}
-                className="text-center"
+                className="text-center text-black disabled:text-black disabled:opacity-100"
               />
             </div>
             
@@ -259,10 +312,12 @@ export function RepeticionRow({
                 type="number"
                 min="0"
                 max={numSemillasPRep}
-                value={datos.frescas}
-                onChange={(e) => actualizarCampo('frescas', parseInt(e.target.value) || 0)}
+                value={modoEdicion && datos.frescas === 0 ? '' : datos.frescas}
+                onChange={(e) => manejarCambioNumerico(e.target.value, datos.frescas, (nuevoValor) => 
+                  actualizarCampo('frescas', nuevoValor)
+                )}
                 disabled={!modoEdicion}
-                className="text-center"
+                className="text-center text-black disabled:text-black disabled:opacity-100"
               />
             </div>
             
@@ -272,10 +327,12 @@ export function RepeticionRow({
                 type="number"
                 min="0"
                 max={numSemillasPRep}
-                value={datos.muertas}
-                onChange={(e) => actualizarCampo('muertas', parseInt(e.target.value) || 0)}
+                value={modoEdicion && datos.muertas === 0 ? '' : datos.muertas}
+                onChange={(e) => manejarCambioNumerico(e.target.value, datos.muertas, (nuevoValor) => 
+                  actualizarCampo('muertas', nuevoValor)
+                )}
                 disabled={!modoEdicion}
-                className="text-center"
+                className="text-center text-black disabled:text-black disabled:opacity-100"
               />
             </div>
           </div>

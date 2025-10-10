@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
   Calendar,
-  Plus,
   Trash2,
   Hash,
   Clock,
@@ -79,7 +78,7 @@ const generarFechasConteo = (fechaInicio: string, fechaUltConteo: string, numero
 export default function GerminacionFields({ formData, handleInputChange }: Props) {
   const data = formData || {}
   
-  // Funciones de validación
+  // Funciones de validación (exactamente como en el backend)
   const validarFechaInicio = (): boolean => {
     if (!data.fechaInicioGerm || !data.fechaUltConteo) return true
     
@@ -104,6 +103,14 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
     return fechaFin > fechaInicio
   }
 
+  const validarNumeroRepeticiones = (): boolean => {
+    return data.numeroRepeticiones != null && data.numeroRepeticiones > 0
+  }
+
+  const validarNumeroConteos = (): boolean => {
+    return data.numeroConteos != null && data.numeroConteos > 0
+  }
+
   const validarFechaConteo = (fecha: string): boolean => {
     return validarFechaEnRango(fecha, data.fechaInicioGerm, data.fechaUltConteo)
   }
@@ -112,8 +119,10 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
     const fechaInicioValida = validarFechaInicio()
     const fechaFinValida = validarFechaUltimoConteo()
     const fechasConteosValidas = (data.fechaConteos || []).every((fecha: string) => validarFechaConteo(fecha))
+    const repeticionesValidas = validarNumeroRepeticiones()
+    const conteosValidos = validarNumeroConteos()
     
-    return fechaInicioValida && fechaFinValida && fechasConteosValidas
+    return fechaInicioValida && fechaFinValida && fechasConteosValidas && repeticionesValidas && conteosValidos
   }
   
   const handleFechaConteoChange = (index: number, value: string) => {
@@ -126,23 +135,6 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
       newFechas[index] = value
       handleInputChange("fechaConteos", newFechas)
     }
-  }
-
-  const addFechaConteo = () => {
-    const fechaConteos = data.fechaConteos || []
-    const newFechas = [...fechaConteos]
-    
-    // Insertar una nueva fecha vacía antes de la última (que siempre debe ser fechaUltConteo)
-    if (newFechas.length > 0) {
-      // Insertar antes de la última fecha
-      newFechas.splice(newFechas.length - 1, 0, "")
-    } else {
-      // Si no hay fechas, agregar una vacía
-      newFechas.push("")
-    }
-    
-    handleInputChange("fechaConteos", newFechas)
-    handleInputChange("numeroConteos", newFechas.length)
   }
 
   const removeFechaConteo = (index: number) => {
@@ -219,19 +211,22 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
     }
   }, [data.fechaUltConteo, data.numeroConteos])
 
-  // Sincronizar fechaConteos con numeroConteos (crear array vacío del tamaño correcto)
+  // Sincronizar fechaConteos con numeroConteos (crear array con fechas indeterminadas)
   React.useEffect(() => {
     if (data.numeroConteos && data.numeroConteos > 0) {
       const currentFechas = data.fechaConteos || []
       if (currentFechas.length !== data.numeroConteos) {
-        const newFechas = Array(data.numeroConteos).fill("").map((_, index) => 
-          currentFechas[index] || ""
-        )
-        
-        // Asegurar que la última fecha siempre sea la del último conteo
-        if (data.fechaUltConteo && newFechas.length > 0) {
-          newFechas[newFechas.length - 1] = data.fechaUltConteo
-        }
+        const newFechas = Array(data.numeroConteos).fill("").map((_, index) => {
+          const esUltimaFecha = index === data.numeroConteos - 1
+          
+          // La última fecha siempre es la del último conteo, las demás se mantienen vacías a menos que ya tengan valor
+          if (esUltimaFecha) {
+            return data.fechaUltConteo || ""
+          } else {
+            // Solo conservar fechas que ya existían, las nuevas quedan vacías (indeterminadas)
+            return currentFechas[index] || ""
+          }
+        })
         
         handleInputChange("fechaConteos", newFechas)
       }
@@ -349,14 +344,20 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
                 id="numeroRepeticiones"
                 type="number"
                 min="1"
-                max="20"
                 value={data.numeroRepeticiones || ""}
                 onChange={(e) => handleInputChange("numeroRepeticiones", parseInt(e.target.value) || 1)}
-                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-green-200"
+                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-green-200 ${
+                  !validarNumeroRepeticiones() ? 'border-red-500 bg-red-50' : ''
+                }`}
                 required
               />
+              {!validarNumeroRepeticiones() && (
+                <p className="text-xs text-red-600">
+                  Debe especificar un número válido de repeticiones (mayor a 0)
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
-                Controla cuántas repeticiones se podrán crear (1-20)
+                Controla cuántas repeticiones se podrán crear (mayor a 0)
               </p>
             </div>
 
@@ -369,17 +370,23 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
                 id="numeroConteos"
                 type="number"
                 min="1"
-                max="10"
                 value={data.numeroConteos || 1}
                 onChange={(e) => {
                   const newValue = Math.max(1, parseInt(e.target.value) || 1)
                   handleInputChange("numeroConteos", newValue)
                 }}
-                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-green-200"
+                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-green-200 ${
+                  !validarNumeroConteos() ? 'border-red-500 bg-red-50' : ''
+                }`}
                 required
               />
+              {!validarNumeroConteos() && (
+                <p className="text-xs text-red-600">
+                  Debe especificar un número válido de conteos (mayor a 0)
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
-                Controla el tamaño del array "normales" por repetición (mínimo 1, máximo 10)
+                Controla el tamaño del array "normales" por repetición (mayor a 0)
               </p>
             </div>
           </div>
@@ -387,26 +394,15 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
 
         {/* Fechas de conteo */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-green-600" />
-              <h3 className="text-lg font-semibold">
-                Fechas de Conteo *
-                <span className="text-sm font-normal text-gray-500 ml-2">
-                  (Solo el último conteo se establece automáticamente)
-                </span>
-              </h3>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addFechaConteo}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Agregar Fecha
-            </Button>
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-green-600" />
+            <h3 className="text-lg font-semibold">
+              Fechas de Conteo *
+              <span className="text-sm font-normal text-gray-500 ml-2">
+                (Solo el último conteo se establece automáticamente)
+              </span>
+            </h3>
+          </div>
           </div>
           
           <div className="space-y-3">
@@ -462,25 +458,8 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
             })}
           </div>
           
-          {/* Mensaje informativo */}
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-700">
-              💡 <strong>Fechas de Conteo:</strong>
-            </p>
-            <ul className="text-xs text-blue-600 mt-1 ml-4 list-disc">
-              <li>La fecha del último conteo se establece automáticamente (igual a "Fecha Último Conteo")</li>
-              <li>Las fechas intermedias se pueden editar libremente</li>
-              <li>Todas las fechas intermedias deben estar entre la fecha de inicio y la de último conteo</li>
-              <li>Siempre debe haber al menos 1 fecha de conteo (la del último conteo)</li>
-              <li>Solo se pueden eliminar fechas intermedias, nunca la última</li>
-            </ul>
-          </div>
-          
-          <div className="text-sm text-muted-foreground">
-            <p>• Cada fecha de conteo representa una evaluación de las semillas germinadas</p>
-            <p>• El número de fechas determina el tamaño del array "normales" en cada repetición</p>
-          </div>
-        </div>
+      
+        
 
         {/* Información de resumen */}
         <Card className={`border-2 ${sonTodasLasFechasValidas() ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
@@ -495,19 +474,18 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
                 <h4 className={`font-medium mb-2 ${
                   sonTodasLasFechasValidas() ? 'text-green-900' : 'text-red-900'
                 }`}>
-                  {sonTodasLasFechasValidas() ? 'Configuración Válida ✅' : 'Configuración Inválida ❌'}
+                  {sonTodasLasFechasValidas() ? 'Configuración Válida' : 'Configuración Inválida'}
                 </h4>
                 <div className={`space-y-1 text-sm ${
                   sonTodasLasFechasValidas() ? 'text-green-800' : 'text-red-800'
                 }`}>
                   <p>• Se crearán <strong>{data.numeroRepeticiones || 0} repeticiones</strong></p>
-                  <p>• Cada repetición tendrá <strong>{data.numeroConteos || 0} conteos</strong> en el array "normales"</p>
-                  <p>• Total de evaluaciones: <strong>{(data.numeroRepeticiones || 0) * (data.numeroConteos || 0)}</strong></p>
+                  <p>• Cada repetición tendrá <strong>{data.numeroConteos || 0} conteos</strong> de "normales"</p>
                   {data.numDias && (
                     <p>• Duración del análisis: <strong>{data.numDias} días</strong></p>
                   )}
                   {!sonTodasLasFechasValidas() && (
-                    <p className="font-medium">⚠️ Por favor, corrige las fechas inválidas antes de crear el análisis</p>
+                    <p className="font-medium">Por favor, corrige las fechas inválidas antes de crear el análisis</p>
                   )}
                 </div>
               </div>

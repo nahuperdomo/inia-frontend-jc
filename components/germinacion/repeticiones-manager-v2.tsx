@@ -91,7 +91,7 @@ export function RepeticionesManager({
   }
 
   const repeticionesCompletas = repeticiones.length
-  const puedeAgregarMas = repeticionesCompletas < numeroRepeticiones && !isFinalized
+  const puedeAgregarMas = repeticionesCompletas < numeroRepeticiones
   const todasCompletas = repeticionesCompletas === numeroRepeticiones
 
   if (loading) {
@@ -133,7 +133,7 @@ export function RepeticionesManager({
               numeroRepeticion={numeroRep}
               numeroConteos={numeroConteos}
               numSemillasPRep={tabla.numSemillasPRep}
-              isFinalized={isFinalized || tabla.finalizada}
+              isFinalized={false}
               fechasConteos={fechasConteos}
               onGuardar={(datos) => handleGuardarRepeticion(numeroRep, datos)}
             />

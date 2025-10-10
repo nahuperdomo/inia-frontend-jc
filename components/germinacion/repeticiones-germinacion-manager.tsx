@@ -202,12 +202,10 @@ export function RepeticionesGerminacionManager({
           Repeticiones ({repeticiones.length})
         </h4>
         
-        {!isFinalized && repeticiones.length < 8 && (
-          <Button onClick={handleCrearRepeticion} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Agregar Repetición
-          </Button>
-        )}
+        <Button onClick={handleCrearRepeticion} size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          Agregar Repetición
+        </Button>
       </div>
 
       {/* Lista de Repeticiones */}
@@ -285,7 +283,6 @@ export function RepeticionesGerminacionManager({
                         'normales', 
                         parseInt(e.target.value) || 0
                       )}
-                      disabled={isFinalized}
                       className="text-center font-semibold"
                     />
                   </div>
@@ -302,7 +299,6 @@ export function RepeticionesGerminacionManager({
                         'anormales', 
                         parseInt(e.target.value) || 0
                       )}
-                      disabled={isFinalized}
                       className="text-center"
                     />
                   </div>
@@ -319,7 +315,6 @@ export function RepeticionesGerminacionManager({
                         'muertas', 
                         parseInt(e.target.value) || 0
                       )}
-                      disabled={isFinalized}
                       className="text-center"
                     />
                   </div>
@@ -336,7 +331,6 @@ export function RepeticionesGerminacionManager({
                         'duras', 
                         parseInt(e.target.value) || 0
                       )}
-                      disabled={isFinalized}
                       className="text-center"
                     />
                   </div>
@@ -353,7 +347,6 @@ export function RepeticionesGerminacionManager({
                         'frescas', 
                         parseInt(e.target.value) || 0
                       )}
-                      disabled={isFinalized}
                       className="text-center"
                     />
                   </div>

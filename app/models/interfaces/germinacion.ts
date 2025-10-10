@@ -29,3 +29,19 @@ export interface GerminacionEditRequestDTO {
 export interface ResponseListadoGerminacion {
   germinaciones: GerminacionDTO[];
 }
+
+// DTO simple para listado paginado
+export interface GerminacionListadoDTO {
+  analisisID: number;
+  estado: string;
+  fechaInicio: string;
+  fechaFin?: string;
+  lote?: string;
+  idLote?: number;
+  fechaInicioGerm: string;
+  fechaUltConteo: string;
+  numDias?: string;
+  usuarioCreador?: string;
+  usuarioModificador?: string;
+  cumpleNorma: boolean; // true si NO está "A REPETIR"
+}
