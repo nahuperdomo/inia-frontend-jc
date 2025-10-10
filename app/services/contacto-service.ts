@@ -3,15 +3,42 @@ import { ContactoDTO, ContactoRequestDTO } from "../models";
 
 // Funciones de contacto
 export async function obtenerTodosLosContactos(): Promise<ContactoDTO[]> {
-  return apiFetch("/api/contactos");
+  const response = await apiFetch("/api/contactos");
+  // Asegurar que siempre devolvemos un array, incluso si la respuesta está en otra estructura
+  if (response && Array.isArray(response)) {
+    return response;
+  } else if (response && response.contactos && Array.isArray(response.contactos)) {
+    // Si la respuesta viene en formato { contactos: [...] }
+    return response.contactos;
+  }
+  console.warn("Formato de respuesta inesperado en obtenerTodosLosContactos:", response);
+  return [];
 }
 
 export async function obtenerClientes(): Promise<ContactoDTO[]> {
-  return apiFetch("/api/contactos/clientes");
+  const response = await apiFetch("/api/contactos/clientes");
+  // Asegurar que siempre devolvemos un array, incluso si la respuesta está en otra estructura
+  if (response && Array.isArray(response)) {
+    return response;
+  } else if (response && response.clientes && Array.isArray(response.clientes)) {
+    // Si la respuesta viene en formato { clientes: [...] }
+    return response.clientes;
+  }
+  console.warn("Formato de respuesta inesperado en obtenerClientes:", response);
+  return [];
 }
 
 export async function obtenerEmpresas(): Promise<ContactoDTO[]> {
-  return apiFetch("/api/contactos/empresas");
+  const response = await apiFetch("/api/contactos/empresas");
+  // Asegurar que siempre devolvemos un array, incluso si la respuesta está en otra estructura
+  if (response && Array.isArray(response)) {
+    return response;
+  } else if (response && response.empresas && Array.isArray(response.empresas)) {
+    // Si la respuesta viene en formato { empresas: [...] }
+    return response.empresas;
+  }
+  console.warn("Formato de respuesta inesperado en obtenerEmpresas:", response);
+  return [];
 }
 
 export async function obtenerContactoPorId(contactoID: number): Promise<ContactoDTO> {

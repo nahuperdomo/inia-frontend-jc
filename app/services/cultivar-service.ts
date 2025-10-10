@@ -3,7 +3,17 @@ import { CultivarDTO, CultivarRequestDTO } from "../models";
 
 // Funciones de cultivares
 export async function obtenerTodosCultivares(): Promise<CultivarDTO[]> {
-  return apiFetch("/api/cultivar");
+  const response = await apiFetch("/api/cultivar");
+
+  // Asegurar que siempre devolvemos un array, incluso si la respuesta está en otra estructura
+  if (response && Array.isArray(response)) {
+    return response;
+  } else if (response && response.cultivares && Array.isArray(response.cultivares)) {
+    // Si la respuesta viene en formato { cultivares: [...] }
+    return response.cultivares;
+  }
+  console.warn("Formato de respuesta inesperado en obtenerTodosCultivares:", response);
+  return [];
 }
 
 export async function obtenerCultivaresInactivos(): Promise<CultivarDTO[]> {

@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import FormField from "@/components/ui/form-field"
 import FormSelect from "@/components/ui/form-select"
 import { LoteFormData } from "@/lib/validations/lotes-validation"
+import { CatalogoDTO, ContactoDTO, CultivarDTO } from "@/app/models"
 
 interface LotFormTabsProps {
   formData: LoteFormData
@@ -13,6 +14,19 @@ interface LotFormTabsProps {
   handleBlur: (field: string) => void
   hasError: (field: string) => boolean
   getErrorMessage: (field: string) => string
+  // Catalog data
+  cultivares: CultivarDTO[]
+  empresas: ContactoDTO[]
+  clientes: ContactoDTO[]
+  depositos: any[] // Cambiar tipo para manejar respuesta real del backend
+  tiposHumedad: any[] // Cambiar tipo para manejar respuesta real del backend
+  origenes: any[] // Cambiar tipo para manejar respuesta real del backend
+  estados: any[] // Cambiar tipo para manejar respuesta real del backend
+  numerosArticulo?: any[] // Cambiar tipo para manejar respuesta real del backend
+  tipoOptions: { id: string, nombre: string }[]
+  unidadesEmbolsado: { id: string, nombre: string }[]
+  // Loading states
+  isLoading?: boolean
 }
 
 export function LotFormTabs({
@@ -22,63 +36,62 @@ export function LotFormTabs({
   onTabChange,
   handleBlur,
   hasError,
-  getErrorMessage
+  getErrorMessage,
+  // Catalog data
+  cultivares,
+  empresas,
+  clientes,
+  depositos,
+  tiposHumedad,
+  origenes,
+  estados,
+  numerosArticulo = [],
+  tipoOptions,
+  unidadesEmbolsado,
+  // Loading state
+  isLoading = false
 }: LotFormTabsProps) {
-  // Simulación de opciones, reemplaza por tus datos reales si tienes catálogos
-  const cultivares = [
-    { id: 1, nombre: "Cultivar 1" },
-    { id: 2, nombre: "Cultivar 2" },
-    { id: 3, nombre: "Cultivar 3" },
-  ]
-  const empresas = [
-    { id: 1, nombre: "Empresa 1" },
-    { id: 2, nombre: "Empresa 2" },
-  ]
-  const clientes = [
-    { id: 1, nombre: "Cliente 1" },
-    { id: 2, nombre: "Cliente 2" },
-  ]
-  const depositos = [
-    { id: 1, nombre: "Depósito A" },
-    { id: 2, nombre: "Depósito B" },
-  ]
-  const unidadesEmbalado = [
-    { id: "Bolsas", nombre: "Bolsas" },
-    { id: "Granel", nombre: "Granel" },
-    { id: "Big Bags", nombre: "Big Bags" },
-    { id: "Contenedores", nombre: "Contenedores" }
-  ]
+  // Map backend data to the format expected by FormSelect
+  const cultivaresOptions = cultivares.map(cultivar => ({
+    id: cultivar.cultivarID,
+    nombre: cultivar.nombre
+  }));
 
-  // Nuevos datos hardcodeados para los selects
-  const tiposHumedad = [
-    { id: 1, nombre: "Humedad Base Húmeda" },
-    { id: 2, nombre: "Humedad Base Seca" },
-    { id: 3, nombre: "Humedad Relativa" },
-    { id: 4, nombre: "Humedad Absoluta" },
-  ]
+  const empresasOptions = empresas.map(empresa => ({
+    id: empresa.contactoID,
+    nombre: empresa.nombre
+  }));
 
-  const origenes = [
-    { id: 1, nombre: "Nacional" },
-    { id: 2, nombre: "Importado - Argentina" },
-    { id: 3, nombre: "Importado - Brasil" },
-    { id: 4, nombre: "Importado - Chile" },
-    { id: 5, nombre: "Importado - Paraguay" },
-  ]
+  const clientesOptions = clientes.map(cliente => ({
+    id: cliente.contactoID,
+    nombre: cliente.nombre
+  }));
 
-  const estados = [
-    { id: 1, nombre: "Ingresado" },
-    { id: 2, nombre: "En Proceso" },
-    { id: 3, nombre: "En Análisis" },
-    { id: 4, nombre: "Aprobado" },
-    { id: 5, nombre: "Rechazado" },
-    { id: 6, nombre: "Liberado" },
-  ]
+  // Mapeo que maneja la estructura real del backend
+  const depositosOptions = depositos.map((deposito: any) => ({
+    id: deposito.id,
+    nombre: deposito.valor
+  }));
 
-  const tipoOptions = [
-    { id: "INTERNO", nombre: "Interno" },
-    { id: "OTROS_CENTROS_COSTOS", nombre: "Otros Centros de Costos" },
-    { id: "EXTERNOS", nombre: "Externos" }
-  ]
+  const tiposHumedadOptions = tiposHumedad.map((tipo: any) => ({
+    id: tipo.id,
+    nombre: tipo.valor
+  }));
+
+  const origenesOptions = origenes.map((origen: any) => ({
+    id: origen.id,
+    nombre: origen.valor
+  }));
+
+  const estadosOptions = estados.map((estado: any) => ({
+    id: estado.id,
+    nombre: estado.valor
+  }));
+
+  const numerosArticuloOptions = numerosArticulo.map((num: any) => ({
+    id: num.id,
+    nombre: num.valor
+  }));
 
   return (
     <Card>
@@ -125,13 +138,12 @@ export function LotFormTabs({
                 value={formData.cultivarID}
                 onChange={(value) => onInputChange("cultivarID", value === "" ? "" : Number(value))}
                 onBlur={() => handleBlur("cultivarID")}
-                options={cultivares}
+                options={cultivaresOptions}
                 error={hasError("cultivarID") ? getErrorMessage("cultivarID") : undefined}
                 required={true}
-                placeholder="Seleccionar cultivar"
-              />
-
-              <FormSelect
+                placeholder={isLoading ? "Cargando..." : "Seleccionar cultivar"}
+                disabled={isLoading}
+              />              <FormSelect
                 id="tipo"
                 label="Tipo"
                 value={formData.tipo}
@@ -154,10 +166,11 @@ export function LotFormTabs({
                 value={formData.empresaID}
                 onChange={(value) => onInputChange("empresaID", value === "" ? "" : Number(value))}
                 onBlur={() => handleBlur("empresaID")}
-                options={empresas}
+                options={empresasOptions}
                 error={hasError("empresaID") ? getErrorMessage("empresaID") : undefined}
                 required={true}
-                placeholder="Seleccionar empresa"
+                placeholder={isLoading ? "Cargando..." : "Seleccionar empresa"}
+                disabled={isLoading}
               />
 
               <FormSelect
@@ -166,10 +179,11 @@ export function LotFormTabs({
                 value={formData.clienteID}
                 onChange={(value) => onInputChange("clienteID", value === "" ? "" : Number(value))}
                 onBlur={() => handleBlur("clienteID")}
-                options={clientes}
+                options={clientesOptions}
                 error={hasError("clienteID") ? getErrorMessage("clienteID") : undefined}
                 required={true}
-                placeholder="Seleccionar cliente"
+                placeholder={isLoading ? "Cargando..." : "Seleccionar cliente"}
+                disabled={isLoading}
               />
 
               <FormField
@@ -223,10 +237,11 @@ export function LotFormTabs({
                 value={formData.depositoID}
                 onChange={(value) => onInputChange("depositoID", value === "" ? "" : Number(value))}
                 onBlur={() => handleBlur("depositoID")}
-                options={depositos}
+                options={depositosOptions}
                 error={hasError("depositoID") ? getErrorMessage("depositoID") : undefined}
                 required={true}
-                placeholder="Seleccionar depósito"
+                placeholder={isLoading ? "Cargando..." : "Seleccionar depósito"}
+                disabled={isLoading}
               />
 
               <FormSelect
@@ -235,10 +250,11 @@ export function LotFormTabs({
                 value={formData.unidadEmbolsado}
                 onChange={(value) => onInputChange("unidadEmbolsado", value)}
                 onBlur={() => handleBlur("unidadEmbolsado")}
-                options={unidadesEmbalado}
+                options={unidadesEmbolsado}
                 error={hasError("unidadEmbolsado") ? getErrorMessage("unidadEmbolsado") : undefined}
                 required={true}
-                placeholder="Seleccionar unidad"
+                placeholder={isLoading ? "Cargando..." : "Seleccionar unidad"}
+                disabled={isLoading}
               />
 
               <FormField
@@ -289,9 +305,10 @@ export function LotFormTabs({
                   onInputChange("datosHumedad", newDatos)
                 }}
                 onBlur={() => handleBlur("tipoHumedadID")}
-                options={tiposHumedad}
+                options={tiposHumedadOptions}
                 error={hasError("tipoHumedadID") ? getErrorMessage("tipoHumedadID") : undefined}
-                placeholder="Seleccionar tipo de humedad"
+                placeholder={isLoading ? "Cargando..." : "Seleccionar tipo de humedad"}
+                disabled={isLoading}
               />
 
               <FormField
@@ -340,10 +357,11 @@ export function LotFormTabs({
                 value={formData.origenID}
                 onChange={(value) => onInputChange("origenID", value === "" ? "" : Number(value))}
                 onBlur={() => handleBlur("origenID")}
-                options={origenes}
+                options={origenesOptions}
                 error={hasError("origenID") ? getErrorMessage("origenID") : undefined}
                 required={true}
-                placeholder="Seleccionar origen"
+                placeholder={isLoading ? "Cargando..." : "Seleccionar origen"}
+                disabled={isLoading}
               />
 
               <FormSelect
@@ -352,10 +370,11 @@ export function LotFormTabs({
                 value={formData.estadoID}
                 onChange={(value) => onInputChange("estadoID", value === "" ? "" : Number(value))}
                 onBlur={() => handleBlur("estadoID")}
-                options={estados}
+                options={estadosOptions}
                 error={hasError("estadoID") ? getErrorMessage("estadoID") : undefined}
                 required={true}
-                placeholder="Seleccionar estado"
+                placeholder={isLoading ? "Cargando..." : "Seleccionar estado"}
+                disabled={isLoading}
               />
 
               <FormField

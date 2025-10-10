@@ -32,10 +32,10 @@ export default function RegistroPage() {
       bgColor: "bg-blue-50",
     },
     {
-      title: "Registro de Usuario",
+      title: "Aceptar nuevo usuario",
       description: "Registrar nuevo usuario en el sistema",
       icon: Users,
-      href: "/registro/usuario",
+      href: "/validacion/usuario",
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },

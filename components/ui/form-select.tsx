@@ -72,9 +72,9 @@ export function FormSelect({
                     <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
                 <SelectContent>
-                    {options.map((option) => (
+                    {options.map((option, index) => (
                         <SelectItem
-                            key={option[valueKey] || option.id}
+                            key={`${option[valueKey] || option.id}-${index}`}
                             value={String(option[valueKey] || option.id)}
                         >
                             {option[labelKey] || option.nombre}

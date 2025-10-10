@@ -67,7 +67,7 @@ export interface RegistroUsuarioRequest {
   nombres: string;
   apellidos: string;
   email: string;
-  password: string;
+  contrasenia: string;
 }
 
 export interface AprobarUsuarioRequest {
@@ -86,3 +86,5 @@ export interface ActualizarPerfilRequest {
   passwordActual?: string;
   passwordNueva?: string;
 }
+
+export type { RolUsuario };

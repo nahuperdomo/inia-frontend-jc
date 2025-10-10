@@ -29,20 +29,47 @@ export type AnalysisFormData = {
   prioridad: string
   observaciones: string
 
-  // Pureza
+  // Pureza - Datos en gramos
   pesoInicial: string
   semillaPura: string
   materiaInerte: string
-
-  // Otros Cultivos
   otrosCultivos: string
+  malezas: string
+  malezasToleridas: string
+  malezasToleranciasCero: string
+  pesoTotal: string
+
+  // Pureza - Porcentajes manuales
+  semillaPuraPorcentaje: string
+  materiaInertePorcentaje: string
+  otrosCultivosPorcentaje: string
+  malezasPorcentaje: string
+  malezasTolerididasPorcentaje: string
+  malezasToleranciasCeroPorcentaje: string
+
+  // Pureza - Porcentajes redondeados manuales
+  semillaPuraRedondeado: string
+  materiaInerteRedondeado: string
+  otrosCultivosRedondeado: string
+  malezasRedondeado: string
+  malezasTolerididasRedondeado: string
+  malezasToleranciasCeroRedondeado: string
+
+  // Pureza - Datos INIA manuales
+  iniaSemillaPuraPorcentaje: string
+  iniaMateriaInertePorcentaje: string
+  iniaOtrosCultivosPorcentaje: string
+  iniaMalezasPorcentaje: string
+  iniaMalezasTolerididasPorcentaje: string
+  iniaMalezasToleranciasCeroPorcentaje: string
+
+  // Pureza - Alerta diferencia
+  alertaDiferenciaPeso: string
+
+  // Otros Cultivos (para DOSN)
   otrosCultivosInsti: string
   otrosCultivosNum: string
   otrosCultivosIdCatalogo: string
-
-  malezas: string
-  malezasToleridas: string
-  pesoTotal: string
 
   // DOSN (INIA)
   iniaFecha: string
@@ -110,6 +137,9 @@ export default function RegistroAnalisisPage() {
   const [cultivosList, setCultivosList] = useState<any[]>([]);
   const [brassicasList, setBrassicasList] = useState<any[]>([]);
 
+  // Estado específico para malezas de pureza
+  const [purezaMalezasList, setPurezaMalezasList] = useState<any[]>([]);
+
   // Funciones de callback con logs para debugging - memoizadas para evitar re-renders infinitos
   const handleMalezasChange = useCallback((list: any[]) => {
     console.log("🐛 DEBUG - handleMalezasChange llamado con:", list);
@@ -125,21 +155,59 @@ export default function RegistroAnalisisPage() {
     console.log("🐛 DEBUG - handleBrassicasChange llamado con:", list);
     setBrassicasList(list);
   }, []);
+
+  // Callback específico para malezas de pureza
+  const handlePurezaMalezasChange = useCallback((list: any[]) => {
+    console.log("🐛 DEBUG - handlePurezaMalezasChange llamado con:", list);
+    setPurezaMalezasList(list);
+  }, []);
   const [formData, setFormData] = useState<AnalysisFormData>({
     loteid: "",
     responsable: "",
     prioridad: "",
     observaciones: "",
+
+    // Pureza - Datos en gramos
     pesoInicial: "",
     semillaPura: "",
     materiaInerte: "",
     otrosCultivos: "",
+    malezas: "",
+    malezasToleridas: "",
+    malezasToleranciasCero: "",
+    pesoTotal: "",
+
+    // Pureza - Porcentajes manuales
+    semillaPuraPorcentaje: "",
+    materiaInertePorcentaje: "",
+    otrosCultivosPorcentaje: "",
+    malezasPorcentaje: "",
+    malezasTolerididasPorcentaje: "",
+    malezasToleranciasCeroPorcentaje: "",
+
+    // Pureza - Porcentajes redondeados manuales
+    semillaPuraRedondeado: "",
+    materiaInerteRedondeado: "",
+    otrosCultivosRedondeado: "",
+    malezasRedondeado: "",
+    malezasTolerididasRedondeado: "",
+    malezasToleranciasCeroRedondeado: "",
+
+    // Pureza - Datos INIA manuales
+    iniaSemillaPuraPorcentaje: "",
+    iniaMateriaInertePorcentaje: "",
+    iniaOtrosCultivosPorcentaje: "",
+    iniaMalezasPorcentaje: "",
+    iniaMalezasTolerididasPorcentaje: "",
+    iniaMalezasToleranciasCeroPorcentaje: "",
+
+    // Pureza - Alerta diferencia
+    alertaDiferenciaPeso: "",
+
+    // Otros Cultivos (para DOSN)
     otrosCultivosInsti: "",
     otrosCultivosNum: "",
     otrosCultivosIdCatalogo: "",
-    malezas: "",
-    malezasToleridas: "",
-    pesoTotal: "",
     iniaFecha: "",
     iniaGramos: "",
     iniaCompleto: false,
@@ -272,7 +340,7 @@ export default function RegistroAnalisisPage() {
         // Cuscuta - usar fecha actual si hay datos de cuscuta y no se especificó fecha
         cuscuta_g: toNum(formData.cuscutaGramos),
         cuscutaNum: toNum(formData.cuscutaNumero),
-        fechaCuscuta: ((toNum(formData.cuscutaGramos) || 0) > 0 || (toNum(formData.cuscutaNumero) || 0) > 0) 
+        fechaCuscuta: ((toNum(formData.cuscutaGramos) || 0) > 0 || (toNum(formData.cuscutaNumero) || 0) > 0)
           ? new Date().toISOString().split('T')[0] // Fecha actual en formato YYYY-MM-DD
           : null,
         // Listados
@@ -291,13 +359,69 @@ export default function RegistroAnalisisPage() {
         console.log(`✅ Se enviarán ${listados.length} listados al backend`);
       }
     } else if (selectedAnalysisType === "pureza") {
+      // Debug: Verificar estado de la lista de malezas de pureza
+      console.log("🔍 DEBUG - Malezas de pureza antes de procesar:", purezaMalezasList);
+
+      // Procesar malezas de pureza similar a como se hace en DOSN
+      const malezasDetalladas = purezaMalezasList
+        .filter((m) => {
+          // Verificar que tenga los campos requeridos y no sea "NO_CONTIENE"
+          const hasRequiredFields = m.listadoTipo && m.listadoTipo !== "NO_CONTIENE" &&
+            m.listadoInsti && m.idCatalogo;
+          return hasRequiredFields;
+        })
+        .map((m) => ({
+          listadoTipo: m.listadoTipo,
+          listadoInsti: m.listadoInsti,
+          listadoNum: m.listadoNum !== null && m.listadoNum !== undefined ? m.listadoNum : null,
+          idCatalogo: m.idCatalogo,
+        }));
+
+      console.log("🔍 DEBUG - Malezas procesadas para envío:", malezasDetalladas);
+
       payload = {
         ...payload,
-        pesoInicial: toNum(formData.pesoInicial),
-        semillaPura: toNum(formData.semillaPura),
-        materiaInerte: toNum(formData.materiaInerte),
-        otrosCultivos: toNum(formData.otrosCultivos),
-        malezas: toNum(formData.malezas),
+        // Datos en gramos
+        pesoInicial_g: toNum(formData.pesoInicial),
+        semillaPura_g: toNum(formData.semillaPura),
+        materiaInerte_g: toNum(formData.materiaInerte),
+        otrosCultivos_g: toNum(formData.otrosCultivos),
+        malezas_g: toNum(formData.malezas),
+        malezasToleridas_g: toNum(formData.malezasToleridas),
+        malezasToleranciasCero_g: toNum(formData.malezasToleranciasCero),
+        pesoTotal_g: formData.pesoTotal ? parseFloat(formData.pesoTotal) : null,
+
+        // Porcentajes manuales
+        semillaPuraPorcentaje: toNum(formData.semillaPuraPorcentaje),
+        materiaInertePorcentaje: toNum(formData.materiaInertePorcentaje),
+        otrosCultivosPorcentaje: toNum(formData.otrosCultivosPorcentaje),
+        malezasPorcentaje: toNum(formData.malezasPorcentaje),
+        malezasTolerididasPorcentaje: toNum(formData.malezasTolerididasPorcentaje),
+        malezasToleranciasCeroPorcentaje: toNum(formData.malezasToleranciasCeroPorcentaje),
+
+        // Porcentajes redondeados manuales
+        semillaPuraRedondeado: formData.semillaPuraRedondeado || null,
+        materiaInerteRedondeado: formData.materiaInerteRedondeado || null,
+        otrosCultivosRedondeado: formData.otrosCultivosRedondeado || null,
+        malezasRedondeado: formData.malezasRedondeado || null,
+        malezasTolerididasRedondeado: formData.malezasTolerididasRedondeado || null,
+        malezasToleranciasCeroRedondeado: formData.malezasToleranciasCeroRedondeado || null,
+
+        // Datos INIA manuales
+        iniaSemillaPuraPorcentaje: toNum(formData.iniaSemillaPuraPorcentaje),
+        iniaMateriaInertePorcentaje: toNum(formData.iniaMateriaInertePorcentaje),
+        iniaOtrosCultivosPorcentaje: toNum(formData.iniaOtrosCultivosPorcentaje),
+        iniaMalezasPorcentaje: toNum(formData.iniaMalezasPorcentaje),
+        iniaMalezasTolerididasPorcentaje: toNum(formData.iniaMalezasTolerididasPorcentaje),
+        iniaMalezasToleranciasCeroPorcentaje: toNum(formData.iniaMalezasToleranciasCeroPorcentaje),
+
+        // Alerta diferencia
+        alertaDiferenciaPeso: formData.alertaDiferenciaPeso || null,
+
+        fecha: new Date().toISOString().split('T')[0], // Fecha actual en formato ISO (YYYY-MM-DD)
+        observaciones: formData.observaciones,
+        malezasDetalladas: malezasDetalladas, // Incluir las malezas detalladas
+        otrasSemillas: [] // Array vacío de otras semillas o añadir lógica para incluirlas
       };
     } else if (selectedAnalysisType === "germinacion") {
       // Validaciones específicas para germinación
@@ -351,7 +475,7 @@ export default function RegistroAnalisisPage() {
       if (formData.fechaInicioGerm && formData.fechaUltConteo) {
         const fechaInicio = new Date(formData.fechaInicioGerm);
         const fechaFin = new Date(formData.fechaUltConteo);
-        
+
         if (fechaInicio >= fechaFin) {
           toast.error("La fecha de inicio debe ser anterior a la fecha de último conteo");
           setLoading(false);
@@ -363,7 +487,7 @@ export default function RegistroAnalisisPage() {
       if (formData.fechaInicioGerm && formData.fechaUltConteo) {
         const fechaInicio = new Date(formData.fechaInicioGerm);
         const fechaFin = new Date(formData.fechaUltConteo);
-        
+
         for (const fecha of fechasValidas) {
           const fechaConteo = new Date(fecha);
           if (fechaConteo < fechaInicio || fechaConteo > fechaFin) {
@@ -387,46 +511,58 @@ export default function RegistroAnalisisPage() {
     } else if (selectedAnalysisType === "tetrazolio") {
       // Validaciones específicas para tetrazolio
       if (!formData.fecha) {
-        setError("Fecha del ensayo es requerida");
+        toast.error('Fecha del ensayo es requerida', {
+          description: 'La fecha del ensayo es obligatoria.'
+        });
         setLoading(false);
         return;
       }
       if (!formData.numSemillasPorRep || ![25, 50, 100].includes(formData.numSemillasPorRep)) {
-        setError("Número de semillas por repetición debe ser 25, 50 o 100");
+        toast.error('Número de semillas inválido', {
+          description: 'El número de semillas por repetición debe ser 25, 50 o 100.'
+        });
         setLoading(false);
         return;
       }
       if (!formData.numRepeticionesEsperadas || formData.numRepeticionesEsperadas < 2 || formData.numRepeticionesEsperadas > 8) {
-        setError("Número de repeticiones esperadas debe estar entre 2 y 8");
+        toast.error('Número de repeticiones inválido', {
+          description: 'El número de repeticiones esperadas debe estar entre 2 y 8.'
+        });
         setLoading(false);
         return;
       }
       if (!formData.concentracion) {
-        setError("Concentración de tetrazolio es requerida");
+        toast.error('Concentración requerida', {
+          description: 'La concentración de tetrazolio es requerida.'
+        });
         setLoading(false);
         return;
       }
       if (!formData.tincionTemp || (typeof formData.tincionTemp === 'number' && (formData.tincionTemp < 15 || formData.tincionTemp > 45))) {
-        setError("Temperatura de tinción debe estar entre 15 y 45°C");
+        toast.error('Temperatura inválida', {
+          description: 'La temperatura de tinción debe estar entre 15 y 45°C.'
+        });
         setLoading(false);
         return;
       }
       // Validar tiempo de tinción considerando que puede ser string o número
-      const tincionHsValue = formData.tincionHs === "Otra (especificar)" 
-        ? parseFloat(formData.tincionHsOtro) 
-        : typeof formData.tincionHs === 'string' 
+      const tincionHsValue = formData.tincionHs === "Otra (especificar)"
+        ? parseFloat(formData.tincionHsOtro)
+        : typeof formData.tincionHs === 'string'
           ? parseFloat(formData.tincionHs)
           : formData.tincionHs;
-      
+
       if (!tincionHsValue || tincionHsValue < 1 || tincionHsValue > 72) {
-        setError("Tiempo de tinción debe estar entre 1 y 72 horas");
+        toast.error('Tiempo de tinción inválido', {
+          description: 'El tiempo de tinción debe estar entre 1 y 72 horas.'
+        });
         setLoading(false);
         return;
       }
 
       // Preparar valores finales basados en las selecciones del usuario
-      const pretratamientoFinal = formData.pretratamiento === 'Otro (especificar)' 
-        ? formData.pretratamientoOtro 
+      const pretratamientoFinal = formData.pretratamiento === 'Otro (especificar)'
+        ? formData.pretratamientoOtro
         : formData.pretratamiento
 
       const concentracionFinal = formData.concentracion === 'Otro (especificar)'
@@ -435,7 +571,7 @@ export default function RegistroAnalisisPage() {
 
       const tincionHsFinal = formData.tincionHs === 'Otra (especificar)'
         ? parseFloat(formData.tincionHsOtro) || 24
-        : typeof formData.tincionHs === 'string' 
+        : typeof formData.tincionHs === 'string'
           ? parseFloat(formData.tincionHs) || 24
           : formData.tincionHs
 
@@ -502,7 +638,7 @@ export default function RegistroAnalisisPage() {
         });
 
         setTimeout(() => {
-          router.push(`/listado/analisis/tetrazolio/${result.analisisID}`);
+          router.push(`/listado/analisis/tetrazolio/${result.analisisID}/editar`);
         }, 1500);
 
       } else {
@@ -513,6 +649,7 @@ export default function RegistroAnalisisPage() {
           description: `Se ha registrado el análisis de ${getAnalysisTypeName(selectedAnalysisType)} para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
         });
 
+        // Redirigir según el tipo de análisis
         setTimeout(() => {
           if (selectedAnalysisType === "dosn") {
             router.push(`/listado/analisis/dosn/${result.analisisID}`);
@@ -522,6 +659,9 @@ export default function RegistroAnalisisPage() {
             router.push(`/listado/analisis/${selectedAnalysisType}/${result.analisisID}`);
           }
         }, 1500);
+        toast.success('Análisis registrado exitosamente', {
+          description: `Se ha registrado el análisis de ${getAnalysisTypeName(selectedAnalysisType)} para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
+        });
       }
     } catch (err: any) {
       console.error("Error al registrar análisis:", err);
@@ -700,7 +840,11 @@ export default function RegistroAnalisisPage() {
           </div>
 
           {selectedAnalysisType === "pureza" && (
-            <PurezaFields formData={formData} handleInputChange={(field, value) => handleInputChange(field as keyof AnalysisFormData, value)} />
+            <PurezaFields
+              formData={formData}
+              handleInputChange={(field, value) => handleInputChange(field as keyof AnalysisFormData, value)}
+              onChangeMalezas={handlePurezaMalezasChange}
+            />
           )}
           {selectedAnalysisType === "dosn" && (
             <DosnFields
@@ -726,8 +870,8 @@ export default function RegistroAnalisisPage() {
 
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Button 
-              variant="outline" 
-              className="w-full sm:flex-1 bg-transparent" 
+              variant="outline"
+              className="w-full sm:flex-1 bg-transparent"
               disabled={loading}
               onClick={() => window.history.back()}
             >
