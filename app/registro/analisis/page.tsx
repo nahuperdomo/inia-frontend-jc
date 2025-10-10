@@ -463,11 +463,10 @@ export default function RegistroAnalisisPage() {
       const tokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
       console.log("Token en cookies:", tokenCookie ? "✅ Existe" : "❌ No existe");
 
-      console.log("Enviando payload para germinación:", payload);
+      console.log("Enviando payload:", payload);
 
-      // PRUEBA: Intentar hacer una llamada a un endpoint que sabemos que funciona
       if (selectedAnalysisType === "germinacion") {
-        console.log("🧪 PRUEBA: Vamos a probar primero obtener lotes para verificar auth...");
+        // Verificar autenticación antes de crear germinación
         try {
           const lotesTest = await obtenerLotesActivos();
           console.log("✅ Test de auth exitoso - lotes obtenidos:", lotesTest.length);
@@ -476,19 +475,18 @@ export default function RegistroAnalisisPage() {
           throw new Error("Problema de autenticación detectado");
         }
 
-        console.log("🚀 Ahora intentando crear germinación...");
         const result = await crearGerminacion(payload);
 
         toast.success('Análisis de Germinación registrado exitosamente', {
           description: `Se ha creado el análisis para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
         });
 
-        // Redirigir a la página de edición del análisis creado
         setTimeout(() => {
           router.push(`/listado/analisis/germinacion/${result.analisisID}`);
         }, 1500);
+
       } else if (selectedAnalysisType === "tetrazolio") {
-        console.log("🧪 TETRAZOLIO: Vamos a probar primero obtener lotes para verificar auth...");
+        // Verificar autenticación antes de crear tetrazolio
         try {
           const lotesTest = await obtenerLotesActivos();
           console.log("✅ Test de auth exitoso - lotes obtenidos:", lotesTest.length);
@@ -497,17 +495,24 @@ export default function RegistroAnalisisPage() {
           throw new Error("Problema de autenticación detectado");
         }
 
-        console.log("🚀 Ahora intentando crear tetrazolio...");
         const result = await crearTetrazolio(payload);
 
-        // Redirigir a la página de gestión del análisis creado
+        toast.success('Análisis de Tetrazolio registrado exitosamente', {
+          description: `Se ha creado el análisis para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
+        });
+
         setTimeout(() => {
           router.push(`/listado/analisis/tetrazolio/${result.analisisID}`);
         }, 1500);
+
       } else {
+        // Registrar otros tipos (DOSN, Pureza, etc.)
         const result = await registrarAnalisis(payload, selectedAnalysisType);
-        
-        // Redirigir según el tipo de análisis
+
+        toast.success('Análisis registrado exitosamente', {
+          description: `Se ha registrado el análisis de ${getAnalysisTypeName(selectedAnalysisType)} para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
+        });
+
         setTimeout(() => {
           if (selectedAnalysisType === "dosn") {
             router.push(`/listado/analisis/dosn/${result.analisisID}`);
@@ -517,19 +522,11 @@ export default function RegistroAnalisisPage() {
             router.push(`/listado/analisis/${selectedAnalysisType}/${result.analisisID}`);
           }
         }, 1500);
-          window.location.href = `/listado/analisis/germinacion/${result.analisisID}/editar`;
-        }, 1500);
-      } else {
-        const response = await registrarAnalisis(payload, selectedAnalysisType);
-
-        toast.success('Análisis registrado exitosamente', {
-          description: `Se ha registrado el análisis de ${getAnalysisTypeName(selectedAnalysisType)} para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
-        });
       }
     } catch (err: any) {
-      console.error("Error al crear germinación:", err);
-      console.error("Status del error:", err.status);
-      console.error("Mensaje completo:", err.message);
+      console.error("Error al registrar análisis:", err);
+      console.error("Status del error:", err?.status);
+      console.error("Mensaje completo:", err?.message || err);
 
       const errorMsg = err?.message || "Error al registrar análisis";
 
@@ -749,3 +746,7 @@ export default function RegistroAnalisisPage() {
     </div>
   )
 }
+function setError(arg0: string) {
+  throw new Error("Function not implemented.")
+}
+
