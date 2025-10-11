@@ -8,7 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Activity, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { obtenerTodasDosnActivas } from "@/app/services/dosn-service"
+import { obtenerTodasDosnActivas, obtenerDosnPaginadas } from "@/app/services/dosn-service"
+import Pagination from "@/components/pagination"
 import { DosnDTO } from "@/app/models"
 import { EstadoAnalisis, TipoListado } from "@/app/models/types/enums"
 
@@ -51,7 +52,7 @@ const getTipoListadoBadgeColor = (tipo: TipoListado) => {
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
   if (!fechaString) return ''
-  
+
   try {
     // Si la fecha ya está en formato YYYY-MM-DD, usarla directamente
     if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
@@ -63,7 +64,7 @@ const formatearFechaLocal = (fechaString: string): string => {
         day: '2-digit'
       })
     }
-    
+
     // Si viene en otro formato, parsearlo de manera segura
     const fecha = new Date(fechaString)
     return fecha.toLocaleDateString('es-ES', {
@@ -83,22 +84,41 @@ export default function ListadoDOSNPage() {
   const [dosns, setDosns] = useState<DosnDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const [isLast, setIsLast] = useState(false)
+  const [isFirst, setIsFirst] = useState(true)
+  const pageSize = 10
+  const [lastResponse, setLastResponse] = useState<any>(null)
+
+  const fetchDosns = async (page: number = 0) => {
+    try {
+      setLoading(true);
+      const data = await obtenerDosnPaginadas(page, pageSize);
+      console.log("DEBUG obtenerDosnPaginadas response:", data);
+
+      // Datos principales
+      setDosns(data.content || []);
+
+      // Extraer metadatos del objeto "page" (nuevo formato del backend)
+      const meta = (data as any).page || {};
+
+      setTotalPages(meta.totalPages ?? 1);
+      setTotalElements(meta.totalElements ?? (data.content?.length || 0));
+      setCurrentPage(meta.number ?? page);
+      setIsFirst((meta.number ?? 0) === 0);
+      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1);
+    } catch (err) {
+      setError("Error al cargar los análisis DOSN");
+      console.error("Error fetching DOSNs:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDosns = async () => {
-      try {
-        setLoading(true)
-        const data = await obtenerTodasDosnActivas()
-        setDosns(data)
-      } catch (err) {
-        setError("Error al cargar los análisis DOSN")
-        console.error("Error fetching DOSNs:", err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchDosns()
+    fetchDosns(0)
   }, [])
 
   const filteredAnalysis = dosns.filter((analysis) => {
@@ -112,8 +132,8 @@ export default function ListadoDOSNPage() {
     return matchesSearch && matchesStatus
   })
 
-  // Calculate stats from real data
-  const totalAnalysis = dosns.length
+  // Calculate stats from current page data and total
+  const totalAnalysis = totalElements
   const completedAnalysis = dosns.filter(d => d.estado === "FINALIZADO" || d.estado === "APROBADO").length
   const inProgressAnalysis = dosns.filter(d => d.estado === "EN_PROCESO").length
   const pendingAnalysis = dosns.filter(d => d.estado === "PENDIENTE").length
@@ -288,6 +308,8 @@ export default function ListadoDOSNPage() {
               </Button>
             </div>
           </div>
+
+
         </CardContent>
       </Card>
 
@@ -353,8 +375,8 @@ export default function ListadoDOSNPage() {
                         ) : (
                           <span className="text-muted-foreground text-sm">No evaluado</span>
                         )}
-                   </TableCell>
-                         {/* <TableCell className="max-w-xs">
+                      </TableCell>
+                      {/* <TableCell className="max-w-xs">
                         {analysis.listados && analysis.listados.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
                             {analysis.listados.map((listado, index) => (
@@ -403,8 +425,28 @@ export default function ListadoDOSNPage() {
               </TableBody>
             </Table>
           </div>
+          {/* Paginación: centrada en el listado DOSN */}
+          <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+            <div className="text-sm text-muted-foreground">
+              {totalElements === 0 ? (
+                <>Mostrando 0 de 0 resultados</>
+              ) : (
+                <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
+              )}
+            </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={Math.max(totalPages, 1)}
+              onPageChange={(p) => fetchDosns(p)}
+              showRange={1}
+              alwaysShow={true}
+            />
+          </div>
+
         </CardContent>
       </Card>
+
     </div>
   )
 }

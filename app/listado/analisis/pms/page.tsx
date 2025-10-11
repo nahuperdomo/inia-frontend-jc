@@ -1,14 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Scale, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft } from "lucide-react"
+import { Scale, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle } from "lucide-react"
 import Link from "next/link"
+import Pagination from "@/components/pagination"
+import { obtenerPmsPaginadas } from "@/app/services/pms-service"
 
 interface AnalisisPMS {
   id: string
@@ -32,43 +34,51 @@ export default function ListadoPMSPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState<string>("todos")
   const [filterPrioridad, setFilterPrioridad] = useState<string>("todos")
+  const [analisis, setAnalisis] = useState<AnalisisPMS[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const pageSize = 10
 
-  const [analisis] = useState<AnalisisPMS[]>([
-    {
-      id: "PMS001",
-      loteId: "RG-LE-ex-0018",
-      loteName: "Trigo Don Mario",
-      analyst: "Dr. María González",
-      fechaInicio: "2024-09-15",
-      fechaFin: "2024-09-15",
-      estado: "Completado",
-      prioridad: "Alta",
-      repeticiones: 8,
-      semillasPorRep: 100,
-      humedad: "12.5%",
-      pesoPromedio: 42.3,
-      desviacionEstandar: 1.2,
-      coeficienteVariacion: 2.8,
-      pesoCorregido: 48.5,
-    },
-    {
-      id: "PMS002",
-      loteId: "RG-LE-ex-0019",
-      loteName: "Soja Nidera",
-      analyst: "Ing. Carlos Rodríguez",
-      fechaInicio: "2024-09-18",
-      fechaFin: null,
-      estado: "En Proceso",
-      prioridad: "Media",
-      repeticiones: 8,
-      semillasPorRep: 100,
-      humedad: "13.2%",
-      pesoPromedio: 0,
-      desviacionEstandar: 0,
-      coeficienteVariacion: 0,
-      pesoCorregido: 0,
-    },
-  ])
+  // Fetch paginated PMS
+  const fetchPms = async (page: number = 0) => {
+    try {
+      setLoading(true)
+      const data = await obtenerPmsPaginadas(page, pageSize)
+      // data.content expected
+      setAnalisis((data.content || []).map((p: any) => ({
+        id: `PMS${p.analisisID}`,
+        loteId: p.lote || `#${p.analisisID}`,
+        loteName: p.lote || "No especificado",
+        analyst: p.analista || "-",
+        fechaInicio: p.fecha || new Date().toISOString(),
+        fechaFin: p.fechaFin || null,
+        estado: p.estado === 'FINALIZADO' || p.estado === 'APROBADO' ? 'Completado' : (p.estado === 'EN_PROCESO' ? 'En Proceso' : 'Pendiente'),
+        prioridad: 'Media',
+        repeticiones: p.repeticiones || 0,
+        semillasPorRep: p.semillasPorRepeticion || 100,
+        humedad: p.humedad || "-",
+        pesoPromedio: p.pesoPromedio || 0,
+        desviacionEstandar: p.desviacionEstandar || 0,
+        coeficienteVariacion: p.coeficienteVariacion || 0,
+        pesoCorregido: p.pesoCorregido || 0,
+      })))
+
+      const meta = (data as any).page || {}
+      setTotalPages(meta.totalPages ?? 1)
+      setTotalElements(meta.totalElements ?? (data.content?.length || 0))
+      setCurrentPage(meta.number ?? page)
+    } catch (err) {
+      console.error("Error fetching PMS paginadas:", err)
+      setError("Error al cargar los análisis PMS")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchPms(0) }, [])
 
   const filteredAnalisis = analisis.filter((item) => {
     const matchesSearch =
@@ -255,7 +265,7 @@ export default function ListadoPMSPage() {
         <CardHeader>
           <CardTitle>Lista de Análisis de Peso de Mil Semillas</CardTitle>
           <CardDescription>
-            {filteredAnalisis.length} análisis encontrado{filteredAnalisis.length !== 1 ? "s" : ""}
+            {totalElements} análisis
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -310,6 +320,23 @@ export default function ListadoPMSPage() {
                 ))}
               </TableBody>
             </Table>
+          </div>
+          <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+            <div className="text-sm text-muted-foreground">
+              {totalElements === 0 ? (
+                <>Mostrando 0 de 0 resultados</>
+              ) : (
+                <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
+              )}
+            </div>
+          
+            <Pagination
+              currentPage={currentPage}
+              totalPages={Math.max(totalPages, 1)}
+              onPageChange={(p) => fetchPms(p)}
+              showRange={1}
+              alwaysShow={true}
+            />
           </div>
         </CardContent>
       </Card>

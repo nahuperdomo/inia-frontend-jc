@@ -41,3 +41,7 @@ export async function eliminarLote(id: number): Promise<void> {
     method: "DELETE",
   });
 }
+
+export async function obtenerLotesPaginadas(page: number = 0, size: number = 10): Promise<any> {
+  return apiFetch(`/api/lotes/listado?page=${page}&size=${size}`);
+}

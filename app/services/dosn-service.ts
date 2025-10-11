@@ -40,6 +40,10 @@ export async function obtenerDosnPorIdLote(idLote: number): Promise<DosnDTO[]> {
   return apiFetch(`/api/dosn/lote/${idLote}`);
 }
 
+export async function obtenerDosnPaginadas(page: number = 0, size: number = 10): Promise<{ content: DosnDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  return apiFetch(`/api/dosn/listado?page=${page}&size=${size}`);
+}
+
 export async function obtenerTodosCatalogos(): Promise<MalezasYCultivosCatalogoDTO[]> {
   return apiFetch("/api/dosn/catalogos");
 }

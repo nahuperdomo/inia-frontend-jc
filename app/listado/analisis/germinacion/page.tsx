@@ -11,6 +11,7 @@ import { useState, useEffect } from "react"
 import { obtenerGerminacionesPaginadas } from "@/app/services/germinacion-service"
 import { GerminacionListadoDTO } from "@/app/models/interfaces/germinacion"
 import { EstadoAnalisis } from "@/app/models/types/enums"
+import Pagination from "@/components/pagination"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -76,12 +77,14 @@ export default function ListadoGerminacionPage() {
     try {
       setLoading(true)
       const data = await obtenerGerminacionesPaginadas(page, pageSize)
-      setGerminaciones(data.content)
-      setTotalPages(data.totalPages)
-      setTotalElements(data.totalElements)
-      setIsLast(data.last)
-      setIsFirst(data.first)
-      setCurrentPage(page)
+      // data may contain 'content' and a nested 'page' meta like the DOSN endpoint
+      setGerminaciones((data as any).content || [])
+      const meta = (data as any).page || {}
+      setTotalPages(meta.totalPages ?? 1)
+      setTotalElements(meta.totalElements ?? ((data as any).content?.length ?? 0))
+      setCurrentPage(meta.number ?? page)
+      setIsFirst((meta.number ?? 0) === 0)
+      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1)
     } catch (err) {
       setError("Error al cargar los análisis de germinación")
       console.error("Error fetching germinaciones:", err)
@@ -386,37 +389,23 @@ export default function ListadoGerminacionPage() {
             </Table>
           </div>
 
-          {/* Paginación */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-muted-foreground">
-                Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={isFirst}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Anterior
-                </Button>
-                <span className="text-sm">
-                  Página {currentPage + 1} de {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={isLast}
-                >
-                  Siguiente
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
+       <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+         <div className="text-sm text-muted-foreground">
+           {totalElements === 0 ? (
+             <>Mostrando 0 de 0 resultados</>
+           ) : (
+             <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
+           )}
+         </div>
+       
+         <Pagination
+           currentPage={currentPage}
+           totalPages={Math.max(totalPages, 1)}
+           onPageChange={(p) => fetchGerminaciones(p)}
+           showRange={1}
+           alwaysShow={true}
+         />
+       </div>
         </CardContent>
       </Card>
     </div>

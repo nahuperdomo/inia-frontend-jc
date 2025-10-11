@@ -114,6 +114,10 @@ export async function obtenerTodosCatalogos(): Promise<MalezasYCultivosCatalogoD
   return apiFetch("/api/purezas/catalogos");
 }
 
+export async function obtenerPurezasPaginadas(page: number = 0, size: number = 10): Promise<{ content: PurezaDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  return apiFetch(`/api/purezas/listado?page=${page}&size=${size}`);
+}
+
 export async function finalizarAnalisis(id: number): Promise<PurezaDTO> {
   return apiFetch(`/api/purezas/${id}/finalizar`, {
     method: "PUT",

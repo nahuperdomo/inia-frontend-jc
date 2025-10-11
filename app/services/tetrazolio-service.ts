@@ -70,3 +70,7 @@ export async function actualizarPorcentajesRedondeados(
     body: JSON.stringify(porcentajes),
   });
 }
+
+export async function obtenerTetrazoliosPaginadas(page: number = 0, size: number = 10): Promise<{ content: TetrazolioDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  return apiFetch(`/api/tetrazolios/listado?page=${page}&size=${size}`);
+}

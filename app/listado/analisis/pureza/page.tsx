@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/dialog"
 import { FlaskConical, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, MessageCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { obtenerTodasPurezasActivas, obtenerPurezaPorId, actualizarPureza } from "@/app/services/pureza-service"
+import { obtenerTodasPurezasActivas, obtenerPurezaPorId, actualizarPureza, obtenerPurezasPaginadas } from "@/app/services/pureza-service"
+import Pagination from "@/components/pagination"
 import { PurezaDTO, EstadoAnalisis } from "@/app/models"
 
 interface AnalisisPureza {
@@ -50,73 +51,81 @@ export default function ListadoPurezaPage() {
   const [analisis, setAnalisis] = useState<AnalisisPureza[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const [isLast, setIsLast] = useState(false)
+  const [isFirst, setIsFirst] = useState(true)
+  const [lastResponse, setLastResponse] = useState<any>(null)
+  const pageSize = 10
+  const fetchPurezas = async (page: number = 0) => {
+    try {
+      setIsLoading(true)
+      console.log("🔍 Iniciando petición para obtener purezas...")
+      const res = await obtenerPurezasPaginadas(page, pageSize)
+      setLastResponse(res)
+      const purezasData = res.content || []
+      console.log("📊 Datos de purezas recibidos:", purezasData)
 
-  useEffect(() => {
-    const fetchPurezas = async () => {
-      try {
-        setIsLoading(true)
-        console.log("🔍 Iniciando petición para obtener purezas...")
-        const purezasData = await obtenerTodasPurezasActivas()
-        console.log("📊 Datos de purezas recibidos:", purezasData)
+      const purezasTransformed = purezasData.map((pureza: PurezaDTO) => {
+        const purezaPercent = pureza.semillaPura_g > 0 && pureza.pesoInicial_g > 0
+          ? Math.round((pureza.semillaPura_g / pureza.pesoInicial_g) * 100 * 10) / 10
+          : 0
 
-        // Transform API data to component format
-        const purezasTransformed = purezasData.map((pureza: PurezaDTO) => {
-          // Calculate pureza percentage
-          const purezaPercent = pureza.semillaPura_g > 0 && pureza.pesoInicial_g > 0
-            ? Math.round((pureza.semillaPura_g / pureza.pesoInicial_g) * 100 * 10) / 10
-            : 0
+        let estadoMapped: "Completado" | "En Proceso" | "Pendiente" = "Pendiente"
+        switch (pureza.estado) {
+          case 'FINALIZADO':
+          case 'APROBADO':
+            estadoMapped = "Completado"
+            break
+          case 'EN_PROCESO':
+            estadoMapped = "En Proceso"
+            break
+          default:
+            estadoMapped = "Pendiente"
+        }
 
-          // Map API estado to component estado
-          let estadoMapped: "Completado" | "En Proceso" | "Pendiente" = "Pendiente"
-          switch (pureza.estado) {
-            case 'FINALIZADO':
-            case 'APROBADO':
-              estadoMapped = "Completado"
-              break
-            case 'EN_PROCESO':
-              estadoMapped = "En Proceso"
-              break
-            default:
-              estadoMapped = "Pendiente"
-          }
+        const prioridad: "Alta" | "Media" | "Baja" =
+          pureza.estado === 'EN_PROCESO' ? "Alta" :
+            pureza.estado === 'PENDIENTE' ? "Media" : "Baja"
 
-          // Assign priority based on some criteria (in this case, we'll use a placeholder)
-          // In a real scenario, this might come from the API or be determined by business rules
-          const prioridad: "Alta" | "Media" | "Baja" =
-            pureza.estado === 'EN_PROCESO' ? "Alta" :
-              pureza.estado === 'PENDIENTE' ? "Media" : "Baja"
+        return {
+          id: `PF${pureza.analisisID}`,
+          loteId: pureza.lote || `#${pureza.analisisID}`,
+          loteName: pureza.lote || "No especificado",
+          analyst: "No especificado",
+          fechaInicio: pureza.fechaInicio,
+          fechaFin: pureza.fechaFin || null,
+          estado: estadoMapped,
+          prioridad,
+          pesoInicial: pureza.pesoInicial_g,
+          semillaPura: pureza.semillaPura_g,
+          materiaInerte: pureza.materiaInerte_g,
+          otrosCultivos: pureza.otrosCultivos_g,
+          malezas: pureza.malezas_g,
+          pureza: purezaPercent,
+          comentarios: pureza.comentarios || "Sin comentarios registrados",
+        }
+      })
 
-          return {
-            id: `PF${pureza.analisisID}`,
-            loteId: pureza.lote || `#${pureza.analisisID}`,
-            loteName: pureza.lote || "No especificado",
-            analyst: "No especificado", // Not available in PurezaDTO
-            fechaInicio: pureza.fechaInicio,
-            fechaFin: pureza.fechaFin || null,
-            estado: estadoMapped,
-            prioridad,
-            pesoInicial: pureza.pesoInicial_g,
-            semillaPura: pureza.semillaPura_g,
-            materiaInerte: pureza.materiaInerte_g,
-            otrosCultivos: pureza.otrosCultivos_g,
-            malezas: pureza.malezas_g,
-            pureza: purezaPercent,
-            comentarios: pureza.comentarios || "Sin comentarios registrados",
-          }
-        })
+      setAnalisis(purezasTransformed)
 
-        setAnalisis(purezasTransformed)
-      } catch (err) {
-        console.error("❌ Error al obtener purezas:", err)
-        console.error("⚠️ Detalles completos:", err instanceof Error ? err.message : JSON.stringify(err))
-        setError(`Error al cargar los análisis de pureza: ${err instanceof Error ? err.message : 'Error desconocido'}. Intente nuevamente más tarde.`)
-      } finally {
-        setIsLoading(false)
-      }
+      const meta = (res as any).page || {}
+      setTotalPages(meta.totalPages ?? 1)
+      setTotalElements(meta.totalElements ?? (purezasData.length || 0))
+      setCurrentPage(meta.number ?? page)
+      setIsFirst((meta.number ?? 0) === 0)
+      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1)
+    } catch (err) {
+      console.error("❌ Error al obtener purezas:", err)
+      console.error("⚠️ Detalles completos:", err instanceof Error ? err.message : JSON.stringify(err))
+      setError(`Error al cargar los análisis de pureza: ${err instanceof Error ? err.message : 'Error desconocido'}. Intente nuevamente más tarde.`)
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    fetchPurezas()
-  }, [])
+  useEffect(() => { fetchPurezas(0) }, [])
 
   const filteredAnalisis = analisis.filter((item) => {
     const matchesSearch =
@@ -327,6 +336,16 @@ export default function ListadoPurezaPage() {
               <FlaskConical className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
+          <div className="flex items-center justify-between mt-4 px-4">
+            <div className="text-sm text-muted-foreground">
+              {totalElements === 0 ? (
+                <>Mostrando 0 de 0 resultados</>
+              ) : (
+                <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
+              )}
+            </div>
+            <div className="flex items-center gap-2">&nbsp;</div>
+          </div>
         </Card>
         <Card>
           <CardContent className="p-6">
@@ -445,6 +464,17 @@ export default function ListadoPurezaPage() {
         </CardContent>
       </Card>
 
+      {/* Pagination (estándar, igual al patrón dosn) */}
+      <div className="flex items-center justify-end">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.max(totalPages, 1)}
+          onPageChange={(p) => { void fetchPurezas(p) }}
+          showRange={1}
+          alwaysShow={true}
+        />
+      </div>
+
       {/* Analysis Table */}
       <Card>
         <CardHeader>
@@ -538,6 +568,7 @@ export default function ListadoPurezaPage() {
               </Table>
             </div>
           )}
+        
         </CardContent>
       </Card>
 

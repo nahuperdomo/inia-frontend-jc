@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2 } from "lucide-react"
+import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2, AlertTriangle } from "lucide-react"
 import Link from "next/link"
-import { obtenerLotesActivos } from "@/app/services/lote-service"
+import { obtenerLotesPaginadas } from "@/app/services/lote-service"
+import Pagination from "@/components/pagination"
 import { LoteSimpleDTO } from "@/app/models"
 
 interface Lote {
@@ -31,28 +32,36 @@ export default function ListadoLotesPage() {
   const [lotes, setLotes] = useState<Lote[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const pageSize = 10
 
   useEffect(() => {
-    const fetchLotes = async () => {
+    const fetchLotes = async (page: number = 0) => {
       try {
         setIsLoading(true)
-        const lotesData = await obtenerLotesActivos()
+        const loteResp = await obtenerLotesPaginadas(page, pageSize)
+        const lotesData = loteResp.content || []
 
-        // Transform API data to component format
-        // Note: Some fields might not be available from the API, so we use placeholders
-        const lotesTransformed = lotesData.map((lote: LoteSimpleDTO) => ({
+        const lotesTransformed = lotesData.map((lote: any) => ({
           id: lote.ficha || `#${lote.loteID}`,
-          empresa: "INIA", // Placeholder - not available in LoteSimpleDTO
-          cultivo: "No especificado", // Placeholder - not available in LoteSimpleDTO
-          codigoCC: `CC-${lote.loteID}`, // Placeholder - not available in LoteSimpleDTO
-          codigoFT: `FT-${lote.loteID}`, // Placeholder - not available in LoteSimpleDTO
-          fechaRegistro: new Date().toISOString(), // Placeholder - not available in LoteSimpleDTO
-          estado: lote.activo ? "Activo" : "Pendiente" as any,
-          pureza: 0, // Placeholder - would need to fetch from pureza analysis
-          observaciones: "", // Placeholder - not available in LoteSimpleDTO
+          empresa: lote.empresa || "INIA",
+          cultivo: lote.cultivo || "No especificado",
+          codigoCC: `CC-${lote.loteID}`,
+          codigoFT: `FT-${lote.loteID}`,
+          fechaRegistro: lote.fechaRegistro || new Date().toISOString(),
+          estado: lote.activo ? "Activo" : "Pendiente",
+          pureza: lote.pureza || 0,
+          observaciones: lote.observaciones || "",
         }))
 
         setLotes(lotesTransformed)
+
+        const meta = (loteResp as any).page || {}
+        setTotalPages(meta.totalPages ?? 1)
+        setTotalElements(meta.totalElements ?? (lotesData.length || 0))
+        setCurrentPage(meta.number ?? page)
       } catch (err) {
         console.error("Error fetching lotes:", err)
         setError("Error al cargar los lotes. Intente nuevamente más tarde.")
@@ -61,7 +70,7 @@ export default function ListadoLotesPage() {
       }
     }
 
-    fetchLotes()
+    fetchLotes(0)
   }, [])
 
   const filteredLotes = lotes.filter((lote) => {
@@ -343,6 +352,35 @@ export default function ListadoLotesPage() {
                   )}
                 </TableBody>
               </Table>
+              {/* Paginación */}
+              <div className="flex items-center justify-between mt-4 px-4">
+                <div className="text-sm text-muted-foreground">
+                  {totalElements === 0 ? (
+                    <>Mostrando 0 de 0 resultados</>
+                  ) : (
+                    <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Pagination currentPage={currentPage} totalPages={Math.max(totalPages, 1)} onPageChange={(p) => void (async () => {
+                    setIsLoading(true)
+                    try {
+                      const resp = await obtenerLotesPaginadas(p, pageSize)
+                      const data = resp.content || []
+                      setLotes(data.map((lote: any) => ({ id: lote.ficha || `#${lote.loteID}`, empresa: lote.empresa || 'INIA', cultivo: lote.cultivo || 'No especificado', codigoCC: `CC-${lote.loteID}`, codigoFT: `FT-${lote.loteID}`, fechaRegistro: lote.fechaRegistro || new Date().toISOString(), estado: lote.activo ? 'Activo' : 'Pendiente', pureza: lote.pureza || 0, observaciones: lote.observaciones || '' })))
+                      const meta = (resp as any).page || {}
+                      setTotalPages(meta.totalPages ?? 1)
+                      setTotalElements(meta.totalElements ?? (data.length || 0))
+                      setCurrentPage(meta.number ?? p)
+                    } catch (err) {
+                      console.error('Error recargando lotes paginados', err)
+                      setError('Error al cargar los lote')
+                    } finally {
+                      setIsLoading(false)
+                    }
+                  })()} showRange={1} alwaysShow={true} />
+                </div>
+              </div>
             </div>
           )}
         </CardContent>

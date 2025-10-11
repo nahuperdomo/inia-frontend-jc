@@ -9,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Microscope, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle } from "lucide-react"
 import Link from "next/link"
-import { obtenerTodosTetrazolio } from '@/app/services/tetrazolio-service'
+import { obtenerTodosTetrazolio, obtenerTetrazoliosPaginadas } from '@/app/services/tetrazolio-service'
+import Pagination from "@/components/pagination"
 
 interface AnalisisTetrazolio {
   id: string
@@ -37,14 +38,23 @@ export default function ListadoTetrazolioPage() {
   const [analisis, setAnalisis] = useState<AnalisisTetrazolio[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string>("")
-
-  const cargarAnalisis = async () => {
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const [isLast, setIsLast] = useState(false)
+  const [isFirst, setIsFirst] = useState(true)
+  const [lastResponse, setLastResponse] = useState<any>(null)
+  const pageSize = 10
+  
+  const fetchTetrazolio = async (page: number = 0) => {
     try {
       setLoading(true)
       setError("")
-      const res = await obtenerTodosTetrazolio()
-      // Mapear TetrazolioDTO a AnalisisTetrazolio (llenar campos faltantes con defaults)
-      const mapped = (res || []).map((t: any) => ({
+      const data = await obtenerTetrazoliosPaginadas(page, pageSize)
+      setLastResponse(data)
+
+      const content = data.content || []
+      const mapped = (content || []).map((t: any) => ({
         id: t.analisisID?.toString() || t.id?.toString() || "-",
         loteId: t.loteID?.toString() || "-",
         loteName: t.lote || t.ficha || "-",
@@ -61,16 +71,26 @@ export default function ListadoTetrazolioPage() {
         semillasViables: t.semillasViables || 0,
         semillasNoViables: t.semillasNoViables || 0,
       })) as AnalisisTetrazolio[]
+
       setAnalisis(mapped)
+
+      const meta = (data as any).page || {}
+      setTotalPages(meta.totalPages ?? 1)
+      setTotalElements(meta.totalElements ?? (content.length || 0))
+      setCurrentPage(meta.number ?? page)
+      setIsFirst((meta.number ?? 0) === 0)
+      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1)
     } catch (err: any) {
-      console.error("Error cargando tetrazolios:", err)
-      setError(err?.message || 'Error al cargar análisis de tetrazolio')
+      console.error("Error fetching Tetrazolio paginadas:", err)
+      setError("Error al cargar los análisis Tetrazolio")
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { cargarAnalisis() }, [])
+  useEffect(() => {
+    fetchTetrazolio(0)
+  }, [])
 
   const filteredAnalisis = analisis.filter((item) => {
     const matchesSearch =
@@ -132,12 +152,13 @@ export default function ListadoTetrazolioPage() {
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <p className="text-lg font-semibold mb-2">Error al cargar</p>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={cargarAnalisis}>Reintentar</Button>
+            <Button onClick={() => void fetchTetrazolio(currentPage)}>Reintentar</Button>
           </div>
         </div>
       </div>
     )
   }
+  
 
   return (
     <div className="flex-1 space-y-6 p-6">
@@ -172,7 +193,7 @@ export default function ListadoTetrazolioPage() {
       </div>
 
       {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -218,9 +239,9 @@ export default function ListadoTetrazolioPage() {
                 <p className="text-2xl font-bold">
                   {analisis.filter((a) => a.viabilidad > 0).length > 0
                     ? (
-                        analisis.filter((a) => a.viabilidad > 0).reduce((sum, a) => sum + a.viabilidad, 0) /
-                        analisis.filter((a) => a.viabilidad > 0).length
-                      ).toFixed(1)
+                      analisis.filter((a) => a.viabilidad > 0).reduce((sum, a) => sum + a.viabilidad, 0) /
+                      analisis.filter((a) => a.viabilidad > 0).length
+                    ).toFixed(1)
                     : "0"}
                   %
                 </p>
@@ -347,9 +368,28 @@ export default function ListadoTetrazolioPage() {
                 ))}
               </TableBody>
             </Table>
+            <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+              <div className="text-sm text-muted-foreground">
+                {totalElements === 0 ? (
+                  <>Mostrando 0 de 0 resultados</>
+                ) : (
+                  <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
+                )}
+              </div>
+
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.max(totalPages, 1)}
+                onPageChange={(p) => fetchTetrazolio(p)}
+                showRange={1}
+                alwaysShow={true}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
     </div>
   )
 }
+
+
