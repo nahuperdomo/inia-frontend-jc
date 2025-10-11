@@ -13,10 +13,12 @@ import Link from "next/link"
 
 import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
 import GerminacionFields from "@/app/registro/analisis/germinacion/form-germinacion"
+import PmsFields from "@/app/registro/analisis/pms/form-pms"
 import { obtenerLotesActivos } from "@/app/services/lote-service"
 import { LoteSimpleDTO } from "@/app/models"
 import { registrarAnalisis } from "@/app/services/analisis-service"
 import { crearGerminacion } from "@/app/services/germinacion-service"
+import { crearPms } from "@/app/services/pms-service"
 import PurezaFields from "./pureza/form-pureza"
 
 
@@ -74,6 +76,11 @@ export type AnalysisFormData = {
   numDias: string
   numeroRepeticiones: number
   numeroConteos: number
+
+  // PMS
+  numRepeticionesEsperadas: number
+  numTandas: number
+  esSemillaBrozosa: boolean
 }
 
 const analysisTypes = [
@@ -149,6 +156,10 @@ export default function RegistroAnalisisPage() {
     numDias: "",
     numeroRepeticiones: 1,
     numeroConteos: 0,
+    // PMS
+    numRepeticionesEsperadas: 8,
+    numTandas: 1,
+    esSemillaBrozosa: false,
   });
 
   const [loading, setLoading] = useState(false)
@@ -351,6 +362,22 @@ export default function RegistroAnalisisPage() {
         numeroRepeticiones: formData.numeroRepeticiones || 1,
         numeroConteos: formData.numeroConteos || 1,
       };
+    } else if (selectedAnalysisType === "pms") {
+      // Validaciones específicas para PMS
+      if (!formData.numRepeticionesEsperadas || formData.numRepeticionesEsperadas < 1) {
+        toast.error('Número de repeticiones inválido', {
+          description: 'El número de repeticiones esperadas debe ser mayor a 0.'
+        });
+        setLoading(false);
+        return;
+      }
+
+      payload = {
+        idLote: parseInt(formData.loteid), // Convertir a número
+        comentarios: formData.observaciones || "",
+        numRepeticionesEsperadas: formData.numRepeticionesEsperadas || 8,
+        esSemillaBrozosa: formData.esSemillaBrozosa || false,
+      };
     }
 
     try {
@@ -383,6 +410,18 @@ export default function RegistroAnalisisPage() {
         // Redirigir a la página de edición del análisis creado
         setTimeout(() => {
           window.location.href = `/listado/analisis/germinacion/${result.analisisID}/editar`;
+        }, 1500);
+      } else if (selectedAnalysisType === "pms") {
+        console.log("🚀 Intentando crear PMS...");
+        const result = await crearPms(payload);
+
+        toast.success('Análisis de PMS registrado exitosamente', {
+          description: `Se ha creado el análisis para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
+        });
+
+        // Redirigir a la página de edición del análisis creado
+        setTimeout(() => {
+          window.location.href = `/listado/analisis/pms/${result.analisisID}/editar`;
         }, 1500);
       } else {
         const response = await registrarAnalisis(payload, selectedAnalysisType);
@@ -581,6 +620,12 @@ export default function RegistroAnalisisPage() {
           )}
           {selectedAnalysisType === "germinacion" && (
             <GerminacionFields
+              formData={formData}
+              handleInputChange={handleInputChange as (field: string, value: any) => void}
+            />
+          )}
+          {selectedAnalysisType === "pms" && (
+            <PmsFields
               formData={formData}
               handleInputChange={handleInputChange as (field: string, value: any) => void}
             />
