@@ -57,11 +57,6 @@ export function FormSelect({
             <Select
                 value={stringValue}
                 onValueChange={(v) => onChange(v)}
-                onOpenChange={() => {
-                    if (stringValue === "") {
-                        onBlur();
-                    }
-                }}
                 disabled={disabled}
             >
                 <SelectTrigger

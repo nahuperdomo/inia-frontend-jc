@@ -143,7 +143,7 @@ export function LotFormTabs({
                   id="ficha"
                   label="Ficha"
                   value={formData.ficha}
-                  onChange={(e) => handleInputChangeWithValidation("ficha", e.target.value)}
+                  onChange={(e) => handleInputChange("ficha", e.target.value)}
                   onBlur={() => handleBlur("ficha")}
                   error={hasError("ficha") ? getErrorMessage("ficha") : undefined}
                   required={true}
@@ -153,7 +153,7 @@ export function LotFormTabs({
                   id="cultivarID"
                   label="Cultivar"
                   value={formData.cultivarID}
-                  onChange={(value) => handleInputChangeWithValidation("cultivarID", value === "" ? "" : Number(value))}
+                  onChange={(value) => handleInputChange("cultivarID", value === "" ? "" : Number(value))}
                   onBlur={() => handleBlur("cultivarID")}
                   options={cultivares}
                   error={hasError("cultivarID") ? getErrorMessage("cultivarID") : undefined}
@@ -165,7 +165,7 @@ export function LotFormTabs({
                   id="tipo"
                   label="Tipo"
                   value={formData.tipo}
-                  onChange={(value) => handleInputChangeWithValidation("tipo", value)}
+                  onChange={(value) => handleInputChange("tipo", value)}
                   onBlur={() => handleBlur("tipo")}
                   options={tipoOptions}
                   error={hasError("tipo") ? getErrorMessage("tipo") : undefined}
@@ -186,7 +186,7 @@ export function LotFormTabs({
                   id="empresaID"
                   label="Empresa"
                   value={formData.empresaID}
-                  onChange={(value) => handleInputChangeWithValidation("empresaID", value === "" ? "" : Number(value))}
+                  onChange={(value) => handleInputChange("empresaID", value === "" ? "" : Number(value))}
                   onBlur={() => handleBlur("empresaID")}
                   options={empresas}
                   error={hasError("empresaID") ? getErrorMessage("empresaID") : undefined}
@@ -198,7 +198,7 @@ export function LotFormTabs({
                   id="clienteID"
                   label="Cliente"
                   value={formData.clienteID}
-                  onChange={(value) => handleInputChangeWithValidation("clienteID", value === "" ? "" : Number(value))}
+                  onChange={(value) => handleInputChange("clienteID", value === "" ? "" : Number(value))}
                   onBlur={() => handleBlur("clienteID")}
                   options={clientes}
                   error={hasError("clienteID") ? getErrorMessage("clienteID") : undefined}
@@ -210,7 +210,7 @@ export function LotFormTabs({
                   id="codigoCC"
                   label="Código CC"
                   value={formData.codigoCC}
-                  onChange={(e) => handleInputChangeWithValidation("codigoCC", e.target.value)}
+                  onChange={(e) => handleInputChange("codigoCC", e.target.value)}
                   onBlur={() => handleBlur("codigoCC")}
                   error={hasError("codigoCC") ? getErrorMessage("codigoCC") : undefined}
                 />
@@ -219,7 +219,7 @@ export function LotFormTabs({
                   id="codigoFF"
                   label="Código FF"
                   value={formData.codigoFF}
-                  onChange={(e) => handleInputChangeWithValidation("codigoFF", e.target.value)}
+                  onChange={(e) => handleInputChange("codigoFF", e.target.value)}
                   onBlur={() => handleBlur("codigoFF")}
                   error={hasError("codigoFF") ? getErrorMessage("codigoFF") : undefined}
                 />
@@ -238,7 +238,7 @@ export function LotFormTabs({
                   label="Fecha de entrega"
                   type="date"
                   value={formData.fechaEntrega}
-                  onChange={(e) => handleInputChangeWithValidation("fechaEntrega", e.target.value)}
+                  onChange={(e) => handleInputChange("fechaEntrega", e.target.value)}
                   onBlur={() => handleBlur("fechaEntrega")}
                   error={hasError("fechaEntrega") ? getErrorMessage("fechaEntrega") : undefined}
                   required={true}
@@ -249,7 +249,7 @@ export function LotFormTabs({
                   label="Fecha de recibo"
                   type="date"
                   value={formData.fechaRecibo}
-                  onChange={(e) => handleInputChangeWithValidation("fechaRecibo", e.target.value)}
+                  onChange={(e) => handleInputChange("fechaRecibo", e.target.value)}
                   onBlur={() => handleBlur("fechaRecibo")}
                   error={hasError("fechaRecibo") ? getErrorMessage("fechaRecibo") : undefined}
                   required={true}
@@ -259,7 +259,7 @@ export function LotFormTabs({
                   id="depositoID"
                   label="Depósito"
                   value={formData.depositoID}
-                  onChange={(value) => handleInputChangeWithValidation("depositoID", value === "" ? "" : Number(value))}
+                  onChange={(value) => handleInputChange("depositoID", value === "" ? "" : Number(value))}
                   onBlur={() => handleBlur("depositoID")}
                   options={depositos}
                   error={hasError("depositoID") ? getErrorMessage("depositoID") : undefined}
@@ -271,7 +271,7 @@ export function LotFormTabs({
                   id="unidadEmbolsado"
                   label="Unidad de embolsado"
                   value={formData.unidadEmbolsado}
-                  onChange={(value) => handleInputChangeWithValidation("unidadEmbolsado", value)}
+                  onChange={(value) => handleInputChange("unidadEmbolsado", value)}
                   onBlur={() => handleBlur("unidadEmbolsado")}
                   options={unidadesEmbolsado}
                   error={hasError("unidadEmbolsado") ? getErrorMessage("unidadEmbolsado") : undefined}
@@ -283,7 +283,7 @@ export function LotFormTabs({
                   id="remitente"
                   label="Remitente"
                   value={formData.remitente}
-                  onChange={(e) => handleInputChangeWithValidation("remitente", e.target.value)}
+                  onChange={(e) => handleInputChange("remitente", e.target.value)}
                   onBlur={() => handleBlur("remitente")}
                   error={hasError("remitente") ? getErrorMessage("remitente") : undefined}
                   required={true}
@@ -293,7 +293,7 @@ export function LotFormTabs({
                   id="observaciones"
                   label="Observaciones"
                   value={formData.observaciones}
-                  onChange={(e) => handleInputChangeWithValidation("observaciones", e.target.value)}
+                  onChange={(e) => handleInputChange("observaciones", e.target.value)}
                   onBlur={() => handleBlur("observaciones")}
                   error={hasError("observaciones") ? getErrorMessage("observaciones") : undefined}
                 />
@@ -313,7 +313,7 @@ export function LotFormTabs({
                     label="Kilos limpios"
                     type="number"
                     value={formData.kilosLimpios}
-                    onChange={(e) => handleInputChangeWithValidation("kilosLimpios", e.target.value === "" ? "" : Number(e.target.value))}
+                    onChange={(e) => handleInputChange("kilosLimpios", e.target.value === "" ? "" : Number(e.target.value))}
                     onBlur={() => handleBlur("kilosLimpios")}
                     error={hasError("kilosLimpios") ? getErrorMessage("kilosLimpios") : undefined}
                     required={true}
@@ -323,7 +323,7 @@ export function LotFormTabs({
                     id="numeroArticuloID"
                     label="Número Artículo"
                     value={formData.numeroArticuloID}
-                    onChange={(value) => handleInputChangeWithValidation("numeroArticuloID", value)}
+                    onChange={(value) => handleInputChange("numeroArticuloID", value)}
                     onBlur={() => handleBlur("numeroArticuloID")}
                     options={articulos}
                     error={hasError("numeroArticuloID") ? getErrorMessage("numeroArticuloID") : undefined}
@@ -337,7 +337,7 @@ export function LotFormTabs({
                     type="number"
                     step="0.01"
                     value={formData.cantidad}
-                    onChange={(e) => handleInputChangeWithValidation("cantidad", e.target.value === "" ? "" : Number(e.target.value))}
+                    onChange={(e) => handleInputChange("cantidad", e.target.value === "" ? "" : Number(e.target.value))}
                     onBlur={() => handleBlur("cantidad")}
                     error={hasError("cantidad") ? getErrorMessage("cantidad") : undefined}
                     required={true}
@@ -347,7 +347,7 @@ export function LotFormTabs({
                     id="origenID"
                     label="Origen"
                     value={formData.origenID}
-                    onChange={(value) => handleInputChangeWithValidation("origenID", value === "" ? "" : Number(value))}
+                    onChange={(value) => handleInputChange("origenID", value === "" ? "" : Number(value))}
                     onBlur={() => handleBlur("origenID")}
                     options={origenes}
                     error={hasError("origenID") ? getErrorMessage("origenID") : undefined}
@@ -359,7 +359,7 @@ export function LotFormTabs({
                     id="estadoID"
                     label="Estado"
                     value={formData.estadoID}
-                    onChange={(value) => handleInputChangeWithValidation("estadoID", value === "" ? "" : Number(value))}
+                    onChange={(value) => handleInputChange("estadoID", value === "" ? "" : Number(value))}
                     onBlur={() => handleBlur("estadoID")}
                     options={estados}
                     error={hasError("estadoID") ? getErrorMessage("estadoID") : undefined}
@@ -372,7 +372,7 @@ export function LotFormTabs({
                     label="Fecha de cosecha"
                     type="date"
                     value={formData.fechaCosecha}
-                    onChange={(e) => handleInputChangeWithValidation("fechaCosecha", e.target.value)}
+                    onChange={(e) => handleInputChange("fechaCosecha", e.target.value)}
                     onBlur={() => handleBlur("fechaCosecha")}
                     error={hasError("fechaCosecha") ? getErrorMessage("fechaCosecha") : undefined}
                     required={true}
@@ -382,7 +382,7 @@ export function LotFormTabs({
                 {/* Componente para gestionar datos de humedad */}
                 <DatosHumedadManager
                   datos={formData.datosHumedad}
-                  onChange={(datos) => handleInputChangeWithValidation("datosHumedad", datos)}
+                  onChange={(datos) => handleInputChange("datosHumedad", datos)}
                   tiposHumedad={tiposHumedad}
                   hasError={hasError}
                   getErrorMessage={getErrorMessage}
