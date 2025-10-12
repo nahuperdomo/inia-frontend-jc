@@ -92,3 +92,54 @@ export interface LoteRequestDTO {
 export interface ResponseListadoLote {
   lotes: LoteDTO[];
 }
+
+// Interfaces para los catálogos del formulario
+export interface CultivarOption {
+  id: number;
+  nombre: string;
+}
+
+export interface EmpresaOption {
+  id: number;
+  nombre: string;
+}
+
+export interface ClienteOption {
+  id: number;
+  nombre: string;
+}
+
+export interface DepositoOption {
+  id: number;
+  nombre: string;
+}
+
+export interface UnidadEmbolsadoOption {
+  id: number;
+  nombre: string;
+}
+
+export interface TipoHumedadOption {
+  id: number;
+  nombre: string;
+}
+
+export interface OrigenOption {
+  id: number;
+  nombre: string;
+}
+
+export interface EstadoOption {
+  id: number;
+  nombre: string;
+}
+
+export interface EspecieOption {
+  id: number;
+  nombre: string;
+}
+
+export interface ArticuloOption {
+  id: number;
+  nombre: string;
+}
