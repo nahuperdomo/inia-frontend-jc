@@ -554,7 +554,7 @@ export default function RegistroAnalisisPage() {
                     {lotesError && <SelectItem value="error" disabled>{lotesError}</SelectItem>}
                     {!lotesLoading && !lotesError && lotes.map((lote) => (
                       <SelectItem key={lote.loteID} value={lote.loteID.toString()}>
-                        {lote.ficha} (ID: {lote.loteID})
+                        {lote.ficha} (ID: {lote.loteID}){lote.cultivarNombre ? ` - ${lote.cultivarNombre}` : ''}{lote.especieNombre ? ` (${lote.especieNombre})` : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -592,10 +592,18 @@ export default function RegistroAnalisisPage() {
                       <span className="text-muted-foreground">ID:</span>
                       <span>{selectedLoteInfo.loteID}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Número Ficha:</span>
-                      <span>{selectedLoteInfo.numeroFicha}</span>
-                    </div>
+                    {selectedLoteInfo.cultivarNombre && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Cultivar:</span>
+                        <span>{selectedLoteInfo.cultivarNombre}</span>
+                      </div>
+                    )}
+                    {selectedLoteInfo.especieNombre && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Especie:</span>
+                        <span>{selectedLoteInfo.especieNombre}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Activo:</span>
                       <span>{selectedLoteInfo.activo ? "Sí" : "No"}</span>

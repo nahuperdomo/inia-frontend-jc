@@ -16,6 +16,7 @@ import { AnalysisModal } from "@/components/lotes/analysis-modal"
 
 import { createLote, getLotes } from "@/app/services/lotes-service"
 import { LoteFormData, loteValidationSchema } from "@/lib/validations/lotes-validation"
+import { LoteRequestDTO } from "@/app/models/interfaces/lote"
 import useValidation from "@/lib/hooks/useValidation"
 
 export default function RegistroLotesPage() {
@@ -28,7 +29,6 @@ export default function RegistroLotesPage() {
 
   // Estado inicial del formulario
   const initialFormData: LoteFormData = {
-    numeroFicha: "",
     ficha: "",
     cultivarID: "",
     tipo: "INTERNO",
@@ -106,9 +106,8 @@ export default function RegistroLotesPage() {
     setIsLoading(true);
     try {
       // Transformar los datos del formulario al formato esperado por el backend
-      const loteData = {
+      const loteData: LoteRequestDTO = {
         ...formData,
-        numeroFicha: Number(formData.numeroFicha),
         cultivarID: Number(formData.cultivarID),
         empresaID: Number(formData.empresaID),
         clienteID: Number(formData.clienteID),
@@ -129,7 +128,7 @@ export default function RegistroLotesPage() {
 
       const response = await createLote(loteData);
       toast.success('Lote registrado exitosamente', {
-        description: `Se ha creado el lote con número de ficha ${formData.numeroFicha}`,
+        description: `Se ha creado el lote con ficha ${formData.ficha}`,
       });
 
       // Limpiamos el formulario

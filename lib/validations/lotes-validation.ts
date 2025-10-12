@@ -12,6 +12,7 @@ import {
     maxLength,
     pattern,
     isValidDate,
+    isPastOrPresent,
     compose
 } from './validation-rules';
 
@@ -19,7 +20,6 @@ import {
  * Tipo para los datos del formulario de lotes
  */
 export interface LoteFormData {
-    numeroFicha: number | "";
     ficha: string;
     cultivarID: number | "";
     tipo: string;
@@ -50,11 +50,6 @@ export interface LoteFormData {
  */
 export const loteValidationSchema: ValidationSchema<LoteFormData> = {
     // Pestaña "datos"
-    numeroFicha: compose([
-        required,
-        isNumber,
-        minValue(1)
-    ]),
     ficha: compose([
         required,
         minLength(2),
@@ -85,7 +80,8 @@ export const loteValidationSchema: ValidationSchema<LoteFormData> = {
     ]),
     fechaRecibo: compose([
         required,
-        isValidDate
+        isValidDate,
+        isPastOrPresent
     ]),
     depositoID: compose([
         required,

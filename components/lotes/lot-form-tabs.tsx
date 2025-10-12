@@ -99,17 +99,6 @@ export function LotFormTabs({
           <TabsContent value="datos" className="space-y-4 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
-                id="numeroFicha"
-                label="Número de ficha"
-                type="number"
-                value={formData.numeroFicha}
-                onChange={(e) => onInputChange("numeroFicha", e.target.value === "" ? "" : Number(e.target.value))}
-                onBlur={() => handleBlur("numeroFicha")}
-                error={hasError("numeroFicha") ? getErrorMessage("numeroFicha") : undefined}
-                required={true}
-              />
-
-              <FormField
                 id="ficha"
                 label="Ficha"
                 value={formData.ficha}

@@ -146,70 +146,34 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
           </div>
           
           <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <Checkbox
-                id="esSemillaBrozosa"
-                checked={data.esSemillaBrozosa || false}
-                onCheckedChange={(checked) => handleInputChange("esSemillaBrozosa", checked)}
-                className="h-5 w-5"
-              />
-              <div className="space-y-1">
-                <Label 
-                  htmlFor="esSemillaBrozosa" 
-                  className="text-sm font-medium cursor-pointer"
-                >
-                  ¿Es semilla brozosa?
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Marca esta opción si la semilla contiene material extraño que requiere procesamiento adicional
-                </p>
+            <div className="p-4 border-2 border-orange-200 bg-orange-50 rounded-lg">
+              <div className="flex items-start space-x-4">
+                <Checkbox
+                  id="esSemillaBrozosa"
+                  checked={data.esSemillaBrozosa || false}
+                  onCheckedChange={(checked) => handleInputChange("esSemillaBrozosa", checked)}
+                  className="h-6 w-6 mt-1 border-2 border-orange-400 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                />
+                <div className="space-y-2 flex-1">
+                  <Label 
+                    htmlFor="esSemillaBrozosa" 
+                    className="text-base font-semibold cursor-pointer text-orange-800 flex items-center gap-2"
+                  >
+                    <Info className="h-5 w-5" />
+                    ¿Es semilla brozosa?
+                  </Label>
+                  <p className="text-sm text-orange-700">
+                    <strong>¡IMPORTANTE!</strong> Marca esta opción si la semilla contiene material extraño que requiere procesamiento adicional.
+                    Esto afecta el umbral del coeficiente de variación permitido (6% vs 4%).
+                  </p>
+                </div>
               </div>
             </div>
-            
-            <Card className={`border-2 ${data.esSemillaBrozosa ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'}`}>
-              <CardContent className="pt-4">
-                <div className="flex items-start gap-3">
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                    data.esSemillaBrozosa ? 'bg-orange-200' : 'bg-green-200'
-                  }`}>
-                    {data.esSemillaBrozosa ? (
-                      <Layers className="h-4 w-4 text-orange-700" />
-                    ) : (
-                      <CheckCircle className="h-4 w-4 text-green-700" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className={`font-medium mb-2 ${
-                      data.esSemillaBrozosa ? 'text-orange-900' : 'text-green-900'
-                    }`}>
-                      {data.esSemillaBrozosa ? 'Semilla Brozosa Detectada' : 'Semilla Normal'}
-                    </h4>
-                    <div className={`space-y-1 text-sm ${
-                      data.esSemillaBrozosa ? 'text-orange-800' : 'text-green-800'
-                    }`}>
-                      {data.esSemillaBrozosa ? (
-                        <>
-                          <p>• Umbral de coeficiente de variación: <strong>≤ 6%</strong></p>
-                          <p>• Se requiere separación de material extraño antes del pesado</p>
-                          <p>• El análisis puede requerir tiempo adicional</p>
-                        </>
-                      ) : (
-                        <>
-                          <p>• Umbral de coeficiente de variación: <strong>≤ 4%</strong></p>
-                          <p>• Procedimiento estándar de pesado directo</p>
-                          <p>• Análisis con tiempo normal de procesamiento</p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
 
         {/* Información de resumen */}
-        <Card className={`border-2 ${esFormularioValido ? 'bg-blue-50 border-blue-200' : 'bg-red-50 border-red-200'}`}>
+        <Card className={`border-2 ${esFormularioValido ? 'border-blue-200' : 'border-red-200'}`}>
           <CardContent className="pt-4">
             <div className="flex items-start gap-3">
               <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
@@ -239,27 +203,6 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
           </CardContent>
         </Card>
 
-        {/* Información adicional sobre el proceso */}
-        <Card className="bg-gray-50 border-gray-200">
-          <CardContent className="pt-4">
-            <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200">
-                <Info className="h-4 w-4 text-gray-700" />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-medium mb-2 text-gray-900">
-                  Información del Proceso PMS
-                </h4>
-                <div className="space-y-1 text-sm text-gray-700">
-                  <p>• <strong>Objetivo:</strong> Determinar el peso promedio de 1000 semillas</p>
-                  <p>• <strong>Método:</strong> Se pesan repeticiones de grupos de semillas</p>
-                  <p>• <strong>Resultado:</strong> Se calcula automáticamente el promedio, desviación estándar y coeficiente de variación</p>
-                  <p>• <strong>Criterio:</strong> El coeficiente de variación debe ser ≤ 4% para ser válido</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </CardContent>
     </Card>
   )

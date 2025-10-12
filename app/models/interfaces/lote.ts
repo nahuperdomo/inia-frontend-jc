@@ -6,7 +6,6 @@ import { DatosHumedadDTO } from './common';
  */
 export interface LoteDTO {
   loteID: number;
-  numeroFicha: number;
   ficha: string;
   fechaIngreso: string; // LocalDateTime as string
   fechaVencimiento?: string; // LocalDate as string
@@ -65,19 +64,29 @@ export interface LoteDTO {
 }
 
 export interface LoteRequestDTO {
-  numeroFicha: number;
   ficha: string;
-  fechaIngreso: string; // LocalDateTime as string
-  fechaVencimiento?: string; // LocalDate as string
-
-  // Catalog references
   cultivarID: number;
+  tipo: string;
   empresaID: number;
-
-  // Nested data
-  datosHumedad: DatosHumedadDTO[];
-
+  clienteID: number;
+  codigoCC?: string;
+  codigoFF?: string;
+  fechaEntrega: string;
+  fechaRecibo: string;
+  depositoID: number;
+  unidadEmbolsado: string;
+  remitente: string;
   observaciones?: string;
+  kilosLimpios: number;
+  datosHumedad: Array<{
+    tipoHumedadID: number;
+    valor: number;
+  }>;
+  numeroArticuloID: number;
+  cantidad: number;
+  origenID: number;
+  estadoID: number;
+  fechaCosecha: string;
 }
 
 export interface ResponseListadoLote {

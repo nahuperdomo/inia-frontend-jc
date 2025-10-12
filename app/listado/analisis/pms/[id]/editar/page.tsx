@@ -27,6 +27,7 @@ import {
 import Link from "next/link"
 import { Toaster, toast } from "sonner"
 import { PmsDTO, RepPmsDTO } from "@/app/models"
+import { LoteSimpleDTO } from '@/app/models/interfaces/lote-simple'
 import { 
   obtenerPmsPorId, 
   actualizarPms,
@@ -39,6 +40,7 @@ import {
   actualizarRepPms, 
   eliminarRepPms 
 } from "@/app/services/repeticiones-service"
+import { obtenerLotesActivos } from "@/app/services/lote-service"
 
 interface RepeticionEdit extends RepPmsDTO {
   isNew?: boolean
@@ -52,6 +54,7 @@ export default function EditarPMSPage() {
 
   const [analisis, setAnalisis] = useState<PmsDTO | null>(null)
   const [repeticiones, setRepeticiones] = useState<RepeticionEdit[]>([])
+  const [lotes, setLotes] = useState<LoteSimpleDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -59,6 +62,7 @@ export default function EditarPMSPage() {
 
   // Estados para el formulario de análisis
   const [formData, setFormData] = useState({
+    idLote: 0,
     comentarios: ""
   })
   const [editingParams, setEditingParams] = useState(false)
@@ -75,6 +79,7 @@ export default function EditarPMSPage() {
   // Estados para PMS con redondeo
   const [pmsConRedondeoTemp, setPmsConRedondeoTemp] = useState<string>("")
   const [savingRedondeo, setSavingRedondeo] = useState(false)
+  const [editingRedondeo, setEditingRedondeo] = useState(false)
 
   // Estados para finalizar análisis
   const [finalizing, setFinalizing] = useState(false)
@@ -121,12 +126,14 @@ export default function EditarPMSPage() {
       setError(null)
       
       try {
-        const [analisisData, repeticionesData] = await Promise.all([
+        const [analisisData, repeticionesData, lotesData] = await Promise.all([
           obtenerPmsPorId(parseInt(pmsId)),
-          obtenerRepeticionesPorPms(parseInt(pmsId))
+          obtenerRepeticionesPorPms(parseInt(pmsId)),
+          obtenerLotesActivos()
         ])
         
         setAnalisis(analisisData)
+        setLotes(lotesData)
         
         // Ordenar repeticiones por tanda y número de repetición
         const repeticionesOrdenadas = repeticionesData
@@ -142,6 +149,7 @@ export default function EditarPMSPage() {
         
         // Inicializar formulario
         setFormData({
+          idLote: analisisData.idLote || 0,
           comentarios: analisisData.comentarios || ""
         })
         
@@ -174,7 +182,7 @@ export default function EditarPMSPage() {
     setSaving(true)
     try {
       const updatedAnalisis = await actualizarPms(analisis.analisisID, {
-        idLote: analisis.idLote || 0,
+        idLote: formData.idLote || 0,
         esSemillaBrozosa: analisis.esSemillaBrozosa, // Mantener el valor original
         comentarios: formData.comentarios
       })
@@ -327,6 +335,7 @@ export default function EditarPMSPage() {
     try {
       const updatedAnalisis = await actualizarPmsConRedondeo(analisis.analisisID, valor)
       setAnalisis(updatedAnalisis)
+      setEditingRedondeo(false) // Desactivar modo edición después de guardar
       toast.success('PMS con redondeo actualizado exitosamente')
     } catch (err: any) {
       toast.error('Error al actualizar PMS con redondeo', {
@@ -585,6 +594,7 @@ export default function EditarPMSPage() {
                     onClick={() => {
                       setEditingParams(false)
                       setFormData({
+                        idLote: analisis?.idLote || 0,
                         comentarios: analisis?.comentarios || ""
                       })
                       setHasChanges(false)
@@ -663,6 +673,33 @@ export default function EditarPMSPage() {
             </div>
 
             <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Lote *</Label>
+                {editingParams ? (
+                  <Select
+                    value={formData.idLote?.toString() || ""}
+                    onValueChange={(value) => 
+                      handleFormChange("idLote", parseInt(value))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione un lote" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {lotes.map((lote) => (
+                        <SelectItem key={lote.loteID} value={lote.loteID.toString()}>
+                          {lote.ficha} - {lote.cultivarNombre || 'Sin cultivar'} - {lote.especieNombre || 'Sin especie'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="p-3 bg-gray-50 rounded border">
+                    {analisis?.lote || `Lote ID: ${analisis?.idLote}` || "Sin lote asignado"}
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label>Observaciones</Label>
                 {editingParams ? (
@@ -768,6 +805,10 @@ export default function EditarPMSPage() {
                         ...prev, 
                         peso: parseFloat(e.target.value) || 0 
                       }))}
+                      onFocus={(e) => {
+                        // Seleccionar todo el texto al hacer focus para facilitar reemplazo
+                        e.target.select()
+                      }}
                       placeholder="Ingrese el peso en gramos"
                     />
                   </div>
@@ -854,6 +895,10 @@ export default function EditarPMSPage() {
                             min="0"
                             value={rep.peso}
                             onChange={(e) => handleRepeticionChange(index, "peso", parseFloat(e.target.value) || 0)}
+                            onFocus={(e) => {
+                              // Seleccionar todo el texto al hacer focus para facilitar reemplazo
+                              e.target.select()
+                            }}
                             className="w-24"
                           />
                         ) : (
@@ -866,14 +911,7 @@ export default function EditarPMSPage() {
                           const tandaCompleta = getRepeticionesPorTandas()
                             .find(t => t.tanda === rep.numTanda)?.completa || false
                           
-                          if (rep.isEditing) {
-                            return (
-                              <Checkbox
-                                checked={rep.valido}
-                                onCheckedChange={(checked) => handleRepeticionChange(index, "valido", !!checked)}
-                              />
-                            )
-                          } else if (tandaCompleta) {
+                          if (tandaCompleta) {
                             return (
                               <Badge variant={rep.valido ? "default" : "destructive"}>
                                 {rep.valido ? "Válido" : "Inválido"}
@@ -990,11 +1028,11 @@ export default function EditarPMSPage() {
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* PMS Sin Redondeo */}
-                  <Card className="bg-blue-50 border-blue-200">
+                  <Card className="border-blue-200">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base text-blue-800 flex items-center gap-2">
                         <Calculator className="h-4 w-4" />
-                        PMS sin Redondeo (Calculado)
+                        PMS sin Redondeo
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -1010,65 +1048,105 @@ export default function EditarPMSPage() {
                   </Card>
                   
                   {/* PMS Con Redondeo */}
-                  <Card className="bg-green-50 border-green-200">
+                  <Card className="border-green-200">
                     <CardHeader className="pb-3">
-                      <CardTitle className="text-base text-green-800 flex items-center gap-2">
-                        <Edit className="h-4 w-4" />
-                        PMS con Redondeo (Manual)
-                      </CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base text-green-800 flex items-center gap-2">
+                          <Edit className="h-4 w-4" />
+                          PMS con Redondeo
+                        </CardTitle>
+                        {!editingRedondeo && analisis.pmsconRedon && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingRedondeo(true)}
+                            className="text-green-700 border-green-300 hover:bg-green-50"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </Button>
+                        )}
+                      </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-green-700">
-                          Valor Final para Certificado
-                        </Label>
-                        <div className="flex gap-2">
-                          <div className="relative flex-1">
-                            <Input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={pmsConRedondeoTemp}
-                              onChange={(e) => setPmsConRedondeoTemp(e.target.value)}
-                              placeholder="Ej: 25.4"
-                              className="text-center text-lg font-bold pr-8"
-                            />
-                            <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">
-                              g
-                            </span>
+                      {editingRedondeo ? (
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-green-700">
+                            Valor Final para Certificado
+                          </Label>
+                          <div className="flex gap-2">
+                            <div className="relative flex-1">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={pmsConRedondeoTemp}
+                                onChange={(e) => setPmsConRedondeoTemp(e.target.value)}
+                                onFocus={(e) => e.target.select()}
+                                placeholder="Ej: 25.4"
+                                className="text-center text-lg font-bold pr-8"
+                              />
+                              <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">
+                                g
+                              </span>
+                            </div>
+                            <Button
+                              onClick={handleUpdatePmsConRedondeo}
+                              disabled={savingRedondeo || !pmsConRedondeoTemp || parseFloat(pmsConRedondeoTemp) <= 0}
+                              size="default"
+                              className="min-w-24 bg-green-600 hover:bg-green-700"
+                            >
+                              {savingRedondeo ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Guardando...
+                                </>
+                              ) : (
+                                <>
+                                  <Save className="h-4 w-4 mr-2" />
+                                  Guardar
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setEditingRedondeo(false)
+                                setPmsConRedondeoTemp(analisis.pmsconRedon?.toString() || "")
+                              }}
+                              size="default"
+                            >
+                              Cancelar
+                            </Button>
                           </div>
-                          <Button
-                            onClick={handleUpdatePmsConRedondeo}
-                            disabled={savingRedondeo || !pmsConRedondeoTemp || parseFloat(pmsConRedondeoTemp) <= 0}
-                            size="default"
-                            className="min-w-24 bg-green-600 hover:bg-green-700"
-                          >
-                            {savingRedondeo ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Guardando...
-                              </>
-                            ) : (
-                              <>
-                                <Save className="h-4 w-4 mr-2" />
-                                Guardar
-                              </>
-                            )}
-                          </Button>
+                          <p className="text-xs text-muted-foreground">
+                            Ingrese el valor final redondeado según criterios del laboratorio
+                          </p>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          Ingrese el valor final redondeado según criterios del laboratorio
-                        </p>
-                      </div>
-                      
-                      {analisis.pmsconRedon && (
-                        <div className="text-center p-3 bg-green-100 rounded-md border border-green-300">
-                          <div className="text-lg font-bold text-green-800 mb-1">
-                            {analisis.pmsconRedon}g
-                          </div>
-                          <span className="text-sm font-medium text-green-700">
-                            ✓ Valor Final Confirmado
-                          </span>
+                      ) : (
+                        <div className="space-y-2">
+                          {analisis.pmsconRedon ? (
+                            <div className="text-center p-4 bg-green-100 rounded-md border border-green-300">
+                              <div className="text-2xl font-bold text-green-800 mb-1">
+                                {analisis.pmsconRedon}g
+                              </div>
+                              <span className="text-sm font-medium text-green-700">
+                                ✓ Valor Final Confirmado
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="text-center p-4 border-2 border-dashed border-green-300 rounded-md">
+                              <p className="text-green-700 font-medium mb-2">Valor no establecido</p>
+                              <Button
+                                onClick={() => setEditingRedondeo(true)}
+                                variant="outline"
+                                className="text-green-700 border-green-300 hover:bg-green-50"
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Establecer Valor
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </CardContent>
