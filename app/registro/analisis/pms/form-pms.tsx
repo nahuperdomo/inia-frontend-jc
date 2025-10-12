@@ -146,24 +146,24 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
           </div>
           
           <div className="space-y-4">
-            <div className="p-4 border-2 border-orange-200 bg-orange-50 rounded-lg">
+            <div className="p-4 border border-orange-300 rounded-lg">
               <div className="flex items-start space-x-4">
                 <Checkbox
                   id="esSemillaBrozosa"
                   checked={data.esSemillaBrozosa || false}
                   onCheckedChange={(checked) => handleInputChange("esSemillaBrozosa", checked)}
-                  className="h-6 w-6 mt-1 border-2 border-orange-400 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                  className="h-6 w-6 mt-1"
                 />
                 <div className="space-y-2 flex-1">
                   <Label 
                     htmlFor="esSemillaBrozosa" 
-                    className="text-base font-semibold cursor-pointer text-orange-800 flex items-center gap-2"
+                    className="text-base font-semibold cursor-pointer flex items-center gap-2"
                   >
                     <Info className="h-5 w-5" />
                     ¿Es semilla brozosa?
                   </Label>
                   <p className="text-sm text-orange-700">
-                    <strong>¡IMPORTANTE!</strong> Marca esta opción si la semilla contiene material extraño que requiere procesamiento adicional.
+                    Marca esta opción si la semilla es brozosa.
                     Esto afecta el umbral del coeficiente de variación permitido (6% vs 4%).
                   </p>
                 </div>
@@ -173,13 +173,13 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
         </div>
 
         {/* Información de resumen */}
-        <Card className={`border-2 ${esFormularioValido ? 'border-blue-200' : 'border-red-200'}`}>
+        <Card className={`border ${esFormularioValido ? 'border-blue-300' : 'border-red-300'}`}>
           <CardContent className="pt-4">
             <div className="flex items-start gap-3">
-              <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                esFormularioValido ? 'bg-blue-200' : 'bg-red-200'
+              <div className={`flex h-8 w-8 items-center justify-center rounded-full border ${
+                esFormularioValido ? 'border-blue-300' : 'border-red-300'
               }`}>
-                <Scale className={`h-4 w-4 ${esFormularioValido ? 'text-blue-700' : 'text-red-700'}`} />
+                <Scale className={`h-4 w-4 ${esFormularioValido ? 'text-blue-600' : 'text-red-600'}`} />
               </div>
               <div className="flex-1">
                 <h4 className={`font-medium mb-2 ${
@@ -188,7 +188,7 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
                   {esFormularioValido ? 'Configuración de PMS Lista' : 'Configuración Incompleta'}
                 </h4>
                 <div className={`space-y-1 text-sm ${
-                  esFormularioValido ? 'text-blue-800' : 'text-red-800'
+                  esFormularioValido ? 'text-blue-700' : 'text-red-700'
                 }`}>
                   <p>• Se crearán <strong>{data.numRepeticionesEsperadas || 0} repeticiones</strong></p>
                   <p>• Iniciará con <strong>1 tanda</strong></p>

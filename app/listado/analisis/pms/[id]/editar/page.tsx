@@ -436,26 +436,28 @@ export default function EditarPMSPage() {
   const puedeAgregarRepeticiones = (): boolean => {
     if (!analisis) return false
     
-    // Límite máximo de 16 repeticiones totales según el backend
+    // Límite máximo de 16 repeticiones totales
     const totalRepeticiones = repeticiones.length
     if (totalRepeticiones >= 16) return false
     
-    // Verificar si ya se cumple el estándar CV y hay al menos una tanda válida completa
+    // Obtener solo repeticiones válidas
+    const repeticionesValidas = repeticiones.filter(rep => rep.valido === true)
+    
+    // Si no hay repeticiones válidas suficientes, permitir agregar
+    if (repeticionesValidas.length === 0) return true
+    
+    // Calcular CV de todas las repeticiones válidas
+    const pesos = repeticionesValidas.map(rep => rep.peso)
+    const promedio = pesos.reduce((sum, peso) => sum + peso, 0) / pesos.length
+    const varianza = pesos.reduce((sum, peso) => sum + Math.pow(peso - promedio, 2), 0) / pesos.length
+    const desviacion = Math.sqrt(varianza)
+    const cv = (desviacion / promedio) * 100
+    
+    // Determinar umbral según tipo de semilla
     const umbralCV = analisis.esSemillaBrozosa ? 6.0 : 4.0
-    const tieneCoeficienteValidoCalculado = analisis.coefVariacion && analisis.coefVariacion <= umbralCV
     
-    if (tieneCoeficienteValidoCalculado) {
-      // Verificar si hay al menos una tanda válida completa
-      const tandasCompletas = getRepeticionesPorTandas().filter(t => t.completa)
-      const tieneAlMenosUnaTandaValida = tandasCompletas.some(tanda => 
-        tanda.repeticiones.some(rep => rep.valido === true)
-      )
-      
-      // Si ya se cumple el estándar y hay una tanda válida, no se necesitan más repeticiones
-      if (tieneAlMenosUnaTandaValida) return false
-    }
-    
-    return true
+    // Si el CV es mayor al umbral, permitir agregar más repeticiones
+    return cv > umbralCV
   }
 
   // Verificar si se puede finalizar el análisis
@@ -473,13 +475,65 @@ export default function EditarPMSPage() {
     // Debe tener estadísticas calculadas (promedio100g)
     if (!analisis.promedio100g) return false
     
-    // Debe tener al menos una tanda válida completa
-    const tandasCompletas = getRepeticionesPorTandas().filter(t => t.completa)
-    const tieneAlMenosUnaTandaValida = tandasCompletas.some(tanda => 
-      tanda.repeticiones.some(rep => rep.valido === true)
-    )
+    // Debe tener PMS con redondeo ingresado
+    if (!analisis.pmsconRedon) return false
     
-    return tieneAlMenosUnaTandaValida
+    const totalRepeticiones = repeticiones.length
+    const repeticionesValidas = repeticiones.filter(rep => rep.valido === true)
+    
+    // Si no hay repeticiones válidas, no se puede finalizar
+    if (repeticionesValidas.length === 0) return false
+    
+    // Calcular CV de todas las repeticiones válidas
+    const pesos = repeticionesValidas.map(rep => rep.peso)
+    const promedio = pesos.reduce((sum, peso) => sum + peso, 0) / pesos.length
+    const varianza = pesos.reduce((sum, peso) => sum + Math.pow(peso - promedio, 2), 0) / pesos.length
+    const desviacion = Math.sqrt(varianza)
+    const cv = (desviacion / promedio) * 100
+    
+    // Determinar umbral según tipo de semilla
+    const umbralCV = analisis.esSemillaBrozosa ? 6.0 : 4.0
+    
+    // Se puede finalizar si:
+    // 1. El CV es válido (≤ umbral), O
+    // 2. Se alcanzó el límite de 16 repeticiones (aunque el CV no sea válido)
+    return cv <= umbralCV || totalRepeticiones >= 16
+  }
+
+  // Verificar si se puede editar el PMS con redondeo
+  const puedeEditarPmsConRedondeo = (): boolean => {
+    if (!analisis) return false
+    
+    // No se puede editar si ya está finalizado o aprobado
+    if (analisis.estado === "FINALIZADO" || analisis.estado === "APROBADO" || analisis.estado === "PENDIENTE_APROBACION") {
+      return false
+    }
+    
+    // Debe tener al menos una repetición
+    if (repeticiones.length === 0) return false
+    
+    // Debe tener estadísticas calculadas (promedio100g)
+    if (!analisis.promedio100g) return false
+    
+    const totalRepeticiones = repeticiones.length
+    const repeticionesValidas = repeticiones.filter(rep => rep.valido === true)
+    const hayRepeticionesInvalidas = repeticiones.some(rep => rep.valido === false)
+    
+    // Se puede editar el PMS con redondeo si:
+    // 1. Hay suficientes repeticiones válidas Y no hay inválidas (CV válido)
+    // 2. O si se alcanzó el límite de 16 repeticiones
+    
+    // Caso 1: CV válido - suficientes repeticiones válidas y ninguna inválida
+    if (repeticionesValidas.length >= (analisis.numRepeticionesEsperadas || 0) && !hayRepeticionesInvalidas) {
+      return true
+    }
+    
+    // Caso 2: Límite alcanzado - 16 repeticiones máximo
+    if (totalRepeticiones >= 16) {
+      return true
+    }
+    
+    return false
   }
 
   const getEstadoBadgeVariant = (estado: string) => {
@@ -1055,7 +1109,7 @@ export default function EditarPMSPage() {
                           <Edit className="h-4 w-4" />
                           PMS con Redondeo
                         </CardTitle>
-                        {!editingRedondeo && analisis.pmsconRedon && (
+                        {!editingRedondeo && analisis.pmsconRedon && puedeEditarPmsConRedondeo() && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -1069,7 +1123,7 @@ export default function EditarPMSPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {editingRedondeo ? (
+                      {editingRedondeo && puedeEditarPmsConRedondeo() ? (
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-green-700">
                             Valor Final para Certificado
@@ -1136,15 +1190,30 @@ export default function EditarPMSPage() {
                             </div>
                           ) : (
                             <div className="text-center p-4 border-2 border-dashed border-green-300 rounded-md">
-                              <p className="text-green-700 font-medium mb-2">Valor no establecido</p>
-                              <Button
-                                onClick={() => setEditingRedondeo(true)}
-                                variant="outline"
-                                className="text-green-700 border-green-300 hover:bg-green-50"
-                              >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Establecer Valor
-                              </Button>
+                              {puedeEditarPmsConRedondeo() ? (
+                                <>
+                                  <p className="text-green-700 font-medium mb-2">Valor no establecido</p>
+                                  <Button
+                                    onClick={() => setEditingRedondeo(true)}
+                                    variant="outline"
+                                    className="text-green-700 border-green-300 hover:bg-green-50"
+                                  >
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Establecer Valor
+                                  </Button>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="text-muted-foreground font-medium mb-2">Valor no disponible</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Complete todas las repeticiones necesarias ({analisis.numRepeticionesEsperadas || 0}) 
+                                    para poder establecer el valor final.
+                                  </p>
+                                  <div className="mt-2 text-xs text-red-600">
+                                    Repeticiones actuales: {repeticiones.length} / {analisis.numRepeticionesEsperadas || 0}
+                                  </div>
+                                </>
+                              )}
                             </div>
                           )}
                         </div>

@@ -379,7 +379,7 @@ export function AnalysisModal({ isOpen, onClose, lot, onSave, mode = "create", e
           </Tabs>
         </div>
 
-        <Alert className="border-orange-200 bg-orange-50">
+        <Alert className="border-orange-300">
           <AlertTriangle className="h-4 w-4 text-orange-600" />
           <AlertDescription className="text-orange-800">
             <div className="flex items-center justify-between">
