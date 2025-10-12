@@ -464,17 +464,6 @@ export default function ListadoPurezaPage() {
         </CardContent>
       </Card>
 
-      {/* Pagination (estándar, igual al patrón dosn) */}
-      <div className="flex items-center justify-end">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={Math.max(totalPages, 1)}
-          onPageChange={(p) => { void fetchPurezas(p) }}
-          showRange={1}
-          alwaysShow={true}
-        />
-      </div>
-
       {/* Analysis Table */}
       <Card>
         <CardHeader>
@@ -568,7 +557,24 @@ export default function ListadoPurezaPage() {
               </Table>
             </div>
           )}
-        
+          <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+            <div className="text-sm text-muted-foreground">
+              {totalElements === 0 ? (
+                <>Mostrando 0 de 0 resultados</>
+              ) : (
+                <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
+              )}
+            </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={Math.max(totalPages, 1)}
+              onPageChange={(p) => fetchPurezas(p)}
+              showRange={1}
+              alwaysShow={true}
+            />
+          </div>
+
         </CardContent>
       </Card>
 
