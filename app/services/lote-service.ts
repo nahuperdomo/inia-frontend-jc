@@ -6,6 +6,7 @@ import {
   LoteSimpleDTO,
   ResponseListadoLoteSimple
 } from "../models";
+import { TipoAnalisis } from "../models/types/enums";
 
 // Lote functions
 export async function obtenerLotesActivos(): Promise<LoteSimpleDTO[]> {
@@ -40,4 +41,56 @@ export async function eliminarLote(id: number): Promise<void> {
   return apiFetch(`/api/lotes/${id}`, {
     method: "DELETE",
   });
+}
+
+export async function obtenerLotesElegiblesParaTipoAnalisis(tipoAnalisis: TipoAnalisis): Promise<LoteSimpleDTO[]> {
+  const res = await apiFetch(`/api/lotes/elegibles/${tipoAnalisis}`) as ResponseListadoLoteSimple;
+  return res.lotes || [];
+}
+
+/**
+ * Verifica si un tipo de análisis puede ser removido de un lote
+ * Un tipo puede removerse si:
+ * - No tiene análisis de ese tipo
+ * - Todos sus análisis están en estado "A_REPETIR"
+ */
+export async function puedeRemoverTipoAnalisis(loteID: number, tipoAnalisis: TipoAnalisis): Promise<{ puedeRemover: boolean; razon?: string }> {
+  try {
+    const response = await apiFetch(`/api/lotes/${loteID}/puede-remover-tipo/${tipoAnalisis}`);
+    return response;
+  } catch (error) {
+    console.error('Error al verificar si puede remover tipo de análisis:', error);
+    return { 
+      puedeRemover: false, 
+      razon: 'Error al verificar el estado del análisis' 
+    };
+  }
+}
+
+/**
+ * Obtiene los lotes elegibles para un tipo específico de análisis
+ * Solo incluye lotes que:
+ * 1. Tienen el tipo de análisis asignado en su lista de tipos
+ * 2. No tienen análisis existentes de ese tipo O tienen análisis en estado "A_REPETIR"
+ */
+export async function obtenerLotesElegibles(tipoAnalisis: TipoAnalisis): Promise<LoteSimpleDTO[]> {
+  try {
+    return await obtenerLotesElegiblesParaTipoAnalisis(tipoAnalisis);
+  } catch (error) {
+    console.error('Error al obtener lotes elegibles:', error);
+    throw error;
+  }
+}
+
+/**
+ * Valida si un lote específico es elegible para un tipo de análisis
+ */
+export async function validarLoteElegible(loteID: number, tipoAnalisis: TipoAnalisis): Promise<boolean> {
+  try {
+    const lotesElegibles = await obtenerLotesElegibles(tipoAnalisis);
+    return lotesElegibles.some(lote => lote.loteID === loteID);
+  } catch (error) {
+    console.error('Error al validar lote elegible:', error);
+    return false;
+  }
 }

@@ -14,7 +14,7 @@ import { LotList } from "@/components/lotes/lot-list"
 import { LotDetailsModal } from "@/components/lotes/lot-details-modal"
 import { AnalysisModal } from "@/components/lotes/analysis-modal"
 
-import { createLote, getLotes } from "@/app/services/lotes-service"
+import { crearLote, obtenerLotesActivos } from "@/app/services/lote-service"
 import { LoteFormData, loteValidationSchema } from "@/lib/validations/lotes-validation"
 import { LoteRequestDTO } from "@/app/models/interfaces/lote"
 import useValidation from "@/lib/hooks/useValidation"
@@ -54,6 +54,7 @@ export default function RegistroLotesPage() {
     origenID: "",
     estadoID: "",
     fechaCosecha: "",
+    tiposAnalisisAsignados: [],
   };
 
   const [formData, setFormData] = useState<LoteFormData>(initialFormData);
@@ -77,7 +78,7 @@ export default function RegistroLotesPage() {
 
   const loadRecentLots = async () => {
     try {
-      const response = await getLotes();
+      const response = await obtenerLotesActivos();
       setRecentLots(response);
       console.log("Lotes recientes cargados:", response);
     } catch (error) {
@@ -120,13 +121,14 @@ export default function RegistroLotesPage() {
         fechaEntrega: formData.fechaEntrega,
         fechaRecibo: formData.fechaRecibo,
         fechaCosecha: formData.fechaCosecha,
+        tiposAnalisisAsignados: formData.tiposAnalisisAsignados,
         datosHumedad: formData.datosHumedad.map(h => ({
           tipoHumedadID: Number(h.tipoHumedadID),
           valor: Number(h.valor)
         }))
       };
 
-      const response = await createLote(loteData);
+      const response = await crearLote(loteData);
       toast.success('Lote registrado exitosamente', {
         description: `Se ha creado el lote con ficha ${formData.ficha}`,
       });

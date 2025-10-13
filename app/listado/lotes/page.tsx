@@ -10,13 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { obtenerLotesActivos } from "@/app/services/lote-service"
-import { LoteSimpleDTO, LoteDTO } from "@/app/models"
+import { LoteSimpleDTO } from "@/app/models"
 
 export default function ListadoLotesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState<string>("todos")
   const [filterCultivo, setFilterCultivo] = useState<string>("todos")
-  const [lotes, setLotes] = useState<LoteDTO[]>([])
+  const [lotes, setLotes] = useState<LoteSimpleDTO[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -26,26 +26,8 @@ export default function ListadoLotesPage() {
         setIsLoading(true)
         const lotesData = await obtenerLotesActivos()
 
-        // Transform API data to component format
-        const lotesTransformed: LoteDTO[] = lotesData.map((lote: LoteSimpleDTO) => ({
-          loteID: lote.loteID,
-          ficha: lote.ficha,
-          fechaIngreso: new Date().toISOString(), // Placeholder
-          cultivarID: 0, // Placeholder
-          cultivarNombre: lote.cultivarNombre || "No especificado",
-          empresaID: 0, // Placeholder
-          empresaNombre: "INIA", // Placeholder
-          especieNombre: lote.especieNombre || "",
-          codigoCC: `CC-${lote.loteID}`, // Placeholder
-          codigoFF: `FF-${lote.loteID}`, // Placeholder
-          fechaCreacion: new Date().toISOString(), // Placeholder
-          estado: lote.activo ? "ACTIVO" : "INACTIVO" as any,
-          activo: lote.activo,
-          datosHumedad: [], // Placeholder
-          observaciones: "", // Placeholder
-        } as LoteDTO))
-
-        setLotes(lotesTransformed)
+        // Usar directamente LoteSimpleDTO ya que obtenerLotesActivos() devuelve ese tipo
+        setLotes(lotesData)
       } catch (err) {
         console.error("Error fetching lotes:", err)
         setError("Error al cargar los lotes. Intente nuevamente más tarde.")
@@ -60,7 +42,6 @@ export default function ListadoLotesPage() {
   const filteredLotes = lotes.filter((lote) => {
     const matchesSearch =
       lote.ficha.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lote.empresaNombre || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (lote.cultivarNombre || "").toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesEstado = filterEstado === "todos" || (lote.activo ? "Activo" : "Pendiente") === filterEstado
@@ -289,12 +270,12 @@ export default function ListadoLotesPage() {
                     filteredLotes.map((lote) => (
                       <TableRow key={lote.loteID}>
                         <TableCell className="font-medium">{lote.ficha}</TableCell>
-                        <TableCell>{lote.empresaNombre}</TableCell>
+                        <TableCell>-</TableCell>
                         <TableCell>{lote.cultivarNombre}</TableCell>
                         <TableCell>{lote.especieNombre || "-"}</TableCell>
-                        <TableCell>{lote.codigoCC}</TableCell>
-                        <TableCell>{lote.codigoFF}</TableCell>
-                        <TableCell>{new Date(lote.fechaCreacion).toLocaleDateString("es-ES")}</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
                         <TableCell>
                           <Badge variant={lote.activo ? "default" : "destructive"}>
                             {lote.activo ? "Activo" : "Inactivo"}
@@ -303,17 +284,22 @@ export default function ListadoLotesPage() {
                         <TableCell>-</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Link href={`/lotes/${lote.loteID}`}>
-                              <Button variant="ghost" size="sm">
+                            <Link href={`/listado/lotes/${lote.loteID}`}>
+                              <Button variant="ghost" size="sm" title="Ver detalles">
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </Link>
-                            <Link href={`/lotes/${lote.loteID}/edit`}>
-                              <Button variant="ghost" size="sm">
+                            <Link href={`/listado/lotes/${lote.loteID}/editar`}>
+                              <Button variant="ghost" size="sm" title="Editar">
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </Link>
-                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-destructive hover:text-destructive"
+                              title="Eliminar"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>

@@ -14,8 +14,8 @@ export async function crearPms(solicitud: PmsRequestDTO): Promise<PmsDTO> {
 }
 
 export async function obtenerTodosPms(): Promise<PmsDTO[]> {
-  const res = await apiFetch("/api/pms") as ResponseListadoPms;
-  return res.pmss || [];
+  const res = await apiFetch("/api/pms") as PmsDTO[];
+  return res || [];
 }
 
 export async function obtenerPmsPorId(id: number): Promise<PmsDTO> {

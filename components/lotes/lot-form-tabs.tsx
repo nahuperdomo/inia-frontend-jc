@@ -6,6 +6,7 @@ import FormField from "@/components/ui/form-field"
 import FormSelect from "@/components/ui/form-select"
 import { LoteFormData } from "@/lib/validations/lotes-validation"
 import { DatosHumedadManager } from "./datos-humedad-manager"
+import { TiposAnalisisSelector } from "./tipos-analisis-selector"
 import {
   obtenerCultivares,
   obtenerEmpresas,
@@ -31,6 +32,7 @@ import {
   type UnidadEmbolsadoOption,
   type ArticuloOption
 } from "@/app/models/interfaces/lote"
+import { TipoAnalisis } from "@/app/models/types/enums"
 
 interface LotFormTabsProps {
   formData: LoteFormData
@@ -376,6 +378,18 @@ export function LotFormTabs({
                     onBlur={() => handleBlur("fechaCosecha")}
                     error={hasError("fechaCosecha") ? getErrorMessage("fechaCosecha") : undefined}
                     required={true}
+                  />
+                </div>
+
+                {/* Selector de tipos de análisis */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Tipos de Análisis <span className="text-red-500">*</span>
+                  </label>
+                  <TiposAnalisisSelector
+                    tiposSeleccionados={formData.tiposAnalisisAsignados || []}
+                    onChange={(tipos) => handleInputChange("tiposAnalisisAsignados", tipos)}
+                    error={hasError("tiposAnalisisAsignados") ? getErrorMessage("tiposAnalisisAsignados") : undefined}
                   />
                 </div>
 

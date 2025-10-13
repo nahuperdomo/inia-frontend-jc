@@ -3,6 +3,7 @@
  */
 
 import { ValidationSchema } from '../hooks/useValidation';
+import { TipoAnalisis } from '@/app/models/types/enums';
 import {
     required,
     isNumber,
@@ -43,6 +44,7 @@ export interface LoteFormData {
     origenID: number | "";
     estadoID: number | "";
     fechaCosecha: string;
+    tiposAnalisisAsignados: TipoAnalisis[];
 }
 
 /**
@@ -114,7 +116,13 @@ export const loteValidationSchema: ValidationSchema<LoteFormData> = {
     fechaCosecha: compose([
         required,
         isValidDate
-    ])
+    ]),
+    tiposAnalisisAsignados: (value: TipoAnalisis[]) => {
+        if (!value || value.length === 0) {
+            return 'Debe seleccionar al menos un tipo de análisis';
+        }
+        return null;
+    }
 };
 
 /**

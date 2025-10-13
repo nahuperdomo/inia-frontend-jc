@@ -15,10 +15,12 @@ import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
 import GerminacionFields from "@/app/registro/analisis/germinacion/form-germinacion"
 import PmsFields from "@/app/registro/analisis/pms/form-pms"
 import { obtenerLotesActivos } from "@/app/services/lote-service"
+import { obtenerLotesElegibles } from "@/app/services/lote-service"
 import { LoteSimpleDTO } from "@/app/models"
 import { registrarAnalisis } from "@/app/services/analisis-service"
 import { crearGerminacion } from "@/app/services/germinacion-service"
 import { crearPms } from "@/app/services/pms-service"
+import { TipoAnalisis } from "@/app/models/types/enums"
 import PurezaFields from "./pureza/form-pureza"
 
 
@@ -84,15 +86,15 @@ export type AnalysisFormData = {
 }
 
 const analysisTypes = [
-  { id: "pureza", name: "Pureza Física", description: "Análisis de pureza física de semillas", icon: Search, color: "blue" },
-  { id: "germinacion", name: "Germinación", description: "Ensayos de germinación estándar", icon: Sprout, color: "green" },
-  { id: "pms", name: "Peso de Mil Semillas", description: "Determinación del peso de mil semillas", icon: Scale, color: "purple" },
-  { id: "tetrazolio", name: "Tetrazolio", description: "Ensayo de viabilidad y vigor", icon: TestTube, color: "orange" },
-  { id: "dosn", name: "DOSN", description: "Determinación de otras semillas nocivas", icon: Microscope, color: "red" },
+  { id: "PUREZA" as TipoAnalisis, name: "Pureza Física", description: "Análisis de pureza física de semillas", icon: Search, color: "blue" },
+  { id: "GERMINACION" as TipoAnalisis, name: "Germinación", description: "Ensayos de germinación estándar", icon: Sprout, color: "green" },
+  { id: "PMS" as TipoAnalisis, name: "Peso de Mil Semillas", description: "Determinación del peso de mil semillas", icon: Scale, color: "purple" },
+  { id: "TETRAZOLIO" as TipoAnalisis, name: "Tetrazolio", description: "Ensayo de viabilidad y vigor", icon: TestTube, color: "orange" },
+  { id: "DOSN" as TipoAnalisis, name: "DOSN", description: "Determinación de otras semillas nocivas", icon: Microscope, color: "red" },
 ]
 
 export default function RegistroAnalisisPage() {
-  const [selectedAnalysisType, setSelectedAnalysisType] = useState("");
+  const [selectedAnalysisType, setSelectedAnalysisType] = useState<TipoAnalisis | "">("");
   const [selectedLote, setSelectedLote] = useState("");
   // Estados para listados de malezas, cultivos y brassicas
   const [malezasList, setMalezasList] = useState<any[]>([]);
@@ -165,7 +167,7 @@ export default function RegistroAnalisisPage() {
   const [loading, setLoading] = useState(false)
 
   // Función para obtener el nombre descriptivo del tipo de análisis
-  const getAnalysisTypeName = (typeId: string): string => {
+  const getAnalysisTypeName = (typeId: string | TipoAnalisis): string => {
     const analysisType = analysisTypes.find(type => type.id === typeId);
     return analysisType?.name || 'Desconocido';
   }
@@ -201,7 +203,7 @@ export default function RegistroAnalisisPage() {
       estado: "REGISTRADO",
     };
 
-    if (selectedAnalysisType === "dosn") {
+    if (selectedAnalysisType === "DOSN") {
       const mapTipoDosn = (obj: any, prefix: string) => [
         obj[`${prefix}Completo`] ? "COMPLETO" : null,
         obj[`${prefix}Reducido`] ? "REDUCIDO" : null,
@@ -268,7 +270,7 @@ export default function RegistroAnalisisPage() {
       } else {
         console.log(`✅ Se enviarán ${listados.length} listados al backend`);
       }
-    } else if (selectedAnalysisType === "pureza") {
+    } else if (selectedAnalysisType === "PUREZA") {
       payload = {
         ...payload,
         pesoInicial: toNum(formData.pesoInicial),
@@ -277,7 +279,7 @@ export default function RegistroAnalisisPage() {
         otrosCultivos: toNum(formData.otrosCultivos),
         malezas: toNum(formData.malezas),
       };
-    } else if (selectedAnalysisType === "germinacion") {
+    } else if (selectedAnalysisType === "GERMINACION") {
       // Validaciones específicas para germinación
       if (!formData.fechaInicioGerm) {
         toast.error('Fecha de inicio requerida', {
@@ -362,7 +364,7 @@ export default function RegistroAnalisisPage() {
         numeroRepeticiones: formData.numeroRepeticiones || 1,
         numeroConteos: formData.numeroConteos || 1,
       };
-    } else if (selectedAnalysisType === "pms") {
+    } else if (selectedAnalysisType === "PMS") {
       // Validaciones específicas para PMS
       if (!formData.numRepeticionesEsperadas || formData.numRepeticionesEsperadas < 1) {
         toast.error('Número de repeticiones inválido', {
@@ -390,7 +392,7 @@ export default function RegistroAnalisisPage() {
       console.log("Enviando payload para germinación:", payload);
 
       // PRUEBA: Intentar hacer una llamada a un endpoint que sabemos que funciona
-      if (selectedAnalysisType === "germinacion") {
+      if (selectedAnalysisType === "GERMINACION") {
         console.log("🧪 PRUEBA: Vamos a probar primero obtener lotes para verificar auth...");
         try {
           const lotesTest = await obtenerLotesActivos();
@@ -411,7 +413,7 @@ export default function RegistroAnalisisPage() {
         setTimeout(() => {
           window.location.href = `/listado/analisis/germinacion/${result.analisisID}/editar`;
         }, 1500);
-      } else if (selectedAnalysisType === "pms") {
+      } else if (selectedAnalysisType === "PMS") {
         console.log("🚀 Intentando crear PMS...");
         const result = await crearPms(payload);
 
@@ -446,27 +448,46 @@ export default function RegistroAnalisisPage() {
   }
 
   const [lotes, setLotes] = useState<LoteSimpleDTO[]>([])
-  const [lotesLoading, setLotesLoading] = useState(true)
+  const [lotesLoading, setLotesLoading] = useState(false)
   const [lotesError, setLotesError] = useState<string | null>(null)
 
+  // Cargar lotes cuando cambia el tipo de análisis
   useEffect(() => {
     const fetchLotes = async () => {
+      if (!selectedAnalysisType) {
+        setLotes([]);
+        return;
+      }
+
       setLotesLoading(true)
       setLotesError(null)
+      setSelectedLote("") // Limpiar selección de lote al cambiar tipo
+
       try {
-        const data = await obtenerLotesActivos()
+        const data = await obtenerLotesElegibles(selectedAnalysisType as TipoAnalisis);
         setLotes(data)
+        
+        if (data.length === 0) {
+          toast.info('Sin lotes elegibles', {
+            description: `No hay lotes elegibles para análisis de ${getAnalysisTypeName(selectedAnalysisType)}. Esto puede ocurrir si no hay lotes con este tipo de análisis asignado o si todos ya tienen análisis completados.`,
+          });
+        }
       } catch (err) {
-        const errorMsg = "No se pudieron cargar los lotes disponibles";
+        const errorMsg = "No se pudieron cargar los lotes elegibles";
         setLotesError(errorMsg)
         toast.error('Error al cargar lotes', {
-          description: 'No se pudieron obtener los lotes disponibles. Intente recargar la página.',
+          description: 'No se pudieron obtener los lotes elegibles para este análisis. Intente recargar la página.',
         });
       } finally {
         setLotesLoading(false)
       }
     }
     fetchLotes()
+  }, [selectedAnalysisType])
+
+  // Función original para casos donde necesitemos todos los lotes
+  useEffect(() => {
+    // Esta función ya no se usa automáticamente, pero la mantenemos por si es necesaria
   }, [])
 
   const selectedLoteInfo = selectedLote ? lotes.find((l) => l.loteID.toString() === selectedLote) : null
@@ -545,13 +566,25 @@ export default function RegistroAnalisisPage() {
                       });
                     }
                   }}
+                  disabled={!selectedAnalysisType}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar lote existente" />
+                    <SelectValue 
+                      placeholder={
+                        !selectedAnalysisType 
+                          ? "Primero selecciona un tipo de análisis"
+                          : "Seleccionar lote elegible"
+                      } 
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {lotesLoading && <SelectItem value="loading" disabled>Cargando lotes...</SelectItem>}
+                    {lotesLoading && <SelectItem value="loading" disabled>Cargando lotes elegibles...</SelectItem>}
                     {lotesError && <SelectItem value="error" disabled>{lotesError}</SelectItem>}
+                    {!lotesLoading && !lotesError && lotes.length === 0 && selectedAnalysisType && (
+                      <SelectItem value="no-elegibles" disabled>
+                        No hay lotes elegibles para este análisis
+                      </SelectItem>
+                    )}
                     {!lotesLoading && !lotesError && lotes.map((lote) => (
                       <SelectItem key={lote.loteID} value={lote.loteID.toString()}>
                         {lote.ficha} (ID: {lote.loteID}){lote.cultivarNombre ? ` - ${lote.cultivarNombre}` : ''}{lote.especieNombre ? ` (${lote.especieNombre})` : ''}
@@ -561,7 +594,7 @@ export default function RegistroAnalisisPage() {
                 </Select>
               </div>
 
-              {selectedAnalysisType !== "pureza" && (
+              {selectedAnalysisType !== "PUREZA" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="observaciones">Observaciones</Label>
@@ -608,16 +641,52 @@ export default function RegistroAnalisisPage() {
                       <span className="text-muted-foreground">Activo:</span>
                       <span>{selectedLoteInfo.activo ? "Sí" : "No"}</span>
                     </div>
+                    {selectedAnalysisType && (
+                      <div className="mt-3 pt-3 border-t">
+                        <div className="text-xs text-green-600 font-medium mb-1">
+                          ✅ Este lote es elegible para {getAnalysisTypeName(selectedAnalysisType)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Tiene el tipo de análisis asignado y no tiene análisis completados del mismo tipo.
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Información sobre filtrado de lotes */}
+              {selectedAnalysisType && (
+                <Card className="bg-blue-50 border-blue-200">
+                  <CardContent className="pt-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-200">
+                        <TestTube className="h-4 w-4 text-blue-700" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-blue-900 mb-2">Filtrado de Lotes Elegibles</h4>
+                        <div className="space-y-1 text-sm text-blue-800">
+                          <div>• Solo se muestran lotes que tienen {getAnalysisTypeName(selectedAnalysisType)} asignado</div>
+                          <div>• Excluye lotes con análisis completados de este tipo</div>
+                          <div>• Incluye lotes con análisis "A repetir" del mismo tipo</div>
+                          {lotes.length === 0 && !lotesLoading && (
+                            <div className="text-amber-700 font-medium mt-2">
+                              ⚠️ No hay lotes elegibles disponibles
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               )}
             </div>
           </div>
 
-          {selectedAnalysisType === "pureza" && (
+          {selectedAnalysisType === "PUREZA" && (
             <PurezaFields formData={formData} handleInputChange={(field, value) => handleInputChange(field as keyof AnalysisFormData, value)} />
           )}
-          {selectedAnalysisType === "dosn" && (
+          {selectedAnalysisType === "DOSN" && (
             <DosnFields
               formData={formData}
               handleInputChange={handleInputChange as (field: string, value: any) => void}
@@ -626,13 +695,13 @@ export default function RegistroAnalisisPage() {
               onChangeListadosBrassicas={handleBrassicasChange}
             />
           )}
-          {selectedAnalysisType === "germinacion" && (
+          {selectedAnalysisType === "GERMINACION" && (
             <GerminacionFields
               formData={formData}
               handleInputChange={handleInputChange as (field: string, value: any) => void}
             />
           )}
-          {selectedAnalysisType === "pms" && (
+          {selectedAnalysisType === "PMS" && (
             <PmsFields
               formData={formData}
               handleInputChange={handleInputChange as (field: string, value: any) => void}
