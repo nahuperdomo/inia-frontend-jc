@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Card,
   CardHeader,
@@ -33,6 +33,7 @@ import BrassicaFields from "@/app/registro/analisis/dosn/fields/fields-brassica"
 import CuscutaFields from "@/app/registro/analisis/dosn/fields/fileds-cuscuta"
 import CumplimientoEstandarFields from "@/app/registro/analisis/dosn/fields/fields-cumplio-estandar"
 import OtrosCultivosFields from "../../../../components/malezas-u-otros-cultivos/fields-otros-cultivos"
+import { usePersistentForm } from "@/lib/hooks/use-form-persistence"
 
 type Props = {
   formData: any
@@ -82,6 +83,48 @@ export default function DosnFields({
   const data = dosn || formData || {}
   const isReadOnly = !!modoDetalle
   const [activeTab, setActiveTab] = useState("generales")
+
+  // ✅ Persistencia de datos generales DOSN
+  const { formState: persistedDosn, updateField: updatePersistedField } = usePersistentForm({
+    storageKey: "dosn-datos-generales",
+    initialData: {
+      iniaFecha: data.iniaFecha || "",
+      iniaGramos: data.iniaGramos || "",
+      iniaCompleto: data.iniaCompleto || false,
+      iniaReducido: data.iniaReducido || false,
+      iniaLimitado: data.iniaLimitado || false,
+      iniaReducidoLimitado: data.iniaReducidoLimitado || false,
+      inaseFecha: data.inaseFecha || "",
+      inaseGramos: data.inaseGramos || "",
+      inaseCompleto: data.inaseCompleto || false,
+      inaseReducido: data.inaseReducido || false,
+      inaseLimitado: data.inaseLimitado || false,
+      inaseReducidoLimitado: data.inaseReducidoLimitado || false,
+      cumpleEstandar: data.cumpleEstandar || "",
+    }
+  })
+
+  // Sincronizar formData con persistencia (solo si no es modo detalle)
+  useEffect(() => {
+    if (!isReadOnly && handleInputChange) {
+      // Restaurar datos persistidos al formData del padre si están vacíos
+      Object.keys(persistedDosn).forEach((key) => {
+        if (!data[key] && persistedDosn[key]) {
+          handleInputChange(key, persistedDosn[key])
+        }
+      })
+    }
+  }, [])
+
+  // Función mejorada para manejar cambios con persistencia
+  const handleFieldChange = (field: string, value: any) => {
+    if (handleInputChange) {
+      handleInputChange(field, value)
+    }
+    if (!isReadOnly) {
+      updatePersistedField(field, value)
+    }
+  }
 
   const analysisTypes = [
     { key: "Completo", field: "Completo", description: "Análisis exhaustivo de todas las categorías" },
@@ -143,7 +186,7 @@ export default function DosnFields({
                 onChange={
                   isReadOnly
                     ? undefined
-                    : (e) => handleInputChange && handleInputChange(`${prefix}Fecha`, e.target.value)
+                    : (e) => handleFieldChange(`${prefix}Fecha`, e.target.value)
                 }
                 className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
                   mostrarValidacion && !fechaValida ? "border-red-500 bg-red-50" : ""
@@ -170,7 +213,7 @@ export default function DosnFields({
                 onChange={
                   isReadOnly
                     ? undefined
-                    : (e) => handleInputChange && handleInputChange(`${prefix}Gramos`, e.target.value)
+                    : (e) => handleFieldChange(`${prefix}Gramos`, e.target.value)
                 }
                 className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
                   mostrarValidacion && !gramosValidos ? "border-red-500 bg-red-50" : ""
@@ -210,8 +253,7 @@ export default function DosnFields({
                       onCheckedChange={
                         isReadOnly
                           ? undefined
-                          : (checked) =>
-                              handleInputChange && handleInputChange(fieldName, checked)
+                          : (checked) => handleFieldChange(fieldName, checked)
                       }
                       disabled={isReadOnly}
                       className="mt-1 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"

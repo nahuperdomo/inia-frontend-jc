@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Trash2, Plus, Leaf, AlertTriangle, CheckCircle, XCircle } from "lucide-react"
 import { obtenerMalezas } from "@/app/services/malezas-service"
 import { MalezasYCultivosCatalogoDTO } from "@/app/models"
+import { usePersistentArray } from "@/lib/hooks/use-form-persistence"
 
 type Maleza = {
   tipoMaleza: "MAL_TOLERANCIA" | "MAL_TOLERANCIA_CERO" | "MAL_COMUNES" | "NO_CONTIENE" | ""
@@ -26,17 +27,32 @@ type Props = {
 }
 
 export default function MalezaFields({ titulo, registros, onChangeListados }: Props) {
-  const [malezas, setMalezas] = useState<Maleza[]>(
-    registros && registros.length > 0
-      ? registros.map((r) => ({
+  const initialMalezas = registros && registros.length > 0
+    ? registros.map((r) => ({
         tipoMaleza: r.listadoTipo || "",
         listado: r.catalogo?.nombreComun || "",
         entidad: r.listadoInsti?.toLowerCase() || "",
         numero: r.listadoNum?.toString() || "",
         idCatalogo: r.catalogo?.catalogoID || null,
       }))
-      : [{ tipoMaleza: "", listado: "", entidad: "", numero: "", idCatalogo: null }]
+    : [{ tipoMaleza: "" as const, listado: "", entidad: "", numero: "", idCatalogo: null }]
+
+  // ✅ Usar persistencia solo si no hay registros precargados
+  const persistence = usePersistentArray<Maleza>(
+    `dosn-malezas-${titulo}`, // Clave única por título
+    initialMalezas
   )
+
+  const [malezas, setMalezas] = useState<Maleza[]>(
+    registros && registros.length > 0 ? initialMalezas : persistence.array
+  )
+
+  // Sincronizar con persistencia cuando cambie malezas (solo en modo creación)
+  useEffect(() => {
+    if (!registros || registros.length === 0) {
+      persistence.setArray(malezas)
+    }
+  }, [malezas])
 
 
   const [opcionesMalezas, setOpcionesMalezas] = useState<MalezasYCultivosCatalogoDTO[]>([])

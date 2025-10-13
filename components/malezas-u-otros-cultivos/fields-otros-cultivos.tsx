@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Trash2, Plus, Wheat, XCircle } from "lucide-react"
 import { obtenerCultivos } from "@/app/services/malezas-service"
 import { MalezasYCultivosCatalogoDTO } from "@/app/models"
+import { usePersistentArray } from "@/lib/hooks/use-form-persistence"
 
 type Cultivo = {
   contiene: "si" | "no" | ""
@@ -25,17 +26,32 @@ type Props = {
 }
 
 export default function OtrosCultivosFields({ registros, onChangeListados }: Props) {
-  const [cultivos, setCultivos] = useState<Cultivo[]>(
-    registros && registros.length > 0
-      ? registros.map((r) => ({
-        contiene: "si",
+  const initialCultivos = registros && registros.length > 0
+    ? registros.map((r) => ({
+        contiene: "si" as const,
         listado: r.catalogo?.nombreComun || "",
         entidad: r.listadoInsti?.toLowerCase() || "",
         numero: r.listadoNum?.toString() || "",
         idCatalogo: r.catalogo?.catalogoID ?? null,
       }))
-      : [{ contiene: "", listado: "", entidad: "", numero: "", idCatalogo: null }]
+    : [{ contiene: "" as const, listado: "", entidad: "", numero: "", idCatalogo: null }]
+
+  // ✅ Usar persistencia solo si no hay registros precargados
+  const persistence = usePersistentArray<Cultivo>(
+    "dosn-otros-cultivos",
+    initialCultivos
   )
+
+  const [cultivos, setCultivos] = useState<Cultivo[]>(
+    registros && registros.length > 0 ? initialCultivos : persistence.array
+  )
+
+  // Sincronizar con persistencia cuando cambie cultivos (solo en modo creación)
+  useEffect(() => {
+    if (!registros || registros.length === 0) {
+      persistence.setArray(cultivos)
+    }
+  }, [cultivos])
 
   const [opcionesCultivos, setOpcionesCultivos] = useState<MalezasYCultivosCatalogoDTO[]>([])
   const [loading, setLoading] = useState(true)

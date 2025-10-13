@@ -8,6 +8,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Trash2, Plus, Sprout, XCircle } from "lucide-react"
+import { usePersistentArray } from "@/lib/hooks/use-form-persistence"
 
 type Brassica = {
   contiene: "si" | "no" | ""
@@ -21,15 +22,31 @@ type Props = {
 }
 
 export default function BrassicaSection({ registros, onChangeListados }: Props) {
-  const [brassicas, setBrassicas] = useState<Brassica[]>(
-    registros && registros.length > 0
-      ? registros.map((r) => ({
-        contiene: "si",
+  const initialBrassicas = registros && registros.length > 0
+    ? registros.map((r) => ({
+        contiene: "si" as const,
         entidad: r.listadoInsti?.toLowerCase() || "",
         numero: r.listadoNum?.toString() || "",
       }))
-      : [{ contiene: "", entidad: "", numero: "" }]
+    : [{ contiene: "" as const, entidad: "", numero: "" }]
+
+  // ✅ Usar persistencia solo si no hay registros precargados
+  const persistence = usePersistentArray<Brassica>(
+    "dosn-brassicas",
+    initialBrassicas
   )
+
+  // Si hay registros precargados (modo edición), usar esos. Si no, usar persistencia
+  const [brassicas, setBrassicas] = useState<Brassica[]>(
+    registros && registros.length > 0 ? initialBrassicas : persistence.array
+  )
+
+  // Sincronizar con persistencia cuando cambie brassicas (solo en modo creación)
+  useEffect(() => {
+    if (!registros || registros.length === 0) {
+      persistence.setArray(brassicas)
+    }
+  }, [brassicas])
 
   // notificar cambios al padre
   useEffect(() => {

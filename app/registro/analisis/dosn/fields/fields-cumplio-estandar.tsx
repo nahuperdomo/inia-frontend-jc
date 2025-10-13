@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import {
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/select"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Calendar, CheckCircle2, XCircle } from "lucide-react"
+import { usePersistentForm } from "@/lib/hooks/use-form-persistence"
 
 type Props = {
   formData: any
@@ -18,6 +20,26 @@ type Props = {
 }
 
 export default function CumplimientoEstandar({ formData, handleInputChange }: Props) {
+  // ✅ Persistir el campo cumpleEstandar
+  const { formState: persistedData, updateField } = usePersistentForm<{ cumpleEstandar: string }>({
+    storageKey: "dosn-cumple-estandar",
+    initialData: {
+      cumpleEstandar: formData.cumpleEstandar || "",
+    }
+  })
+
+  const cumpleEstandar = formData.cumpleEstandar || persistedData.cumpleEstandar
+
+  // Sincronizar con persistencia
+  useEffect(() => {
+    updateField("cumpleEstandar", cumpleEstandar)
+  }, [cumpleEstandar])
+
+  const handleChange = (value: string) => {
+    handleInputChange("cumpleEstandar", value)
+    updateField("cumpleEstandar", value)
+  }
+
   return (
     <Card className="border-0 shadow-sm bg-white">
       <CardHeader className="pb-4">
@@ -33,8 +55,8 @@ export default function CumplimientoEstandar({ formData, handleInputChange }: Pr
           <div className="space-y-2">
             <Label className="text-sm font-medium">Estado de cumplimiento</Label>
             <Select
-              value={formData.cumpleEstandar || ""}
-              onValueChange={(val) => handleInputChange("cumpleEstandar", val)}
+              value={cumpleEstandar}
+              onValueChange={handleChange}
             >
               <SelectTrigger className="w-full h-11 border rounded-md shadow-sm transition-all duration-200 focus:ring-2 focus:ring-primary/20">
                 <SelectValue placeholder="Seleccionar estado" />

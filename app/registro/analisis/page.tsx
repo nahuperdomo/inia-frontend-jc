@@ -21,6 +21,7 @@ import { registrarAnalisis } from "@/app/services/analisis-service"
 import { crearGerminacion } from "@/app/services/germinacion-service"
 import { crearTetrazolio } from "@/app/services/tetrazolio-service"
 import PurezaFields from "./pureza/form-pureza"
+import { clearDosnStorage, clearGerminacionStorage, clearTetrazolioStorage, clearPurezaStorage } from "@/lib/utils/clear-form-storage"
 
 
 export type AnalysisFormData = {
@@ -662,6 +663,9 @@ if (!valido) {
           description: `Se ha creado el análisis para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
         });
 
+        // ✅ Limpiar storage de germinación
+        clearGerminacionStorage()
+
         setTimeout(() => {
           router.push(`/listado/analisis/germinacion/${result.analisisID}`);
         }, 1500);
@@ -682,6 +686,9 @@ if (!valido) {
           description: `Se ha creado el análisis para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
         });
 
+        // ✅ Limpiar storage de tetrazolio
+        clearTetrazolioStorage()
+
         setTimeout(() => {
           // Ruta de detalle existente; la ruta /editar no existe para tetrazolio
           router.push(`/listado/analisis/tetrazolio/${result.analisisID}`);
@@ -694,6 +701,13 @@ if (!valido) {
         toast.success('Análisis registrado exitosamente', {
           description: `Se ha registrado el análisis de ${getAnalysisTypeName(selectedAnalysisType)} para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
         });
+
+        // ✅ Limpiar storage según el tipo de análisis
+        if (selectedAnalysisType === "dosn") {
+          clearDosnStorage()
+        } else if (selectedAnalysisType === "pureza") {
+          clearPurezaStorage()
+        }
 
         // Redirigir según el tipo de análisis
         setTimeout(() => {

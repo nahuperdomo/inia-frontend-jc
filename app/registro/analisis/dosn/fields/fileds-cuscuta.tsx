@@ -7,20 +7,44 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { FlaskConical, CheckCircle2, XCircle } from "lucide-react"
+import { usePersistentForm } from "@/lib/hooks/use-form-persistence"
 
 type Props = {
   formData: any
   handleInputChange: (field: string, value: any) => void
 }
 
+type CuscutaData = {
+  gramos: string
+  numero: string
+  cumple: string
+}
+
 export default function CuscutaSection({ formData, handleInputChange }: Props) {
+  // ✅ Persistir datos de Cuscuta
+  const { formState: persistedData, updateField } = usePersistentForm<CuscutaData>({
+    storageKey: "dosn-cuscuta",
+    initialData: {
+      gramos: formData.cuscutaGramos || "",
+      numero: formData.cuscutaNumero || "",
+      cumple: formData.cuscutaCumple || "",
+    }
+  })
+
   const data = {
-    gramos: formData.cuscutaGramos || "",
-    numero: formData.cuscutaNumero || "",
-    cumple: formData.cuscutaCumple || "",
+    gramos: formData.cuscutaGramos || persistedData.gramos,
+    numero: formData.cuscutaNumero || persistedData.numero,
+    cumple: formData.cuscutaCumple || persistedData.cumple,
   }
 
-  const updateField = (field: string, value: string) => {
+  // Sincronizar con persistencia
+  useEffect(() => {
+    updateField("gramos", data.gramos)
+    updateField("numero", data.numero)
+    updateField("cumple", data.cumple)
+  }, [data.gramos, data.numero, data.cumple])
+
+  const updateFieldValue = (field: string, value: string) => {
     const fieldMap: { [key: string]: string } = {
       gramos: "cuscutaGramos",
       numero: "cuscutaNumero",
@@ -32,8 +56,12 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
       handleInputChange("cuscutaGramos", "")
       handleInputChange("cuscutaNumero", "")
       handleInputChange("cuscutaCumple", "no")
+      updateField("gramos", "")
+      updateField("numero", "")
+      updateField("cumple", "no")
     } else {
       handleInputChange(fieldMap[field], value)
+      updateField(field as keyof CuscutaData, value)
     }
   }
 
@@ -68,7 +96,7 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
           {/* Contiene o no contiene */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">¿Contiene Cuscuta?</Label>
-            <Select value={data.cumple} onValueChange={(val) => updateField("cumple", val)}>
+            <Select value={data.cumple} onValueChange={(val) => updateFieldValue("cumple", val)}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Seleccionar" />
               </SelectTrigger>
@@ -91,7 +119,7 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
               placeholder="Ej: 5.5"
               step="0.01"
               value={data.gramos}
-              onChange={(e) => updateField("gramos", e.target.value)}
+              onChange={(e) => updateFieldValue("gramos", e.target.value)}
               disabled={data.cumple === "no"}
               className="w-full"
             />
@@ -104,7 +132,7 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
               type="number"
               placeholder="Ej: 789"
               value={data.numero}
-              onChange={(e) => updateField("numero", e.target.value)}
+              onChange={(e) => updateFieldValue("numero", e.target.value)}
               disabled={data.cumple === "no"}
               className="w-full"
             />
