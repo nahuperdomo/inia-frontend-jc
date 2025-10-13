@@ -52,10 +52,22 @@ export const obtenerClientes = async (): Promise<ClienteOption[]> => {
 
 export const obtenerDepositos = async (): Promise<DepositoOption[]> => {
   try {
+    console.log("🔍 Llamando a /api/catalogo/depositos");
     const response = await apiFetch("/api/catalogo/depositos");
-    return response.map((item: any) => ({ id: item.id, nombre: item.valor })) || [];
+    console.log("📦 Response depositos:", response);
+    console.log("📦 Response type:", typeof response);
+    console.log("📦 Response isArray:", Array.isArray(response));
+    if (Array.isArray(response)) {
+      console.log("📦 Response length:", response.length);
+      if (response.length > 0) {
+        console.log("📦 First item:", response[0]);
+      }
+    }
+    const mapped = response.map((item: any) => ({ id: item.id, nombre: item.valor })) || [];
+    console.log("📦 Mapped depositos:", mapped);
+    return mapped;
   } catch (error) {
-    console.error("Error al obtener depósitos:", error);
+    console.error("❌ Error al obtener depósitos:", error);
     return [];
   }
 };
@@ -112,10 +124,20 @@ export const obtenerUnidadesEmbolsado = async (): Promise<UnidadEmbolsadoOption[
 
 export const obtenerArticulos = async (): Promise<ArticuloOption[]> => {
   try {
+    console.log("🔍 Llamando a /api/catalogo/articulos");
     const response = await apiFetch("/api/catalogo/articulos");
-    return response.map((item: any) => ({ id: item.id, nombre: item.valor })) || [];
+    console.log("📦 Response articulos:", response);
+    if (Array.isArray(response)) {
+      console.log("📦 Response length:", response.length);
+      if (response.length > 0) {
+        console.log("📦 First item:", response[0]);
+      }
+    }
+    const mapped = response.map((item: any) => ({ id: item.id, nombre: item.valor })) || [];
+    console.log("📦 Mapped articulos:", mapped);
+    return mapped;
   } catch (error) {
-    console.error("Error al obtener artículos:", error);
+    console.error("❌ Error al obtener artículos:", error);
     return [];
   }
 };

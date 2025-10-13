@@ -32,24 +32,12 @@ export default function ListadoLotesPage() {
         const loteResp = await obtenerLotesPaginadas(page, pageSize)
         const lotesData = loteResp.content || []
 
-        const lotesTransformed = lotesData.map((lote: any) => ({
-          id: lote.ficha || `#${lote.loteID}`,
-          empresa: lote.empresa || "INIA",
-          cultivo: lote.cultivo || "No especificado",
-          codigoCC: `CC-${lote.loteID}`,
-          codigoFT: `FT-${lote.loteID}`,
-          fechaRegistro: lote.fechaRegistro || new Date().toISOString(),
-          estado: lote.activo ? "Activo" : "Pendiente",
-          pureza: lote.pureza || 0,
-          observaciones: lote.observaciones || "",
-        }))
+        // No necesitamos transformar los datos, ya vienen como LoteSimpleDTO
+        setLotes(lotesData)
 
-        setLotes(lotesTransformed)
-
-        const meta = (loteResp as any).page || {}
-        setTotalPages(meta.totalPages ?? 1)
-        setTotalElements(meta.totalElements ?? (lotesData.length || 0))
-        setCurrentPage(meta.number ?? page)
+        setTotalPages(loteResp.totalPages ?? 1)
+        setTotalElements(loteResp.totalElements ?? (lotesData.length || 0))
+        setCurrentPage(loteResp.number ?? page)
       } catch (err) {
         console.error("Error fetching lotes:", err)
         setError("Error al cargar los lotes. Intente nuevamente más tarde.")
@@ -63,10 +51,12 @@ export default function ListadoLotesPage() {
 
   const filteredLotes = lotes.filter((lote) => {
     const matchesSearch =
-      lote.ficha.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lote.cultivarNombre || "").toLowerCase().includes(searchTerm.toLowerCase())
+      (lote.ficha || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (lote.cultivarNombre || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (lote.especieNombre || "").toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesEstado = filterEstado === "todos" || (lote.activo ? "Activo" : "Pendiente") === filterEstado
+    const estadoLote = lote.activo ? "Activo" : "Inactivo"
+    const matchesEstado = filterEstado === "todos" || estadoLote === filterEstado
     const matchesCultivo = filterCultivo === "todos" || (lote.cultivarNombre || "") === filterCultivo
 
     return matchesSearch && matchesEstado && matchesCultivo
@@ -202,7 +192,7 @@ export default function ListadoLotesPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por ficha, empresa o cultivar..."
+                  placeholder="Buscar por ficha, cultivar o especie..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -216,7 +206,7 @@ export default function ListadoLotesPage() {
               <SelectContent>
                 <SelectItem value="todos">Todos los estados</SelectItem>
                 <SelectItem value="Activo">Activo</SelectItem>
-                <SelectItem value="Pendiente">Inactivo</SelectItem>
+                <SelectItem value="Inactivo">Inactivo</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterCultivo} onValueChange={setFilterCultivo}>
@@ -225,8 +215,8 @@ export default function ListadoLotesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos los cultivos</SelectItem>
-                {cultivos.map((cultivo) => (
-                  <SelectItem key={cultivo} value={cultivo}>
+                {cultivos.map((cultivo, index) => (
+                  <SelectItem key={`cultivo-${index}-${cultivo}`} value={cultivo}>
                     {cultivo}
                   </SelectItem>
                 ))}
@@ -261,21 +251,16 @@ export default function ListadoLotesPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Ficha</TableHead>
-                    <TableHead>Empresa</TableHead>
                     <TableHead>Cultivar</TableHead>
                     <TableHead>Especie</TableHead>
-                    <TableHead>Código CC</TableHead>
-                    <TableHead>Código FT</TableHead>
-                    <TableHead>Fecha Registro</TableHead>
                     <TableHead>Estado</TableHead>
-                    <TableHead>Pureza (%)</TableHead>
                     <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8">
+                    <TableRow key="loading-row">
+                      <TableCell colSpan={5} className="text-center py-8">
                         <div className="flex flex-col items-center justify-center">
                           <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
                           <p className="text-muted-foreground">Cargando datos de lotes...</p>
@@ -283,27 +268,22 @@ export default function ListadoLotesPage() {
                       </TableCell>
                     </TableRow>
                   ) : filteredLotes.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8">
+                    <TableRow key="no-data-row">
+                      <TableCell colSpan={5} className="text-center py-8">
                         <p className="text-muted-foreground">No se encontraron lotes que coincidan con los criterios de búsqueda.</p>
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredLotes.map((lote) => (
                       <TableRow key={lote.loteID}>
-                        <TableCell className="font-medium">{lote.ficha}</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>{lote.cultivarNombre}</TableCell>
+                        <TableCell className="font-medium">{lote.ficha || "-"}</TableCell>
+                        <TableCell>{lote.cultivarNombre || "-"}</TableCell>
                         <TableCell>{lote.especieNombre || "-"}</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>-</TableCell>
                         <TableCell>
                           <Badge variant={lote.activo ? "default" : "destructive"}>
                             {lote.activo ? "Activo" : "Inactivo"}
                           </Badge>
                         </TableCell>
-                        <TableCell>-</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Link href={`/listado/lotes/${lote.loteID}`}>
@@ -346,11 +326,14 @@ export default function ListadoLotesPage() {
                     try {
                       const resp = await obtenerLotesPaginadas(p, pageSize)
                       const data = resp.content || []
-                      setLotes(data.map((lote: any) => ({ id: lote.ficha || `#${lote.loteID}`, empresa: lote.empresa || 'INIA', cultivo: lote.cultivo || 'No especificado', codigoCC: `CC-${lote.loteID}`, codigoFT: `FT-${lote.loteID}`, fechaRegistro: lote.fechaRegistro || new Date().toISOString(), estado: lote.activo ? 'Activo' : 'Pendiente', pureza: lote.pureza || 0, observaciones: lote.observaciones || '' })))
-                      const meta = (resp as any).page || {}
-                      setTotalPages(meta.totalPages ?? 1)
-                      setTotalElements(meta.totalElements ?? (data.length || 0))
-                      setCurrentPage(meta.number ?? p)
+
+                      // Usar directamente los objetos LoteSimpleDTO devueltos por el backend
+                      setLotes(data)
+
+                      // Actualizar metadatos de paginación desde la respuesta
+                      setTotalPages(resp.totalPages ?? 1)
+                      setTotalElements(resp.totalElements ?? (data.length || 0))
+                      setCurrentPage(resp.number ?? p)
                     } catch (err) {
                       console.error('Error recargando lotes paginados', err)
                       setError('Error al cargar los lote')

@@ -348,9 +348,9 @@ export default function EditarLotePage() {
                 <label className="text-sm font-medium text-muted-foreground">Tipos Originales</label>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {tiposOriginales.length > 0 ? (
-                    // Crear array único y usar timestamp para evitar keys duplicadas
+                    // Usar Set para eliminar duplicados y crear keys estables
                     [...new Set(tiposOriginales)].map((tipo, index) => (
-                      <Badge key={`original-${tipo}-${Date.now()}-${index}`} variant="secondary" className="text-xs">
+                      <Badge key={`original-${tipo}-${index}`} variant="secondary" className="text-xs">
                         {obtenerLabelTipoAnalisis(tipo)}
                       </Badge>
                     ))
@@ -364,9 +364,9 @@ export default function EditarLotePage() {
                 <label className="text-sm font-medium text-muted-foreground">Tipos Seleccionados</label>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {tiposSeleccionados.length > 0 ? (
-                    // Crear array único y usar timestamp para evitar keys duplicadas
+                    // Usar Set para eliminar duplicados y crear keys estables
                     [...new Set(tiposSeleccionados)].map((tipo, index) => (
-                      <Badge key={`seleccionado-${tipo}-${Date.now()}-${index}`} variant="default" className="text-xs">
+                      <Badge key={`seleccionado-${tipo}-${index}`} variant="default" className="text-xs">
                         {obtenerLabelTipoAnalisis(tipo)}
                       </Badge>
                     ))
