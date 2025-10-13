@@ -275,35 +275,70 @@ export default function EditarDosnPage() {
     const validateForm = (): boolean => {
       const newErrors: Record<string, string> = {}
 
-      // INIA: si existe fecha, debe existir gramos > 0; si existen gramos, debe existir fecha
-      if (formData.fechaINIA) {
-        if (!formData.gramosAnalizadosINIA || Number(formData.gramosAnalizadosINIA) <= 0) {
-          newErrors.gramosAnalizadosINIA = 'Ingrese gramos analizados INIA mayores que 0 o elimine la fecha'
-        }
-      }
-      if (formData.gramosAnalizadosINIA && Number(formData.gramosAnalizadosINIA) > 0) {
-        if (!formData.fechaINIA) {
-          newErrors.fechaINIA = 'Ingrese la fecha INIA correspondiente a los gramos'
-        }
+      // --- Helpers locales ---
+      const validarFecha = (fecha: string) => {
+        if (!fecha) return false
+        const f = new Date(fecha + "T00:00:00") // evita error por zona horaria
+        const hoy = new Date()
+        hoy.setHours(0, 0, 0, 0)
+        return !isNaN(f.getTime()) && f <= hoy
       }
 
-      // INASE: mismas reglas
-      if (formData.fechaINASE) {
-        if (!formData.gramosAnalizadosINASE || Number(formData.gramosAnalizadosINASE) <= 0) {
-          newErrors.gramosAnalizadosINASE = 'Ingrese gramos analizados INASE mayores que 0 o elimine la fecha'
-        }
-      }
-      if (formData.gramosAnalizadosINASE && Number(formData.gramosAnalizadosINASE) > 0) {
-        if (!formData.fechaINASE) {
-          newErrors.fechaINASE = 'Ingrese la fecha INASE correspondiente a los gramos'
-        }
+      const validarGramos = (valor: number | string) => {
+        const n = parseFloat(valor as string)
+        return !isNaN(n) && n > 0
       }
 
-      // Validar nuevos listados (si existen) - campos obligatorios ya verificadas al agregar, pero comprobación extra
+      const validarTiposAnalisis = (tipos: string[]) => {
+        return Array.isArray(tipos) && tipos.length > 0
+      }
+
+      // --- INIA ---
+      if (!validarTiposAnalisis(formData.tipoINIA)) {
+        newErrors.tipoINIA = "Debe seleccionar al menos un tipo de análisis para INIA"
+      }
+
+      if (!validarFecha(formData.fechaINIA)) {
+        newErrors.fechaINIA = "Ingrese una fecha válida (no futura) para INIA"
+      }
+
+      if (!validarGramos(formData.gramosAnalizadosINIA)) {
+        newErrors.gramosAnalizadosINIA = "Debe ingresar una cantidad válida de gramos (> 0) para INIA"
+      }
+
+      // --- INASE ---
+      if (!validarTiposAnalisis(formData.tipoINASE)) {
+        newErrors.tipoINASE = "Debe seleccionar al menos un tipo de análisis para INASE"
+      }
+
+      if (!validarFecha(formData.fechaINASE)) {
+        newErrors.fechaINASE = "Ingrese una fecha válida (no futura) para INASE"
+      }
+
+      if (!validarGramos(formData.gramosAnalizadosINASE)) {
+        newErrors.gramosAnalizadosINASE = "Debe ingresar una cantidad válida de gramos (> 0) para INASE"
+      }
+
+      // --- Reglas cruzadas opcionales ---
+      if (formData.fechaINIA && !formData.gramosAnalizadosINIA) {
+        newErrors.gramosAnalizadosINIA = "Si hay fecha, debe ingresar los gramos analizados para INIA"
+      }
+      if (formData.gramosAnalizadosINIA && !formData.fechaINIA) {
+        newErrors.fechaINIA = "Si hay gramos analizados, debe ingresar la fecha de INIA"
+      }
+
+      if (formData.fechaINASE && !formData.gramosAnalizadosINASE) {
+        newErrors.gramosAnalizadosINASE = "Si hay fecha, debe ingresar los gramos analizados para INASE"
+      }
+      if (formData.gramosAnalizadosINASE && !formData.fechaINASE) {
+        newErrors.fechaINASE = "Si hay gramos analizados, debe ingresar la fecha de INASE"
+      }
+
+      // --- Validar listados ---
       if (formData.listados && formData.listados.length > 0) {
         formData.listados.forEach((l, idx) => {
           if (!l.listadoTipo || !l.listadoInsti) {
-            newErrors[`listado_${idx}`] = 'Listado incompleto'
+            newErrors[`listado_${idx}`] = "Listado incompleto"
           }
         })
       }
@@ -311,6 +346,7 @@ export default function EditarDosnPage() {
       setErrors(newErrors)
       return Object.keys(newErrors).length === 0
     }
+
 
     if (!validateForm()) {
       toast.error('Corrija los errores del formulario antes de guardar')
@@ -356,7 +392,7 @@ export default function EditarDosnPage() {
         tipoINASE: formData.tipoINASE as any[],
         cuscuta_g: formData.cuscuta_g || undefined,
         cuscutaNum: formData.cuscutaNum || undefined,
-        fechaCuscuta: (formData.cuscuta_g > 0 || formData.cuscutaNum > 0) 
+        fechaCuscuta: (formData.cuscuta_g > 0 || formData.cuscutaNum > 0)
           ? (dosn.fechaCuscuta || new Date().toISOString().split('T')[0]) // Usar fecha existente o actual
           : undefined,
         listados: formData.listados.map((listado) => ({
@@ -550,157 +586,194 @@ export default function EditarDosnPage() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Análisis INIA */}
-          <Card className="border-blue-200 dark:border-blue-900/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-blue-100 dark:bg-blue-900/30">
-                  <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <span className="text-xl">Análisis INIA</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fechaINIA" className="text-sm font-medium">
-                    Fecha INIA
-                  </Label>
+        {/* Análisis INIA */}
+        <Card className="border-blue-200 dark:border-blue-900/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-blue-100 dark:bg-blue-900/30">
+                <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <span className="text-xl">Análisis INIA</span>
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="pt-6 space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Fecha INIA */}
+              <div className="space-y-2">
+                <Label htmlFor="fechaINIA" className="text-sm font-medium">
+                  Fecha INIA
+                </Label>
+                <Input
+                  id="fechaINIA"
+                  type="date"
+                  value={formData.fechaINIA}
+                  onChange={(e) => handleInputChange("fechaINIA", e.target.value)}
+                  className={`text-base ${errors.fechaINIA ? "border-red-500 bg-red-50" : ""}`}
+                />
+                {errors.fechaINIA && (
+                  <p className="text-sm text-destructive mt-1">{errors.fechaINIA}</p>
+                )}
+              </div>
+
+              {/* Gramos Analizados INIA */}
+              <div className="space-y-2">
+                <Label htmlFor="gramosAnalizadosINIA" className="text-sm font-medium">
+                  Gramos Analizados
+                </Label>
+                <div className="relative">
                   <Input
-                    id="fechaINIA"
-                    type="date"
-                    value={formData.fechaINIA}
-                    onChange={(e) => handleInputChange("fechaINIA", e.target.value)}
-                    className="text-base"
+                    id="gramosAnalizadosINIA"
+                    type="number"
+                    value={formData.gramosAnalizadosINIA === 0 ? "" : formData.gramosAnalizadosINIA}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "gramosAnalizadosINIA",
+                        e.target.value === "" ? 0 : Number.parseFloat(e.target.value) || 0
+                      )
+                    }
+                    placeholder="Ingrese gramos"
+                    min="0"
+                    step="0.01"
+                    className={`pr-10 text-base ${errors.gramosAnalizadosINIA ? "border-red-500 bg-red-50" : ""}`}
                   />
-                  {errors.fechaINIA && <p className="text-sm text-destructive mt-1">{errors.fechaINIA}</p>}
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
+                    g
+                  </span>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gramosAnalizadosINIA" className="text-sm font-medium">
-                    Gramos Analizados
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="gramosAnalizadosINIA"
-                      type="number"
-                      value={formData.gramosAnalizadosINIA === 0 ? "" : formData.gramosAnalizadosINIA}
-                      onChange={(e) =>
-                        handleInputChange("gramosAnalizadosINIA", e.target.value === "" ? 0 : Number.parseFloat(e.target.value) || 0)
-                      }
-                      placeholder="Ingrese gramos"
-                      min="0"
-                      step="0.01"
-                      className="pr-10 text-base"
+                {errors.gramosAnalizadosINIA && (
+                  <p className="text-sm text-destructive mt-1">{errors.gramosAnalizadosINIA}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Tipos de Análisis INIA */}
+            <div className="space-y-3">
+              <Label
+                className={`text-sm font-medium ${errors.tipoINIA ? "text-red-600" : ""
+                  }`}
+              >
+                Tipos de Análisis INIA
+              </Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {["COMPLETO", "REDUCIDO", "LIMITADO", "REDUCIDO_LIMITADO"].map((tipo) => (
+                  <div
+                    key={tipo}
+                    className={`flex items-center space-x-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors ${errors.tipoINIA ? "border-red-300 bg-red-50" : ""
+                      }`}
+                  >
+                    <Checkbox
+                      id={`inia-${tipo}`}
+                      checked={formData.tipoINIA.includes(tipo)}
+                      onCheckedChange={(checked) => handleTipoChange("INIA", tipo, !!checked)}
                     />
-                    {errors.gramosAnalizadosINIA && <p className="text-sm text-destructive mt-1">{errors.gramosAnalizadosINIA}</p>}
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
-                      g
-                    </span>
+                    <Label htmlFor={`inia-${tipo}`} className="text-sm font-medium cursor-pointer flex-1">
+                      {tipo === "REDUCIDO_LIMITADO" ? "Reducido Limitado" : tipo.charAt(0) + tipo.slice(1).toLowerCase()}
+                    </Label>
                   </div>
-                </div>
+                ))}
+              </div>
+              {errors.tipoINIA && (
+                <p className="text-sm text-destructive mt-1">{errors.tipoINIA}</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+
+        {/* Análisis INASE */}
+        <Card className="border-purple-200 dark:border-purple-900/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-purple-100 dark:bg-purple-900/30">
+                <Building2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <span className="text-xl">Análisis INASE</span>
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="pt-6 space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Fecha INASE */}
+              <div className="space-y-2">
+                <Label htmlFor="fechaINASE" className="text-sm font-medium">
+                  Fecha INASE
+                </Label>
+                <Input
+                  id="fechaINASE"
+                  type="date"
+                  value={formData.fechaINASE}
+                  onChange={(e) => handleInputChange("fechaINASE", e.target.value)}
+                  className={`text-base ${errors.fechaINASE ? "border-red-500 bg-red-50" : ""}`}
+                />
+                {errors.fechaINASE && (
+                  <p className="text-sm text-destructive mt-1">{errors.fechaINASE}</p>
+                )}
               </div>
 
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Tipos de Análisis INIA</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {["COMPLETO", "REDUCIDO", "LIMITADO", "REDUCIDO_LIMITADO"].map((tipo) => (
-                    <div
-                      key={tipo}
-                      className="flex items-center space-x-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                    >
-                      <Checkbox
-                        id={`inia-${tipo}`}
-                        checked={formData.tipoINIA.includes(tipo)}
-                        onCheckedChange={(checked) => handleTipoChange("INIA", tipo, !!checked)}
-                      />
-                      <Label htmlFor={`inia-${tipo}`} className="text-sm font-medium cursor-pointer flex-1">
-                        {tipo === "REDUCIDO_LIMITADO"
-                          ? "Reducido Limitado"
-                          : tipo.charAt(0) + tipo.slice(1).toLowerCase()}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Análisis INASE */}
-          <Card className="border-purple-200 dark:border-purple-900/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-purple-100 dark:bg-purple-900/30">
-                  <Building2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                </div>
-                <span className="text-xl">Análisis INASE</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fechaINASE" className="text-sm font-medium">
-                    Fecha INASE
-                  </Label>
+              {/* Gramos Analizados INASE */}
+              <div className="space-y-2">
+                <Label htmlFor="gramosAnalizadosINASE" className="text-sm font-medium">
+                  Gramos Analizados
+                </Label>
+                <div className="relative">
                   <Input
-                    id="fechaINASE"
-                    type="date"
-                    value={formData.fechaINASE}
-                    onChange={(e) => handleInputChange("fechaINASE", e.target.value)}
-                    className="text-base"
+                    id="gramosAnalizadosINASE"
+                    type="number"
+                    value={formData.gramosAnalizadosINASE === 0 ? "" : formData.gramosAnalizadosINASE}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "gramosAnalizadosINASE",
+                        e.target.value === "" ? 0 : Number.parseFloat(e.target.value) || 0
+                      )
+                    }
+                    placeholder="Ingrese gramos"
+                    min="0"
+                    step="0.01"
+                    className={`pr-10 text-base ${errors.gramosAnalizadosINASE ? "border-red-500 bg-red-50" : ""}`}
                   />
-                  {errors.fechaINASE && <p className="text-sm text-destructive mt-1">{errors.fechaINASE}</p>}
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
+                    g
+                  </span>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gramosAnalizadosINASE" className="text-sm font-medium">
-                    Gramos Analizados
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="gramosAnalizadosINASE"
-                      type="number"
-                      value={formData.gramosAnalizadosINASE === 0 ? "" : formData.gramosAnalizadosINASE}
-                      onChange={(e) =>
-                        handleInputChange("gramosAnalizadosINASE", e.target.value === "" ? 0 : Number.parseFloat(e.target.value) || 0)
-                      }
-                      placeholder="Ingrese gramos"
-                      min="0"
-                      step="0.01"
-                      className="pr-10 text-base"
-                    />
-                    {errors.gramosAnalizadosINASE && <p className="text-sm text-destructive mt-1">{errors.gramosAnalizadosINASE}</p>}
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
-                      g
-                    </span>
-                  </div>
-                </div>
+                {errors.gramosAnalizadosINASE && (
+                  <p className="text-sm text-destructive mt-1">{errors.gramosAnalizadosINASE}</p>
+                )}
               </div>
+            </div>
 
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Tipos de Análisis INASE</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {["COMPLETO", "REDUCIDO", "LIMITADO", "REDUCIDO_LIMITADO"].map((tipo) => (
-                    <div
-                      key={tipo}
-                      className="flex items-center space-x-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                    >
-                      <Checkbox
-                        id={`inase-${tipo}`}
-                        checked={formData.tipoINASE.includes(tipo)}
-                        onCheckedChange={(checked) => handleTipoChange("INASE", tipo, !!checked)}
-                      />
-                      <Label htmlFor={`inase-${tipo}`} className="text-sm font-medium cursor-pointer flex-1">
-                        {tipo === "REDUCIDO_LIMITADO"
-                          ? "Reducido Limitado"
-                          : tipo.charAt(0) + tipo.slice(1).toLowerCase()}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
+            {/* Tipos de Análisis INASE */}
+            <div className="space-y-3">
+              <Label
+                className={`text-sm font-medium ${errors.tipoINASE ? "text-red-600" : ""
+                  }`}
+              >
+                Tipos de Análisis INASE
+              </Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {["COMPLETO", "REDUCIDO", "LIMITADO", "REDUCIDO_LIMITADO"].map((tipo) => (
+                  <div
+                    key={tipo}
+                    className={`flex items-center space-x-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors ${errors.tipoINASE ? "border-red-300 bg-red-50" : ""
+                      }`}
+                  >
+                    <Checkbox
+                      id={`inase-${tipo}`}
+                      checked={formData.tipoINASE.includes(tipo)}
+                      onCheckedChange={(checked) => handleTipoChange("INASE", tipo, !!checked)}
+                    />
+                    <Label htmlFor={`inase-${tipo}`} className="text-sm font-medium cursor-pointer flex-1">
+                      {tipo === "REDUCIDO_LIMITADO" ? "Reducido Limitado" : tipo.charAt(0) + tipo.slice(1).toLowerCase()}
+                    </Label>
+                  </div>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              {errors.tipoINASE && (
+                <p className="text-sm text-destructive mt-1">{errors.tipoINASE}</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="border-orange-200 dark:border-orange-900/50">
           <CardHeader>
@@ -820,9 +893,9 @@ export default function EditarDosnPage() {
                       type="number"
                       value={newListado.listadoNum === 0 ? "" : newListado.listadoNum}
                       onChange={(e) =>
-                        setNewListado((prev) => ({ 
-                          ...prev, 
-                          listadoNum: e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0 
+                        setNewListado((prev) => ({
+                          ...prev,
+                          listadoNum: e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0
                         }))
                       }
                       min="0"
@@ -898,8 +971,8 @@ export default function EditarDosnPage() {
                     onClick={() => {
                       // Para brassicas, no requerimos idCatalogo
                       const isBrassica = newListado.listadoTipo === "BRASSICA"
-                      const hasRequiredFields = newListado.listadoTipo && 
-                        newListado.listadoInsti && 
+                      const hasRequiredFields = newListado.listadoTipo &&
+                        newListado.listadoInsti &&
                         (isBrassica || newListado.idCatalogo)
 
                       if (hasRequiredFields) {
@@ -961,8 +1034,8 @@ export default function EditarDosnPage() {
                         <TableCell>
                           <div>
                             <div className="font-medium">
-                              {listado.catalogoNombre || 
-                               (listado.listadoTipo === "BRASSICA" ? "Sin especificación" : "--")}
+                              {listado.catalogoNombre ||
+                                (listado.listadoTipo === "BRASSICA" ? "Sin especificación" : "--")}
                             </div>
                             <div className="text-sm text-muted-foreground italic">
                               {listado.catalogoCientifico}
