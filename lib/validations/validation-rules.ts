@@ -94,6 +94,23 @@ export const isValidDate = (value: string): string | null => {
 };
 
 /**
+ * Verifica si una fecha no es posterior a la fecha actual
+ */
+export const isPastOrPresent = (value: string): string | null => {
+    if (!value) return null;
+    const date = new Date(value);
+    const today = new Date();
+    
+    // Establecer la hora de today a las 23:59:59 para permitir fechas del día actual
+    today.setHours(23, 59, 59, 999);
+    
+    if (date > today) {
+        return 'La fecha no puede ser posterior a la fecha actual';
+    }
+    return null;
+};
+
+/**
  * Verifica si una fecha es posterior a otra
  */
 export const isAfterDate = (dateToCompare: string | Date, fieldName?: string) => (value: string): string | null => {

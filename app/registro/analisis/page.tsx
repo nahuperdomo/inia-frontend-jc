@@ -14,11 +14,15 @@ import Link from "next/link"
 
 import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
 import GerminacionFields from "@/app/registro/analisis/germinacion/form-germinacion"
+import PmsFields from "@/app/registro/analisis/pms/form-pms"
 import TetrazolioFields from "@/app/registro/analisis/tetrazolio/form-tetrazolio"
 import { obtenerLotesActivos } from "@/app/services/lote-service"
+import { obtenerLotesElegibles } from "@/app/services/lote-service"
 import { LoteSimpleDTO } from "@/app/models"
 import { registrarAnalisis } from "@/app/services/analisis-service"
 import { crearGerminacion } from "@/app/services/germinacion-service"
+import { crearPms } from "@/app/services/pms-service"
+import { TipoAnalisis } from "@/app/models/types/enums"
 import { crearTetrazolio } from "@/app/services/tetrazolio-service"
 import PurezaFields from "./pureza/form-pureza"
 import { clearDosnStorage, clearGerminacionStorage, clearTetrazolioStorage, clearPurezaStorage } from "@/lib/utils/clear-form-storage"
@@ -106,8 +110,13 @@ export type AnalysisFormData = {
   numeroRepeticiones: number
   numeroConteos: number
 
+  // PMS
+  numRepeticionesEsperadasPms: number
+  numTandas: number
+  esSemillaBrozosa: boolean
   // Tetrazolio
   fecha: string
+  numRepeticionesEsperadasTetrazolio: number
   numSemillasPorRep: number
   pretratamiento: string
   pretratamientoOtro: string
@@ -118,20 +127,19 @@ export type AnalysisFormData = {
   tincionTemp: number
   tincionTempOtro: string
   comentarios: string
-  numRepeticionesEsperadas: number
 }
 
 const analysisTypes = [
-  { id: "pureza", name: "Pureza Física", description: "Análisis de pureza física de semillas", icon: Search, color: "blue" },
-  { id: "germinacion", name: "Germinación", description: "Ensayos de germinación estándar", icon: Sprout, color: "green" },
-  { id: "pms", name: "Peso de Mil Semillas", description: "Determinación del peso de mil semillas", icon: Scale, color: "purple" },
-  { id: "tetrazolio", name: "Tetrazolio", description: "Ensayo de viabilidad y vigor", icon: TestTube, color: "orange" },
-  { id: "dosn", name: "DOSN", description: "Determinación de otras semillas nocivas", icon: Microscope, color: "red" },
+  { id: "PUREZA" as TipoAnalisis, name: "Pureza Física", description: "Análisis de pureza física de semillas", icon: Search, color: "blue" },
+  { id: "GERMINACION" as TipoAnalisis, name: "Germinación", description: "Ensayos de germinación estándar", icon: Sprout, color: "green" },
+  { id: "PMS" as TipoAnalisis, name: "Peso de Mil Semillas", description: "Determinación del peso de mil semillas", icon: Scale, color: "purple" },
+  { id: "TETRAZOLIO" as TipoAnalisis, name: "Tetrazolio", description: "Ensayo de viabilidad y vigor", icon: TestTube, color: "orange" },
+  { id: "DOSN" as TipoAnalisis, name: "DOSN", description: "Determinación de otras semillas nocivas", icon: Microscope, color: "red" },
 ]
 
 export default function RegistroAnalisisPage() {
+  const [selectedAnalysisType, setSelectedAnalysisType] = useState<TipoAnalisis | "">("");
   const router = useRouter()
-  const [selectedAnalysisType, setSelectedAnalysisType] = useState("");
   const [selectedLote, setSelectedLote] = useState("");
   // Estados para listados de malezas, cultivos y brassicas
   const [malezasList, setMalezasList] = useState<any[]>([]);
@@ -241,6 +249,10 @@ export default function RegistroAnalisisPage() {
     numDias: "",
     numeroRepeticiones: 1,
     numeroConteos: 0,
+    // PMS
+    numRepeticionesEsperadasPms: 8,
+    numTandas: 1,
+    esSemillaBrozosa: false,
     // Tetrazolio
     fecha: "",
     numSemillasPorRep: 0,
@@ -255,11 +267,8 @@ export default function RegistroAnalisisPage() {
     comentarios: "",
     numRepeticionesEsperadas: 2,
   });
-
   const [loading, setLoading] = useState(false)
-
-  // Función para obtener el nombre descriptivo del tipo de análisis
-  const getAnalysisTypeName = (typeId: string): string => {
+  const getAnalysisTypeName = (typeId: string | TipoAnalisis): string => {
     const analysisType = analysisTypes.find(type => type.id === typeId);
     return analysisType?.name || 'Desconocido';
   }
@@ -323,7 +332,7 @@ export default function RegistroAnalisisPage() {
       estado: "REGISTRADO",
     };
 
-  if (selectedAnalysisType === "dosn") {
+  if (selectedAnalysisType === "DOSN") {
 setMostrarValidacionDosn(true)
 
 const { valido, errores } = validarDosn(formData)
@@ -403,7 +412,7 @@ if (!valido) {
     } else {
       console.log(`✅ Se enviarán ${listados.length} listados al backend`);
     }
-  } else if (selectedAnalysisType === "pureza") {
+  } else if (selectedAnalysisType === "PUREZA") {
       // Debug: Verificar estado de la lista de malezas de pureza
       console.log("🔍 DEBUG - Malezas de pureza antes de procesar:", purezaMalezasList);
 
@@ -468,7 +477,7 @@ if (!valido) {
         malezasDetalladas: malezasDetalladas, // Incluir las malezas detalladas
         otrasSemillas: [] // Array vacío de otras semillas o añadir lógica para incluirlas
       };
-    } else if (selectedAnalysisType === "germinacion") {
+    } else if (selectedAnalysisType === "GERMINACION") {
       // Validaciones específicas para germinación
       if (!formData.fechaInicioGerm) {
         toast.error('Fecha de inicio requerida', {
@@ -553,8 +562,23 @@ if (!valido) {
         numeroRepeticiones: formData.numeroRepeticiones || 1,
         numeroConteos: formData.numeroConteos || 1,
       };
-    } else if (selectedAnalysisType === "tetrazolio") {
-      setMostrarValidacionTetrazolio(true)
+    } else if (selectedAnalysisType === "PMS") {
+      // Validaciones específicas para PMS
+      if (!formData.numRepeticionesEsperadasPms || formData.numRepeticionesEsperadasPms < 1) {
+        toast.error('Número de repeticiones inválido', {
+          description: 'El número de repeticiones esperadas debe ser mayor a 0.'
+        });
+        setLoading(false);
+        return;
+      }
+
+      payload = {
+        idLote: parseInt(formData.loteid), // Convertir a número
+        comentarios: formData.observaciones || "",
+        numRepeticionesEsperadas: formData.numRepeticionesEsperadasPms || 8,
+        esSemillaBrozosa: formData.esSemillaBrozosa || false,
+      };
+    } else if (selectedAnalysisType === "TETRAZOLIO") {
       // Validaciones específicas para tetrazolio
       if (!formData.fecha) {
         toast.error('Fecha del ensayo es requerida', {
@@ -570,7 +594,7 @@ if (!valido) {
         setLoading(false);
         return;
       }
-      if (!formData.numRepeticionesEsperadas || formData.numRepeticionesEsperadas < 2 || formData.numRepeticionesEsperadas > 8) {
+      if (!formData.numRepeticionesEsperadasTetrazolio || formData.numRepeticionesEsperadasTetrazolio < 2 || formData.numRepeticionesEsperadasTetrazolio > 8) {
         toast.error('Número de repeticiones inválido', {
           description: 'El número de repeticiones esperadas debe estar entre 2 y 8.'
         });
@@ -591,6 +615,7 @@ if (!valido) {
         setLoading(false);
         return;
       }
+      
       // Validar tiempo de tinción considerando que puede ser string o número
       const tincionHsValue = formData.tincionHs === "Otra (especificar)"
         ? parseFloat(formData.tincionHsOtro)
@@ -634,7 +659,7 @@ if (!valido) {
         concentracion: concentracionFinal,
         tincionHs: tincionHsFinal,
         tincionTemp: tincionTempFinal,
-        numRepeticionesEsperadas: formData.numRepeticionesEsperadas,
+        numRepeticionesEsperadas: formData.numRepeticionesEsperadasTetrazolio,
       };
     }
 
@@ -647,8 +672,9 @@ if (!valido) {
 
       console.log("Enviando payload:", payload);
 
-      if (selectedAnalysisType === "germinacion") {
-        // Verificar autenticación antes de crear germinación
+      // PRUEBA: Intentar hacer una llamada a un endpoint que sabemos que funciona
+      if (selectedAnalysisType === "GERMINACION") {
+        console.log("🧪 PRUEBA: Vamos a probar primero obtener lotes para verificar auth...");
         try {
           const lotesTest = await obtenerLotesActivos();
           console.log("✅ Test de auth exitoso - lotes obtenidos:", lotesTest.length);
@@ -669,8 +695,19 @@ if (!valido) {
         setTimeout(() => {
           router.push(`/listado/analisis/germinacion/${result.analisisID}`);
         }, 1500);
+      } else if (selectedAnalysisType === "PMS") {
+        console.log("🚀 Intentando crear PMS...");
+        const result = await crearPms(payload);
 
-      } else if (selectedAnalysisType === "tetrazolio") {
+        toast.success('Análisis de PMS registrado exitosamente', {
+          description: `Se ha creado el análisis para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
+        });
+
+        // Redirigir a la página de edición del análisis creado
+        setTimeout(() => {
+          window.location.href = `/listado/analisis/pms/${result.analisisID}/editar`;
+        }, 1500);
+      } else if (selectedAnalysisType === "TETRAZOLIO") {
         // Verificar autenticación antes de crear tetrazolio
         try {
           const lotesTest = await obtenerLotesActivos();
@@ -693,7 +730,6 @@ if (!valido) {
           // Ruta de detalle existente; la ruta /editar no existe para tetrazolio
           router.push(`/listado/analisis/tetrazolio/${result.analisisID}`);
         }, 1500);
-
       } else {
         // Registrar otros tipos (DOSN, Pureza, etc.)
         const result = await registrarAnalisis(payload, selectedAnalysisType);
@@ -703,25 +739,22 @@ if (!valido) {
         });
 
         // ✅ Limpiar storage según el tipo de análisis
-        if (selectedAnalysisType === "dosn") {
+        if (selectedAnalysisType === "DOSN") {
           clearDosnStorage()
-        } else if (selectedAnalysisType === "pureza") {
+        } else if (selectedAnalysisType === "PUREZA") {
           clearPurezaStorage()
         }
 
         // Redirigir según el tipo de análisis
         setTimeout(() => {
-          if (selectedAnalysisType === "dosn") {
+          if (selectedAnalysisType === "DOSN") {
             router.push(`/listado/analisis/dosn/${result.analisisID}`);
-          } else if (selectedAnalysisType === "pureza") {
+          } else if (selectedAnalysisType === "PUREZA") {
             router.push(`/listado/analisis/pureza/${result.analisisID}`);
           } else {
             router.push(`/listado/analisis/${selectedAnalysisType}/${result.analisisID}`);
           }
         }, 1500);
-        toast.success('Análisis registrado exitosamente', {
-          description: `Se ha registrado el análisis de ${getAnalysisTypeName(selectedAnalysisType)} para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
-        });
       }
     } catch (err: any) {
       console.error("Error al registrar análisis:", err);
@@ -739,27 +772,46 @@ if (!valido) {
   }
 
   const [lotes, setLotes] = useState<LoteSimpleDTO[]>([])
-  const [lotesLoading, setLotesLoading] = useState(true)
+  const [lotesLoading, setLotesLoading] = useState(false)
   const [lotesError, setLotesError] = useState<string | null>(null)
 
+  // Cargar lotes cuando cambia el tipo de análisis
   useEffect(() => {
     const fetchLotes = async () => {
+      if (!selectedAnalysisType) {
+        setLotes([]);
+        return;
+      }
+
       setLotesLoading(true)
       setLotesError(null)
+      setSelectedLote("") // Limpiar selección de lote al cambiar tipo
+
       try {
-        const data = await obtenerLotesActivos()
+        const data = await obtenerLotesElegibles(selectedAnalysisType as TipoAnalisis);
         setLotes(data)
+        
+        if (data.length === 0) {
+          toast.info('Sin lotes elegibles', {
+            description: `No hay lotes elegibles para análisis de ${getAnalysisTypeName(selectedAnalysisType)}. Esto puede ocurrir si no hay lotes con este tipo de análisis asignado o si todos ya tienen análisis completados.`,
+          });
+        }
       } catch (err) {
-        const errorMsg = "No se pudieron cargar los lotes disponibles";
+        const errorMsg = "No se pudieron cargar los lotes elegibles";
         setLotesError(errorMsg)
         toast.error('Error al cargar lotes', {
-          description: 'No se pudieron obtener los lotes disponibles. Intente recargar la página.',
+          description: 'No se pudieron obtener los lotes elegibles para este análisis. Intente recargar la página.',
         });
       } finally {
         setLotesLoading(false)
       }
     }
     fetchLotes()
+  }, [selectedAnalysisType])
+
+  // Función original para casos donde necesitemos todos los lotes
+  useEffect(() => {
+    // Esta función ya no se usa automáticamente, pero la mantenemos por si es necesaria
   }, [])
 
   const selectedLoteInfo = selectedLote ? lotes.find((l) => l.loteID.toString() === selectedLote) : null
@@ -838,23 +890,35 @@ if (!valido) {
                       });
                     }
                   }}
+                  disabled={!selectedAnalysisType}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar lote existente" />
+                    <SelectValue 
+                      placeholder={
+                        !selectedAnalysisType 
+                          ? "Primero selecciona un tipo de análisis"
+                          : "Seleccionar lote elegible"
+                      } 
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {lotesLoading && <SelectItem value="loading" disabled>Cargando lotes...</SelectItem>}
+                    {lotesLoading && <SelectItem value="loading" disabled>Cargando lotes elegibles...</SelectItem>}
                     {lotesError && <SelectItem value="error" disabled>{lotesError}</SelectItem>}
+                    {!lotesLoading && !lotesError && lotes.length === 0 && selectedAnalysisType && (
+                      <SelectItem value="no-elegibles" disabled>
+                        No hay lotes elegibles para este análisis
+                      </SelectItem>
+                    )}
                     {!lotesLoading && !lotesError && lotes.map((lote) => (
                       <SelectItem key={lote.loteID} value={lote.loteID.toString()}>
-                        {lote.ficha} (ID: {lote.loteID})
+                        {lote.ficha} (ID: {lote.loteID}){lote.cultivarNombre ? ` - ${lote.cultivarNombre}` : ''}{lote.especieNombre ? ` (${lote.especieNombre})` : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              {selectedAnalysisType !== "pureza" && (
+              {selectedAnalysisType !== "PUREZA" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="observaciones">Observaciones</Label>
@@ -885,13 +949,57 @@ if (!valido) {
                       <span className="text-muted-foreground">ID:</span>
                       <span>{selectedLoteInfo.loteID}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Número Ficha:</span>
-                      <span>{selectedLoteInfo.numeroFicha}</span>
-                    </div>
+                    {selectedLoteInfo.cultivarNombre && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Cultivar:</span>
+                        <span>{selectedLoteInfo.cultivarNombre}</span>
+                      </div>
+                    )}
+                    {selectedLoteInfo.especieNombre && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Especie:</span>
+                        <span>{selectedLoteInfo.especieNombre}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Activo:</span>
                       <span>{selectedLoteInfo.activo ? "Sí" : "No"}</span>
+                    </div>
+                    {selectedAnalysisType && (
+                      <div className="mt-3 pt-3 border-t">
+                        <div className="text-xs text-green-600 font-medium mb-1">
+                          ✅ Este lote es elegible para {getAnalysisTypeName(selectedAnalysisType)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Tiene el tipo de análisis asignado y no tiene análisis completados del mismo tipo.
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Información sobre filtrado de lotes */}
+              {selectedAnalysisType && (
+                <Card className="bg-blue-50 border-blue-200">
+                  <CardContent className="pt-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-200">
+                        <TestTube className="h-4 w-4 text-blue-700" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-blue-900 mb-2">Filtrado de Lotes Elegibles</h4>
+                        <div className="space-y-1 text-sm text-blue-800">
+                          <div>• Solo se muestran lotes que tienen {getAnalysisTypeName(selectedAnalysisType)} asignado</div>
+                          <div>• Excluye lotes con análisis completados de este tipo</div>
+                          <div>• Incluye lotes con análisis "A repetir" del mismo tipo</div>
+                          {lotes.length === 0 && !lotesLoading && (
+                            <div className="text-amber-700 font-medium mt-2">
+                              ⚠️ No hay lotes elegibles disponibles
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -899,14 +1007,14 @@ if (!valido) {
             </div>
           </div>
 
-          {selectedAnalysisType === "pureza" && (
+          {selectedAnalysisType === "PUREZA" && (
             <PurezaFields
               formData={formData}
               handleInputChange={(field, value) => handleInputChange(field as keyof AnalysisFormData, value)}
               onChangeMalezas={handlePurezaMalezasChange}
             />
           )}
-          {selectedAnalysisType === "dosn" && (
+          {selectedAnalysisType === "DOSN" && (
             <DosnFields
               formData={formData}
               handleInputChange={handleInputChange as (field: string, value: any) => void}
@@ -916,14 +1024,19 @@ if (!valido) {
               mostrarValidacion={mostrarValidacionDosn}
             />
           )}
-
-          {selectedAnalysisType === "germinacion" && (
+          {selectedAnalysisType === "GERMINACION" && (
             <GerminacionFields
               formData={formData}
               handleInputChange={handleInputChange as (field: string, value: any) => void}
             />
           )}
-          {selectedAnalysisType === "tetrazolio" && (
+          {selectedAnalysisType === "PMS" && (
+            <PmsFields
+              formData={formData}
+              handleInputChange={handleInputChange as (field: string, value: any) => void}
+            />
+          )}
+          {selectedAnalysisType === "TETRAZOLIO" && (
             <TetrazolioFields
               formData={formData}
               handleInputChange={handleInputChange as (field: string, value: any) => void}
@@ -953,6 +1066,4 @@ if (!valido) {
     </div>
   )
 }
-// Note: previous accidental helper function removed. All error handling uses `toast` from sonner and
-// local component state (e.g., mostrarValidacionDosn / errors in child components).
 

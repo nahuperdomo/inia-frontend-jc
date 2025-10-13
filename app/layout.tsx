@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { AuthProvider } from "@/components/auth-provider"
 import { LoadingProvider } from "@/components/loading-provider"
 import { NotificationProvider } from "@/components/notificaciones"
+import { QueryProvider } from "@/components/providers/query-provider"
 import { Suspense } from "react"
 import "./globals.css"
 
@@ -36,16 +37,18 @@ export default function RootLayout({
       </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <Suspense fallback={<div>Loading...</div>}>
-          <LoadingProvider>
-            <AuthProvider>
-              <NotificationProvider
-                autoRefreshInterval={30000}
-                enableAutoRefresh={true}
-              >
-                {children}
-              </NotificationProvider>
-            </AuthProvider>
-          </LoadingProvider>
+          <QueryProvider>
+            <LoadingProvider>
+              <AuthProvider>
+                <NotificationProvider
+                  autoRefreshInterval={30000}
+                  enableAutoRefresh={true}
+                >
+                  {children}
+                </NotificationProvider>
+              </AuthProvider>
+            </LoadingProvider>
+          </QueryProvider>
         </Suspense>
         <Analytics />
       </body>

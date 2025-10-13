@@ -14,8 +14,8 @@ export async function crearPms(solicitud: PmsRequestDTO): Promise<PmsDTO> {
 }
 
 export async function obtenerTodosPms(): Promise<PmsDTO[]> {
-  const res = await apiFetch("/api/pms") as ResponseListadoPms;
-  return res.pmss || [];
+  const res = await apiFetch("/api/pms") as PmsDTO[];
+  return res || [];
 }
 
 export async function obtenerPmsPorId(id: number): Promise<PmsDTO> {
@@ -58,5 +58,12 @@ export async function aprobarAnalisis(id: number): Promise<PmsDTO> {
 export async function marcarParaRepetir(id: number): Promise<PmsDTO> {
   return apiFetch(`/api/pms/${id}/repetir`, {
     method: "PUT",
+  });
+}
+
+export async function actualizarPmsConRedondeo(id: number, pmsconRedon: number): Promise<PmsDTO> {
+  return apiFetch(`/api/pms/${id}/redondeo`, {
+    method: "PUT",
+    body: JSON.stringify({ pmsconRedon }),
   });
 }

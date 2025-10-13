@@ -1,10 +1,14 @@
 "use client"
+import { useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import FormField from "@/components/ui/form-field"
 import FormSelect from "@/components/ui/form-select"
 import { LoteFormData } from "@/lib/validations/lotes-validation"
-import { CatalogoDTO, ContactoDTO, CultivarDTO } from "@/app/models"
+import { DatosHumedadManager } from "./datos-humedad-manager"
+import { TiposAnalisisSelector } from "./tipos-analisis-selector"
+import { useAllCatalogs } from "@/lib/hooks/useCatalogs"
+import { TipoAnalisis } from "@/app/models/types/enums"
 
 interface LotFormTabsProps {
   formData: LoteFormData
@@ -14,17 +18,6 @@ interface LotFormTabsProps {
   handleBlur: (field: string) => void
   hasError: (field: string) => boolean
   getErrorMessage: (field: string) => string
-  // Catalog data
-  cultivares: CultivarDTO[]
-  empresas: ContactoDTO[]
-  clientes: ContactoDTO[]
-  depositos: any[] // Cambiar tipo para manejar respuesta real del backend
-  tiposHumedad: any[] // Cambiar tipo para manejar respuesta real del backend
-  origenes: any[] // Cambiar tipo para manejar respuesta real del backend
-  estados: any[] // Cambiar tipo para manejar respuesta real del backend
-  numerosArticulo?: any[] // Cambiar tipo para manejar respuesta real del backend
-  tipoOptions: { id: string, nombre: string }[]
-  unidadesEmbolsado: { id: string, nombre: string }[]
   // Loading states
   isLoading?: boolean
 }
@@ -37,61 +30,117 @@ export function LotFormTabs({
   handleBlur,
   hasError,
   getErrorMessage,
-  // Catalog data
-  cultivares,
-  empresas,
-  clientes,
-  depositos,
-  tiposHumedad,
-  origenes,
-  estados,
-  numerosArticulo = [],
-  tipoOptions,
-  unidadesEmbolsado,
   // Loading state
   isLoading = false
 }: LotFormTabsProps) {
-  // Map backend data to the format expected by FormSelect
-  const cultivaresOptions = cultivares.map(cultivar => ({
-    id: cultivar.cultivarID,
-    nombre: cultivar.nombre
-  }));
+  // Use React Query hook for all catalogs - centralized caching
+  const { data: catalogsData, isLoading: catalogsLoading, isError } = useAllCatalogs()
 
-  const empresasOptions = empresas.map(empresa => ({
-    id: empresa.contactoID,
-    nombre: empresa.nombre
-  }));
+  // Opciones estáticas
+  const tipoOptions = useMemo(() => [
+    { id: "INTERNO", nombre: "Interno" },
+    { id: "EXTERNO", nombre: "Externo" }
+  ], [])
 
-  const clientesOptions = clientes.map(cliente => ({
-    id: cliente.contactoID,
-    nombre: cliente.nombre
-  }));
+  // Función para manejar cambios sin validación automática
+  const handleInputChange = (field: keyof LoteFormData, value: any) => {
+    onInputChange(field, value)
+  }
 
-  // Mapeo que maneja la estructura real del backend
-  const depositosOptions = depositos.map((deposito: any) => ({
-    id: deposito.id,
-    nombre: deposito.valor
-  }));
+  // Memoized options to avoid recalculating on every render
+  const cultivaresOptions = useMemo(() => 
+    catalogsData.cultivares.map(cultivar => ({
+      id: cultivar.id,
+      nombre: cultivar.nombre
+    })), [catalogsData.cultivares])
 
-  const tiposHumedadOptions = tiposHumedad.map((tipo: any) => ({
-    id: tipo.id,
-    nombre: tipo.valor
-  }));
+  const empresasOptions = useMemo(() => 
+    catalogsData.empresas.map(empresa => ({
+      id: empresa.id,
+      nombre: empresa.nombre
+    })), [catalogsData.empresas])
 
-  const origenesOptions = origenes.map((origen: any) => ({
-    id: origen.id,
-    nombre: origen.valor
-  }));
+  const clientesOptions = useMemo(() => 
+    catalogsData.clientes.map(cliente => ({
+      id: cliente.id,
+      nombre: cliente.nombre
+    })), [catalogsData.clientes])
 
-  const estadosOptions = estados.map((estado: any) => ({
-    id: estado.id,
-    nombre: estado.valor
-  }));
+  const depositosOptions = useMemo(() => 
+    catalogsData.depositos.map((deposito: any) => ({
+      id: deposito.id,
+      nombre: deposito.nombre
+    })), [catalogsData.depositos])
 
-  const numerosArticuloOptions = numerosArticulo.map((num: any) => ({
-    id: num.id,
-    nombre: num.valor
-  }));
+  const tiposHumedadOptions = useMemo(() => 
+    catalogsData.tiposHumedad.map((tipo: any) => ({
+      id: tipo.id,
+      nombre: tipo.nombre
+    })), [catalogsData.tiposHumedad])
+
+  const origenesOptions = useMemo(() => 
+    catalogsData.origenes.map((origen: any) => ({
+      id: origen.id,
+      nombre: origen.nombre
+    })), [catalogsData.origenes])
+
+  const estadosOptions = useMemo(() => 
+    catalogsData.estados.map((estado: any) => ({
+      id: estado.id,
+      nombre: estado.nombre
+    })), [catalogsData.estados])
+
+  const articulosOptions = useMemo(() => 
+    catalogsData.articulos.map((articulo: any) => ({
+      id: articulo.id,
+      nombre: articulo.nombre
+    })), [catalogsData.articulos])
+
+  const unidadesEmbolsadoOptions = useMemo(() => 
+    catalogsData.unidadesEmbolsado.map((unidad: any) => ({
+      id: unidad.id,
+      nombre: unidad.nombre
+    })), [catalogsData.unidadesEmbolsado])
+
+  // Show loading state while catalogs are being fetched
+  if (catalogsLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Registro - Lotes</CardTitle>
+          <CardDescription>Complete la información del lote en las siguientes pestañas</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Cargando catálogos...</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Show error state if catalogs failed to load
+  if (isError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Registro - Lotes</CardTitle>
+          <CardDescription>Complete la información del lote en las siguientes pestañas</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <p className="text-destructive mb-4">Error al cargar los catálogos</p>
+              <p className="text-muted-foreground">Por favor, recarga la página</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card>
@@ -112,21 +161,10 @@ export function LotFormTabs({
           <TabsContent value="datos" className="space-y-4 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
-                id="numeroFicha"
-                label="Número de ficha"
-                type="number"
-                value={formData.numeroFicha}
-                onChange={(e) => onInputChange("numeroFicha", e.target.value === "" ? "" : Number(e.target.value))}
-                onBlur={() => handleBlur("numeroFicha")}
-                error={hasError("numeroFicha") ? getErrorMessage("numeroFicha") : undefined}
-                required={true}
-              />
-
-              <FormField
                 id="ficha"
                 label="Ficha"
                 value={formData.ficha}
-                onChange={(e) => onInputChange("ficha", e.target.value)}
+                onChange={(e) => handleInputChange("ficha", e.target.value)}
                 onBlur={() => handleBlur("ficha")}
                 error={hasError("ficha") ? getErrorMessage("ficha") : undefined}
                 required={true}
@@ -136,18 +174,19 @@ export function LotFormTabs({
                 id="cultivarID"
                 label="Cultivar"
                 value={formData.cultivarID}
-                onChange={(value) => onInputChange("cultivarID", value === "" ? "" : Number(value))}
+                onChange={(value) => handleInputChange("cultivarID", value === "" ? "" : Number(value))}
                 onBlur={() => handleBlur("cultivarID")}
                 options={cultivaresOptions}
                 error={hasError("cultivarID") ? getErrorMessage("cultivarID") : undefined}
                 required={true}
-                placeholder={isLoading ? "Cargando..." : "Seleccionar cultivar"}
-                disabled={isLoading}
-              />              <FormSelect
+                placeholder="Seleccionar cultivar"
+              />
+
+              <FormSelect
                 id="tipo"
                 label="Tipo"
                 value={formData.tipo}
-                onChange={(value) => onInputChange("tipo", value)}
+                onChange={(value) => handleInputChange("tipo", value)}
                 onBlur={() => handleBlur("tipo")}
                 options={tipoOptions}
                 error={hasError("tipo") ? getErrorMessage("tipo") : undefined}
@@ -164,33 +203,31 @@ export function LotFormTabs({
                 id="empresaID"
                 label="Empresa"
                 value={formData.empresaID}
-                onChange={(value) => onInputChange("empresaID", value === "" ? "" : Number(value))}
+                onChange={(value) => handleInputChange("empresaID", value === "" ? "" : Number(value))}
                 onBlur={() => handleBlur("empresaID")}
                 options={empresasOptions}
                 error={hasError("empresaID") ? getErrorMessage("empresaID") : undefined}
                 required={true}
-                placeholder={isLoading ? "Cargando..." : "Seleccionar empresa"}
-                disabled={isLoading}
+                placeholder="Seleccionar empresa"
               />
 
               <FormSelect
                 id="clienteID"
                 label="Cliente"
                 value={formData.clienteID}
-                onChange={(value) => onInputChange("clienteID", value === "" ? "" : Number(value))}
+                onChange={(value) => handleInputChange("clienteID", value === "" ? "" : Number(value))}
                 onBlur={() => handleBlur("clienteID")}
                 options={clientesOptions}
                 error={hasError("clienteID") ? getErrorMessage("clienteID") : undefined}
                 required={true}
-                placeholder={isLoading ? "Cargando..." : "Seleccionar cliente"}
-                disabled={isLoading}
+                placeholder="Seleccionar cliente"
               />
 
               <FormField
                 id="codigoCC"
                 label="Código CC"
                 value={formData.codigoCC}
-                onChange={(e) => onInputChange("codigoCC", e.target.value)}
+                onChange={(e) => handleInputChange("codigoCC", e.target.value)}
                 onBlur={() => handleBlur("codigoCC")}
                 error={hasError("codigoCC") ? getErrorMessage("codigoCC") : undefined}
               />
@@ -199,7 +236,7 @@ export function LotFormTabs({
                 id="codigoFF"
                 label="Código FF"
                 value={formData.codigoFF}
-                onChange={(e) => onInputChange("codigoFF", e.target.value)}
+                onChange={(e) => handleInputChange("codigoFF", e.target.value)}
                 onBlur={() => handleBlur("codigoFF")}
                 error={hasError("codigoFF") ? getErrorMessage("codigoFF") : undefined}
               />
@@ -214,7 +251,7 @@ export function LotFormTabs({
                 label="Fecha de entrega"
                 type="date"
                 value={formData.fechaEntrega}
-                onChange={(e) => onInputChange("fechaEntrega", e.target.value)}
+                onChange={(e) => handleInputChange("fechaEntrega", e.target.value)}
                 onBlur={() => handleBlur("fechaEntrega")}
                 error={hasError("fechaEntrega") ? getErrorMessage("fechaEntrega") : undefined}
                 required={true}
@@ -225,7 +262,7 @@ export function LotFormTabs({
                 label="Fecha de recibo"
                 type="date"
                 value={formData.fechaRecibo}
-                onChange={(e) => onInputChange("fechaRecibo", e.target.value)}
+                onChange={(e) => handleInputChange("fechaRecibo", e.target.value)}
                 onBlur={() => handleBlur("fechaRecibo")}
                 error={hasError("fechaRecibo") ? getErrorMessage("fechaRecibo") : undefined}
                 required={true}
@@ -235,33 +272,31 @@ export function LotFormTabs({
                 id="depositoID"
                 label="Depósito"
                 value={formData.depositoID}
-                onChange={(value) => onInputChange("depositoID", value === "" ? "" : Number(value))}
+                onChange={(value) => handleInputChange("depositoID", value === "" ? "" : Number(value))}
                 onBlur={() => handleBlur("depositoID")}
                 options={depositosOptions}
                 error={hasError("depositoID") ? getErrorMessage("depositoID") : undefined}
                 required={true}
-                placeholder={isLoading ? "Cargando..." : "Seleccionar depósito"}
-                disabled={isLoading}
+                placeholder="Seleccionar depósito"
               />
 
               <FormSelect
                 id="unidadEmbolsado"
-                label="Unidad de embalado"
+                label="Unidad de embolsado"
                 value={formData.unidadEmbolsado}
-                onChange={(value) => onInputChange("unidadEmbolsado", value)}
+                onChange={(value) => handleInputChange("unidadEmbolsado", value)}
                 onBlur={() => handleBlur("unidadEmbolsado")}
-                options={unidadesEmbolsado}
+                options={unidadesEmbolsadoOptions}
                 error={hasError("unidadEmbolsado") ? getErrorMessage("unidadEmbolsado") : undefined}
                 required={true}
-                placeholder={isLoading ? "Cargando..." : "Seleccionar unidad"}
-                disabled={isLoading}
+                placeholder="Seleccionar unidad"
               />
 
               <FormField
                 id="remitente"
                 label="Remitente"
                 value={formData.remitente}
-                onChange={(e) => onInputChange("remitente", e.target.value)}
+                onChange={(e) => handleInputChange("remitente", e.target.value)}
                 onBlur={() => handleBlur("remitente")}
                 error={hasError("remitente") ? getErrorMessage("remitente") : undefined}
                 required={true}
@@ -271,7 +306,7 @@ export function LotFormTabs({
                 id="observaciones"
                 label="Observaciones"
                 value={formData.observaciones}
-                onChange={(e) => onInputChange("observaciones", e.target.value)}
+                onChange={(e) => handleInputChange("observaciones", e.target.value)}
                 onBlur={() => handleBlur("observaciones")}
                 error={hasError("observaciones") ? getErrorMessage("observaciones") : undefined}
               />
@@ -280,114 +315,100 @@ export function LotFormTabs({
 
           {/* Calidad y producción Tab */}
           <TabsContent value="calidad" className="space-y-4 mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                id="kilosLimpios"
-                label="Kilos limpios"
-                type="number"
-                value={formData.kilosLimpios}
-                onChange={(e) => onInputChange("kilosLimpios", e.target.value === "" ? "" : Number(e.target.value))}
-                onBlur={() => handleBlur("kilosLimpios")}
-                error={hasError("kilosLimpios") ? getErrorMessage("kilosLimpios") : undefined}
-                required={true}
-              />
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  id="kilosLimpios"
+                  label="Kilos limpios"
+                  type="number"
+                  value={formData.kilosLimpios}
+                  onChange={(e) => handleInputChange("kilosLimpios", e.target.value === "" ? "" : Number(e.target.value))}
+                  onBlur={() => handleBlur("kilosLimpios")}
+                  error={hasError("kilosLimpios") ? getErrorMessage("kilosLimpios") : undefined}
+                  required={true}
+                />
 
-              <FormSelect
-                id="tipoHumedadID"
-                label="Tipo de humedad"
-                value={formData.datosHumedad[0]?.tipoHumedadID || ""}
-                onChange={(value) => {
-                  const newDatos = [...formData.datosHumedad]
-                  newDatos[0] = {
-                    ...newDatos[0],
-                    tipoHumedadID: value === "" ? "" : Number(value)
-                  }
-                  onInputChange("datosHumedad", newDatos)
-                }}
-                onBlur={() => handleBlur("tipoHumedadID")}
-                options={tiposHumedadOptions}
-                error={hasError("tipoHumedadID") ? getErrorMessage("tipoHumedadID") : undefined}
-                placeholder={isLoading ? "Cargando..." : "Seleccionar tipo de humedad"}
-                disabled={isLoading}
-              />
+                <FormSelect
+                  id="numeroArticuloID"
+                  label="Número Artículo"
+                  value={formData.numeroArticuloID}
+                  onChange={(value) => handleInputChange("numeroArticuloID", value)}
+                  onBlur={() => handleBlur("numeroArticuloID")}
+                  options={articulosOptions}
+                  error={hasError("numeroArticuloID") ? getErrorMessage("numeroArticuloID") : undefined}
+                  required={true}
+                  placeholder="Seleccionar artículo"
+                />
 
-              <FormField
-                id="valorHumedad"
-                label="Valor humedad (%)"
-                type="number"
-                step="0.1"
-                value={formData.datosHumedad[0]?.valor ?? ""}
-                onChange={(e) => {
-                  const newDatos = [...formData.datosHumedad]
-                  newDatos[0] = {
-                    ...newDatos[0],
-                    valor: e.target.value === "" ? "" : Number(e.target.value)
-                  }
-                  onInputChange("datosHumedad", newDatos)
-                }}
-                onBlur={() => handleBlur("valorHumedad")}
-                error={hasError("valorHumedad") ? getErrorMessage("valorHumedad") : undefined}
-              />
+                <FormField
+                  id="cantidad"
+                  label="Cantidad"
+                  type="number"
+                  step="0.01"
+                  value={formData.cantidad}
+                  onChange={(e) => handleInputChange("cantidad", e.target.value === "" ? "" : Number(e.target.value))}
+                  onBlur={() => handleBlur("cantidad")}
+                  error={hasError("cantidad") ? getErrorMessage("cantidad") : undefined}
+                  required={true}
+                />
 
-              <FormField
-                id="numeroArticuloID"
-                label="Número Artículo"
-                type="number"
-                value={formData.numeroArticuloID}
-                onChange={(e) => onInputChange("numeroArticuloID", e.target.value === "" ? "" : Number(e.target.value))}
-                onBlur={() => handleBlur("numeroArticuloID")}
-                error={hasError("numeroArticuloID") ? getErrorMessage("numeroArticuloID") : undefined}
-              />
+                <FormSelect
+                  id="origenID"
+                  label="Origen"
+                  value={formData.origenID}
+                  onChange={(value) => handleInputChange("origenID", value === "" ? "" : Number(value))}
+                  onBlur={() => handleBlur("origenID")}
+                  options={origenesOptions}
+                  error={hasError("origenID") ? getErrorMessage("origenID") : undefined}
+                  required={true}
+                  placeholder="Seleccionar origen"
+                />
 
-              <FormField
-                id="cantidad"
-                label="Cantidad"
-                type="number"
-                step="0.01"
-                value={formData.cantidad}
-                onChange={(e) => onInputChange("cantidad", e.target.value === "" ? "" : Number(e.target.value))}
-                onBlur={() => handleBlur("cantidad")}
-                error={hasError("cantidad") ? getErrorMessage("cantidad") : undefined}
-                required={true}
-              />
+                <FormSelect
+                  id="estadoID"
+                  label="Estado"
+                  value={formData.estadoID}
+                  onChange={(value) => handleInputChange("estadoID", value === "" ? "" : Number(value))}
+                  onBlur={() => handleBlur("estadoID")}
+                  options={estadosOptions}
+                  error={hasError("estadoID") ? getErrorMessage("estadoID") : undefined}
+                  required={true}
+                  placeholder="Seleccionar estado"
+                />
 
-              <FormSelect
-                id="origenID"
-                label="Origen"
-                value={formData.origenID}
-                onChange={(value) => onInputChange("origenID", value === "" ? "" : Number(value))}
-                onBlur={() => handleBlur("origenID")}
-                options={origenesOptions}
-                error={hasError("origenID") ? getErrorMessage("origenID") : undefined}
-                required={true}
-                placeholder={isLoading ? "Cargando..." : "Seleccionar origen"}
-                disabled={isLoading}
-              />
+                <FormField
+                  id="fechaCosecha"
+                  label="Fecha de cosecha"
+                  type="date"
+                  value={formData.fechaCosecha}
+                  onChange={(e) => handleInputChange("fechaCosecha", e.target.value)}
+                  onBlur={() => handleBlur("fechaCosecha")}
+                  error={hasError("fechaCosecha") ? getErrorMessage("fechaCosecha") : undefined}
+                  required={true}
+                />
+              </div>
 
-              <FormSelect
-                id="estadoID"
-                label="Estado"
-                value={formData.estadoID}
-                onChange={(value) => onInputChange("estadoID", value === "" ? "" : Number(value))}
-                onBlur={() => handleBlur("estadoID")}
-                options={estadosOptions}
-                error={hasError("estadoID") ? getErrorMessage("estadoID") : undefined}
-                required={true}
-                placeholder={isLoading ? "Cargando..." : "Seleccionar estado"}
-                disabled={isLoading}
-              />
+              {/* Selector de tipos de análisis */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Tipos de Análisis <span className="text-red-500">*</span>
+                </label>
+                <TiposAnalisisSelector
+                  tiposSeleccionados={formData.tiposAnalisisAsignados || []}
+                  onChange={(tipos) => handleInputChange("tiposAnalisisAsignados", tipos)}
+                  error={hasError("tiposAnalisisAsignados") ? getErrorMessage("tiposAnalisisAsignados") : undefined}
+                />
+              </div>
 
-              <FormField
-                id="fechaCosecha"
-                label="Fecha de cosecha"
-                type="date"
-                value={formData.fechaCosecha}
-                onChange={(e) => onInputChange("fechaCosecha", e.target.value)}
-                onBlur={() => handleBlur("fechaCosecha")}
-                error={hasError("fechaCosecha") ? getErrorMessage("fechaCosecha") : undefined}
-                required={true}
+              {/* Componente para gestionar datos de humedad */}
+              <DatosHumedadManager
+                datos={formData.datosHumedad}
+                onChange={(datos) => handleInputChange("datosHumedad", datos)}
+                tiposHumedad={catalogsData.tiposHumedad}
+                hasError={hasError}
+                getErrorMessage={getErrorMessage}
               />
-            </div>
+            </>
           </TabsContent>
         </Tabs>
       </CardContent>

@@ -14,35 +14,21 @@ import { LotList } from "@/components/lotes/lot-list"
 import { LotDetailsModal } from "@/components/lotes/lot-details-modal"
 import { AnalysisModal } from "@/components/lotes/analysis-modal"
 
-import { createLote, getLotes } from "@/app/services/lotes-service"
+import { crearLote, obtenerLotesActivos } from "@/app/services/lote-service"
 import { LoteFormData, loteValidationSchema } from "@/lib/validations/lotes-validation"
+import { LoteRequestDTO } from "@/app/models/interfaces/lote"
 import useValidation from "@/lib/hooks/useValidation"
-import { obtenerCatalogosParaLotes, tipoOptions, unidadesEmbolsadoOptions } from "@/app/services/lote-catalogs-service"
 
 export default function RegistroLotesPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const [isCatalogsLoading, setIsCatalogsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("datos")
   const [selectedLot, setSelectedLot] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showAnalysisModal, setShowAnalysisModal] = useState(false)
 
-  // Estado para catálogos
-  const [catalogsData, setCatalogsData] = useState({
-    cultivares: [] as any[],
-    empresas: [] as any[],
-    clientes: [] as any[],
-    depositos: [] as any[],
-    tiposHumedad: [] as any[],
-    origenes: [] as any[],
-    estados: [] as any[],
-    numerosArticulo: [] as any[]
-  })
-
   // Estado inicial del formulario
   const initialFormData: LoteFormData = {
-    numeroFicha: "",
     ficha: "",
     cultivarID: "",
     tipo: "INTERNO",
@@ -68,6 +54,7 @@ export default function RegistroLotesPage() {
     origenID: "",
     estadoID: "",
     fechaCosecha: "",
+    tiposAnalisisAsignados: [],
   };
 
   const [formData, setFormData] = useState<LoteFormData>(initialFormData);
@@ -87,31 +74,15 @@ export default function RegistroLotesPage() {
 
   useEffect(() => {
     loadRecentLots();
-    loadCatalogData();
   }, []);
 
   const loadRecentLots = async () => {
     try {
-      const response = await getLotes();
+      const response = await obtenerLotesActivos();
       setRecentLots(response);
       console.log("Lotes recientes cargados:", response);
     } catch (error) {
       console.error('Error al cargar lotes:', error);
-    }
-  };
-
-  const loadCatalogData = async () => {
-    setIsCatalogsLoading(true);
-    try {
-      const catalogs = await obtenerCatalogosParaLotes();
-      setCatalogsData(catalogs);
-    } catch (error) {
-      console.error('Error al cargar catálogos:', error);
-      toast.error('Error al cargar datos de catálogos', {
-        description: 'No se pudieron cargar algunos datos necesarios para el formulario',
-      });
-    } finally {
-      setIsCatalogsLoading(false);
     }
   };
 
@@ -136,9 +107,8 @@ export default function RegistroLotesPage() {
     setIsLoading(true);
     try {
       // Transformar los datos del formulario al formato esperado por el backend
-      const loteData = {
+      const loteData: LoteRequestDTO = {
         ...formData,
-        numeroFicha: Number(formData.numeroFicha),
         cultivarID: Number(formData.cultivarID),
         empresaID: Number(formData.empresaID),
         clienteID: Number(formData.clienteID),
@@ -151,15 +121,16 @@ export default function RegistroLotesPage() {
         fechaEntrega: formData.fechaEntrega,
         fechaRecibo: formData.fechaRecibo,
         fechaCosecha: formData.fechaCosecha,
+        tiposAnalisisAsignados: formData.tiposAnalisisAsignados,
         datosHumedad: formData.datosHumedad.map(h => ({
           tipoHumedadID: Number(h.tipoHumedadID),
           valor: Number(h.valor)
         }))
       };
 
-      const response = await createLote(loteData);
+      const response = await crearLote(loteData);
       toast.success('Lote registrado exitosamente', {
-        description: `Se ha creado el lote con número de ficha ${formData.numeroFicha}`,
+        description: `Se ha creado el lote con ficha ${formData.ficha}`,
       });
 
       // Limpiamos el formulario
@@ -237,13 +208,6 @@ export default function RegistroLotesPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-6">
-          {isCatalogsLoading && (
-            <div className="flex flex-col items-center justify-center p-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-              <p className="text-muted-foreground">Cargando datos de catálogos...</p>
-            </div>
-          )}
-
           <LotFormTabs
             formData={formData}
             onInputChange={handleInputChange}
@@ -252,19 +216,8 @@ export default function RegistroLotesPage() {
             handleBlur={(field) => handleBlur(field, formData[field as keyof LoteFormData], formData)}
             hasError={hasError}
             getErrorMessage={getErrorMessage}
-            // Catalog data
-            cultivares={catalogsData.cultivares}
-            empresas={catalogsData.empresas}
-            clientes={catalogsData.clientes}
-            depositos={catalogsData.depositos}
-            tiposHumedad={catalogsData.tiposHumedad}
-            origenes={catalogsData.origenes}
-            estados={catalogsData.estados}
-            numerosArticulo={catalogsData.numerosArticulo}
-            tipoOptions={tipoOptions}
-            unidadesEmbolsado={unidadesEmbolsadoOptions}
             // Loading state
-            isLoading={isCatalogsLoading}
+            isLoading={isLoading}
           />
 
           {/* Submit Button */}

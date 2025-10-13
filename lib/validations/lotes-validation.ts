@@ -3,6 +3,7 @@
  */
 
 import { ValidationSchema } from '../hooks/useValidation';
+import { TipoAnalisis } from '@/app/models/types/enums';
 import {
     required,
     isNumber,
@@ -12,6 +13,7 @@ import {
     maxLength,
     pattern,
     isValidDate,
+    isPastOrPresent,
     compose
 } from './validation-rules';
 
@@ -19,7 +21,6 @@ import {
  * Tipo para los datos del formulario de lotes
  */
 export interface LoteFormData {
-    numeroFicha: number | "";
     ficha: string;
     cultivarID: number | "";
     tipo: string;
@@ -43,6 +44,7 @@ export interface LoteFormData {
     origenID: number | "";
     estadoID: number | "";
     fechaCosecha: string;
+    tiposAnalisisAsignados: TipoAnalisis[];
 }
 
 /**
@@ -50,11 +52,6 @@ export interface LoteFormData {
  */
 export const loteValidationSchema: ValidationSchema<LoteFormData> = {
     // Pestaña "datos"
-    numeroFicha: compose([
-        required,
-        isNumber,
-        minValue(1)
-    ]),
     ficha: compose([
         required,
         minLength(2),
@@ -85,7 +82,8 @@ export const loteValidationSchema: ValidationSchema<LoteFormData> = {
     ]),
     fechaRecibo: compose([
         required,
-        isValidDate
+        isValidDate,
+        isPastOrPresent
     ]),
     depositoID: compose([
         required,
@@ -118,7 +116,13 @@ export const loteValidationSchema: ValidationSchema<LoteFormData> = {
     fechaCosecha: compose([
         required,
         isValidDate
-    ])
+    ]),
+    tiposAnalisisAsignados: (value: TipoAnalisis[]) => {
+        if (!value || value.length === 0) {
+            return 'Debe seleccionar al menos un tipo de análisis';
+        }
+        return null;
+    }
 };
 
 /**

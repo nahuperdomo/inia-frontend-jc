@@ -35,30 +35,6 @@ export function DatosSection({
             <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Número de referencia</Label>
-                        {isEditMode ? (
-                            <Input
-                                value={editFormData.numeroReferencia || ""}
-                                onChange={(e) => handleEditFormChange("numeroReferencia", e.target.value)}
-                                className="mt-1"
-                            />
-                        ) : (
-                            <div className="font-semibold">{lot.numeroReferencia}</div>
-                        )}
-                    </div>
-                    <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Número de ficha</Label>
-                        {isEditMode ? (
-                            <Input
-                                value={editFormData.numeroFicha?.toString() || ""}
-                                onChange={(e) => handleEditFormChange("numeroFicha", e.target.value)}
-                                className="mt-1"
-                            />
-                        ) : (
-                            <div className="font-semibold">{lot.numeroFicha}</div>
-                        )}
-                    </div>
-                    <div>
                         <Label className="text-sm font-medium text-muted-foreground">Ficha</Label>
                         {isEditMode ? (
                             <Input
@@ -71,15 +47,15 @@ export function DatosSection({
                         )}
                     </div>
                     <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Lote</Label>
+                        <Label className="text-sm font-medium text-muted-foreground">Código CC</Label>
                         {isEditMode ? (
                             <Input
-                                value={editFormData.lote || ""}
-                                onChange={(e) => handleEditFormChange("lote", e.target.value)}
+                                value={editFormData.codigoCC || ""}
+                                onChange={(e) => handleEditFormChange("codigoCC", e.target.value)}
                                 className="mt-1"
                             />
                         ) : (
-                            <div className="font-semibold">{lot.lote}</div>
+                            <div className="font-semibold">{lot.codigoCC}</div>
                         )}
                     </div>
                     <div>
@@ -107,33 +83,24 @@ export function DatosSection({
                         )}
                     </div>
                     <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Especie</Label>
+                        <Label className="text-sm font-medium text-muted-foreground">Empresa</Label>
                         {isEditMode ? (
-                            <Select
-                                value={editFormData.especieNombre || ""}
-                                onValueChange={(value) => handleEditFormChange("especieNombre", value)}
-                            >
-                                <SelectTrigger className="mt-1">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {especies.map((especie) => (
-                                        <SelectItem key={especie} value={especie}>
-                                            {especie}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Input
+                                value={editFormData.empresaNombre || ""}
+                                onChange={(e) => handleEditFormChange("empresaNombre", e.target.value)}
+                                className="mt-1"
+                                readOnly
+                            />
                         ) : (
-                            <div className="font-semibold">{lot.especieNombre}</div>
+                            <div className="font-semibold">{lot.empresaNombre || "-"}</div>
                         )}
                     </div>
                     <div>
                         <Label className="text-sm font-medium text-muted-foreground">Origen</Label>
                         {isEditMode ? (
                             <Select
-                                value={editFormData.origen || ""}
-                                onValueChange={(value) => handleEditFormChange("origen", value)}
+                                value={editFormData.origenValor || ""}
+                                onValueChange={(value) => handleEditFormChange("origenValor", value)}
                             >
                                 <SelectTrigger className="mt-1">
                                     <SelectValue />
@@ -147,7 +114,7 @@ export function DatosSection({
                                 </SelectContent>
                             </Select>
                         ) : (
-                            <div className="font-semibold">{lot.origen}</div>
+                            <div className="font-semibold">{lot.origenValor}</div>
                         )}
                     </div>
                 </div>

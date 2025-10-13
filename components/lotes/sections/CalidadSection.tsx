@@ -21,20 +21,20 @@ export function CalidadSection({ lot }: CalidadSectionProps) {
             <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Kilos brutos</Label>
-                        <div className="font-semibold">{lot.kilosBrutos ? `${lot.kilosBrutos} kg` : "-"}</div>
-                    </div>
-                    <div>
                         <Label className="text-sm font-medium text-muted-foreground">Kilos limpios</Label>
                         <div className="font-semibold">{lot.kilosLimpios ? `${lot.kilosLimpios} kg` : "-"}</div>
                     </div>
                     <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Humedad (%)</Label>
-                        <div className="font-semibold">{lot.humedad || "-"}</div>
+                        <Label className="text-sm font-medium text-muted-foreground">Cantidad</Label>
+                        <div className="font-semibold">{lot.cantidad ? `${lot.cantidad}` : "-"}</div>
                     </div>
                     <div>
-                        <Label className="text-sm font-medium text-muted-foreground">CatSeed</Label>
-                        <div className="font-semibold">{lot.catSeed || "-"}</div>
+                        <Label className="text-sm font-medium text-muted-foreground">Depósito</Label>
+                        <div className="font-semibold">{lot.depositoValor || "-"}</div>
+                    </div>
+                    <div>
+                        <Label className="text-sm font-medium text-muted-foreground">Estado</Label>
+                        <div className="font-semibold">{lot.estadoValor || "-"}</div>
                     </div>
                 </div>
             </CardContent>
