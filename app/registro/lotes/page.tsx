@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Package, Loader2 } from "lucide-react"
@@ -16,6 +16,7 @@ import { AnalysisModal } from "@/components/lotes/analysis-modal"
 
 import { createLote, getLotes } from "@/app/services/lotes-service"
 import { LoteFormData, loteValidationSchema } from "@/lib/validations/lotes-validation"
+import { LoteRequestDTO } from "@/app/models/interfaces/lote"
 import useValidation from "@/lib/hooks/useValidation"
 import { obtenerCatalogosParaLotes, tipoOptions, unidadesEmbolsadoOptions } from "@/app/services/lote-catalogs-service"
 
@@ -42,7 +43,6 @@ export default function RegistroLotesPage() {
 
   // Estado inicial del formulario
   const initialFormData: LoteFormData = {
-    numeroFicha: "",
     ficha: "",
     cultivarID: "",
     tipo: "INTERNO",
@@ -115,9 +115,9 @@ export default function RegistroLotesPage() {
     }
   };
 
-  const handleInputChange = (field: keyof LoteFormData, value: any) => {
+  const handleInputChange = useCallback((field: keyof LoteFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,9 +136,8 @@ export default function RegistroLotesPage() {
     setIsLoading(true);
     try {
       // Transformar los datos del formulario al formato esperado por el backend
-      const loteData = {
+      const loteData: LoteRequestDTO = {
         ...formData,
-        numeroFicha: Number(formData.numeroFicha),
         cultivarID: Number(formData.cultivarID),
         empresaID: Number(formData.empresaID),
         clienteID: Number(formData.clienteID),
@@ -159,7 +158,7 @@ export default function RegistroLotesPage() {
 
       const response = await createLote(loteData);
       toast.success('Lote registrado exitosamente', {
-        description: `Se ha creado el lote con número de ficha ${formData.numeroFicha}`,
+        description: `Se ha creado el lote con ficha ${formData.ficha}`,
       });
 
       // Limpiamos el formulario
@@ -252,18 +251,6 @@ export default function RegistroLotesPage() {
             handleBlur={(field) => handleBlur(field, formData[field as keyof LoteFormData], formData)}
             hasError={hasError}
             getErrorMessage={getErrorMessage}
-            // Catalog data
-            cultivares={catalogsData.cultivares}
-            empresas={catalogsData.empresas}
-            clientes={catalogsData.clientes}
-            depositos={catalogsData.depositos}
-            tiposHumedad={catalogsData.tiposHumedad}
-            origenes={catalogsData.origenes}
-            estados={catalogsData.estados}
-            numerosArticulo={catalogsData.numerosArticulo}
-            tipoOptions={tipoOptions}
-            unidadesEmbolsado={unidadesEmbolsadoOptions}
-            // Loading state
             isLoading={isCatalogsLoading}
           />
 

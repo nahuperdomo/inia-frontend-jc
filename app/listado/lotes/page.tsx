@@ -10,25 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { obtenerLotesActivos } from "@/app/services/lote-service"
-import { LoteSimpleDTO } from "@/app/models"
-
-interface Lote {
-  id: string
-  empresa: string
-  cultivo: string
-  codigoCC: string
-  codigoFT: string
-  fechaRegistro: string
-  estado: "Activo" | "En análisis" | "Completado" | "Pendiente"
-  pureza: number
-  observaciones: string
-}
+import { LoteSimpleDTO, LoteDTO } from "@/app/models"
 
 export default function ListadoLotesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState<string>("todos")
   const [filterCultivo, setFilterCultivo] = useState<string>("todos")
-  const [lotes, setLotes] = useState<Lote[]>([])
+  const [lotes, setLotes] = useState<LoteDTO[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -39,18 +27,23 @@ export default function ListadoLotesPage() {
         const lotesData = await obtenerLotesActivos()
 
         // Transform API data to component format
-        // Note: Some fields might not be available from the API, so we use placeholders
-        const lotesTransformed = lotesData.map((lote: LoteSimpleDTO) => ({
-          id: lote.ficha || `#${lote.loteID}`,
-          empresa: "INIA", // Placeholder - not available in LoteSimpleDTO
-          cultivo: "No especificado", // Placeholder - not available in LoteSimpleDTO
-          codigoCC: `CC-${lote.loteID}`, // Placeholder - not available in LoteSimpleDTO
-          codigoFT: `FT-${lote.loteID}`, // Placeholder - not available in LoteSimpleDTO
-          fechaRegistro: new Date().toISOString(), // Placeholder - not available in LoteSimpleDTO
-          estado: lote.activo ? "Activo" : "Pendiente" as any,
-          pureza: 0, // Placeholder - would need to fetch from pureza analysis
-          observaciones: "", // Placeholder - not available in LoteSimpleDTO
-        }))
+        const lotesTransformed: LoteDTO[] = lotesData.map((lote: LoteSimpleDTO) => ({
+          loteID: lote.loteID,
+          ficha: lote.ficha,
+          fechaIngreso: new Date().toISOString(), // Placeholder
+          cultivarID: 0, // Placeholder
+          cultivarNombre: lote.cultivarNombre || "No especificado",
+          empresaID: 0, // Placeholder
+          empresaNombre: "INIA", // Placeholder
+          especieNombre: lote.especieNombre || "",
+          codigoCC: `CC-${lote.loteID}`, // Placeholder
+          codigoFF: `FF-${lote.loteID}`, // Placeholder
+          fechaCreacion: new Date().toISOString(), // Placeholder
+          estado: lote.activo ? "ACTIVO" : "INACTIVO" as any,
+          activo: lote.activo,
+          datosHumedad: [], // Placeholder
+          observaciones: "", // Placeholder
+        } as LoteDTO))
 
         setLotes(lotesTransformed)
       } catch (err) {
@@ -66,32 +59,17 @@ export default function ListadoLotesPage() {
 
   const filteredLotes = lotes.filter((lote) => {
     const matchesSearch =
-      lote.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lote.empresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lote.cultivo.toLowerCase().includes(searchTerm.toLowerCase())
+      lote.ficha.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (lote.empresaNombre || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (lote.cultivarNombre || "").toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesEstado = filterEstado === "todos" || lote.estado === filterEstado
-    const matchesCultivo = filterCultivo === "todos" || lote.cultivo === filterCultivo
+    const matchesEstado = filterEstado === "todos" || (lote.activo ? "Activo" : "Pendiente") === filterEstado
+    const matchesCultivo = filterCultivo === "todos" || (lote.cultivarNombre || "") === filterCultivo
 
     return matchesSearch && matchesEstado && matchesCultivo
   })
 
-  const getEstadoBadgeVariant = (estado: string) => {
-    switch (estado) {
-      case "Activo":
-        return "default"
-      case "En análisis":
-        return "secondary"
-      case "Completado":
-        return "outline"
-      case "Pendiente":
-        return "destructive"
-      default:
-        return "outline"
-    }
-  }
-
-  const cultivos = [...new Set(lotes.map((lote) => lote.cultivo))]
+  const cultivos = [...new Set(lotes.map((lote) => lote.cultivarNombre || "").filter(Boolean))]
 
   return (
     <div className="p-6 space-y-6">
@@ -156,7 +134,7 @@ export default function ListadoLotesPage() {
                     <span>Cargando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl font-bold">{lotes.filter((l) => l.estado === "Activo").length}</p>
+                  <p className="text-2xl font-bold">{lotes.filter((l) => l.activo).length}</p>
                 )}
               </div>
               <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
@@ -169,14 +147,14 @@ export default function ListadoLotesPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">En Análisis</p>
+                <p className="text-sm font-medium text-muted-foreground">Inactivos</p>
                 {isLoading ? (
                   <div className="flex items-center">
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     <span>Cargando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl font-bold">{lotes.filter((l) => l.estado === "En análisis").length}</p>
+                  <p className="text-2xl font-bold">{lotes.filter((l) => !l.activo).length}</p>
                 )}
               </div>
               <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
@@ -189,14 +167,14 @@ export default function ListadoLotesPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Completados</p>
+                <p className="text-sm font-medium text-muted-foreground">Con Análisis</p>
                 {isLoading ? (
                   <div className="flex items-center">
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     <span>Cargando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl font-bold">{lotes.filter((l) => l.estado === "Completado").length}</p>
+                  <p className="text-2xl font-bold">0</p>
                 )}
               </div>
               <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
@@ -221,7 +199,7 @@ export default function ListadoLotesPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por ID, empresa o cultivo..."
+                  placeholder="Buscar por ficha, empresa o cultivar..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -235,9 +213,7 @@ export default function ListadoLotesPage() {
               <SelectContent>
                 <SelectItem value="todos">Todos los estados</SelectItem>
                 <SelectItem value="Activo">Activo</SelectItem>
-                <SelectItem value="En análisis">En análisis</SelectItem>
-                <SelectItem value="Completado">Completado</SelectItem>
-                <SelectItem value="Pendiente">Pendiente</SelectItem>
+                <SelectItem value="Pendiente">Inactivo</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterCultivo} onValueChange={setFilterCultivo}>
@@ -281,9 +257,10 @@ export default function ListadoLotesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID Lote</TableHead>
+                    <TableHead>Ficha</TableHead>
                     <TableHead>Empresa</TableHead>
-                    <TableHead>Cultivo</TableHead>
+                    <TableHead>Cultivar</TableHead>
+                    <TableHead>Especie</TableHead>
                     <TableHead>Código CC</TableHead>
                     <TableHead>Código FT</TableHead>
                     <TableHead>Fecha Registro</TableHead>
@@ -295,7 +272,7 @@ export default function ListadoLotesPage() {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8">
+                      <TableCell colSpan={10} className="text-center py-8">
                         <div className="flex flex-col items-center justify-center">
                           <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
                           <p className="text-muted-foreground">Cargando datos de lotes...</p>
@@ -304,31 +281,34 @@ export default function ListadoLotesPage() {
                     </TableRow>
                   ) : filteredLotes.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8">
+                      <TableCell colSpan={10} className="text-center py-8">
                         <p className="text-muted-foreground">No se encontraron lotes que coincidan con los criterios de búsqueda.</p>
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredLotes.map((lote) => (
-                      <TableRow key={lote.id}>
-                        <TableCell className="font-medium">{lote.id}</TableCell>
-                        <TableCell>{lote.empresa}</TableCell>
-                        <TableCell>{lote.cultivo}</TableCell>
+                      <TableRow key={lote.loteID}>
+                        <TableCell className="font-medium">{lote.ficha}</TableCell>
+                        <TableCell>{lote.empresaNombre}</TableCell>
+                        <TableCell>{lote.cultivarNombre}</TableCell>
+                        <TableCell>{lote.especieNombre || "-"}</TableCell>
                         <TableCell>{lote.codigoCC}</TableCell>
-                        <TableCell>{lote.codigoFT}</TableCell>
-                        <TableCell>{new Date(lote.fechaRegistro).toLocaleDateString("es-ES")}</TableCell>
+                        <TableCell>{lote.codigoFF}</TableCell>
+                        <TableCell>{new Date(lote.fechaCreacion).toLocaleDateString("es-ES")}</TableCell>
                         <TableCell>
-                          <Badge variant={getEstadoBadgeVariant(lote.estado)}>{lote.estado}</Badge>
+                          <Badge variant={lote.activo ? "default" : "destructive"}>
+                            {lote.activo ? "Activo" : "Inactivo"}
+                          </Badge>
                         </TableCell>
-                        <TableCell>{lote.pureza > 0 ? `${lote.pureza}%` : "-"}</TableCell>
+                        <TableCell>-</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Link href={`/lotes/${lote.id}`}>
+                            <Link href={`/lotes/${lote.loteID}`}>
                               <Button variant="ghost" size="sm">
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </Link>
-                            <Link href={`/lotes/${lote.id}/edit`}>
+                            <Link href={`/lotes/${lote.loteID}/edit`}>
                               <Button variant="ghost" size="sm">
                                 <Edit className="h-4 w-4" />
                               </Button>

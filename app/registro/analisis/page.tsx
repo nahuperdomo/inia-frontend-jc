@@ -15,11 +15,13 @@ import Link from "next/link"
 import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
 import GerminacionFields from "@/app/registro/analisis/germinacion/form-germinacion"
 import TetrazolioFields from "@/app/registro/analisis/tetrazolio/form-tetrazolio"
+import PmsFields from "@/app/registro/analisis/pms/form-pms"
 import { obtenerLotesActivos } from "@/app/services/lote-service"
 import { LoteSimpleDTO } from "@/app/models"
 import { registrarAnalisis } from "@/app/services/analisis-service"
 import { crearGerminacion } from "@/app/services/germinacion-service"
 import { crearTetrazolio } from "@/app/services/tetrazolio-service"
+import { crearPms } from "@/app/services/pms-service"
 import PurezaFields from "./pureza/form-pureza"
 
 
@@ -117,7 +119,12 @@ export type AnalysisFormData = {
   tincionTemp: number
   tincionTempOtro: string
   comentarios: string
-  numRepeticionesEsperadas: number
+  numRepeticionesEsperadasTetrazolio: number
+
+  // PMS
+  numRepeticionesEsperadasPms: number
+  numTandas: number
+  esSemillaBrozosa: boolean
 }
 
 const analysisTypes = [
@@ -247,7 +254,11 @@ export default function RegistroAnalisisPage() {
     tincionTemp: 30,
     tincionTempOtro: "",
     comentarios: "",
-    numRepeticionesEsperadas: 4,
+    numRepeticionesEsperadasTetrazolio: 4,
+    // PMS
+    numRepeticionesEsperadasPms: 8,
+    numTandas: 1,
+    esSemillaBrozosa: false,
   });
 
   const [loading, setLoading] = useState(false)
@@ -524,7 +535,7 @@ export default function RegistroAnalisisPage() {
         setLoading(false);
         return;
       }
-      if (!formData.numRepeticionesEsperadas || formData.numRepeticionesEsperadas < 2 || formData.numRepeticionesEsperadas > 8) {
+      if (!formData.numRepeticionesEsperadasTetrazolio || formData.numRepeticionesEsperadasTetrazolio < 2 || formData.numRepeticionesEsperadasTetrazolio > 8) {
         toast.error('Número de repeticiones inválido', {
           description: 'El número de repeticiones esperadas debe estar entre 2 y 8.'
         });
@@ -588,7 +599,23 @@ export default function RegistroAnalisisPage() {
         concentracion: concentracionFinal,
         tincionHs: tincionHsFinal,
         tincionTemp: tincionTempFinal,
-        numRepeticionesEsperadas: formData.numRepeticionesEsperadas,
+        numRepeticionesEsperadas: formData.numRepeticionesEsperadasTetrazolio,
+      };
+    } else if (selectedAnalysisType === "pms") {
+      // Validaciones específicas para PMS
+      if (!formData.numRepeticionesEsperadasPms || formData.numRepeticionesEsperadasPms < 1) {
+        toast.error('Número de repeticiones inválido', {
+          description: 'El número de repeticiones esperadas debe ser mayor a 0.'
+        });
+        setLoading(false);
+        return;
+      }
+
+      payload = {
+        idLote: parseInt(formData.loteid), // Convertir a número
+        comentarios: formData.observaciones || "",
+        numRepeticionesEsperadas: formData.numRepeticionesEsperadasPms || 8,
+        esSemillaBrozosa: formData.esSemillaBrozosa || false,
       };
     }
 
@@ -639,6 +666,30 @@ export default function RegistroAnalisisPage() {
         // Redirigir a la página de gestión del análisis creado
         setTimeout(() => {
           router.push(`/listado/analisis/tetrazolio/${result.analisisID}/editar`);
+        }, 1500);
+      } else if (selectedAnalysisType === "pms") {
+        console.log("🚀 Intentando crear PMS...");
+        const result = await crearPms(payload);
+
+        toast.success('Análisis de PMS registrado exitosamente', {
+          description: `Se ha creado el análisis para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
+        });
+
+        // Redirigir a la página de edición del análisis creado
+        setTimeout(() => {
+          window.location.href = `/listado/analisis/pms/${result.analisisID}/editar`;
+        }, 1500);
+      } else if (selectedAnalysisType === "pms") {
+        console.log("🚀 Intentando crear PMS...");
+        const result = await crearPms(payload);
+
+        toast.success('Análisis de PMS registrado exitosamente', {
+          description: `Se ha creado el análisis para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
+        });
+
+        // Redirigir a la página de edición del análisis creado
+        setTimeout(() => {
+          window.location.href = `/listado/analisis/pms/${result.analisisID}/editar`;
         }, 1500);
       } else {
         const result = await registrarAnalisis(payload, selectedAnalysisType);
@@ -781,7 +832,7 @@ export default function RegistroAnalisisPage() {
                     {lotesError && <SelectItem value="error" disabled>{lotesError}</SelectItem>}
                     {!lotesLoading && !lotesError && lotes.map((lote) => (
                       <SelectItem key={lote.loteID} value={lote.loteID.toString()}>
-                        {lote.ficha} (ID: {lote.loteID})
+                        {lote.ficha} (ID: {lote.loteID}){lote.cultivarNombre ? ` - ${lote.cultivarNombre}` : ''}{lote.especieNombre ? ` (${lote.especieNombre})` : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -819,10 +870,18 @@ export default function RegistroAnalisisPage() {
                       <span className="text-muted-foreground">ID:</span>
                       <span>{selectedLoteInfo.loteID}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Número Ficha:</span>
-                      <span>{selectedLoteInfo.numeroFicha}</span>
-                    </div>
+                    {selectedLoteInfo.cultivarNombre && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Cultivar:</span>
+                        <span>{selectedLoteInfo.cultivarNombre}</span>
+                      </div>
+                    )}
+                    {selectedLoteInfo.especieNombre && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Especie:</span>
+                        <span>{selectedLoteInfo.especieNombre}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Activo:</span>
                       <span>{selectedLoteInfo.activo ? "Sí" : "No"}</span>
@@ -857,6 +916,12 @@ export default function RegistroAnalisisPage() {
           )}
           {selectedAnalysisType === "tetrazolio" && (
             <TetrazolioFields
+              formData={formData}
+              handleInputChange={handleInputChange as (field: string, value: any) => void}
+            />
+          )}
+          {selectedAnalysisType === "pms" && (
+            <PmsFields
               formData={formData}
               handleInputChange={handleInputChange as (field: string, value: any) => void}
             />

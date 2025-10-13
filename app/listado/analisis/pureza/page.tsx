@@ -516,12 +516,12 @@ export default function ListadoPurezaPage() {
                             <Button variant="ghost" size="sm" onClick={() => handleOpenComentarios(item)}>
                               <MessageCircle className="h-4 w-4" />
                             </Button>
-                            <Link href={`/analisis/pureza/${item.id}`}>
+                            <Link href={`/listado/analisis/pureza/${item.id}`}>
                               <Button variant="ghost" size="sm">
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </Link>
-                            <Link href={`/analisis/pureza/${item.id}/edit`}>
+                            <Link href={`/listado/analisis/pureza/${item.id}/editar`}>
                               <Button variant="ghost" size="sm">
                                 <Edit className="h-4 w-4" />
                               </Button>

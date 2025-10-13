@@ -1,57 +1,31 @@
 import { apiFetch } from "./api";
+import { LoteRequestDTO, LoteDTO, ResponseListadoLote } from "@/app/models/interfaces/lote";
 
-interface LoteData {
-    numeroFicha: number
-    ficha: string
-    cultivarID: number
-    tipo: string
-    empresaID: number
-    clienteID: number
-    codigoCC: string
-    codigoFF: string
-    fechaEntrega: string
-    fechaRecibo: string
-    depositoID: number
-    unidadEmbolsado: string
-    remitente: string
-    observaciones: string
-    kilosLimpios: number
-    datosHumedad: Array<{
-        tipoHumedadID: number
-        valor: number
-    }>
-    numeroArticuloID: number
-    cantidad: number
-    origenID: number
-    estadoID: number
-    fechaCosecha: string
-}
-
-export const getLotes = async () => {
-    const response = await apiFetch("/api/lotes/activos");
+export const getLotes = async (): Promise<LoteDTO[]> => {
+    const response: ResponseListadoLote = await apiFetch("/api/lotes/activos");
     return response.lotes || []; // Devolvemos el array de lotes o un array vacío si no hay datos
 };
 
-export const getLoteById = async (id: string) => {
+export const getLoteById = async (id: string): Promise<LoteDTO> => {
     const response = await apiFetch(`/api/lotes/${id}`);
     return response;
 };
 
-export const createLote = async (loteData: LoteData) => {
+export const createLote = async (loteData: LoteRequestDTO): Promise<LoteDTO> => {
     return apiFetch("/api/lotes", {
         method: "POST",
         body: JSON.stringify(loteData),
     });
 };
 
-export const updateLote = async (id: string, loteData: Partial<LoteData>) => {
+export const updateLote = async (id: string, loteData: Partial<LoteRequestDTO>): Promise<LoteDTO> => {
     return apiFetch(`/api/lotes/${id}`, {
         method: "PUT",
         body: JSON.stringify(loteData),
     });
 };
 
-export const deleteLote = async (id: string) => {
+export const deleteLote = async (id: string): Promise<void> => {
     return apiFetch(`/api/lotes/${id}`, {
         method: "DELETE",
     });

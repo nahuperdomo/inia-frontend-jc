@@ -1,116 +1,189 @@
 "use client"
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { TestTube, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft } from "lucide-react"
+import { Activity, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
+import { useState, useEffect } from "react"
+import { obtenerGerminacionesPaginadas } from "@/app/services/germinacion-service"
+import { GerminacionListadoDTO } from "@/app/models/interfaces/germinacion"
+import { EstadoAnalisis } from "@/app/models/types/enums"
 
-interface AnalisisGerminacion {
-  id: string
-  loteId: string
-  loteName: string
-  analyst: string
-  fechaInicio: string
-  fechaFin: string | null
-  estado: "Completado" | "En Proceso" | "Pendiente"
-  prioridad: "Alta" | "Media" | "Baja"
-  temperatura: string
-  humedad: string
-  duracion: string
-  germinacion: number
-  plantulasNormales: number
-  plantulasAnormales: number
-  semillasNoGerminadas: number
+// Función utilitaria para formatear fechas correctamente
+const formatearFechaLocal = (fechaString: string): string => {
+  if (!fechaString) return ''
+  
+  try {
+    // Si la fecha ya está en formato YYYY-MM-DD, usarla directamente
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
+      const [year, month, day] = fechaString.split('-').map(Number)
+      const fecha = new Date(year, month - 1, day) // month - 1 porque los meses son 0-indexed
+      return fecha.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+    }
+    
+    // Si viene en otro formato, parsearlo de manera segura
+    const fecha = new Date(fechaString)
+    return fecha.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+  } catch (error) {
+    console.warn("Error al formatear fecha:", fechaString, error)
+    return fechaString
+  }
+}
+
+const formatearFechaHora = (fechaString: string): string => {
+  if (!fechaString) return ''
+  
+  try {
+    const fecha = new Date(fechaString)
+    return fecha.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch (error) {
+    console.warn("Error al formatear fecha y hora:", fechaString, error)
+    return fechaString
+  }
 }
 
 export default function ListadoGerminacionPage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [filterEstado, setFilterEstado] = useState<string>("todos")
-  const [filterPrioridad, setFilterPrioridad] = useState<string>("todos")
+  const [selectedStatus, setSelectedStatus] = useState("all")
+  const [germinaciones, setGerminaciones] = useState<GerminacionListadoDTO[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const [isLast, setIsLast] = useState(false)
+  const [isFirst, setIsFirst] = useState(true)
+  const pageSize = 10
 
-  const [analisis] = useState<AnalisisGerminacion[]>([
-    {
-      id: "GE001",
-      loteId: "RG-LE-ex-0018",
-      loteName: "Trigo Don Mario",
-      analyst: "Dr. María González",
-      fechaInicio: "2024-09-15",
-      fechaFin: "2024-09-22",
-      estado: "Completado",
-      prioridad: "Alta",
-      temperatura: "20°C",
-      humedad: "85%",
-      duracion: "7 días",
-      germinacion: 95,
-      plantulasNormales: 190,
-      plantulasAnormales: 8,
-      semillasNoGerminadas: 2,
-    },
-    {
-      id: "GE002",
-      loteId: "RG-LE-ex-0019",
-      loteName: "Soja Nidera",
-      analyst: "Ing. Carlos Rodríguez",
-      fechaInicio: "2024-09-18",
-      fechaFin: null,
-      estado: "En Proceso",
-      prioridad: "Media",
-      temperatura: "25°C",
-      humedad: "90%",
-      duracion: "5 días",
-      germinacion: 0,
-      plantulasNormales: 0,
-      plantulasAnormales: 0,
-      semillasNoGerminadas: 0,
-    },
-  ])
+  const fetchGerminaciones = async (page: number = 0) => {
+    try {
+      setLoading(true)
+      const data = await obtenerGerminacionesPaginadas(page, pageSize)
+      setGerminaciones(data.content)
+      setTotalPages(data.totalPages)
+      setTotalElements(data.totalElements)
+      setIsLast(data.last)
+      setIsFirst(data.first)
+      setCurrentPage(page)
+    } catch (err) {
+      setError("Error al cargar los análisis de germinación")
+      console.error("Error fetching germinaciones:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const filteredAnalisis = analisis.filter((item) => {
+  useEffect(() => {
+    fetchGerminaciones(0)
+  }, [])
+
+  const filteredAnalysis = germinaciones.filter((analysis) => {
+    const searchLower = searchTerm.toLowerCase()
     const matchesSearch =
-      item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.loteId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.loteName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.analyst.toLowerCase().includes(searchTerm.toLowerCase())
-
-    const matchesEstado = filterEstado === "todos" || item.estado === filterEstado
-    const matchesPrioridad = filterPrioridad === "todos" || item.prioridad === filterPrioridad
-
-    return matchesSearch && matchesEstado && matchesPrioridad
+      analysis.analisisID.toString().includes(searchLower) ||
+      (analysis.lote && analysis.lote.toLowerCase().includes(searchLower)) ||
+      (analysis.usuarioCreador && analysis.usuarioCreador.toLowerCase().includes(searchLower)) ||
+      `germ-${analysis.analisisID}`.includes(searchLower)
+    const matchesStatus = selectedStatus === "all" || analysis.estado === selectedStatus
+    return matchesSearch && matchesStatus
   })
+
+  // Calculate stats from current page data
+  const totalAnalysis = totalElements
+  const completedAnalysis = germinaciones.filter(g => g.estado === "FINALIZADO" || g.estado === "APROBADO").length
+  const inProgressAnalysis = germinaciones.filter(g => g.estado === "EN_PROCESO" || g.estado === "REGISTRADO").length
+  const pendingAnalysis = germinaciones.filter(g => g.estado === "PENDIENTE_APROBACION").length
+  const complianceRate = germinaciones.length > 0 ? Math.round((germinaciones.filter(g => g.cumpleNorma === true).length / germinaciones.length) * 100) : 0
 
   const getEstadoBadgeVariant = (estado: string) => {
     switch (estado) {
-      case "Completado":
+      case "FINALIZADO":
+      case "APROBADO":
         return "default"
-      case "En Proceso":
+      case "EN_PROCESO":
+      case "REGISTRADO":
         return "secondary"
-      case "Pendiente":
+      case "PENDIENTE_APROBACION":
+        return "outline"
+      case "A_REPETIR":
         return "destructive"
       default:
         return "outline"
     }
   }
 
-  const getPrioridadBadgeVariant = (prioridad: string) => {
-    switch (prioridad) {
-      case "Alta":
-        return "destructive"
-      case "Media":
-        return "default"
-      case "Baja":
-        return "secondary"
+  const formatEstado = (estado: string) => {
+    switch (estado) {
+      case "FINALIZADO":
+        return "Finalizado"
+      case "EN_PROCESO":
+        return "En Proceso"
+      case "REGISTRADO":
+        return "Registrado"
+      case "APROBADO":
+        return "Aprobado"
+      case "PENDIENTE_APROBACION":
+        return "Pend. Aprobación"
+      case "A_REPETIR":
+        return "A Repetir"
       default:
-        return "outline"
+        return estado
     }
+  }
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      fetchGerminaciones(newPage)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex-1 space-y-6 p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Cargando análisis de germinación...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 space-y-6 p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-lg font-semibold mb-2">Error al cargar</p>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => fetchGerminaciones(currentPage)}>Reintentar</Button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="flex-1 space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -121,196 +194,229 @@ export default function ListadoGerminacionPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-balance">Análisis de Germinación</h1>
-            <p className="text-muted-foreground text-pretty">
-              Consulta y administra todos los ensayos de germinación estándar
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight">Análisis de Germinación</h1>
+            <p className="text-muted-foreground">Consulta los análisis de germinación de semillas</p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
+        <Link href="/registro/analisis/germinacion">
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Análisis
           </Button>
-          <Link href="/registro/analisis">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Análisis
-            </Button>
-          </Link>
-        </div>
+        </Link>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Análisis</p>
-                <p className="text-2xl font-bold">{analisis.length}</p>
+                <p className="text-2xl font-bold">{totalAnalysis}</p>
               </div>
-              <TestTube className="h-8 w-8 text-primary" />
+              <Activity className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Completados</p>
-                <p className="text-2xl font-bold">{analisis.filter((a) => a.estado === "Completado").length}</p>
+                <p className="text-2xl font-bold">{completedAnalysis}</p>
               </div>
-              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-green-500"></div>
-              </div>
+              <Activity className="h-8 w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">En Proceso</p>
-                <p className="text-2xl font-bold">{analisis.filter((a) => a.estado === "En Proceso").length}</p>
+                <p className="text-2xl font-bold">{inProgressAnalysis}</p>
               </div>
-              <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-yellow-500"></div>
-              </div>
+              <Activity className="h-8 w-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Promedio Germinación</p>
-                <p className="text-2xl font-bold">
-                  {analisis.filter((a) => a.germinacion > 0).length > 0
-                    ? (
-                        analisis.filter((a) => a.germinacion > 0).reduce((sum, a) => sum + a.germinacion, 0) /
-                        analisis.filter((a) => a.germinacion > 0).length
-                      ).toFixed(1)
-                    : "0"}
-                  %
-                </p>
+                <p className="text-sm font-medium text-muted-foreground">Cumplen Norma</p>
+                <p className="text-2xl font-bold">{complianceRate}%</p>
               </div>
-              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-blue-500"></div>
-              </div>
+              <AlertTriangle className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters and Search */}
+      {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filtros y Búsqueda
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Buscar por ID, lote, nombre o analista..."
+                  placeholder="Buscar por ID, lote o usuario..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            <Select value={filterEstado} onValueChange={setFilterEstado}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los estados</SelectItem>
-                <SelectItem value="Completado">Completado</SelectItem>
-                <SelectItem value="En Proceso">En Proceso</SelectItem>
-                <SelectItem value="Pendiente">Pendiente</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterPrioridad} onValueChange={setFilterPrioridad}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por prioridad" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todas las prioridades</SelectItem>
-                <SelectItem value="Alta">Alta</SelectItem>
-                <SelectItem value="Media">Media</SelectItem>
-                <SelectItem value="Baja">Baja</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+              >
+                <option value="all">Todos los estados</option>
+                <option value="REGISTRADO">Registrado</option>
+                <option value="EN_PROCESO">En Proceso</option>
+                <option value="FINALIZADO">Finalizado</option>
+                <option value="APROBADO">Aprobado</option>
+                <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
+                <option value="A_REPETIR">A Repetir</option>
+              </select>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Filtros
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Analysis Table */}
       <Card>
         <CardHeader>
           <CardTitle>Lista de Análisis de Germinación</CardTitle>
-          <CardDescription>
-            {filteredAnalisis.length} análisis encontrado{filteredAnalisis.length !== 1 ? "s" : ""}
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID Análisis</TableHead>
-                  <TableHead>Lote</TableHead>
-                  <TableHead>Nombre Lote</TableHead>
-                  <TableHead>Analista</TableHead>
-                  <TableHead>Fecha Inicio</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Prioridad</TableHead>
-                  <TableHead>Germinación (%)</TableHead>
-                  <TableHead>Acciones</TableHead>
+                  <TableHead className="min-w-[100px]">ID Análisis</TableHead>
+                  <TableHead className="min-w-[150px]">Lote</TableHead>
+                  <TableHead className="min-w-[120px]">Fecha Inicio</TableHead>
+                  <TableHead className="min-w-[120px]">Inicio Germ.</TableHead>
+                  <TableHead className="min-w-[120px]">Último Conteo</TableHead>
+                  <TableHead className="min-w-[80px]">Días</TableHead>
+                  <TableHead className="min-w-[100px]">Estado</TableHead>
+                  <TableHead className="min-w-[120px]">Cumple Norma</TableHead>
+                  <TableHead className="min-w-[150px]">Usuario</TableHead>
+                  <TableHead className="min-w-[120px]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAnalisis.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.id}</TableCell>
-                    <TableCell>{item.loteId}</TableCell>
-                    <TableCell>{item.loteName}</TableCell>
-                    <TableCell>{item.analyst}</TableCell>
-                    <TableCell>{new Date(item.fechaInicio).toLocaleDateString("es-ES")}</TableCell>
-                    <TableCell>
-                      <Badge variant={getEstadoBadgeVariant(item.estado)}>{item.estado}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getPrioridadBadgeVariant(item.prioridad)}>{item.prioridad}</Badge>
-                    </TableCell>
-                    <TableCell>{item.germinacion > 0 ? `${item.germinacion}%` : "-"}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Link href={`/analisis/germinacion/${item.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Link href={`/analisis/germinacion/${item.id}/edit`}>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                {filteredAnalysis.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={10} className="text-center py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <AlertTriangle className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-muted-foreground">No se encontraron análisis de germinación</p>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredAnalysis.map((analysis) => (
+                    <TableRow key={analysis.analisisID}>
+                      <TableCell className="font-medium">GERM-{analysis.analisisID}</TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{analysis.lote || "-"}</div>
+                          {analysis.idLote && (
+                            <div className="text-sm text-muted-foreground">ID: {analysis.idLote}</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{formatearFechaHora(analysis.fechaInicio)}</TableCell>
+                      <TableCell>{formatearFechaLocal(analysis.fechaInicioGerm)}</TableCell>
+                      <TableCell>{formatearFechaLocal(analysis.fechaUltConteo)}</TableCell>
+                      <TableCell>
+                        {analysis.numDias ? `${analysis.numDias} días` : "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getEstadoBadgeVariant(analysis.estado)}>
+                          {formatEstado(analysis.estado)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={analysis.cumpleNorma ? "default" : "destructive"}
+                          className="text-xs"
+                        >
+                          {analysis.cumpleNorma ? "Sí" : "No"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <div className="font-medium">{analysis.usuarioCreador || "-"}</div>
+                          {analysis.usuarioModificador && analysis.usuarioModificador !== analysis.usuarioCreador && (
+                            <div className="text-muted-foreground">Mod: {analysis.usuarioModificador}</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Link href={`/listado/analisis/germinacion/${analysis.analisisID}`}>
+                            <Button variant="ghost" size="sm" title="Ver detalles">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Link href={`/listado/analisis/germinacion/${analysis.analisisID}/editar`}>
+                            <Button variant="ghost" size="sm" title="Editar">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Button variant="ghost" size="sm" title="Eliminar">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
+
+          {/* Paginación */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-muted-foreground">
+                Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={isFirst}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Anterior
+                </Button>
+                <span className="text-sm">
+                  Página {currentPage + 1} de {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={isLast}
+                >
+                  Siguiente
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

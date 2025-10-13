@@ -47,18 +47,6 @@ export function DatosSection({
                         )}
                     </div>
                     <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Número de ficha</Label>
-                        {isEditMode ? (
-                            <Input
-                                value={editFormData.numeroFicha?.toString() || ""}
-                                onChange={(e) => handleEditFormChange("numeroFicha", e.target.value)}
-                                className="mt-1"
-                            />
-                        ) : (
-                            <div className="font-semibold">{lot.numeroFicha}</div>
-                        )}
-                    </div>
-                    <div>
                         <Label className="text-sm font-medium text-muted-foreground">Ficha</Label>
                         {isEditMode ? (
                             <Input

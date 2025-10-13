@@ -56,3 +56,10 @@ export async function marcarParaRepetir(id: number): Promise<PmsDTO> {
     method: "PUT",
   });
 }
+
+export async function actualizarPmsConRedondeo(id: number, pmsconRedon: number): Promise<PmsDTO> {
+  return apiFetch(`/api/pms/${id}/redondeo`, {
+    method: "PUT",
+    body: JSON.stringify({ pmsconRedon }),
+  });
+}
