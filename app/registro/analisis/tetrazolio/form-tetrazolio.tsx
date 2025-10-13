@@ -10,7 +10,6 @@ import {
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -31,37 +30,61 @@ import {
 } from "lucide-react"
 
 type Props = {
-  formData: any;
-  handleInputChange: (field: string, value: any) => void;
+  formData: any
+  handleInputChange: (field: string, value: any) => void
+  mostrarValidacion?: boolean
 }
 
-export default function TetrazolioFields({ formData, handleInputChange }: Props) {
+export default function TetrazolioFields({ formData, handleInputChange, mostrarValidacion }: Props) {
   const data = formData || {}
-  
-  // Validaciones específicas del tetrazolio
+  const showErrors = !!mostrarValidacion
+
+  // ✅ Validaciones
   const validarNumRepeticiones = (): boolean => {
-    if (!data.numRepeticionesEsperadas) return true
-    const numRep = parseInt(data.numRepeticionesEsperadas)
-    return numRep >= 2 && numRep <= 8 // Rango estándar para tetrazolio
+    const num = parseInt(data.numRepeticionesEsperadas)
+    return !isNaN(num) && num >= 2 && num <= 8
   }
 
-  // Opciones predefinidas según especificaciones
+  const validarFecha = () => !!data.fecha
+  const validarConcentracion = () => !!data.concentracion && data.concentracion !== ""
+
+  const validarPretratamiento = () => {
+    if (!data.pretratamiento || data.pretratamiento === "") return false
+    if (data.pretratamiento === "Otro (especificar)" && !data.pretratamientoOtro) return false
+    return true
+  }
+
+  const validarTemp = () => {
+    if (!data.tincionTemp && !data.tincionTempOtro) return false
+    const temp = data.tincionTemp === 0
+      ? parseFloat(data.tincionTempOtro)
+      : parseFloat(data.tincionTemp)
+    return !isNaN(temp) && temp >= 15 && temp <= 45
+  }
+
+  const validarTincionHs = () => {
+    const hs = data.tincionHs === "Otra (especificar)"
+      ? parseFloat(data.tincionHsOtro)
+      : parseFloat(data.tincionHs)
+    return !isNaN(hs) && hs >= 1 && hs <= 72
+  }
+
+  // Opciones predefinidas
   const opcionesPretratamiento = [
     "EP 16 horas",
-    "EP 18 horas", 
+    "EP 18 horas",
     "S/Pretratamiento",
     "Agua 7 horas",
     "Agua 8 horas",
-    "Otro (especificar)"
+    "Otro (especificar)",
   ]
 
   const opcionesConcentracion = [
-    
     "1%",
     "0%",
     "5%",
     "0,75%",
-    "Otro (especificar)"
+    "Otro (especificar)",
   ]
 
   const opcionesTincionHoras = [
@@ -69,12 +92,10 @@ export default function TetrazolioFields({ formData, handleInputChange }: Props)
     { value: "3", label: "3 horas" },
     { value: "16", label: "16 horas" },
     { value: "18", label: "18 horas" },
-    { value: "Otra (especificar)", label: "Otra (especificar)" }
+    { value: "Otra (especificar)", label: "Otra (especificar)" },
   ]
 
-  const opcionesTemperatura = [
-    30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40
-  ]
+  const opcionesTemperatura = [30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
 
   return (
     <Card className="border-0 shadow-sm bg-card">
@@ -88,7 +109,7 @@ export default function TetrazolioFields({ formData, handleInputChange }: Props)
               Análisis de Tetrazolio
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              Configura los parámetros para el ensayo de viabilidad con tetrazolio
+              Configura los parámetros para el ensayo de viabilidad con tetrazolio.
             </p>
           </div>
         </div>
@@ -101,36 +122,48 @@ export default function TetrazolioFields({ formData, handleInputChange }: Props)
             <Calendar className="h-5 w-5 text-orange-600" />
             <h3 className="text-lg font-semibold">Información del Ensayo</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Fecha */}
             <div className="space-y-2">
-              <Label htmlFor="fecha" className="text-sm font-medium flex items-center gap-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 Fecha del Ensayo *
               </Label>
               <Input
-                id="fecha"
                 type="date"
                 value={data.fecha || ""}
                 onChange={(e) => handleInputChange("fecha", e.target.value)}
-                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200"
-                required
+                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
+                  showErrors && !validarFecha() ? "border-red-300 bg-red-50" : ""
+                }`}
               />
-              <p className="text-xs text-muted-foreground">
-                Fecha de inicio del ensayo de tetrazolio
-              </p>
+              {showErrors && !validarFecha() && (
+                <p className="text-xs text-red-600 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  Debe ingresar la fecha del ensayo
+                </p>
+              )}
             </div>
 
+            {/* Semillas por repetición */}
             <div className="space-y-2">
-              <Label htmlFor="numSemillasPorRep" className="text-sm font-medium flex items-center gap-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
                 <Hash className="h-4 w-4 text-muted-foreground" />
-                Número de semillas por repetición *
+                Semillas por Repetición *
               </Label>
               <Select
                 value={data.numSemillasPorRep?.toString() || ""}
                 onValueChange={(value) => handleInputChange("numSemillasPorRep", parseInt(value))}
               >
-                <SelectTrigger className="h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200">
+                <SelectTrigger
+                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
+                    showErrors &&
+                    ![25, 50, 100].includes(Number(data.numSemillasPorRep))
+                      ? "border-red-300 bg-red-50"
+                      : ""
+                  }`}
+                >
                   <SelectValue placeholder="Seleccionar cantidad" />
                 </SelectTrigger>
                 <SelectContent>
@@ -139,48 +172,49 @@ export default function TetrazolioFields({ formData, handleInputChange }: Props)
                   <SelectItem value="100">100</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                Cantidad de semillas por repetición
-              </p>
+              {showErrors &&
+                ![25, 50, 100].includes(Number(data.numSemillasPorRep)) && (
+                  <p className="text-xs text-red-600 flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    Debe seleccionar 25, 50 o 100 semillas
+                  </p>
+                )}
             </div>
           </div>
         </div>
 
-        {/* Configuración de repeticiones */}
+        {/* Repeticiones */}
         <div className="space-y-6">
           <div className="flex items-center gap-2 mb-4">
             <Repeat className="h-5 w-5 text-orange-600" />
-            <h3 className="text-lg font-semibold">Configuración de Repeticiones</h3>
+            <h3 className="text-lg font-semibold">Repeticiones</h3>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="numRepeticionesEsperadas" className="text-sm font-medium flex items-center gap-2">
-                <Repeat className="h-4 w-4 text-muted-foreground" />
-                Número de Repeticiones Esperadas *
-              </Label>
-              <Input
-                id="numRepeticionesEsperadas"
-                type="number"
-                min="2"
-                max="8"
-                value={data.numRepeticionesEsperadas || ""}
-                onChange={(e) => handleInputChange("numRepeticionesEsperadas", parseInt(e.target.value) || "")}
-                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
-                  !validarNumRepeticiones() ? 'border-red-300 bg-red-50' : ''
-                }`}
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                Número de repeticiones para el análisis (2-8 repeticiones)
+          <div className="space-y-2">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <Repeat className="h-4 w-4 text-muted-foreground" />
+              Número de Repeticiones Esperadas *
+            </Label>
+            <Input
+              type="number"
+              min="2"
+              max="8"
+              value={data.numRepeticionesEsperadas || ""}
+              onChange={(e) =>
+                handleInputChange("numRepeticionesEsperadas", parseInt(e.target.value) || "")
+              }
+              className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
+                showErrors && !validarNumRepeticiones() ? "border-red-300 bg-red-50" : ""
+              }`}
+            />
+            <p className="text-xs text-muted-foreground">
+              Se esperan entre <strong>2 y 8 repeticiones</strong> para un resultado confiable.
+            </p>
+            {showErrors && !validarNumRepeticiones() && (
+              <p className="text-xs text-red-600 flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                Debe estar entre 2 y 8 repeticiones
               </p>
-              {!validarNumRepeticiones() && (
-                <p className="text-xs text-red-600 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  Debe estar entre 2 y 8 repeticiones
-                </p>
-              )}
-            </div>
+            )}
           </div>
         </div>
 
@@ -188,60 +222,67 @@ export default function TetrazolioFields({ formData, handleInputChange }: Props)
         <div className="space-y-6">
           <div className="flex items-center gap-2 mb-4">
             <FlaskConical className="h-5 w-5 text-orange-600" />
-            <h3 className="text-lg font-semibold">Pretratamiento de Semillas</h3>
+            <h3 className="text-lg font-semibold">Pretratamiento</h3>
           </div>
-          
-          <div className="grid grid-cols-1 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="pretratamiento" className="text-sm font-medium flex items-center gap-2">
-                <FlaskConical className="h-4 w-4 text-muted-foreground" />
-                Pretratamiento
-              </Label>
-              <Select
-                value={data.pretratamiento || ""}
-                onValueChange={(value) => {
-                  handleInputChange("pretratamiento", value)
-                  if (value !== "Otro (especificar)") {
-                    handleInputChange("pretratamientoOtro", "")
-                  }
-                }}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <FlaskConical className="h-4 w-4 text-muted-foreground" />
+              Pretratamiento *
+            </Label>
+            <Select
+              value={data.pretratamiento || ""}
+              onValueChange={(value) => {
+                handleInputChange("pretratamiento", value)
+                if (value !== "Otro (especificar)") handleInputChange("pretratamientoOtro", "")
+              }}
+            >
+              <SelectTrigger
+                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
+                  showErrors && !validarPretratamiento() ? "border-red-300 bg-red-50" : ""
+                }`}
               >
-                <SelectTrigger className="h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200">
-                  <SelectValue placeholder="Seleccionar pretratamiento" />
-                </SelectTrigger>
-                <SelectContent>
-                  {opcionesPretratamiento.map((opcion) => (
-                    <SelectItem key={opcion} value={opcion}>
-                      {opcion}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {data.pretratamiento === "Otro (especificar)" && (
-                <Input
-                  value={data.pretratamientoOtro || ""}
-                  onChange={(e) => handleInputChange("pretratamientoOtro", e.target.value)}
-                  placeholder="Ingresar pretratamiento manualmente"
-                  className="h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 mt-2"
-                />
-              )}
-              <p className="text-xs text-muted-foreground">
-                Tratamiento aplicado a las semillas antes del ensayo
+                <SelectValue placeholder="Seleccionar pretratamiento" />
+              </SelectTrigger>
+              <SelectContent>
+                {opcionesPretratamiento.map((opcion) => (
+                  <SelectItem key={opcion} value={opcion}>
+                    {opcion}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {data.pretratamiento === "Otro (especificar)" && (
+              <Input
+                value={data.pretratamientoOtro || ""}
+                onChange={(e) => handleInputChange("pretratamientoOtro", e.target.value)}
+                placeholder="Ingresar pretratamiento manualmente"
+                className="h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200"
+              />
+            )}
+
+            {showErrors && !validarPretratamiento() && (
+              <p className="text-xs text-red-600 flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                {data.pretratamiento === "Otro (especificar)"
+                  ? "Debe especificar el pretratamiento"
+                  : "Debe seleccionar un pretratamiento"}
               </p>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Condiciones de tinción */}
+        {/* Condiciones de Tinción */}
         <div className="space-y-6">
           <div className="flex items-center gap-2 mb-4">
             <Beaker className="h-5 w-5 text-orange-600" />
             <h3 className="text-lg font-semibold">Condiciones de Tinción</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Concentración */}
             <div className="space-y-2">
-              <Label htmlFor="concentracion" className="text-sm font-medium flex items-center gap-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
                 <Beaker className="h-4 w-4 text-muted-foreground" />
                 Concentración *
               </Label>
@@ -249,12 +290,14 @@ export default function TetrazolioFields({ formData, handleInputChange }: Props)
                 value={data.concentracion || ""}
                 onValueChange={(value) => {
                   handleInputChange("concentracion", value)
-                  if (value !== "Otro (especificar)") {
-                    handleInputChange("concentracionOtro", "")
-                  }
+                  if (value !== "Otro (especificar)") handleInputChange("concentracionOtro", "")
                 }}
               >
-                <SelectTrigger className="h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200">
+                <SelectTrigger
+                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
+                    showErrors && !validarConcentracion() ? "border-red-300 bg-red-50" : ""
+                  }`}
+                >
                   <SelectValue placeholder="Seleccionar concentración" />
                 </SelectTrigger>
                 <SelectContent>
@@ -265,21 +308,17 @@ export default function TetrazolioFields({ formData, handleInputChange }: Props)
                   ))}
                 </SelectContent>
               </Select>
-              {data.concentracion === "Otro (especificar)" && (
-                <Input
-                  value={data.concentracionOtro || ""}
-                  onChange={(e) => handleInputChange("concentracionOtro", e.target.value)}
-                  placeholder="Ingresar concentración manualmente"
-                  className="h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 mt-2"
-                />
+              {showErrors && !validarConcentracion() && (
+                <p className="text-xs text-red-600 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  Seleccione una concentración
+                </p>
               )}
-              <p className="text-xs text-muted-foreground">
-                Concentración de la solución de tetrazolio
-              </p>
             </div>
 
+            {/* Temperatura */}
             <div className="space-y-2">
-              <Label htmlFor="tincionTemp" className="text-sm font-medium flex items-center gap-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
                 <Thermometer className="h-4 w-4 text-muted-foreground" />
                 Tinción (°C) *
               </Label>
@@ -295,7 +334,11 @@ export default function TetrazolioFields({ formData, handleInputChange }: Props)
                   }
                 }}
               >
-                <SelectTrigger className="h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200">
+                <SelectTrigger
+                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
+                    showErrors && !validarTemp() ? "border-red-300 bg-red-50" : ""
+                  }`}
+                >
                   <SelectValue placeholder="Seleccionar temperatura" />
                 </SelectTrigger>
                 <SelectContent>
@@ -310,19 +353,23 @@ export default function TetrazolioFields({ formData, handleInputChange }: Props)
                   type="number"
                   value={data.tincionTempOtro || ""}
                   onChange={(e) => handleInputChange("tincionTempOtro", e.target.value)}
-                  placeholder="Ingresar temperatura manualmente"
+                  placeholder="Ingresar temperatura"
                   min="15"
                   max="45"
-                  className="h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 mt-2"
+                  className="h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200"
                 />
               )}
-              <p className="text-xs text-muted-foreground">
-                Temperatura durante la tinción (30-40°C típico)
-              </p>
+              {showErrors && !validarTemp() && (
+                <p className="text-xs text-red-600 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  Debe seleccionar o ingresar una temperatura válida (15–45°C)
+                </p>
+              )}
             </div>
 
+            {/* Tiempo */}
             <div className="space-y-2">
-              <Label htmlFor="tincionHs" className="text-sm font-medium flex items-center gap-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
                 <Timer className="h-4 w-4 text-muted-foreground" />
                 Tinción (hs) *
               </Label>
@@ -338,12 +385,18 @@ export default function TetrazolioFields({ formData, handleInputChange }: Props)
                   }
                 }}
               >
-                <SelectTrigger className="h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200">
-                  <SelectValue placeholder="Seleccionar tiempo de tinción" />
+                <SelectTrigger
+                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
+                    showErrors && !validarTincionHs() ? "border-red-300 bg-red-50" : ""
+                  }`}
+                >
+                  <SelectValue placeholder="Seleccionar horas de tinción" />
                 </SelectTrigger>
                 <SelectContent>
                   {opcionesTincionHoras.map(opcion => (
-                    <SelectItem key={opcion.value} value={opcion.value}>{opcion.label}</SelectItem>
+                    <SelectItem key={opcion.value} value={opcion.value}>
+                      {opcion.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -352,62 +405,35 @@ export default function TetrazolioFields({ formData, handleInputChange }: Props)
                   type="number"
                   value={data.tincionHsOtro || ""}
                   onChange={(e) => handleInputChange("tincionHsOtro", e.target.value)}
-                  placeholder="Ingresar tiempo manualmente"
+                  placeholder="Ingresar horas manualmente"
                   min="1"
                   max="72"
-                  className="h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 mt-2"
+                  className="h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200"
                 />
               )}
-              <p className="text-xs text-muted-foreground">
-                Duración de la tinción (2-18 horas típico)
-              </p>
+              {showErrors && !validarTincionHs() && (
+                <p className="text-xs text-red-600 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  Debe seleccionar o ingresar horas de tinción válidas (1–72 hs)
+                </p>
+              )}
             </div>
           </div>
         </div>
 
         {/* Comentarios */}
         <div className="space-y-6">
-          <div className="flex items-center gap-2 mb-4">
-            <TestTube className="h-5 w-5 text-orange-600" />
-            <h3 className="text-lg font-semibold">Comentarios</h3>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="comentarios" className="text-sm font-medium">
-              Comentarios
-            </Label>
-            <Textarea
-              id="comentarios"
-              value={data.comentarios || ""}
-              onChange={(e) => handleInputChange("comentarios", e.target.value)}
-              placeholder="Observaciones generales o particulares del análisis..."
-              rows={3}
-              className="resize-none transition-all duration-200 focus:ring-2 focus:ring-orange-200"
-            />
-            <p className="text-xs text-muted-foreground">
-              Campo abierto para notas.
-            </p>
-          </div>
-        </div>
-
-        {/* Información de ayuda */}
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-200">
-              <TestTube className="h-4 w-4 text-orange-700" />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-semibold text-orange-800 mb-2">
-                 <strong>Notas Generales del Análisis de Tetrazolio:</strong>
-              </h4>
-              <ul className="text-xs text-orange-700 space-y-1 ml-4 list-disc">
-                <li>Si la suma total no coincide con el número de semillas, se ajusta ±1 en Viables</li>
-                <li>Los campos 'Pretratamiento', 'Tinción (hs)' y 'Tinción (°C)' pueden modificarse según la especie analizada</li>
-                <li>Se permite ajuste de redondeo de ±1 semilla en el conteo final</li>
-                <li>Campo de comentarios disponible para observaciones</li>
-              </ul>
-            </div>
-          </div>
+          <Label htmlFor="comentarios" className="text-sm font-medium">
+            Comentarios
+          </Label>
+          <Textarea
+            id="comentarios"
+            value={data.comentarios || ""}
+            onChange={(e) => handleInputChange("comentarios", e.target.value)}
+            placeholder="Observaciones generales o particulares del análisis..."
+            rows={3}
+            className="resize-none transition-all duration-200 focus:ring-2 focus:ring-orange-200"
+          />
         </div>
       </CardContent>
     </Card>

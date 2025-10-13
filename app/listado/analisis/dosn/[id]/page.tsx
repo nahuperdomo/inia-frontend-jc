@@ -224,6 +224,39 @@ export default function DosnDetailPage() {
                   Editar análisis
                 </Button>
               </Link>
+              {/* Botón Finalizar: muestra confirmación y realiza validación cliente */}
+              <Button
+                size="lg"
+                variant="destructive"
+                className="gap-2 w-full sm:w-auto"
+                onClick={async () => {
+                  try {
+                    // Validación cliente (mismos criterios que el servidor)
+                    const tieneINIA = !!(dosn.fechaINIA && dosn.gramosAnalizadosINIA && Number(dosn.gramosAnalizadosINIA) > 0)
+                    const tieneINASE = !!(dosn.fechaINASE && dosn.gramosAnalizadosINASE && Number(dosn.gramosAnalizadosINASE) > 0)
+                    const tieneCuscuta = !!((dosn.cuscuta_g && Number(dosn.cuscuta_g) > 0) || (dosn.cuscutaNum && Number(dosn.cuscutaNum) > 0))
+                    const tieneListados = !!(dosn.listados && dosn.listados.length > 0)
+
+                    if (!tieneINIA && !tieneINASE && !tieneCuscuta && !tieneListados) {
+                      // Mostrar un modal sencillo con confirmación del usuario
+                      if (!window.confirm('No hay evidencia (INIA/INASE/listados/cuscuta). ¿Desea intentar finalizar de todas formas?')) {
+                        return
+                      }
+                    }
+
+                    // Llamada al servicio
+                    // Importar dinamicamente para evitar ciclos si no existe
+                    const { finalizarAnalisis } = await import('@/app/services/dosn-service')
+                    await finalizarAnalisis(Number.parseInt(dosn.analisisID.toString()))
+                    // Refrescar la página para mostrar el nuevo estado
+                    window.location.reload()
+                  } catch (err: any) {
+                    alert(err?.message || 'Error al finalizar el análisis')
+                  }
+                }}
+              >
+                Finalizar Análisis
+              </Button>
             </div>
           </div>
         </div>

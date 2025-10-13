@@ -80,6 +80,7 @@ export default function EditarDosnPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [catalogos, setCatalogos] = useState<MalezasYCultivosCatalogoDTO[]>([])
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Nuevos estados para agregar listados
   const [showAddListado, setShowAddListado] = useState(false)
@@ -269,6 +270,52 @@ export default function EditarDosnPage() {
 
   const handleSave = async () => {
     if (!dosn) return
+
+    // Validación cliente antes de enviar
+    const validateForm = (): boolean => {
+      const newErrors: Record<string, string> = {}
+
+      // INIA: si existe fecha, debe existir gramos > 0; si existen gramos, debe existir fecha
+      if (formData.fechaINIA) {
+        if (!formData.gramosAnalizadosINIA || Number(formData.gramosAnalizadosINIA) <= 0) {
+          newErrors.gramosAnalizadosINIA = 'Ingrese gramos analizados INIA mayores que 0 o elimine la fecha'
+        }
+      }
+      if (formData.gramosAnalizadosINIA && Number(formData.gramosAnalizadosINIA) > 0) {
+        if (!formData.fechaINIA) {
+          newErrors.fechaINIA = 'Ingrese la fecha INIA correspondiente a los gramos'
+        }
+      }
+
+      // INASE: mismas reglas
+      if (formData.fechaINASE) {
+        if (!formData.gramosAnalizadosINASE || Number(formData.gramosAnalizadosINASE) <= 0) {
+          newErrors.gramosAnalizadosINASE = 'Ingrese gramos analizados INASE mayores que 0 o elimine la fecha'
+        }
+      }
+      if (formData.gramosAnalizadosINASE && Number(formData.gramosAnalizadosINASE) > 0) {
+        if (!formData.fechaINASE) {
+          newErrors.fechaINASE = 'Ingrese la fecha INASE correspondiente a los gramos'
+        }
+      }
+
+      // Validar nuevos listados (si existen) - campos obligatorios ya verificadas al agregar, pero comprobación extra
+      if (formData.listados && formData.listados.length > 0) {
+        formData.listados.forEach((l, idx) => {
+          if (!l.listadoTipo || !l.listadoInsti) {
+            newErrors[`listado_${idx}`] = 'Listado incompleto'
+          }
+        })
+      }
+
+      setErrors(newErrors)
+      return Object.keys(newErrors).length === 0
+    }
+
+    if (!validateForm()) {
+      toast.error('Corrija los errores del formulario antes de guardar')
+      return
+    }
 
     try {
       setSaving(true)
@@ -527,6 +574,7 @@ export default function EditarDosnPage() {
                     onChange={(e) => handleInputChange("fechaINIA", e.target.value)}
                     className="text-base"
                   />
+                  {errors.fechaINIA && <p className="text-sm text-destructive mt-1">{errors.fechaINIA}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="gramosAnalizadosINIA" className="text-sm font-medium">
@@ -545,6 +593,7 @@ export default function EditarDosnPage() {
                       step="0.01"
                       className="pr-10 text-base"
                     />
+                    {errors.gramosAnalizadosINIA && <p className="text-sm text-destructive mt-1">{errors.gramosAnalizadosINIA}</p>}
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
                       g
                     </span>
@@ -600,6 +649,7 @@ export default function EditarDosnPage() {
                     onChange={(e) => handleInputChange("fechaINASE", e.target.value)}
                     className="text-base"
                   />
+                  {errors.fechaINASE && <p className="text-sm text-destructive mt-1">{errors.fechaINASE}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="gramosAnalizadosINASE" className="text-sm font-medium">
@@ -618,6 +668,7 @@ export default function EditarDosnPage() {
                       step="0.01"
                       className="pr-10 text-base"
                     />
+                    {errors.gramosAnalizadosINASE && <p className="text-sm text-destructive mt-1">{errors.gramosAnalizadosINASE}</p>}
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
                       g
                     </span>
