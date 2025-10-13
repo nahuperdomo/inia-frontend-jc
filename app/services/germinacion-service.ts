@@ -87,6 +87,7 @@ export async function obtenerTablaPorId(germinacionId: number, tablaId: number):
 export async function crearTablaGerminacion(germinacionId: number, solicitud?: Partial<TablaGermRequestDTO>): Promise<TablaGermDTO> {
   // Endpoint correcto según TablaGermController: POST /api/germinacion/{germinacionId}/tabla
   const defaultSolicitud: TablaGermRequestDTO = {
+    fechaFinal: "",
     tratamiento: "",
     productoYDosis: "",
     numSemillasPRep: 100,
@@ -94,7 +95,6 @@ export async function crearTablaGerminacion(germinacionId: number, solicitud?: P
     temperatura: 20,
     prefrio: "No",
     pretratamiento: "Ninguno",
-    total: 0
   };
   
   return apiFetch(`/api/germinacion/${germinacionId}/tabla`, {

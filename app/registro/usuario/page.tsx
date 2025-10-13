@@ -12,6 +12,8 @@ import { Leaf, ArrowLeft, CheckCircle, Clock } from "lucide-react"
 import { toast } from 'sonner'
 import Link from "next/link"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { registrarUsuario } from "@/app/services/auth-service"
+import { RegistroUsuarioRequest } from "@/app/models/interfaces/usuario"
 
 interface UsuarioFormData {
     nombre: string
@@ -168,11 +170,25 @@ export default function RegistroUsuarioPage() {
         setIsLoading(true)
 
         try {
-            // Aquí iría la llamada a la API para registrar el usuario
-            // De momento simulamos un retardo para mostrar el estado de carga
-            await new Promise(resolve => setTimeout(resolve, 1500))
+            // Validación adicional para asegurar que la contraseña no esté vacía
+            if (!formData.password || formData.password.trim() === '') {
+                toast.error("Error de validación", {
+                    description: "La contraseña no puede estar vacía"
+                });
+                setIsLoading(false);
+                return;
+            }
 
-            toast.success("Registro exitoso", {
+            // Crear el objeto de solicitud de usuario - estructura EXACTA del backend
+            const usuarioRequest: RegistroUsuarioRequest = {
+                nombre: formData.nombre,        // username único (campo nombre de usuario del formulario)
+                nombres: formData.nombres,      // nombre(s) de pila
+                apellidos: formData.apellidos,  // apellidos
+                email: formData.email,          // email único
+                contrasenia: formData.password  // El backend espera 'contrasenia'
+            };
+
+            await registrarUsuario(usuarioRequest); toast.success("Registro exitoso", {
                 description: "Se ha enviado una solicitud de registro"
             })
 
@@ -348,7 +364,7 @@ export default function RegistroUsuarioPage() {
 
             {/* Diálogo de éxito del registro */}
             <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-md" showCloseButton={false}>
                     <DialogHeader>
                         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-2">
                             <CheckCircle className="h-6 w-6 text-green-600" />

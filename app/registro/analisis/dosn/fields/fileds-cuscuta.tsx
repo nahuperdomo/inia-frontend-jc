@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { FlaskConical, CheckCircle2, XCircle, AlertCircle } from "lucide-react"
+import { FlaskConical, CheckCircle2, XCircle } from "lucide-react"
 
 type Props = {
   formData: any
@@ -17,7 +17,6 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
   const data = {
     gramos: formData.cuscutaGramos || "",
     numero: formData.cuscutaNumero || "",
-    fecha: formData.cuscutaFecha || "",
     cumple: formData.cuscutaCumple || "",
   }
 
@@ -25,28 +24,28 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
     const fieldMap: { [key: string]: string } = {
       gramos: "cuscutaGramos",
       numero: "cuscutaNumero",
-      fecha: "cuscutaFecha",
       cumple: "cuscutaCumple"
     }
 
-    if (field === "cumple" && value === "no-contiene") {
+    // Make 'contiene / no contiene' behave like Brassica: values 'si'|'no'
+    if (field === "cumple" && value === "no") {
       handleInputChange("cuscutaGramos", "")
       handleInputChange("cuscutaNumero", "")
-      handleInputChange("cuscutaFecha", "")
-      handleInputChange("cuscutaCumple", "no-contiene")
+      handleInputChange("cuscutaCumple", "no")
     } else {
       handleInputChange(fieldMap[field], value)
     }
   }
 
   const getBadge = () => {
+    // Match Brassica badge style: 'Contiene' (si) purple, 'No contiene' (no) gray
     switch (data.cumple) {
       case "si":
-        return <Badge className="bg-emerald-100 text-emerald-700">Cumple</Badge>
+        return (
+          <Badge className="bg-purple-100 text-purple-700 border-purple-200">Contiene</Badge>
+        )
       case "no":
-        return <Badge className="bg-red-100 text-red-700">No cumple</Badge>
-      case "no-contiene":
-        return <Badge className="bg-slate-100 text-slate-700">No contiene</Badge>
+        return <Badge className="bg-gray-100 text-gray-700">No contiene</Badge>
       default:
         return null
     }
@@ -65,19 +64,25 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Fecha */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Contiene o no contiene */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Fecha de análisis</Label>
-            <Input
-              type="date"
-              value={data.fecha}
-              onChange={(e) => updateField("fecha", e.target.value)}
-              disabled={data.cumple === "no-contiene"}
-              className="w-full"
-            />
+            <Label className="text-sm font-medium">¿Contiene Cuscuta?</Label>
+            <Select value={data.cumple} onValueChange={(val) => updateField("cumple", val)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Seleccionar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="si">Sí, contiene</SelectItem>
+                <SelectItem value="no">
+                  <div className="flex items-center gap-2">
+                    <XCircle className="h-4 w-4 text-slate-500" />
+                    No contiene
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-
           {/* Peso en gramos */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Peso (g)</Label>
@@ -87,7 +92,7 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
               step="0.01"
               value={data.gramos}
               onChange={(e) => updateField("gramos", e.target.value)}
-              disabled={data.cumple === "no-contiene"}
+              disabled={data.cumple === "no"}
               className="w-full"
             />
           </div>
@@ -100,39 +105,9 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
               placeholder="Ej: 789"
               value={data.numero}
               onChange={(e) => updateField("numero", e.target.value)}
-              disabled={data.cumple === "no-contiene"}
+              disabled={data.cumple === "no"}
               className="w-full"
             />
-          </div>
-
-          {/* Estado del análisis */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Estado del análisis</Label>
-            <Select value={data.cumple} onValueChange={(val) => updateField("cumple", val)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Seleccionar estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="si">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    Cumple
-                  </div>
-                </SelectItem>
-                <SelectItem value="no">
-                  <div className="flex items-center gap-2">
-                    <XCircle className="h-4 w-4 text-red-500" />
-                    No cumple
-                  </div>
-                </SelectItem>
-                <SelectItem value="no-contiene">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-slate-500" />
-                    No contiene
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
       </CardContent>

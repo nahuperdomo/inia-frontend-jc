@@ -94,3 +94,6 @@ export async function validarLoteElegible(loteID: number, tipoAnalisis: TipoAnal
     return false;
   }
 }
+export async function obtenerLotesPaginadas(page: number = 0, size: number = 10): Promise<any> {
+  return apiFetch(`/api/lotes/listado?page=${page}&size=${size}`);
+}

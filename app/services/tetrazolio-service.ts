@@ -56,3 +56,21 @@ export async function marcarParaRepetir(id: number): Promise<TetrazolioDTO> {
     method: "PUT",
   });
 }
+
+export async function actualizarPorcentajesRedondeados(
+  id: number, 
+  porcentajes: {
+    porcViablesRedondeo: number;
+    porcNoViablesRedondeo: number;
+    porcDurasRedondeo: number;
+  }
+): Promise<TetrazolioDTO> {
+  return apiFetch(`/api/tetrazolios/${id}/porcentajes`, {
+    method: "PUT",
+    body: JSON.stringify(porcentajes),
+  });
+}
+
+export async function obtenerTetrazoliosPaginadas(page: number = 0, size: number = 10): Promise<{ content: TetrazolioDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  return apiFetch(`/api/tetrazolios/listado?page=${page}&size=${size}`);
+}

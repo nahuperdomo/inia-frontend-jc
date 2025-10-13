@@ -7,46 +7,87 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Scale, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft } from "lucide-react"
-import { Toaster, toast } from "sonner"
+
+import { Scale, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle } from "lucide-react"
 import Link from "next/link"
+import { Toaster, toast } from "sonner"
+import Pagination from "@/components/pagination"
+import { obtenerPmsPaginadas, eliminarPms } from "@/app/services/pms-service"
 import { PmsDTO } from "@/app/models"
-import { obtenerTodosPms, eliminarPms } from "@/app/services/pms-service"
+
+interface AnalisisPMS {
+  id: string
+  loteId: string
+  loteName: string
+  analyst: string
+  fechaInicio: string
+  fechaFin: string | null
+  estado: "Completado" | "En Proceso" | "Pendiente"
+  prioridad: "Alta" | "Media" | "Baja"
+  repeticiones: number
+  semillasPorRep: number
+  humedad: string
+  pesoPromedio: number
+  desviacionEstandar: number
+  coeficienteVariacion: number
+  pesoCorregido: number
+}
 
 export default function ListadoPMSPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState<string>("todos")
-  const [analisis, setAnalisis] = useState<PmsDTO[]>([])
-  const [loading, setLoading] = useState(true)
+  const [filterPrioridad, setFilterPrioridad] = useState<string>("todos")
+  const [analisis, setAnalisis] = useState<AnalisisPMS[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const pageSize = 10
 
-  // Cargar datos del backend
-  useEffect(() => {
-    const fetchAnalisis = async () => {
+  // Fetch paginated PMS
+  const fetchPms = async (page: number = 0) => {
+    try {
       setLoading(true)
-      setError(null)
-      try {
-        const data = await obtenerTodosPms()
-        setAnalisis(data)
-      } catch (err: any) {
-        const errorMsg = err?.message || "No se pudieron cargar los análisis de PMS"
-        setError(errorMsg)
-        toast.error('Error al cargar análisis', {
-          description: errorMsg,
-        })
-      } finally {
-        setLoading(false)
-      }
-    }
+      const data = await obtenerPmsPaginadas(page, pageSize)
+      // data.content expected
+      setAnalisis((data.content || []).map((p: any) => ({
+        id: `PMS${p.analisisID}`,
+        loteId: p.lote || `#${p.analisisID}`,
+        loteName: p.lote || "No especificado",
+        analyst: p.analista || "-",
+        fechaInicio: p.fecha || new Date().toISOString(),
+        fechaFin: p.fechaFin || null,
+        estado: p.estado === 'FINALIZADO' || p.estado === 'APROBADO' ? 'Completado' : (p.estado === 'EN_PROCESO' ? 'En Proceso' : 'Pendiente'),
+        prioridad: 'Media',
+        repeticiones: p.repeticiones || 0,
+        semillasPorRep: p.semillasPorRepeticion || 100,
+        humedad: p.humedad || "-",
+        pesoPromedio: p.pesoPromedio || 0,
+        desviacionEstandar: p.desviacionEstandar || 0,
+        coeficienteVariacion: p.coeficienteVariacion || 0,
+        pesoCorregido: p.pesoCorregido || 0,
+      })))
 
-    fetchAnalisis()
-  }, [])
+      const meta = (data as any).page || {}
+      setTotalPages(meta.totalPages ?? 1)
+      setTotalElements(meta.totalElements ?? (data.content?.length || 0))
+      setCurrentPage(meta.number ?? page)
+    } catch (err) {
+      console.error("Error fetching PMS paginadas:", err)
+      setError("Error al cargar los análisis PMS")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchPms(0) }, [])
 
   const filteredAnalisis = analisis.filter((item) => {
     const matchesSearch =
-      item.analisisID?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.lote?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.idLote?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      item.id?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.loteId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.loteName?.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesEstado = filterEstado === "todos" || item.estado === filterEstado
 
@@ -97,8 +138,7 @@ export default function ListadoPMSPage() {
       await eliminarPms(id)
       toast.success('Análisis eliminado exitosamente')
       // Recargar la lista
-      const data = await obtenerTodosPms()
-      setAnalisis(data)
+      await fetchPms(currentPage)
     } catch (err: any) {
       toast.error('Error al eliminar análisis', {
         description: err?.message || "No se pudo eliminar el análisis",
@@ -108,10 +148,10 @@ export default function ListadoPMSPage() {
 
   // Estadísticas calculadas
   const totalAnalisis = analisis.length
-  const completados = analisis.filter((a) => a.estado === "APROBADO").length
-  const enProceso = analisis.filter((a) => a.estado === "EN_PROCESO" || a.estado === "FINALIZADO" || a.estado === "PENDIENTE_APROBACION").length
-  const promedioGeneral = analisis.filter((a) => a.pmsconRedon && a.pmsconRedon > 0)
-    .reduce((sum, a, _, arr) => sum + (a.pmsconRedon || 0) / arr.length, 0)
+  const completados = analisis.filter((a) => a.estado === "Completado").length
+  const enProceso = analisis.filter((a) => a.estado === "En Proceso").length
+  const promedioGeneral = analisis.filter((a) => a.pesoPromedio && a.pesoPromedio > 0)
+    .reduce((sum, a, _, arr) => sum + (a.pesoPromedio || 0) / arr.length, 0)
 
   if (loading) {
     return (
@@ -276,7 +316,7 @@ export default function ListadoPMSPage() {
         <CardHeader>
           <CardTitle>Lista de Análisis de Peso de Mil Semillas</CardTitle>
           <CardDescription>
-            {filteredAnalisis.length} análisis encontrado{filteredAnalisis.length !== 1 ? "s" : ""}
+            {totalElements} análisis
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -307,10 +347,10 @@ export default function ListadoPMSPage() {
                   </TableRow>
                 ) : (
                   filteredAnalisis.map((item) => (
-                    <TableRow key={item.analisisID}>
-                      <TableCell className="font-medium whitespace-nowrap">PMS-{item.analisisID}</TableCell>
-                      <TableCell className="whitespace-nowrap">{item.lote || "-"}</TableCell>
-                      <TableCell className="whitespace-nowrap">{item.idLote || "-"}</TableCell>
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium whitespace-nowrap">{item.id}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.loteName || "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.loteId || "-"}</TableCell>
                       <TableCell className="whitespace-nowrap">
                         {item.fechaInicio 
                           ? new Date(item.fechaInicio).toLocaleDateString("es-ES")
@@ -322,27 +362,27 @@ export default function ListadoPMSPage() {
                           {getEstadoDisplay(item.estado || "")}
                         </Badge>
                       </TableCell>
-                      <TableCell className="whitespace-nowrap">{item.numRepeticionesEsperadas || "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.repeticiones || "-"}</TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {item.pmsconRedon && item.pmsconRedon > 0 
-                          ? `${item.pmsconRedon.toFixed(2)}g` 
+                        {item.pesoPromedio && item.pesoPromedio > 0 
+                          ? `${item.pesoPromedio.toFixed(2)}g` 
                           : "-"
                         }
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {item.coefVariacion && item.coefVariacion > 0 
-                          ? `${item.coefVariacion.toFixed(2)}%` 
+                        {item.coeficienteVariacion && item.coeficienteVariacion > 0 
+                          ? `${item.coeficienteVariacion.toFixed(2)}%` 
                           : "-"
                         }
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <Link href={`/listado/analisis/pms/${item.analisisID}`}>
+                          <Link href={`/listado/analisis/pms/${item.id.replace('PMS', '')}`}>
                             <Button variant="ghost" size="sm" title="Ver detalles">
                               <Eye className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <Link href={`/listado/analisis/pms/${item.analisisID}/editar`}>
+                          <Link href={`/listado/analisis/pms/${item.id.replace('PMS', '')}/editar`}>
                             <Button variant="ghost" size="sm" title="Editar">
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -352,7 +392,7 @@ export default function ListadoPMSPage() {
                             size="sm" 
                             className="text-destructive hover:text-destructive"
                             title="Eliminar"
-                            onClick={() => handleEliminar(item.analisisID!)}
+                            onClick={() => handleEliminar(parseInt(item.id.replace('PMS', '')))}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -363,6 +403,23 @@ export default function ListadoPMSPage() {
                 )}
               </TableBody>
             </Table>
+          </div>
+          <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+            <div className="text-sm text-muted-foreground">
+              {totalElements === 0 ? (
+                <>Mostrando 0 de 0 resultados</>
+              ) : (
+                <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
+              )}
+            </div>
+          
+            <Pagination
+              currentPage={currentPage}
+              totalPages={Math.max(totalPages, 1)}
+              onPageChange={(p) => fetchPms(p)}
+              showRange={1}
+              alwaysShow={true}
+            />
           </div>
         </CardContent>
       </Card>

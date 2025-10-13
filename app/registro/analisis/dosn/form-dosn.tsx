@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useState } from "react"
 import {
   Card,
   CardHeader,
@@ -54,6 +55,9 @@ export default function DosnFields({
 }: Props) {
   const data = dosn || formData || {}
   const isReadOnly = !!modoDetalle
+  
+  // Estado para manejar la pestaña activa y evitar pérdida de datos
+  const [activeTab, setActiveTab] = useState("generales")
 
   const analysisTypes = [
     { key: "Completo", field: "Completo", description: "Análisis exhaustivo de todas las categorías" },
@@ -205,7 +209,7 @@ export default function DosnFields({
       </CardHeader>
 
       <CardContent>
-        <Tabs defaultValue="generales" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="flex flex-wrap gap-2 w-full mb-6">
             <TabsTrigger value="generales" className="flex items-center gap-2 px-3 py-2 text-sm">
               <FileText className="h-4 w-4" />

@@ -63,9 +63,3 @@ INSERT INTO public.malezasycultivos (catalogoid, activo, nombre_cientifico, nomb
 (103, true, 'Oryza sativa', 'Arroz', 'CULTIVO'),
 (104, true, 'Hordeum vulgare', 'Cebada', 'CULTIVO');
 
--- Brassicas
-INSERT INTO public.malezasycultivos (catalogoid, activo, nombre_cientifico, nombre_comun, tipomyccatalogo) VALUES
-(200, true, 'Brassica oleracea var. capitata', 'Repollo', 'BRASSICA'),
-(201, true, 'Brassica napus', 'Colza / Canola', 'BRASSICA'),
-(202, true, 'Brassica rapa subsp. rapa', 'Nabo', 'BRASSICA'),
-(203, true, 'Brassica juncea', 'Mostaza india', 'BRASSICA');

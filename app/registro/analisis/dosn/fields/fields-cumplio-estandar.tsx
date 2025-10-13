@@ -28,25 +28,7 @@ export default function CumplimientoEstandar({ formData, handleInputChange }: Pr
       </CardHeader>
 
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Fecha */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="cumpleFecha"
-              className="text-sm font-medium flex items-center gap-2"
-            >
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              Fecha de evaluación
-            </Label>
-            <Input
-              id="cumpleFecha"
-              type="date"
-              value={formData.cumpleFecha || ""}
-              onChange={(e) => handleInputChange("cumpleFecha", e.target.value)}
-              className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
-
+        <div className="grid grid-cols-1 gap-4">
           {/* Estado */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Estado de cumplimiento</Label>
