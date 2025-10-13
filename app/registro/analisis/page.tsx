@@ -265,7 +265,7 @@ export default function RegistroAnalisisPage() {
     tincionTemp: 30,
     tincionTempOtro: "",
     comentarios: "",
-    numRepeticionesEsperadas: 2,
+    numRepeticionesEsperadasTetrazolio: 2,
   });
   const [loading, setLoading] = useState(false)
   const getAnalysisTypeName = (typeId: string | TipoAnalisis): string => {
