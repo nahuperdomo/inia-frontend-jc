@@ -24,18 +24,18 @@ export function LotCard({ lot, onViewDetails }: LotCardProps) {
   const getStatusColor = (estado: string) => {
     switch (estado) {
       case "Activo":
-        return "bg-green-100 text-green-800 hover:bg-green-200"
+        return "bg-primary/10 text-primary hover:bg-primary/20"
       case "En proceso":
         return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
       case "Completado":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200"
+        return "bg-primary/10 text-primary hover:bg-primary/20"
       default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200"
+        return "bg-muted text-muted-foreground hover:bg-muted/80"
     }
   }
 
   return (
-    <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+    <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/30 transition-colors">
       <div className="flex items-center gap-4">
         <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
           <Wheat className="h-5 w-5 text-primary" />
@@ -72,3 +72,4 @@ export function LotCard({ lot, onViewDetails }: LotCardProps) {
     </div>
   )
 }
+

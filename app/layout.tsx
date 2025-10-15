@@ -13,13 +13,13 @@ import { Suspense } from "react"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Sistema INIA - Gestión Agropecuaria",
-  description: "Sistema de gestión para el Instituto Nacional de Innovación Agropecuaria",
+  title: "Sistema INIA - Gestin Agropecuaria",
+  description: "Sistema de gestin para el Instituto Nacional de Innovacin Agropecuaria",
   generator: "v0.app",
   authors: [
     { name: "INIA" }
   ],
-  applicationName: "INIA - Sistema de Gestión de Análisis de Semillas",
+  applicationName: "INIA - Sistema de Gestin de Análisis de Semillas",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -29,13 +29,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "INIA",
-    title: "Sistema INIA - Gestión Agropecuaria",
-    description: "Sistema de gestión para el Instituto Nacional de Innovación Agropecuaria",
+    title: "Sistema INIA - Gestin Agropecuaria",
+    description: "Sistema de gestin para el Instituto Nacional de Innovacin Agropecuaria",
   },
   twitter: {
     card: "summary",
-    title: "Sistema INIA - Gestión Agropecuaria",
-    description: "Sistema de gestión para el Instituto Nacional de Innovación Agropecuaria",
+    title: "Sistema INIA - Gestin Agropecuaria",
+    description: "Sistema de gestin para el Instituto Nacional de Innovacin Agropecuaria",
   },
   icons: {
     icon: [

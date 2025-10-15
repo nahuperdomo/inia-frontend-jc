@@ -1,29 +1,19 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-
-import {
-  ArrowLeft,
-  Edit,
-  Download,
-  Calendar,
-  FileText,
-  BarChart3,
-  CheckCircle,
-  AlertTriangle,
-  Loader2,
-} from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Activity, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, AlertTriangle } from "lucide-react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
-import { obtenerDosnPorId } from "@/app/services/dosn-service"
-import type { DosnDTO } from "@/app/models"
-import type { EstadoAnalisis, TipoDOSN, TipoListado } from "@/app/models/types/enums"
+import { useState, useEffect } from "react"
+import { obtenerTodasDosnActivas, obtenerDosnPaginadas } from "@/app/services/dosn-service"
+import Pagination from "@/components/pagination"
+import { DosnDTO } from "@/app/models"
+import { EstadoAnalisis, TipoListado } from "@/app/models/types/enums"
 
-// Función helper para mostrar nombres legibles de tipos de listado
+// Funcin helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
   switch (tipo) {
     case "MAL_TOLERANCIA_CERO":
@@ -41,7 +31,7 @@ const getTipoListadoDisplay = (tipo: TipoListado) => {
   }
 }
 
-// Función helper para obtener el color del badge según el tipo
+// Funcin helper para obtener el color del badge según el tipo
 const getTipoListadoBadgeColor = (tipo: TipoListado) => {
   switch (tipo) {
     case "MAL_TOLERANCIA_CERO":
@@ -59,10 +49,10 @@ const getTipoListadoBadgeColor = (tipo: TipoListado) => {
   }
 }
 
-// Función utilitaria para formatear fechas correctamente
+// Funcin utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
   if (!fechaString) return ''
-  
+
   try {
     // Si la fecha ya está en formato YYYY-MM-DD, usarla directamente
     if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
@@ -70,17 +60,17 @@ const formatearFechaLocal = (fechaString: string): string => {
       const fecha = new Date(year, month - 1, day) // month - 1 porque los meses son 0-indexed
       return fecha.toLocaleDateString('es-ES', {
         year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+        month: '2-digit',
+        day: '2-digit'
       })
     }
-    
+
     // Si viene en otro formato, parsearlo de manera segura
     const fecha = new Date(fechaString)
     return fecha.toLocaleDateString('es-ES', {
       year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      month: '2-digit',
+      day: '2-digit'
     })
   } catch (error) {
     console.warn("Error al formatear fecha:", fechaString, error)
@@ -88,539 +78,375 @@ const formatearFechaLocal = (fechaString: string): string => {
   }
 }
 
-export default function DosnDetailPage() {
-  const params = useParams()
-  const dosnId = params.id as string
-  const [dosn, setDosn] = useState<DosnDTO | null>(null)
+export default function ListadoDOSNPage() {
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedStatus, setSelectedStatus] = useState("all")
+  const [dosns, setDosns] = useState<DosnDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const [isLast, setIsLast] = useState(false)
+  const [isFirst, setIsFirst] = useState(true)
+  const pageSize = 10
+  const [lastResponse, setLastResponse] = useState<any>(null)
+
+  const fetchDosns = async (page: number = 0) => {
+    try {
+      setLoading(true);
+      const data = await obtenerDosnPaginadas(page, pageSize);
+      console.log("DEBUG obtenerDosnPaginadas response:", data);
+
+      // Datos principales
+      setDosns(data.content || []);
+
+      // Extraer metadatos del objeto "page" (nuevo formato del backend)
+      const meta = (data as any).page || {};
+
+      setTotalPages(meta.totalPages ?? 1);
+      setTotalElements(meta.totalElements ?? (data.content?.length || 0));
+      setCurrentPage(meta.number ?? page);
+      setIsFirst((meta.number ?? 0) === 0);
+      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1);
+    } catch (err) {
+      setError("Error al cargar los análisis DOSN");
+      console.error("Error fetching DOSNs:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDosn = async () => {
-      try {
-        setLoading(true)
-        const data = await obtenerDosnPorId(Number.parseInt(dosnId))
-        setDosn(data)
-      } catch (err) {
-        setError("Error al cargar los detalles del análisis DOSN")
-        console.error("Error fetching DOSN:", err)
-      } finally {
-        setLoading(false)
-      }
-    }
+    fetchDosns(0)
+  }, [])
 
-    if (dosnId) {
-      fetchDosn()
-    }
-  }, [dosnId])
+  const filteredAnalysis = dosns.filter((analysis) => {
+    const searchLower = searchTerm.toLowerCase()
+    const matchesSearch =
+      analysis.analisisID.toString().includes(searchLower) ||
+      analysis.lote.toLowerCase().includes(searchLower) ||
+      (analysis.comentarios && analysis.comentarios.toLowerCase().includes(searchLower)) ||
+      `dosn-${analysis.analisisID}`.includes(searchLower)
+    const matchesStatus = selectedStatus === "all" || analysis.estado === selectedStatus
+    return matchesSearch && matchesStatus
+  })
+
+  // Calculate stats from current page data and total
+  const totalAnalysis = totalElements
+  const completedAnalysis = dosns.filter(d => d.estado === "FINALIZADO" || d.estado === "APROBADO").length
+  const inProgressAnalysis = dosns.filter(d => d.estado === "EN_PROCESO").length
+  const pendingAnalysis = dosns.filter(d => d.estado === "PENDIENTE").length
+  const complianceRate = dosns.length > 0 ? Math.round((dosns.filter(d => d.cumpleEstandar === true).length / dosns.length) * 100) : 0
 
   const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
     switch (estado) {
       case "FINALIZADO":
+      case "APROBADO":
         return "default"
       case "EN_PROCESO":
         return "secondary"
-      case "APROBADO":
-        return "outline"
       case "PENDIENTE":
         return "destructive"
+      case "PENDIENTE_APROBACION":
+        return "outline"
       default:
         return "outline"
     }
   }
 
-  const formatTipoDOSN = (tipos: TipoDOSN[] | undefined) => {
-    if (!tipos || tipos.length === 0) return "No especificado"
-    return tipos
-      .map((tipo) => {
-        switch (tipo) {
-          case "COMPLETO":
-            return "Completo"
-          case "REDUCIDO":
-            return "Reducido"
-          case "LIMITADO":
-            return "Limitado"
-          case "REDUCIDO_LIMITADO":
-            return "Reducido Limitado"
-          default:
-            return tipo
-        }
-      })
-      .join(", ")
+  const formatEstado = (estado: EstadoAnalisis) => {
+    switch (estado) {
+      case "FINALIZADO":
+        return "Finalizado"
+      case "EN_PROCESO":
+        return "En Proceso"
+      case "PENDIENTE":
+        return "Pendiente"
+      case "APROBADO":
+        return "Aprobado"
+      case "PENDIENTE_APROBACION":
+        return "Pend. Aprobacin"
+      case "PARA_REPETIR":
+        return "Para Repetir"
+      default:
+        return estado
+    }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <div className="space-y-2">
-            <p className="text-lg font-medium">Cargando análisis</p>
-            <p className="text-sm text-muted-foreground">Obteniendo detalles del DOSN...</p>
+      <div className="flex-1 space-y-6 p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Cargando análisis DOSN...</p>
           </div>
         </div>
       </div>
-    
     )
   }
 
-  if (error || !dosn) {
+  if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="text-center space-y-6 max-w-md">
-          <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
-            <AlertTriangle className="h-8 w-8 text-destructive" />
+      <div className="flex-1 space-y-6 p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-lg font-semibold mb-2">Error al cargar</p>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>Reintentar</Button>
           </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-semibold text-balance">No se pudo cargar el análisis</h2>
-            <p className="text-muted-foreground text-pretty">{error || "El análisis solicitado no existe"}</p>
-          </div>
-          <Link href="/listado/analisis/dosn">
-            <Button size="lg" className="gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Volver al listado
-            </Button>
-          </Link>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      {/* Header sticky solo dentro del área con scroll */}
-      <div className="bg-background border-b sticky top-0 z-40">
-      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col gap-6">
-          <Link href="/listado/analisis/dosn">
-            <Button variant="ghost" size="sm" className="gap-2 -ml-2">
-              <ArrowLeft className="h-4 w-4" />
-              Volver
+    <div className="flex-1 space-y-6 p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/listado">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver a Listados
             </Button>
           </Link>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Análisis DOSN</h1>
+            <p className="text-muted-foreground">Consulta la determinacin de otras semillas nocivas</p>
+          </div>
+        </div>
+        <Link href="/registro/analisis/dosn">
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Análisis
+          </Button>
+        </Link>
+      </div>
 
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-3xl lg:text-4xl font-bold text-balance">
-                  Análisis DOSN #{dosn.analisisID}
-                </h1>
-                <Badge
-                  variant={getEstadoBadgeVariant(dosn.estado)}
-                  className="text-sm px-3 py-1"
-                >
-                  {dosn.estado}
-                </Badge>
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Análisis</p>
+                <p className="text-2xl font-bold">{totalAnalysis}</p>
               </div>
-              <p className="text-base text-muted-foreground text-pretty">
-                Determinación de otras semillas nocivas • Lote {dosn.lote}
-              </p>
+              <Activity className="h-8 w-8 text-red-600" />
             </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Completados</p>
+                <p className="text-2xl font-bold">{completedAnalysis}</p>
+              </div>
+              <Activity className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">En Proceso</p>
+                <p className="text-2xl font-bold">{inProgressAnalysis}</p>
+              </div>
+              <Activity className="h-8 w-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Cumplen Norma</p>
+                <p className="text-2xl font-bold">{complianceRate}%</p>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link href={`/listado/analisis/dosn/${dosn.analisisID}/editar`}>
-                <Button size="lg" className="gap-2 w-full sm:w-auto">
-                  <Edit className="h-4 w-4" />
-                  Editar análisis
-                </Button>
-              </Link>
-              {/* Botón Finalizar: muestra confirmación y realiza validación cliente */}
-              <Button
-                size="lg"
-                variant="destructive"
-                className="gap-2 w-full sm:w-auto"
-                onClick={async () => {
-                  try {
-                    // Validación cliente (mismos criterios que el servidor)
-                    const tieneINIA = !!(dosn.fechaINIA && dosn.gramosAnalizadosINIA && Number(dosn.gramosAnalizadosINIA) > 0)
-                    const tieneINASE = !!(dosn.fechaINASE && dosn.gramosAnalizadosINASE && Number(dosn.gramosAnalizadosINASE) > 0)
-                    const tieneCuscuta = !!((dosn.cuscuta_g && Number(dosn.cuscuta_g) > 0) || (dosn.cuscutaNum && Number(dosn.cuscutaNum) > 0))
-                    const tieneListados = !!(dosn.listados && dosn.listados.length > 0)
-
-                    if (!tieneINIA && !tieneINASE && !tieneCuscuta && !tieneListados) {
-                      // Mostrar un modal sencillo con confirmación del usuario
-                      if (!window.confirm('No hay evidencia (INIA/INASE/listados/cuscuta). ¿Desea intentar finalizar de todas formas?')) {
-                        return
-                      }
-                    }
-
-                    // Llamada al servicio
-                    // Importar dinamicamente para evitar ciclos si no existe
-                    const { finalizarAnalisis } = await import('@/app/services/dosn-service')
-                    await finalizarAnalisis(Number.parseInt(dosn.analisisID.toString()))
-                    // Refrescar la página para mostrar el nuevo estado
-                    window.location.reload()
-                  } catch (err: any) {
-                    alert(err?.message || 'Error al finalizar el análisis')
-                  }
-                }}
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Buscar por ID, lote o comentarios..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
               >
-                Finalizar Análisis
+                <option value="all">Todos los estados</option>
+                <option value="FINALIZADO">Finalizado</option>
+                <option value="EN_PROCESO">En Proceso</option>
+                <option value="PENDIENTE">Pendiente</option>
+                <option value="APROBADO">Aprobado</option>
+                <option value="PENDIENTE_APROBACION">Pend. Aprobacin</option>
+              </select>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Filtros
               </Button>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
 
-    {/* Compensar altura del header sticky */}
-    <div className="pt-4">
-      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      
 
-        <div className="grid grid-cols-1 gap-6 lg:gap-8">
-          {/* Main Content - Full width now */}
-          <div className="space-y-6">
-            <Card className="overflow-hidden bg-background">
-              <CardHeader className="bg-background border-b sticky top-[20px] z-20">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <FileText className="h-5 w-5 text-primary" />
-                  </div>
-                  Información General
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      ID Análisis
-                    </label>
-                    <p className="text-2xl font-bold">{dosn.analisisID}</p>
-                  </div>
+        </CardContent>
+      </Card>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Lote</label>
-                    <p className="text-2xl font-semibold">{dosn.lote}</p>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Fecha de Inicio
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-lg font-medium">
-                        {formatearFechaLocal(dosn.fechaInicio)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {dosn.fechaFin && (
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Fecha de Finalización
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <p className="text-lg font-medium">
-                          {formatearFechaLocal(dosn.fechaFin)}
-                        </p>
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Análisis DOSN</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[100px]">ID Análisis</TableHead>
+                  <TableHead className="min-w-[150px]">Lote</TableHead>
+                  <TableHead className="min-w-[120px]">Fecha Inicio</TableHead>
+                  <TableHead className="min-w-[120px]">Fecha Fin</TableHead>
+                  <TableHead className="min-w-[100px]">Estado</TableHead>
+                  <TableHead className="min-w-[120px]">Cumple Estándar</TableHead>
+                  {/* <TableHead className="min-w-[200px]">Listados</TableHead> */}
+                  <TableHead className="min-w-[150px]">Comentarios</TableHead>
+                  <TableHead className="min-w-[120px]">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAnalysis.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <AlertTriangle className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-muted-foreground">No se encontraron análisis DOSN</p>
                       </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Cumple Estándar
-                    </label>
-                    <div className="flex items-center gap-3">
-                      {dosn.cumpleEstandar !== undefined ? (
-                        <>
-                          <div
-                            className={`p-2 rounded-lg ${dosn.cumpleEstandar ? "bg-green-500/10" : "bg-destructive/10"}`}
-                          >
-                            {dosn.cumpleEstandar ? (
-                              <CheckCircle className="h-5 w-5 text-green-600" />
-                            ) : (
-                              <AlertTriangle className="h-5 w-5 text-destructive" />
-                            )}
-                          </div>
-                          <span
-                            className={`text-lg font-semibold ${dosn.cumpleEstandar ? "text-green-600" : "text-destructive"}`}
-                          >
-                            {dosn.cumpleEstandar ? "Cumple con el estándar" : "No cumple con el estándar"}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-lg text-muted-foreground">Pendiente de evaluación</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {dosn.comentarios && (
-                  <>
-                    <Separator className="my-6" />
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Comentarios
-                      </label>
-                      <p className="text-base leading-relaxed bg-muted/50 p-4 rounded-lg">{dosn.comentarios}</p>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            {(dosn.fechaINIA || dosn.gramosAnalizadosINIA || dosn.tipoINIA) && (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-muted/50 border-b">
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <div className="p-2 rounded-lg bg-blue-500/10">
-                      <BarChart3 className="h-5 w-5 text-blue-600" />
-                    </div>
-                    Análisis INIA
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    {dosn.fechaINIA && (
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Fecha
-                        </label>
-                        <p className="text-lg font-semibold">
-                          {formatearFechaLocal(dosn.fechaINIA)}
-                        </p>
-                      </div>
-                    )}
-                    {dosn.gramosAnalizadosINIA && (
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Gramos Analizados
-                        </label>
-                        <p className="text-lg font-semibold">{dosn.gramosAnalizadosINIA} g</p>
-                      </div>
-                    )}
-                    {dosn.tipoINIA && (
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Tipo
-                        </label>
-                        <p className="text-lg font-semibold">{formatTipoDOSN(dosn.tipoINIA)}</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {(dosn.fechaINASE || dosn.gramosAnalizadosINASE || dosn.tipoINASE) && (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-muted/50 border-b">
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <div className="p-2 rounded-lg bg-purple-500/10">
-                      <BarChart3 className="h-5 w-5 text-purple-600" />
-                    </div>
-                    Análisis INASE
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    {dosn.fechaINASE && (
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Fecha
-                        </label>
-                        <p className="text-lg font-semibold">
-                          {formatearFechaLocal(dosn.fechaINASE)}
-                        </p>
-                      </div>
-                    )}
-                    {dosn.gramosAnalizadosINASE && (
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Gramos Analizados
-                        </label>
-                        <p className="text-lg font-semibold">{dosn.gramosAnalizadosINASE} g</p>
-                      </div>
-                    )}
-                    {dosn.tipoINASE && (
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Tipo
-                        </label>
-                        <p className="text-lg font-semibold">{formatTipoDOSN(dosn.tipoINASE)}</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {(dosn.cuscuta_g || dosn.cuscutaNum) && (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-muted/50 border-b">
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <div className="p-2 rounded-lg bg-orange-500/10">
-                      <BarChart3 className="h-5 w-5 text-orange-600" />
-                    </div>
-                    Análisis de Cuscuta
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {dosn.cuscuta_g !== undefined && dosn.cuscuta_g !== null && (
-                      <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-200/50 rounded-lg p-4 text-center space-y-2">
-                        <p className="text-3xl font-bold text-orange-600">{dosn.cuscuta_g}</p>
-                        <p className="text-sm font-medium text-muted-foreground">Gramos de Cuscuta</p>
-                      </div>
-                    )}
-                    {dosn.cuscutaNum !== undefined && dosn.cuscutaNum !== null && (
-                      <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 border border-red-200/50 rounded-lg p-4 text-center space-y-2">
-                        <p className="text-3xl font-bold text-red-600">{dosn.cuscutaNum}</p>
-                        <p className="text-sm font-medium text-muted-foreground">Número de Semillas</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {dosn.listados && dosn.listados.length > 0 && (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-muted/50 border-b">
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <div className="p-2 rounded-lg bg-green-500/10">
-                      <FileText className="h-5 w-5 text-green-600" />
-                    </div>
-                    Listados
-                    <Badge variant="secondary" className="ml-auto">
-                      {dosn.listados.length}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {dosn.listados.map((listado, index) => (
-                      <div
-                        key={index}
-                        className="bg-muted/30 border rounded-xl p-5 hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                          <div className="space-y-1 sm:col-span-2">
-                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                              Especie
-                            </label>
-                            <p className="text-base font-semibold">
-                              {listado.catalogo?.nombreComun || 
-                               (listado.listadoTipo === "BRASSICA" ? "Sin especificación" : "--")}
-                            </p>
-                            {listado.catalogo?.nombreCientifico && (
-                              <p className="text-sm text-muted-foreground italic">
-                                {listado.catalogo.nombreCientifico}
-                              </p>
-                            )}
-                            {listado.listadoTipo === "BRASSICA" && !listado.catalogo?.nombreComun && (
-                              <p className="text-sm text-muted-foreground">
-                                Las brassicas no requieren especificación de catálogo
-                              </p>
-                            )}
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                              Tipo
-                            </label>
-                            <Badge variant="outline" className={`font-medium ${getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}`}>
-                              {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
-                            </Badge>
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                              Instituto
-                            </label>
-                            <p className="text-base font-medium">{listado.listadoInsti}</p>
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                              Número
-                            </label>
-                            <p className="text-base font-semibold">{listado.listadoNum}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          
-            {/* 
-            TODO: Acciones Rápidas - Comentado temporalmente
-            <div className="space-y-6">
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-muted/50 border-b">
-                  <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <Link href={`/registro/analisis/dosn?lote=${dosn.idLote}`} className="block">
-                      <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                        <div className="p-1.5 rounded-md bg-primary/10">
-                          <BarChart3 className="h-4 w-4 text-primary" />
-                        </div>
-                        <span className="font-medium">Nuevo Análisis</span>
-                      </Button>
-                    </Link>
-                    <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                      <div className="p-1.5 rounded-md bg-primary/10">
-                        <Download className="h-4 w-4 text-primary" />
-                      </div>
-                      <span className="font-medium">Descargar Certificado</span>
-                    </Button>
-                    <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                      <div className="p-1.5 rounded-md bg-primary/10">
-                        <Calendar className="h-4 w-4 text-primary" />
-                      </div>
-                      <span className="font-medium">Programar Seguimiento</span>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {dosn.historial && dosn.historial.length > 0 && (
-                <Card className="overflow-hidden">
-                  <CardHeader className="bg-muted/50 border-b">
-                    <CardTitle className="text-lg">Historial de Actividades</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      {dosn.historial.map((item, index) => (
-                        <div key={index} className="relative pl-6 pb-4 last:pb-0">
-                          <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
-                          {index !== dosn.historial.length - 1 && (
-                            <div className="absolute left-[5px] top-5 bottom-0 w-0.5 bg-border" />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredAnalysis.map((analysis) => (
+                    <TableRow key={analysis.analisisID}>
+                      <TableCell className="font-medium">DOSN-{analysis.analisisID}</TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{analysis.lote}</div>
+                          {analysis.idLote && (
+                            <div className="text-sm text-muted-foreground">ID: {analysis.idLote}</div>
                           )}
-                          <div className="space-y-1">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="text-sm font-semibold leading-tight">
-                                {item.estadoAnterior} → {item.estadoNuevo}
-                              </p>
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(item.fechaCambio).toLocaleDateString("es-ES", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </p>
-                            <p className="text-xs text-muted-foreground">Por: {item.usuario}</p>
-                          </div>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                      </TableCell>
+                      <TableCell>{formatearFechaLocal(analysis.fechaInicio)}</TableCell>
+                      <TableCell>
+                        {analysis.fechaFin ? formatearFechaLocal(analysis.fechaFin) : "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getEstadoBadgeVariant(analysis.estado)}>
+                          {formatEstado(analysis.estado)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {analysis.cumpleEstandar !== undefined ? (
+                          <Badge
+                            variant={analysis.cumpleEstandar ? "default" : "destructive"}
+                            className="text-xs"
+                          >
+                            {analysis.cumpleEstandar ? "Sí" : "No"}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">No evaluado</span>
+                        )}
+                      </TableCell>
+                      {/* <TableCell className="max-w-xs">
+                        {analysis.listados && analysis.listados.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {analysis.listados.map((listado, index) => (
+                              <Badge 
+                                key={index}
+                                variant="outline" 
+                                className={`text-xs ${getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}`}
+                              >
+                                {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">Sin listados</span>
+                        )}
+                      </TableCell>*/}
+                      <TableCell className="max-w-xs">
+                        {analysis.comentarios ? (
+                          <div className="truncate" title={analysis.comentarios}>
+                            {analysis.comentarios}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Link href={`/listado/analisis/dosn/${analysis.analisisID}`}>
+                            <Button variant="ghost" size="sm" title="Ver detalles">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Link href={`/listado/analisis/dosn/${analysis.analisisID}/editar`}>
+                            <Button variant="ghost" size="sm" title="Editar">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Button variant="ghost" size="sm" title="Eliminar">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          {/* Paginacin: centrada en el listado DOSN */}
+          <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+            <div className="text-sm text-muted-foreground">
+              {totalElements === 0 ? (
+                <>Mostrando 0 de 0 resultados</>
+              ) : (
+                <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
               )}
             </div>
-            */}
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={Math.max(totalPages, 1)}
+              onPageChange={(p) => fetchDosns(p)}
+              showRange={1}
+              alwaysShow={true}
+            />
           </div>
-        </div>
-      </div>
-    </div>
+
+        </CardContent>
+      </Card>
+
     </div>
   )
 }

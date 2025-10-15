@@ -1,7 +1,7 @@
 "use client"
 
 import type { ReactNode } from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -13,7 +13,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Leaf, Plus, List, BarChart3, Settings, LogOut, Shield, Bell } from "lucide-react"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet"
+import { Leaf, Plus, List, BarChart3, Settings, LogOut, Shield, Bell, Menu, X } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -36,9 +43,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Hook para badge de notificaciones en el sidebar
   const { unreadCount } = useNotificationBadge()
+
+  // Cerrar menú móvil cuando cambia la ruta
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
+
+  // Prevenir scroll del body cuando el menú está abierto
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [mobileMenuOpen])
 
   const handleLogout = async () => {
     try {
@@ -72,13 +97,56 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     handleLogout()
   }
 
+  // Componente reutilizable para el contenido del menú
+  const MenuContent = ({ onItemClick }: { onItemClick?: () => void }) => (
+    <>
+      <nav className="flex-1 px-2 sm:px-3 space-y-1.5 sm:space-y-2">
+        {navigation.map((item) => (
+          <Link
+            key={item.name}
+            href={item.href}
+            onClick={onItemClick}
+            className={cn(
+              "group flex items-center px-4 sm:px-3 py-3.5 sm:py-3 text-sm sm:text-base lg:text-sm font-medium rounded-xl sm:rounded-lg smooth-transition relative touch-target",
+              pathname === item.href || pathname.startsWith(item.href + "/")
+                ? "bg-primary text-primary-foreground shadow-lg scale-[1.02] sm:scale-105"
+                : "text-foreground hover:bg-accent hover:text-accent-foreground hover:scale-[1.01] active:scale-[0.98]",
+            )}
+          >
+            <item.icon className="mr-3 sm:mr-3 h-5 w-5 sm:h-5 sm:w-5 flex-shrink-0" />
+            <span className="flex-1 font-semibold">{item.name}</span>
+            {/* Badge para notificaciones no leídas */}
+            {item.href === "/notificaciones" && unreadCount > 0 && (
+              <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2.5 py-1 min-w-[22px] text-center font-bold shadow-md animate-pulse">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </Link>
+        ))}
+      </nav>
+      <div className="flex-shrink-0 p-2 sm:p-3 border-t border-border">
+        <Button
+          variant="ghost"
+          className="w-full justify-start px-4 sm:px-3 py-3.5 sm:py-3 text-sm sm:text-base lg:text-sm text-destructive hover:text-destructive hover:bg-destructive/10 smooth-transition touch-target rounded-xl sm:rounded-lg active:scale-95"
+          onClick={() => {
+            onItemClick?.()
+            setShowLogoutDialog(true)
+          }}
+        >
+          <LogOut className="mr-3 sm:mr-3 h-5 w-5 sm:h-5 sm:w-5" />
+          <span className="font-semibold">Cerrar Sesión</span>
+        </Button>
+      </div>
+    </>
+  )
+
   return (
     <div className="flex h-screen bg-background">
-      {/* Sidebar */}
+      {/* Desktop Sidebar */}
       <div className="hidden md:flex md:w-64 md:flex-col">
         <div className="flex flex-col flex-grow pt-5 bg-card border-r overflow-y-auto">
-          <div className="flex items-center flex-shrink-0 px-4">
-            <div className="bg-primary rounded-full p-2">
+          <div className="flex items-center flex-shrink-0 px-4 mb-8">
+            <div className="bg-primary rounded-full p-2 shadow-lg">
               <Leaf className="h-6 w-6 text-primary-foreground" />
             </div>
             <div className="ml-3">
@@ -86,71 +154,79 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <p className="text-xs text-muted-foreground">Gestión Agropecuaria</p>
             </div>
           </div>
-          <div className="mt-8 flex-grow flex flex-col">
-            <nav className="flex-1 px-2 space-y-1">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors relative",
-                    pathname === item.href || pathname.startsWith(item.href + "/")
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground hover:bg-accent hover:text-accent-foreground",
-                  )}
-                >
-                  <item.icon className="mr-3 h-5 w-5" />
-                  {item.name}
-                  {/* Badge para notificaciones no leídas */}
-                  {item.href === "/notificaciones" && unreadCount > 0 && (
-                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </span>
-                  )}
-                </Link>
-              ))}
-            </nav>
-            <div className="flex-shrink-0 p-2">
-              <Button
-                variant="ghost"
-                className="w-full justify-start mt-2 text-destructive hover:text-destructive"
-                onClick={() => setShowLogoutDialog(true)}
-              >
-                <LogOut className="mr-3 h-5 w-5" />
-                Cerrar Sesión
-              </Button>
-            </div>
+          <div className="flex-grow flex flex-col">
+            <MenuContent />
           </div>
         </div>
       </div>
 
+      {/* Mobile Sidebar - Sheet/Drawer */}
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <SheetContent side="left" className="w-[85vw] max-w-[320px] sm:w-[300px] p-0 md:hidden">
+          <div className="flex flex-col h-full bg-gradient-to-b from-background to-muted/20">
+            {/* Header del Sheet */}
+            <SheetHeader className="px-5 sm:px-6 py-6 sm:py-7 border-b bg-gradient-to-r from-primary/5 to-primary/10">
+              <div className="flex items-center space-x-3 sm:space-x-4">
+                <div className="bg-gradient-to-br from-primary to-primary/80 rounded-2xl p-2.5 sm:p-3 shadow-xl flex-shrink-0">
+                  <Leaf className="h-6 w-6 sm:h-7 sm:w-7 text-primary-foreground" />
+                </div>
+                <div className="text-left flex-1 min-w-0">
+                  <SheetTitle className="text-lg sm:text-xl font-bold truncate">Sistema INIA</SheetTitle>
+                  <SheetDescription className="text-xs sm:text-sm">Gestión Agropecuaria</SheetDescription>
+                </div>
+              </div>
+            </SheetHeader>
+
+            {/* Contenido del menú */}
+            <div className="flex-grow flex flex-col overflow-y-auto py-4 sm:py-5">
+              <MenuContent onItemClick={() => setMobileMenuOpen(false)} />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* Main content */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-4 py-3">
-          <div className="flex items-center justify-between">
-            {/* Title/Breadcrumb area */}
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold text-gray-900">
+        <header className="bg-card border-b px-3 sm:px-4 lg:px-6 py-3 sm:py-3.5 sticky top-0 z-30 shadow-sm backdrop-blur-sm bg-card/95">
+          <div className="flex items-center justify-between gap-2 sm:gap-3">
+            {/* Mobile menu button + Title */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+              {/* Botón hamburguesa - solo en mobile */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden flex-shrink-0 hover:bg-accent smooth-transition touch-target rounded-xl active:scale-95 z-20"
+                onClick={() => setMobileMenuOpen(true)}
+                aria-label="Abrir menú de navegación"
+              >
+                <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="sr-only">Abrir menú</span>
+              </Button>
+
+              {/* Title/Breadcrumb */}
+              <h2 className="text-base sm:text-lg lg:text-xl font-bold text-foreground truncate">
                 {navigation.find(item => pathname === item.href || pathname.startsWith(item.href + "/"))?.name || "Dashboard"}
               </h2>
             </div>
 
             {/* Right side - Notifications and user menu */}
-            <div className="flex items-center gap-4">
-              <NotificationDropdown
-                onNotificationClick={(notification) => {
-                  toast.info(`Notificación: ${notification.nombre}`, {
-                    description: notification.mensaje
-                  });
-                }}
-                onViewAll={() => {
-                  router.push('/notificaciones');
-                }}
-              />
+            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 flex-shrink-0">
+              <div className="touch-target">
+                <NotificationDropdown
+                  onNotificationClick={(notification) => {
+                    toast.info(`Notificación: ${notification.nombre}`, {
+                      description: notification.mensaje
+                    });
+                  }}
+                  onViewAll={() => {
+                    router.push('/notificaciones');
+                  }}
+                />
+              </div>
 
-              {/* User info/avatar placeholder */}
-              <div className="text-sm text-gray-600">
+              {/* User info - hidden on small mobile */}
+              <div className="text-xs sm:text-sm text-muted-foreground hidden lg:block font-medium">
                 Usuario INIA
               </div>
             </div>
@@ -165,18 +241,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Logout confirmation dialog */}
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro de cerrar sesión?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-lg sm:text-xl">¿Estás seguro de cerrar sesión?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm sm:text-base">
               Se cerrará tu sesión actual y serás redirigido a la página de inicio de sesión.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-3">
+            <AlertDialogCancel className="mt-0 touch-target rounded-xl">Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmLogout}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 touch-target rounded-xl"
             >
               Cerrar Sesión
             </AlertDialogAction>

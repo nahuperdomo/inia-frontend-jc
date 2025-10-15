@@ -1,40 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowLeft, Save, Loader2, AlertTriangle, FileText, Building2, Plus, Trash2, Leaf } from "lucide-react"
+import { Activity, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, AlertTriangle } from "lucide-react"
 import Link from "next/link"
-import { obtenerDosnPorId, actualizarDosn, obtenerTodasDosnActivas } from "@/app/services/dosn-service"
-import { obtenerTodosActivosMalezasCultivos } from "@/app/services/malezas-service"
-import type { DosnDTO, DosnRequestDTO, MalezasYCultivosCatalogoDTO, TipoListado, TipoMYCCatalogo } from "@/app/models"
-import { toast } from "sonner"
+import { useState, useEffect } from "react"
+import { obtenerTodasDosnActivas, obtenerDosnPaginadas } from "@/app/services/dosn-service"
+import Pagination from "@/components/pagination"
+import { DosnDTO } from "@/app/models"
+import { EstadoAnalisis, TipoListado } from "@/app/models/types/enums"
 
-// Función helper para mapear tipos de listado a tipos de catálogo
-const getCompatibleCatalogTypes = (listadoTipo: TipoListado): TipoMYCCatalogo[] => {
-  switch (listadoTipo) {
-    case "MAL_TOLERANCIA":
-    case "MAL_TOLERANCIA_CERO":
-    case "MAL_COMUNES":
-      return ["MALEZA"]
-    case "BRASSICA":
-      return [] // Las brassicas no tienen catálogo
-    case "OTROS":
-      return ["CULTIVO"]
-    default:
-      return ["MALEZA", "CULTIVO"] // Solo malezas y cultivos
-  }
-}
-
-// Función helper para mostrar nombres legibles de tipos de listado
+// Funcin helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
   switch (tipo) {
     case "MAL_TOLERANCIA_CERO":
@@ -52,7 +31,7 @@ const getTipoListadoDisplay = (tipo: TipoListado) => {
   }
 }
 
-// Función helper para obtener el color del badge según el tipo
+// Funcin helper para obtener el color del badge según el tipo
 const getTipoListadoBadgeColor = (tipo: TipoListado) => {
   switch (tipo) {
     case "MAL_TOLERANCIA_CERO":
@@ -70,1044 +49,404 @@ const getTipoListadoBadgeColor = (tipo: TipoListado) => {
   }
 }
 
-export default function EditarDosnPage() {
-  const params = useParams()
-  const router = useRouter()
-  const dosnId = params.id as string
+// Funcin utilitaria para formatear fechas correctamente
+const formatearFechaLocal = (fechaString: string): string => {
+  if (!fechaString) return ''
 
-  const [dosn, setDosn] = useState<DosnDTO | null>(null)
+  try {
+    // Si la fecha ya está en formato YYYY-MM-DD, usarla directamente
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
+      const [year, month, day] = fechaString.split('-').map(Number)
+      const fecha = new Date(year, month - 1, day) // month - 1 porque los meses son 0-indexed
+      return fecha.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+    }
+
+    // Si viene en otro formato, parsearlo de manera segura
+    const fecha = new Date(fechaString)
+    return fecha.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+  } catch (error) {
+    console.warn("Error al formatear fecha:", fechaString, error)
+    return fechaString
+  }
+}
+
+export default function ListadoDOSNPage() {
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedStatus, setSelectedStatus] = useState("all")
+  const [dosns, setDosns] = useState<DosnDTO[]>([])
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [catalogos, setCatalogos] = useState<MalezasYCultivosCatalogoDTO[]>([])
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const [isLast, setIsLast] = useState(false)
+  const [isFirst, setIsFirst] = useState(true)
+  const pageSize = 10
+  const [lastResponse, setLastResponse] = useState<any>(null)
 
-  // Nuevos estados para agregar listados
-  const [showAddListado, setShowAddListado] = useState(false)
-  const [newListado, setNewListado] = useState({
-    listadoTipo: "",
-    listadoInsti: "",
-    listadoNum: 0,
-    idCatalogo: 0,
-  })
+  const fetchDosns = async (page: number = 0) => {
+    try {
+      setLoading(true);
+      const data = await obtenerDosnPaginadas(page, pageSize);
+      console.log("DEBUG obtenerDosnPaginadas response:", data);
 
-  // Form state
-  const [formData, setFormData] = useState({
-    comentarios: "",
-    cumpleEstandar: false,
-    fechaINIA: "",
-    gramosAnalizadosINIA: 0,
-    tipoINIA: [] as string[],
-    fechaINASE: "",
-    gramosAnalizadosINASE: 0,
-    tipoINASE: [] as string[],
-    cuscuta_g: 0,
-    cuscutaNum: 0,
-    listados: [] as any[],
-  })
+      // Datos principales
+      setDosns(data.content || []);
+
+      // Extraer metadatos del objeto "page" (nuevo formato del backend)
+      const meta = (data as any).page || {};
+
+      setTotalPages(meta.totalPages ?? 1);
+      setTotalElements(meta.totalElements ?? (data.content?.length || 0));
+      setCurrentPage(meta.number ?? page);
+      setIsFirst((meta.number ?? 0) === 0);
+      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1);
+    } catch (err) {
+      setError("Error al cargar los análisis DOSN");
+      console.error("Error fetching DOSNs:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-        setError(null)
+    fetchDosns(0)
+  }, [])
 
-        const targetId = Number.parseInt(dosnId)
-        console.log("Buscando DOSN con ID:", targetId)
+  const filteredAnalysis = dosns.filter((analysis) => {
+    const searchLower = searchTerm.toLowerCase()
+    const matchesSearch =
+      analysis.analisisID.toString().includes(searchLower) ||
+      analysis.lote.toLowerCase().includes(searchLower) ||
+      (analysis.comentarios && analysis.comentarios.toLowerCase().includes(searchLower)) ||
+      `dosn-${analysis.analisisID}`.includes(searchLower)
+    const matchesStatus = selectedStatus === "all" || analysis.estado === selectedStatus
+    return matchesSearch && matchesStatus
+  })
 
-        // Primero verificar que el ID existe en el listado
-        try {
-          console.log("Verificando si el DOSN existe en el listado...")
-          const todosDosn = await obtenerTodasDosnActivas()
-          console.log(
-            "DOSNs disponibles:",
-            todosDosn.map((d) => ({ id: d.analisisID, lote: d.lote })),
-          )
+  // Calculate stats from current page data and total
+  const totalAnalysis = totalElements
+  const completedAnalysis = dosns.filter(d => d.estado === "FINALIZADO" || d.estado === "APROBADO").length
+  const inProgressAnalysis = dosns.filter(d => d.estado === "EN_PROCESO").length
+  const pendingAnalysis = dosns.filter(d => d.estado === "PENDIENTE").length
+  const complianceRate = dosns.length > 0 ? Math.round((dosns.filter(d => d.cumpleEstandar === true).length / dosns.length) * 100) : 0
 
-          const dosnExists = todosDosn.find((d) => d.analisisID === targetId)
-          if (!dosnExists) {
-            throw new Error(
-              `No se encontró un análisis DOSN con ID ${targetId}. IDs disponibles: ${todosDosn.map((d) => d.analisisID).join(", ")}`,
-            )
-          }
-          console.log("DOSN encontrado en listado:", dosnExists)
-        } catch (listError) {
-          console.error("Error al verificar existencia:", listError)
-          setError(`${listError}`)
-          return
-        }
-
-        // Ahora cargar los datos específicos del DOSN
-        console.log("Cargando datos detallados del DOSN...")
-        const dosnData = await obtenerDosnPorId(targetId)
-        console.log("DOSN cargado exitosamente:", dosnData)
-        setDosn(dosnData)
-
-        // Cargar los catálogos usando el servicio correcto
-        try {
-          console.log("Cargando catálogos de malezas/cultivos/brassicas...")
-          const catalogosData = await obtenerTodosActivosMalezasCultivos()
-          console.log("Respuesta de catálogos:", catalogosData)
-          console.log("Tipo de respuesta:", typeof catalogosData)
-          console.log("Es array?", Array.isArray(catalogosData))
-
-          if (Array.isArray(catalogosData)) {
-            console.log("Catálogos cargados correctamente:", catalogosData.length, "items")
-
-            // Mostrar distribución por tipos
-            const tipoDistribution = catalogosData.reduce(
-              (acc, cat) => {
-                acc[cat.tipoMYCCatalogo] = (acc[cat.tipoMYCCatalogo] || 0) + 1
-                return acc
-              },
-              {} as Record<string, number>,
-            )
-            console.log("Distribución por tipos:", tipoDistribution)
-
-            if (catalogosData.length > 0) {
-              console.log("Primer catálogo:", catalogosData[0])
-            }
-            setCatalogos(catalogosData)
-          } else {
-            console.warn("La respuesta no es un array:", catalogosData)
-            setCatalogos([])
-          }
-        } catch (catalogError) {
-          console.error("Error detallado al cargar catálogos:", catalogError)
-          setCatalogos([])
-        }
-
-        // Función para formatear fecha evitando problemas de zona horaria
-        const formatDateForInput = (dateString: string | undefined) => {
-          if (!dateString) return ""
-          try {
-            // Si ya viene en formato YYYY-MM-DD, usarlo directamente
-            if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-              return dateString
-            }
-            // Si viene en otro formato, parsearlo sin crear problemas de timezone
-            const date = new Date(dateString)
-            const year = date.getFullYear()
-            const month = String(date.getMonth() + 1).padStart(2, '0')
-            const day = String(date.getDate()).padStart(2, '0')
-            return `${year}-${month}-${day}`
-          } catch (dateError) {
-            console.warn("Error al formatear fecha:", dateString, dateError)
-            return ""
-          }
-        }
-
-        // Poblar el formulario con los datos existentes
-        const formDataToSet = {
-          comentarios: dosnData.comentarios || "",
-          cumpleEstandar: dosnData.cumpleEstandar || false,
-          fechaINIA: formatDateForInput(dosnData.fechaINIA),
-          gramosAnalizadosINIA: dosnData.gramosAnalizadosINIA || 0,
-          tipoINIA: dosnData.tipoINIA || [],
-          fechaINASE: formatDateForInput(dosnData.fechaINASE),
-          gramosAnalizadosINASE: dosnData.gramosAnalizadosINASE || 0,
-          tipoINASE: dosnData.tipoINASE || [],
-          cuscuta_g: dosnData.cuscuta_g || 0,
-          cuscutaNum: dosnData.cuscutaNum || 0,
-          listados:
-            dosnData.listados?.map((listado) => ({
-              listadoTipo: listado.listadoTipo,
-              listadoInsti: listado.listadoInsti,
-              listadoNum: listado.listadoNum,
-              idCatalogo: listado.catalogo?.catalogoID || null,
-              catalogoNombre: listado.catalogo?.nombreComun || "",
-              catalogoCientifico: listado.catalogo?.nombreCientifico || "",
-            })) || [],
-        }
-
-        console.log("Estableciendo datos del formulario:", formDataToSet)
-        setFormData(formDataToSet)
-      } catch (err) {
-        console.error("Error general al cargar datos:", err)
-        const errorMessage = err instanceof Error ? err.message : "Error desconocido"
-        setError(`Error al cargar los detalles del análisis DOSN: ${errorMessage}`)
-      } finally {
-        setLoading(false)
-      }
+  const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
+    switch (estado) {
+      case "FINALIZADO":
+      case "APROBADO":
+        return "default"
+      case "EN_PROCESO":
+        return "secondary"
+      case "PENDIENTE":
+        return "destructive"
+      case "PENDIENTE_APROBACION":
+        return "outline"
+      default:
+        return "outline"
     }
-
-    if (dosnId && dosnId !== "undefined" && !isNaN(Number.parseInt(dosnId))) {
-      fetchData()
-    } else {
-      setError(`ID de análisis DOSN no válido: "${dosnId}"`)
-      setLoading(false)
-    }
-  }, [dosnId])
-
-  const handleInputChange = (field: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
   }
 
-  const handleTipoChange = (institute: "INIA" | "INASE", tipo: string, checked: boolean) => {
-    const field = institute === "INIA" ? "tipoINIA" : "tipoINASE"
-    setFormData((prev) => ({
-      ...prev,
-      [field]: checked ? [...prev[field], tipo] : prev[field].filter((t) => t !== tipo),
-    }))
-  }
-
-  const handleListadoAdd = (newListado: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      listados: [...prev.listados, newListado],
-    }))
-  }
-
-  const handleListadoRemove = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      listados: prev.listados.filter((_, i) => i !== index),
-    }))
-  }
-
-  const handleSave = async () => {
-    if (!dosn) return
-
-    // Validación cliente antes de enviar
-    const validateForm = (): boolean => {
-      const newErrors: Record<string, string> = {}
-
-      // --- Helpers locales ---
-      const validarFecha = (fecha: string) => {
-        if (!fecha) return false
-        const f = new Date(fecha + "T00:00:00") // evita error por zona horaria
-        const hoy = new Date()
-        hoy.setHours(0, 0, 0, 0)
-        return !isNaN(f.getTime()) && f <= hoy
-      }
-
-      const validarGramos = (valor: number | string) => {
-        const n = parseFloat(valor as string)
-        return !isNaN(n) && n > 0
-      }
-
-      const validarTiposAnalisis = (tipos: string[]) => {
-        return Array.isArray(tipos) && tipos.length > 0
-      }
-
-      // --- INIA ---
-      if (!validarTiposAnalisis(formData.tipoINIA)) {
-        newErrors.tipoINIA = "Debe seleccionar al menos un tipo de análisis para INIA"
-      }
-
-      if (!validarFecha(formData.fechaINIA)) {
-        newErrors.fechaINIA = "Ingrese una fecha válida (no futura) para INIA"
-      }
-
-      if (!validarGramos(formData.gramosAnalizadosINIA)) {
-        newErrors.gramosAnalizadosINIA = "Debe ingresar una cantidad válida de gramos (> 0) para INIA"
-      }
-
-      // --- INASE ---
-      if (!validarTiposAnalisis(formData.tipoINASE)) {
-        newErrors.tipoINASE = "Debe seleccionar al menos un tipo de análisis para INASE"
-      }
-
-      if (!validarFecha(formData.fechaINASE)) {
-        newErrors.fechaINASE = "Ingrese una fecha válida (no futura) para INASE"
-      }
-
-      if (!validarGramos(formData.gramosAnalizadosINASE)) {
-        newErrors.gramosAnalizadosINASE = "Debe ingresar una cantidad válida de gramos (> 0) para INASE"
-      }
-
-      // --- Reglas cruzadas opcionales ---
-      if (formData.fechaINIA && !formData.gramosAnalizadosINIA) {
-        newErrors.gramosAnalizadosINIA = "Si hay fecha, debe ingresar los gramos analizados para INIA"
-      }
-      if (formData.gramosAnalizadosINIA && !formData.fechaINIA) {
-        newErrors.fechaINIA = "Si hay gramos analizados, debe ingresar la fecha de INIA"
-      }
-
-      if (formData.fechaINASE && !formData.gramosAnalizadosINASE) {
-        newErrors.gramosAnalizadosINASE = "Si hay fecha, debe ingresar los gramos analizados para INASE"
-      }
-      if (formData.gramosAnalizadosINASE && !formData.fechaINASE) {
-        newErrors.fechaINASE = "Si hay gramos analizados, debe ingresar la fecha de INASE"
-      }
-
-      // --- Validar listados ---
-      if (formData.listados && formData.listados.length > 0) {
-        formData.listados.forEach((l, idx) => {
-          if (!l.listadoTipo || !l.listadoInsti) {
-            newErrors[`listado_${idx}`] = "Listado incompleto"
-          }
-        })
-      }
-
-      setErrors(newErrors)
-      return Object.keys(newErrors).length === 0
-    }
-
-
-    if (!validateForm()) {
-      toast.error('Corrija los errores del formulario antes de guardar')
-      return
-    }
-
-    try {
-      setSaving(true)
-
-      // Función para formatear fecha evitando problemas de zona horaria al enviar al backend
-      const formatDateForBackend = (dateString: string | undefined) => {
-        if (!dateString) return undefined
-        try {
-          // Verificar que la fecha esté en formato YYYY-MM-DD válido
-          const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-          if (!dateRegex.test(dateString)) {
-            console.warn("Formato de fecha inválido:", dateString)
-            return undefined
-          }
-          // Retornar la fecha tal como está, sin conversión de zona horaria
-          return dateString
-        } catch (dateError) {
-          console.warn("Error al formatear fecha para backend:", dateString, dateError)
-          return undefined
-        }
-      }
-
-      console.log("Fechas antes del formateo:")
-      console.log("- fechaINIA:", formData.fechaINIA)
-      console.log("- fechaINASE:", formData.fechaINASE)
-      console.log("- cuscuta_g:", formData.cuscuta_g)
-      console.log("- cuscutaNum:", formData.cuscutaNum)
-
-      const updateData: DosnRequestDTO = {
-        idLote: dosn.idLote || 0,
-        comentarios: formData.comentarios,
-        cumpleEstandar: formData.cumpleEstandar,
-        fechaINIA: formatDateForBackend(formData.fechaINIA),
-        gramosAnalizadosINIA: formData.gramosAnalizadosINIA || undefined,
-        tipoINIA: formData.tipoINIA as any[],
-        fechaINASE: formatDateForBackend(formData.fechaINASE),
-        gramosAnalizadosINASE: formData.gramosAnalizadosINASE || undefined,
-        tipoINASE: formData.tipoINASE as any[],
-        cuscuta_g: formData.cuscuta_g || undefined,
-        cuscutaNum: formData.cuscutaNum || undefined,
-        fechaCuscuta: (formData.cuscuta_g > 0 || formData.cuscutaNum > 0)
-          ? (dosn.fechaCuscuta || new Date().toISOString().split('T')[0]) // Usar fecha existente o actual
-          : undefined,
-        listados: formData.listados.map((listado) => ({
-          listadoTipo: listado.listadoTipo,
-          listadoInsti: listado.listadoInsti,
-          listadoNum: listado.listadoNum,
-          idCatalogo: listado.idCatalogo,
-        })),
-      }
-
-      console.log("Fechas después del formateo:")
-      console.log("- fechaINIA:", updateData.fechaINIA)
-      console.log("- fechaINASE:", updateData.fechaINASE)
-      console.log("- fechaCuscuta:", updateData.fechaCuscuta)
-      console.log("Datos completos a enviar al backend:", updateData)
-
-      await actualizarDosn(Number.parseInt(dosnId), updateData)
-      toast.success("Análisis DOSN actualizado correctamente")
-      router.push(`/listado/analisis/dosn/${dosnId}`)
-    } catch (err) {
-      console.error("Error updating DOSN:", err)
-      toast.error("Error al actualizar el análisis DOSN")
-    } finally {
-      setSaving(false)
+  const formatEstado = (estado: EstadoAnalisis) => {
+    switch (estado) {
+      case "FINALIZADO":
+        return "Finalizado"
+      case "EN_PROCESO":
+        return "En Proceso"
+      case "PENDIENTE":
+        return "Pendiente"
+      case "APROBADO":
+        return "Aprobado"
+      case "PENDIENTE_APROBACION":
+        return "Pend. Aprobacin"
+      case "PARA_REPETIR":
+        return "Para Repetir"
+      default:
+        return estado
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-muted/30 p-4 md:p-8">
-        <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex-1 space-y-6 p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-lg font-medium">Cargando análisis DOSN...</p>
-            <p className="text-sm text-muted-foreground mt-2">Obteniendo datos del servidor</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Cargando análisis DOSN...</p>
           </div>
         </div>
       </div>
     )
   }
 
-  if (error || !dosn) {
+  if (error) {
     return (
-      <div className="min-h-screen bg-muted/30 p-4 md:p-8">
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Card className="max-w-lg w-full">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mb-4">
-                  <AlertTriangle className="h-8 w-8 text-destructive" />
-                </div>
-                <h2 className="text-xl font-semibold mb-2">Error al cargar</h2>
-                <p className="text-muted-foreground mb-4">{error}</p>
-                <div className="text-sm text-muted-foreground bg-muted p-3 rounded-lg mb-6">
-                  <p className="font-medium mb-1">ID del análisis: {dosnId}</p>
-                  <p>Verifique que el análisis existe y que tiene permisos para editarlo.</p>
-                </div>
-                <div className="flex gap-3 justify-center">
-                  <Link href="/listado/analisis/dosn">
-                    <Button variant="outline">
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Volver al listado
-                    </Button>
-                  </Link>
-                  <Button onClick={() => window.location.reload()}>Reintentar</Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="flex-1 space-y-6 p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-lg font-semibold mb-2">Error al cargar</p>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>Reintentar</Button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="sticky top-0 z-10 bg-background border-b">
-        <div className="container max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
-              <Link href={`/listado/analisis/dosn/${dosnId}`}>
-                <Button variant="ghost" size="sm" className="mt-1">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Volver
-                </Button>
-              </Link>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-1">
-                  <h1 className="text-2xl md:text-3xl font-bold text-balance">Editar Análisis DOSN</h1>
-                  <Badge variant="outline" className="text-sm">
-                    #{dosn.analisisID}
-                  </Badge>
-                </div>
-                <p className="text-sm md:text-base text-muted-foreground text-pretty">
-                  Modifica los datos del análisis de determinación de otras semillas nocivas
-                </p>
+    <div className="flex-1 space-y-6 p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/listado">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver a Listados
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Análisis DOSN</h1>
+            <p className="text-muted-foreground">Consulta la determinacin de otras semillas nocivas</p>
+          </div>
+        </div>
+        <Link href="/registro/analisis/dosn">
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Análisis
+          </Button>
+        </Link>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Análisis</p>
+                <p className="text-2xl font-bold">{totalAnalysis}</p>
+              </div>
+              <Activity className="h-8 w-8 text-red-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Completados</p>
+                <p className="text-2xl font-bold">{completedAnalysis}</p>
+              </div>
+              <Activity className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">En Proceso</p>
+                <p className="text-2xl font-bold">{inProgressAnalysis}</p>
+              </div>
+              <Activity className="h-8 w-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Cumplen Norma</p>
+                <p className="text-2xl font-bold">{complianceRate}%</p>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Buscar por ID, lote o comentarios..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
             </div>
-            <div className="flex gap-3 w-full lg:w-auto">
-              <Link href={`/listado/analisis/dosn/${dosnId}`} className="flex-1 lg:flex-none">
-                <Button variant="outline" className="w-full bg-transparent">
-                  Cancelar
-                </Button>
-              </Link>
-              <Button onClick={handleSave} disabled={saving} className="flex-1 lg:flex-none">
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Guardar Cambios
-                  </>
-                )}
+            <div className="flex gap-2">
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+              >
+                <option value="all">Todos los estados</option>
+                <option value="FINALIZADO">Finalizado</option>
+                <option value="EN_PROCESO">En Proceso</option>
+                <option value="PENDIENTE">Pendiente</option>
+                <option value="APROBADO">Aprobado</option>
+                <option value="PENDIENTE_APROBACION">Pend. Aprobacin</option>
+              </select>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Filtros
               </Button>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="container max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8 space-y-6">
-        <Card className="border-2">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg">Información del Análisis</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">ID Análisis</label>
-                <p className="text-2xl font-bold mt-1">{dosn.analisisID}</p>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Lote</label>
-                <p className="text-xl font-semibold mt-1">{dosn.lote}</p>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-2">
-                  Estado Actual
-                </label>
-                <Badge variant="secondary" className="text-sm">
-                  {dosn.estado}
-                </Badge>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-2">
-                  Cumple Estándar
-                </label>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="cumpleEstandar-header"
-                    checked={formData.cumpleEstandar}
-                    onCheckedChange={(checked) => handleInputChange("cumpleEstandar", checked)}
-                  />
-                  <Label htmlFor="cumpleEstandar-header" className="text-sm font-medium cursor-pointer">
-                    {formData.cumpleEstandar ? "Sí" : "No"}
-                  </Label>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/10">
-                <FileText className="h-5 w-5 text-primary" />
-              </div>
-              <span className="text-xl">Información General</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <Label htmlFor="comentarios" className="text-base font-medium">
-                Comentarios
-              </Label>
-              <Textarea
-                id="comentarios"
-                value={formData.comentarios}
-                onChange={(e) => handleInputChange("comentarios", e.target.value)}
-                placeholder="Ingrese comentarios sobre el análisis..."
-                rows={5}
-                className="resize-none text-base"
-              />
-              <p className="text-xs text-muted-foreground">
-                Agregue observaciones o notas relevantes sobre este análisis
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Análisis INIA */}
-        <Card className="border-blue-200 dark:border-blue-900/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-blue-100 dark:bg-blue-900/30">
-                <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <span className="text-xl">Análisis INIA</span>
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent className="pt-6 space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Fecha INIA */}
-              <div className="space-y-2">
-                <Label htmlFor="fechaINIA" className="text-sm font-medium">
-                  Fecha INIA
-                </Label>
-                <Input
-                  id="fechaINIA"
-                  type="date"
-                  value={formData.fechaINIA}
-                  onChange={(e) => handleInputChange("fechaINIA", e.target.value)}
-                  className={`text-base ${errors.fechaINIA ? "border-red-500 bg-red-50" : ""}`}
-                />
-                {errors.fechaINIA && (
-                  <p className="text-sm text-destructive mt-1">{errors.fechaINIA}</p>
-                )}
-              </div>
-
-              {/* Gramos Analizados INIA */}
-              <div className="space-y-2">
-                <Label htmlFor="gramosAnalizadosINIA" className="text-sm font-medium">
-                  Gramos Analizados
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="gramosAnalizadosINIA"
-                    type="number"
-                    value={formData.gramosAnalizadosINIA === 0 ? "" : formData.gramosAnalizadosINIA}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "gramosAnalizadosINIA",
-                        e.target.value === "" ? 0 : Number.parseFloat(e.target.value) || 0
-                      )
-                    }
-                    placeholder="Ingrese gramos"
-                    min="0"
-                    step="0.01"
-                    className={`pr-10 text-base ${errors.gramosAnalizadosINIA ? "border-red-500 bg-red-50" : ""}`}
-                  />
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
-                    g
-                  </span>
-                </div>
-                {errors.gramosAnalizadosINIA && (
-                  <p className="text-sm text-destructive mt-1">{errors.gramosAnalizadosINIA}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Tipos de Análisis INIA */}
-            <div className="space-y-3">
-              <Label
-                className={`text-sm font-medium ${errors.tipoINIA ? "text-red-600" : ""
-                  }`}
-              >
-                Tipos de Análisis INIA
-              </Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {["COMPLETO", "REDUCIDO", "LIMITADO", "REDUCIDO_LIMITADO"].map((tipo) => (
-                  <div
-                    key={tipo}
-                    className={`flex items-center space-x-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors ${errors.tipoINIA ? "border-red-300 bg-red-50" : ""
-                      }`}
-                  >
-                    <Checkbox
-                      id={`inia-${tipo}`}
-                      checked={formData.tipoINIA.includes(tipo)}
-                      onCheckedChange={(checked) => handleTipoChange("INIA", tipo, !!checked)}
-                    />
-                    <Label htmlFor={`inia-${tipo}`} className="text-sm font-medium cursor-pointer flex-1">
-                      {tipo === "REDUCIDO_LIMITADO" ? "Reducido Limitado" : tipo.charAt(0) + tipo.slice(1).toLowerCase()}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-              {errors.tipoINIA && (
-                <p className="text-sm text-destructive mt-1">{errors.tipoINIA}</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
 
 
-        {/* Análisis INASE */}
-        <Card className="border-purple-200 dark:border-purple-900/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-purple-100 dark:bg-purple-900/30">
-                <Building2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              </div>
-              <span className="text-xl">Análisis INASE</span>
-            </CardTitle>
-          </CardHeader>
+        </CardContent>
+      </Card>
 
-          <CardContent className="pt-6 space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Fecha INASE */}
-              <div className="space-y-2">
-                <Label htmlFor="fechaINASE" className="text-sm font-medium">
-                  Fecha INASE
-                </Label>
-                <Input
-                  id="fechaINASE"
-                  type="date"
-                  value={formData.fechaINASE}
-                  onChange={(e) => handleInputChange("fechaINASE", e.target.value)}
-                  className={`text-base ${errors.fechaINASE ? "border-red-500 bg-red-50" : ""}`}
-                />
-                {errors.fechaINASE && (
-                  <p className="text-sm text-destructive mt-1">{errors.fechaINASE}</p>
-                )}
-              </div>
-
-              {/* Gramos Analizados INASE */}
-              <div className="space-y-2">
-                <Label htmlFor="gramosAnalizadosINASE" className="text-sm font-medium">
-                  Gramos Analizados
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="gramosAnalizadosINASE"
-                    type="number"
-                    value={formData.gramosAnalizadosINASE === 0 ? "" : formData.gramosAnalizadosINASE}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "gramosAnalizadosINASE",
-                        e.target.value === "" ? 0 : Number.parseFloat(e.target.value) || 0
-                      )
-                    }
-                    placeholder="Ingrese gramos"
-                    min="0"
-                    step="0.01"
-                    className={`pr-10 text-base ${errors.gramosAnalizadosINASE ? "border-red-500 bg-red-50" : ""}`}
-                  />
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
-                    g
-                  </span>
-                </div>
-                {errors.gramosAnalizadosINASE && (
-                  <p className="text-sm text-destructive mt-1">{errors.gramosAnalizadosINASE}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Tipos de Análisis INASE */}
-            <div className="space-y-3">
-              <Label
-                className={`text-sm font-medium ${errors.tipoINASE ? "text-red-600" : ""
-                  }`}
-              >
-                Tipos de Análisis INASE
-              </Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {["COMPLETO", "REDUCIDO", "LIMITADO", "REDUCIDO_LIMITADO"].map((tipo) => (
-                  <div
-                    key={tipo}
-                    className={`flex items-center space-x-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors ${errors.tipoINASE ? "border-red-300 bg-red-50" : ""
-                      }`}
-                  >
-                    <Checkbox
-                      id={`inase-${tipo}`}
-                      checked={formData.tipoINASE.includes(tipo)}
-                      onCheckedChange={(checked) => handleTipoChange("INASE", tipo, !!checked)}
-                    />
-                    <Label htmlFor={`inase-${tipo}`} className="text-sm font-medium cursor-pointer flex-1">
-                      {tipo === "REDUCIDO_LIMITADO" ? "Reducido Limitado" : tipo.charAt(0) + tipo.slice(1).toLowerCase()}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-              {errors.tipoINASE && (
-                <p className="text-sm text-destructive mt-1">{errors.tipoINASE}</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-orange-200 dark:border-orange-900/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-orange-100 dark:bg-orange-900/30">
-                <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-              </div>
-              <span className="text-xl">Análisis de Cuscuta</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="cuscuta_g" className="text-sm font-medium">
-                  Peso Cuscuta
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="cuscuta_g"
-                    type="number"
-                    value={formData.cuscuta_g === 0 ? "" : formData.cuscuta_g}
-                    onChange={(e) => handleInputChange("cuscuta_g", e.target.value === "" ? 0 : Number.parseFloat(e.target.value) || 0)}
-                    placeholder="Ingrese peso"
-                    min="0"
-                    step="0.01"
-                    className="pr-10 text-base"
-                  />
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
-                    g
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cuscutaNum" className="text-sm font-medium">
-                  Número de Cuscuta
-                </Label>
-                <Input
-                  id="cuscutaNum"
-                  type="number"
-                  value={formData.cuscutaNum === 0 ? "" : formData.cuscutaNum}
-                  onChange={(e) => handleInputChange("cuscutaNum", e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0)}
-                  placeholder="Ingrese número"
-                  min="0"
-                  className="text-base"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-green-200 dark:border-green-900/50">
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <CardTitle className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-green-100 dark:bg-green-900/30">
-                  <Leaf className="h-5 w-5 text-green-600 dark:text-green-400" />
-                </div>
-                <span className="text-xl">Listados</span>
-              </CardTitle>
-              <Button onClick={() => setShowAddListado(true)} size="sm" variant="outline" className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                Agregar Listado
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-6">
-            {showAddListado && (
-              <div className="border-2 border-dashed rounded-xl p-6 mb-6 bg-muted/30">
-                <h3 className="text-sm font-semibold mb-4 uppercase tracking-wide text-muted-foreground">
-                  Nuevo Listado
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Tipo de Listado</Label>
-                    <Select
-                      value={newListado.listadoTipo}
-                      onValueChange={(value) =>
-                        setNewListado((prev) => ({
-                          ...prev,
-                          listadoTipo: value,
-                          idCatalogo: 0,
-                        }))
-                      }
-                    >
-                      <SelectTrigger className="text-base">
-                        <SelectValue placeholder="Seleccionar tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="MAL_TOLERANCIA_CERO">Maleza Tolerancia Cero</SelectItem>
-                        <SelectItem value="MAL_TOLERANCIA">Maleza Tolerancia</SelectItem>
-                        <SelectItem value="MAL_COMUNES">Malezas Comunes</SelectItem>
-                        <SelectItem value="BRASSICA">Brassica</SelectItem>
-                        <SelectItem value="OTROS">Otros Cultivos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Instituto</Label>
-                    <Select
-                      value={newListado.listadoInsti}
-                      onValueChange={(value) => setNewListado((prev) => ({ ...prev, listadoInsti: value }))}
-                    >
-                      <SelectTrigger className="text-base">
-                        <SelectValue placeholder="Seleccionar instituto" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="INIA">INIA</SelectItem>
-                        <SelectItem value="INASE">INASE</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Número</Label>
-                    <Input
-                      type="number"
-                      value={newListado.listadoNum === 0 ? "" : newListado.listadoNum}
-                      onChange={(e) =>
-                        setNewListado((prev) => ({
-                          ...prev,
-                          listadoNum: e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0
-                        }))
-                      }
-                      min="0"
-                      placeholder="Ingrese número"
-                      className="text-base"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">
-                      Especie {newListado.listadoTipo === "BRASSICA" && <span className="text-xs text-muted-foreground">(No requerido para Brassica)</span>}
-                    </Label>
-                    {newListado.listadoTipo === "BRASSICA" ? (
-                      <div className="p-3 rounded-lg bg-muted/50 border border-dashed">
-                        <p className="text-sm text-muted-foreground">
-                          Las brassicas no requieren especie específica del catálogo
-                        </p>
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Análisis DOSN</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[100px]">ID Análisis</TableHead>
+                  <TableHead className="min-w-[150px]">Lote</TableHead>
+                  <TableHead className="min-w-[120px]">Fecha Inicio</TableHead>
+                  <TableHead className="min-w-[120px]">Fecha Fin</TableHead>
+                  <TableHead className="min-w-[100px]">Estado</TableHead>
+                  <TableHead className="min-w-[120px]">Cumple Estándar</TableHead>
+                  {/* <TableHead className="min-w-[200px]">Listados</TableHead> */}
+                  <TableHead className="min-w-[150px]">Comentarios</TableHead>
+                  <TableHead className="min-w-[120px]">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAnalysis.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <AlertTriangle className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-muted-foreground">No se encontraron análisis DOSN</p>
                       </div>
-                    ) : (
-                      <Select
-                        value={newListado.idCatalogo.toString()}
-                        onValueChange={(value) =>
-                          setNewListado((prev) => ({ ...prev, idCatalogo: Number.parseInt(value) }))
-                        }
-                      >
-                        <SelectTrigger className="text-base">
-                          <SelectValue placeholder="Seleccionar especie" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(() => {
-                            const tiposCompatibles = newListado.listadoTipo
-                              ? getCompatibleCatalogTypes(newListado.listadoTipo as TipoListado)
-                              : ["MALEZA", "CULTIVO"]
-
-                            const catalogosFiltrados = catalogos.filter((cat) =>
-                              tiposCompatibles.includes(cat.tipoMYCCatalogo),
-                            )
-
-                            if (catalogosFiltrados.length === 0) {
-                              return (
-                                <SelectItem value="0" disabled>
-                                  {newListado.listadoTipo ? `No hay especies disponibles` : "Selecciona primero el tipo"}
-                                </SelectItem>
-                              )
-                            }
-
-                            return catalogosFiltrados.map((catalogo) => (
-                              <SelectItem key={catalogo.catalogoID} value={catalogo.catalogoID.toString()}>
-                                {catalogo.nombreComun}
-                              </SelectItem>
-                            ))
-                          })()}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    {newListado.listadoTipo && newListado.listadoTipo !== "BRASSICA" && (() => {
-                      const tiposCompatibles = getCompatibleCatalogTypes(newListado.listadoTipo as TipoListado)
-                      const catalogosFiltrados = catalogos.filter((cat) =>
-                        tiposCompatibles.includes(cat.tipoMYCCatalogo),
-                      )
-
-                      return (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {`${catalogosFiltrados.length} especies disponibles`}
-                        </p>
-                      )
-                    })()}
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    onClick={() => {
-                      // Para brassicas, no requerimos idCatalogo
-                      const isBrassica = newListado.listadoTipo === "BRASSICA"
-                      const hasRequiredFields = newListado.listadoTipo &&
-                        newListado.listadoInsti &&
-                        (isBrassica || newListado.idCatalogo)
-
-                      if (hasRequiredFields) {
-                        const catalogo = isBrassica ? null : catalogos.find((c) => c.catalogoID === newListado.idCatalogo)
-                        handleListadoAdd({
-                          ...newListado,
-                          idCatalogo: isBrassica ? null : newListado.idCatalogo,
-                          catalogoNombre: catalogo?.nombreComun || (isBrassica ? "Brassica spp." : ""),
-                          catalogoCientifico: catalogo?.nombreCientifico || "",
-                        })
-                        setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0 })
-                        setShowAddListado(false)
-                        toast.success("Listado agregado correctamente")
-                      } else {
-                        toast.error("Complete todos los campos requeridos")
-                      }
-                    }}
-                    size="sm"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Agregar
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setShowAddListado(false)
-                      setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0 })
-                    }}
-                    size="sm"
-                    variant="outline"
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Lista de listados existentes */}
-            {formData.listados.length === 0 ? (
-              <div className="text-center py-12 border-2 border-dashed rounded-xl">
-                <Leaf className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
-                <p className="text-lg font-medium text-muted-foreground">No hay listados registrados</p>
-                <p className="text-sm text-muted-foreground mt-1">Agrega un listado para comenzar</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[200px]">Especie</TableHead>
-                      <TableHead className="min-w-[150px]">Tipo</TableHead>
-                      <TableHead className="min-w-[100px]">Instituto</TableHead>
-                      <TableHead className="min-w-[80px]">Número</TableHead>
-                      <TableHead className="min-w-[80px]">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {formData.listados.map((listado, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">
-                              {listado.catalogoNombre ||
-                                (listado.listadoTipo === "BRASSICA" ? "Sin especificación" : "--")}
-                            </div>
-                            <div className="text-sm text-muted-foreground italic">
-                              {listado.catalogoCientifico}
-                            </div>
-                            {listado.listadoTipo === "BRASSICA" && !listado.catalogoNombre && (
-                              <div className="text-xs text-muted-foreground mt-1">
-                                No requiere catálogo
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}>
-                            {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">
-                            {listado.listadoInsti}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-mono text-lg">{listado.listadoNum}</span>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            onClick={() => {
-                              handleListadoRemove(index)
-                              toast.success("Listado eliminado")
-                            }}
-                            size="sm"
-                            variant="ghost"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredAnalysis.map((analysis) => (
+                    <TableRow key={analysis.analisisID}>
+                      <TableCell className="font-medium">DOSN-{analysis.analisisID}</TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{analysis.lote}</div>
+                          {analysis.idLote && (
+                            <div className="text-sm text-muted-foreground">ID: {analysis.idLote}</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{formatearFechaLocal(analysis.fechaInicio)}</TableCell>
+                      <TableCell>
+                        {analysis.fechaFin ? formatearFechaLocal(analysis.fechaFin) : "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getEstadoBadgeVariant(analysis.estado)}>
+                          {formatEstado(analysis.estado)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {analysis.cumpleEstandar !== undefined ? (
+                          <Badge
+                            variant={analysis.cumpleEstandar ? "default" : "destructive"}
+                            className="text-xs"
                           >
+                            {analysis.cumpleEstandar ? "Sí" : "No"}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">No evaluado</span>
+                        )}
+                      </TableCell>
+                      {/* <TableCell className="max-w-xs">
+                        {analysis.listados && analysis.listados.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {analysis.listados.map((listado, index) => (
+                              <Badge 
+                                key={index}
+                                variant="outline" 
+                                className={`text-xs ${getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}`}
+                              >
+                                {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">Sin listados</span>
+                        )}
+                      </TableCell>*/}
+                      <TableCell className="max-w-xs">
+                        {analysis.comentarios ? (
+                          <div className="truncate" title={analysis.comentarios}>
+                            {analysis.comentarios}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Link href={`/listado/analisis/dosn/${analysis.analisisID}`}>
+                            <Button variant="ghost" size="sm" title="Ver detalles">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Link href={`/listado/analisis/dosn/${analysis.analisisID}/editar`}>
+                            <Button variant="ghost" size="sm" title="Editar">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Button variant="ghost" size="sm" title="Eliminar">
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 border-primary/20">
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href={`/listado/analisis/dosn/${dosnId}`} className="flex-1">
-                <Button variant="outline" size="lg" className="w-full bg-transparent">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Cancelar
-                </Button>
-              </Link>
-              <Button onClick={handleSave} disabled={saving} size="lg" className="flex-1">
-                {saving ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Guardando cambios...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-5 w-5 mr-2" />
-                    Guardar Cambios
-                  </>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 )}
-              </Button>
+              </TableBody>
+            </Table>
+          </div>
+          {/* Paginacin: centrada en el listado DOSN */}
+          <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+            <div className="text-sm text-muted-foreground">
+              {totalElements === 0 ? (
+                <>Mostrando 0 de 0 resultados</>
+              ) : (
+                <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={Math.max(totalPages, 1)}
+              onPageChange={(p) => fetchDosns(p)}
+              showRange={1}
+              alwaysShow={true}
+            />
+          </div>
+
+        </CardContent>
+      </Card>
+
     </div>
   )
 }

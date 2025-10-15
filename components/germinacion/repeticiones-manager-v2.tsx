@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { RepGermDTO, RepGermRequestDTO, TablaGermDTO } from '@/app/models/interfaces/repeticiones'
 import { RepeticionRow } from './repeticion-row'
-import { 
-  obtenerRepeticionesDeTabla, 
-  crearRepeticion, 
-  actualizarRepeticion 
+import {
+  obtenerRepeticionesDeTabla,
+  crearRepeticion,
+  actualizarRepeticion
 } from '@/app/services/germinacion-service'
 import { Plus, Users } from 'lucide-react'
 
@@ -40,7 +40,7 @@ export function RepeticionesManager({
     try {
       setLoading(true)
       setError("")
-      
+
       const data = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
       setRepeticiones(data)
       onRepeticionesUpdated(data)
@@ -60,17 +60,17 @@ export function RepeticionesManager({
     try {
       const repeticionExistente = repeticiones.find(r => r.numRep === numeroRep)
       let repeticionesActualizadas: RepGermDTO[]
-      
+
       if (repeticionExistente) {
         // Actualizar existente
         const repeticionActualizada = await actualizarRepeticion(
-          germinacionId, 
-          tabla.tablaGermID, 
-          repeticionExistente.repGermID, 
+          germinacionId,
+          tabla.tablaGermID,
+          repeticionExistente.repGermID,
           datos
         )
-        
-        repeticionesActualizadas = repeticiones.map(r => 
+
+        repeticionesActualizadas = repeticiones.map(r =>
           r.repGermID === repeticionExistente.repGermID ? repeticionActualizada : r
         )
         setRepeticiones(repeticionesActualizadas)
@@ -80,10 +80,10 @@ export function RepeticionesManager({
         repeticionesActualizadas = [...repeticiones, nuevaRepeticion]
         setRepeticiones(repeticionesActualizadas)
       }
-      
+
       // Actualizar callback con las repeticiones realmente actualizadas
       onRepeticionesUpdated(repeticionesActualizadas)
-      
+
     } catch (error) {
       console.error("Error guardando repetición:", error)
       throw error
@@ -106,26 +106,28 @@ export function RepeticionesManager({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Repeticiones de Tabla {tabla.numeroTabla}
-          <Badge variant={todasCompletas ? "default" : "secondary"} className="ml-2">
+      <CardHeader className="pb-3 px-4 sm:px-6">
+        <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center gap-2 text-base sm:text-lg">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+            <span>Repeticiones de Tabla {tabla.numeroTabla}</span>
+          </div>
+          <Badge variant={todasCompletas ? "default" : "secondary"} className="text-xs">
             {repeticionesCompletas}/{numeroRepeticiones}
           </Badge>
         </CardTitle>
-        
+
         {error && (
-          <div className="text-red-600 text-sm">{error}</div>
+          <div className="text-red-600 text-xs sm:text-sm mt-2">{error}</div>
         )}
       </CardHeader>
-      
-      <CardContent className="space-y-4">
+
+      <CardContent className="space-y-4 px-4 sm:px-6">
         {/* Mostrar todas las repeticiones posibles */}
         {Array.from({ length: numeroRepeticiones }, (_, index) => {
           const numeroRep = index + 1
           const repeticionExistente = repeticiones.find(r => r.numRep === numeroRep)
-          
+
           return (
             <RepeticionRow
               key={numeroRep}
@@ -141,15 +143,15 @@ export function RepeticionesManager({
         })}
 
         {/* Información adicional */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <div className="text-sm text-gray-600 space-y-1">
-            <div>• Cada repetición puede tener máximo <strong>{tabla.numSemillasPRep} semillas</strong></div>
-            <div>• Se requieren <strong>{numeroConteos} conteos</strong> en el campo "Normales"</div>
-            <div>• Total de repeticiones requeridas: <strong>{numeroRepeticiones}</strong></div>
+        <div className="mt-6 p-3 sm:p-4 bg-gray-50 rounded-lg">
+          <div className="text-xs sm:text-sm text-gray-600 space-y-1">
+            <div className="break-words">• Cada repetición puede tener máximo <strong>{tabla.numSemillasPRep} semillas</strong></div>
+            <div className="break-words">• Se requieren <strong>{numeroConteos} conteos</strong> en el campo "Normales"</div>
+            <div className="break-words">• Total de repeticiones requeridas: <strong>{numeroRepeticiones}</strong></div>
           </div>
-          
+
           {todasCompletas && (
-            <div className="mt-2 text-green-600 font-medium">
+            <div className="mt-2 text-xs sm:text-sm text-green-600 font-medium">
               ✅ Todas las repeticiones están completas. Ya puede ingresar porcentajes para finalizar la tabla.
             </div>
           )}
