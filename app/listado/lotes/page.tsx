@@ -12,6 +12,8 @@ import Link from "next/link"
 import { obtenerLotesPaginadas } from "@/app/services/lote-service"
 import Pagination from "@/components/pagination"
 import { LoteSimpleDTO } from "@/app/models"
+import { BotonExportarExcel } from "@/components/exportar-excel-btn"
+import { DialogExportarConFiltros } from "@/components/dialog-exportar-filtros"
 
 export default function ListadoLotesPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -83,10 +85,11 @@ export default function ListadoLotesPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
+          <BotonExportarExcel 
+            variant="outline"
+            textoBoton="Exportar Todo"
+          />
+          <DialogExportarConFiltros />
           <Link href="/registro/lotes">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
