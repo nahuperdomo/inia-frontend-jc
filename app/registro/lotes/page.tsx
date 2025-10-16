@@ -59,7 +59,7 @@ export default function RegistroLotesPage() {
 
   const [formData, setFormData] = useState<LoteFormData>(initialFormData);
 
-  // Uso del hook de validacin
+  // Uso del hook de validación
   const {
     validateForm,
     isValid,
@@ -136,7 +136,7 @@ export default function RegistroLotesPage() {
       // Limpiamos el formulario
       setFormData(initialFormData);
 
-      // Reiniciar validacin
+      // Reiniciar validación
       resetValidation();
 
       // Regresamos a la primera pestaña
@@ -186,89 +186,70 @@ export default function RegistroLotesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header - Responsive */}
-      <div className="sticky top-0 z-10 bg-card border-b mb-4 sm:mb-6">
-        <div className="p-3 sm:p-4 md:p-6">
-          <div className="flex items-center justify-between gap-2 sm:gap-4">
-            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-              <Link href="/registro" className="flex-shrink-0">
-                <Button variant="ghost" size="sm" className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3">
-                  <ArrowLeft className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Volver al Registro</span>
-                </Button>
-              </Link>
-              <div className="min-w-0 flex-1">
-                <h1 className="text-lg sm:text-2xl md:text-3xl font-bold truncate">Registro de Lotes</h1>
-                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Registra un nuevo lote de semillas en el sistema</p>
-              </div>
-            </div>
-            <div className="flex-shrink-0">
-              <Package className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-            </div>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/registro">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver al Registro
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold text-balance">Registro de Lotes</h1>
+            <p className="text-muted-foreground text-pretty">Registra un nuevo lote de semillas en el sistema</p>
           </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Package className="h-8 w-8 text-primary" />
         </div>
       </div>
 
-      {/* Form Container - Responsive Padding */}
-      <div className="px-3 sm:px-4 md:px-6 pb-4 sm:pb-6">
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-          <div className="space-y-4 sm:space-y-6">
-            <LotFormTabs
-              formData={formData}
-              onInputChange={handleInputChange}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              handleBlur={(field) => handleBlur(field, formData[field as keyof LoteFormData], formData)}
-              hasError={hasError}
-              getErrorMessage={getErrorMessage}
-              // Loading state
-              isLoading={isLoading}
-            />
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
+          <LotFormTabs
+            formData={formData}
+            onInputChange={handleInputChange}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            handleBlur={(field) => handleBlur(field, formData[field as keyof LoteFormData], formData)}
+            hasError={hasError}
+            getErrorMessage={getErrorMessage}
+            // Loading state
+            isLoading={isLoading}
+          />
 
-            {/* Submit Button - Responsive */}
-            <div className="flex justify-end">
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full sm:w-auto sm:min-w-[200px]"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Registrando...
-                  </>
-                ) : (
-                  "Registrar Lote"
-                )}
-              </Button>
-            </div>
+          {/* Submit Button */}
+          <div className="flex justify-end">
+            <Button type="submit" disabled={isLoading} className="min-w-[200px]">
+              {isLoading ? "Registrando..." : "Registrar Lote"}
+            </Button>
           </div>
-        </form>
-
-        <Toaster richColors />
-
-        {/* Recent Lots Section - Responsive */}
-        <div className="mt-6 sm:mt-8">
-          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Últimos lotes registrados</h2>
-          <LotList lots={recentLots} onViewDetails={handleViewDetails} />
         </div>
+      </form>
 
-        <LotDetailsModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          lot={selectedLot}
-          onEdit={handleEditLot}
-          onShowAnalysis={handleShowAnalysis}
-        />
+      <Toaster richColors />
 
-        <AnalysisModal
-          isOpen={showAnalysisModal}
-          onClose={handleCloseAnalysisModal}
-          lot={selectedLot}
-          onSave={handleSaveAnalysis}
-        />
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Últimos lotes registrados</h2>
+        <LotList lots={recentLots} onViewDetails={handleViewDetails} />
       </div>
+
+      <LotDetailsModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        lot={selectedLot}
+        onEdit={handleEditLot}
+        onShowAnalysis={handleShowAnalysis}
+      />
+
+      <AnalysisModal
+        isOpen={showAnalysisModal}
+        onClose={handleCloseAnalysisModal}
+        lot={selectedLot}
+        onSave={handleSaveAnalysis}
+      />
     </div>
   )
 }

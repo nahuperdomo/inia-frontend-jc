@@ -48,7 +48,7 @@ export function RepeticionRow({
       callback(0)
       return
     }
-
+    
     // Si el valor actual es 0 y se está escribiendo algo diferente de '0', reemplazar completamente
     if (valorActual === 0 && valorString !== '0') {
       const numeroIngresado = parseInt(valorString) || 0
@@ -79,7 +79,7 @@ export function RepeticionRow({
   useEffect(() => {
     const totalNormales = datos.normales.reduce((sum, val) => sum + val, 0)
     const nuevoTotal = totalNormales + datos.anormales + datos.duras + datos.frescas + datos.muertas
-
+    
     if (nuevoTotal !== datos.total) {
       setDatos(prev => ({ ...prev, total: nuevoTotal }))
     }
@@ -105,7 +105,7 @@ export function RepeticionRow({
     if (datos.frescas < 0) valoresNegativos.push("Frescas")
     if (datos.muertas < 0) valoresNegativos.push("Muertas")
     if (datos.normales.some(val => val < 0)) valoresNegativos.push("Normales")
-
+    
     if (valoresNegativos.length > 0) {
       alert(`Los siguientes campos no pueden ser negativos: ${valoresNegativos.join(", ")}`)
       return
@@ -164,12 +164,12 @@ export function RepeticionRow({
   // Función para validar si se puede ingresar datos en un conteo específico
   const puedeIngresarConteo = (indiceConteo: number): boolean => {
     if (!fechasConteos || !fechasConteos[indiceConteo]) return true
-
+    
     const fechaConteo = new Date(fechasConteos[indiceConteo])
     const fechaActual = new Date()
     fechaActual.setHours(0, 0, 0, 0) // Resetear horas para comparar solo fechas
     fechaConteo.setHours(0, 0, 0, 0)
-
+    
     return fechaConteo <= fechaActual
   }
 
@@ -178,34 +178,33 @@ export function RepeticionRow({
 
   return (
     <Card className={`mb-4 ${totalExcedido ? 'border-red-300' : ''}`}>
-      <CardContent className="p-3 sm:p-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <h4 className="font-semibold text-sm sm:text-base">
+            <h4 className="font-semibold">
               {repeticion?.tablaGerm ? `${repeticion.tablaGerm.numeroTabla} - ` : ''}Repetición {numeroRepeticion}
             </h4>
             {repeticion && !modoEdicion && (
-              <Badge variant="default" className="bg-green-600 text-xs">
+              <Badge variant="default" className="bg-green-600">
                 <Check className="h-3 w-3 mr-1" />
                 Completada
               </Badge>
             )}
           </div>
-
-          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          
+          <div className="flex gap-2">
             {/* Si hay repetición guardada y no está en modo edición, mostrar botón Editar */}
             {repeticion && !modoEdicion && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setModoEdicion(true)}
-                className="flex-1 sm:flex-initial text-xs sm:text-sm"
               >
-                <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                <Edit className="h-4 w-4 mr-1" />
                 Editar
               </Button>
             )}
-
+            
             {/* Si está en modo edición O no hay repetición creada, mostrar botones de acción */}
             {(modoEdicion || !repeticion) && (
               <>
@@ -214,20 +213,19 @@ export function RepeticionRow({
                   size="sm"
                   onClick={handleCancelar}
                   disabled={guardando}
-                  className="flex-1 sm:flex-initial text-xs sm:text-sm"
                 >
-                  <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  <X className="h-4 w-4 mr-1" />
                   Cancelar
                 </Button>
-
+                
                 <Button
                   variant="default"
                   size="sm"
                   onClick={handleGuardar}
                   disabled={!puedeGuardar || guardando}
-                  className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-initial text-xs sm:text-sm"
+                  className="bg-green-600 hover:bg-green-700"
                 >
-                  <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  <Save className="h-4 w-4 mr-1" />
                   {guardando ? "Guardando..." : "Guardar"}
                 </Button>
               </>
@@ -238,15 +236,15 @@ export function RepeticionRow({
         <div className="space-y-4">
           {/* Campos Normales por Conteo */}
           <div>
-            <label className="text-xs sm:text-sm font-medium text-gray-700 mb-2 block">
+            <label className="text-sm font-medium text-gray-700 mb-2 block">
               Normales por Conteo:
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {datos.normales.map((valor, indice) => {
                 const puedeIngresar = puedeIngresarConteo(indice)
                 return (
-                  <div key={indice} className="w-full">
-                    <label className="text-xs text-gray-500 block">
+                  <div key={indice}>
+                    <label className="text-xs text-gray-500">
                       Conteo {indice + 1}
                       {!puedeIngresar && (
                         <span className="text-red-500 ml-1" title="Fecha futura - no disponible">⚠️</span>
@@ -257,16 +255,16 @@ export function RepeticionRow({
                       min="0"
                       max={numSemillasPRep}
                       value={modoEdicion && valor === 0 ? '' : valor}
-                      onChange={(e) => manejarCambioNumerico(e.target.value, valor, (nuevoValor) =>
+                      onChange={(e) => manejarCambioNumerico(e.target.value, valor, (nuevoValor) => 
                         actualizarNormal(indice, nuevoValor)
                       )}
                       disabled={!modoEdicion || !puedeIngresar}
-                      className={`text-center text-black disabled:text-black disabled:opacity-100 h-9 sm:h-10 text-sm ${!puedeIngresar ? 'bg-gray-100' : ''}`}
+                      className={`text-center text-black disabled:text-black disabled:opacity-100 ${!puedeIngresar ? 'bg-gray-100' : ''}`}
                       style={!puedeIngresar ? {} : { color: 'black !important' }}
                       title={!puedeIngresar ? "No se puede ingresar datos para fechas futuras" : ""}
                     />
                     {fechasConteos && fechasConteos[indice] && (
-                      <div className="text-xs text-gray-400 text-center mt-1 hidden sm:block">
+                      <div className="text-xs text-gray-400 text-center mt-1">
                         {new Date(fechasConteos[indice]).toLocaleDateString()}
                       </div>
                     )}
@@ -277,74 +275,74 @@ export function RepeticionRow({
           </div>
 
           {/* Otros campos */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label className="text-xs sm:text-sm font-medium block mb-1">Anormales</label>
+              <label className="text-sm font-medium">Anormales</label>
               <Input
                 type="number"
                 min="0"
                 max={numSemillasPRep}
                 value={modoEdicion && datos.anormales === 0 ? '' : datos.anormales}
-                onChange={(e) => manejarCambioNumerico(e.target.value, datos.anormales, (nuevoValor) =>
+                onChange={(e) => manejarCambioNumerico(e.target.value, datos.anormales, (nuevoValor) => 
                   actualizarCampo('anormales', nuevoValor)
                 )}
                 disabled={!modoEdicion}
-                className="text-center text-black disabled:text-black disabled:opacity-100 h-9 sm:h-10 text-sm"
+                className="text-center text-black disabled:text-black disabled:opacity-100"
               />
             </div>
-
+            
             <div>
-              <label className="text-xs sm:text-sm font-medium block mb-1">Duras</label>
+              <label className="text-sm font-medium">Duras</label>
               <Input
                 type="number"
                 min="0"
                 max={numSemillasPRep}
                 value={modoEdicion && datos.duras === 0 ? '' : datos.duras}
-                onChange={(e) => manejarCambioNumerico(e.target.value, datos.duras, (nuevoValor) =>
+                onChange={(e) => manejarCambioNumerico(e.target.value, datos.duras, (nuevoValor) => 
                   actualizarCampo('duras', nuevoValor)
                 )}
                 disabled={!modoEdicion}
-                className="text-center text-black disabled:text-black disabled:opacity-100 h-9 sm:h-10 text-sm"
+                className="text-center text-black disabled:text-black disabled:opacity-100"
               />
             </div>
-
+            
             <div>
-              <label className="text-xs sm:text-sm font-medium block mb-1">Frescas</label>
+              <label className="text-sm font-medium">Frescas</label>
               <Input
                 type="number"
                 min="0"
                 max={numSemillasPRep}
                 value={modoEdicion && datos.frescas === 0 ? '' : datos.frescas}
-                onChange={(e) => manejarCambioNumerico(e.target.value, datos.frescas, (nuevoValor) =>
+                onChange={(e) => manejarCambioNumerico(e.target.value, datos.frescas, (nuevoValor) => 
                   actualizarCampo('frescas', nuevoValor)
                 )}
                 disabled={!modoEdicion}
-                className="text-center text-black disabled:text-black disabled:opacity-100 h-9 sm:h-10 text-sm"
+                className="text-center text-black disabled:text-black disabled:opacity-100"
               />
             </div>
-
+            
             <div>
-              <label className="text-xs sm:text-sm font-medium block mb-1">Muertas</label>
+              <label className="text-sm font-medium">Muertas</label>
               <Input
                 type="number"
                 min="0"
                 max={numSemillasPRep}
                 value={modoEdicion && datos.muertas === 0 ? '' : datos.muertas}
-                onChange={(e) => manejarCambioNumerico(e.target.value, datos.muertas, (nuevoValor) =>
+                onChange={(e) => manejarCambioNumerico(e.target.value, datos.muertas, (nuevoValor) => 
                   actualizarCampo('muertas', nuevoValor)
                 )}
                 disabled={!modoEdicion}
-                className="text-center text-black disabled:text-black disabled:opacity-100 h-9 sm:h-10 text-sm"
+                className="text-center text-black disabled:text-black disabled:opacity-100"
               />
             </div>
           </div>
 
           {/* Total con validación */}
-          <div className="flex items-center justify-between pt-2 border-t">
-            <div className={`text-xs sm:text-sm font-medium ${totalExcedido ? 'text-red-600' : 'text-green-600'}`}>
-              <span className="hidden sm:inline">Total: </span>{datos.total}/{numSemillasPRep} semillas
-              {totalExcedido && ' ❌'}
-              {puedeGuardar && datos.total === numSemillasPRep && ' ✅'}
+          <div className="flex items-center justify-between">
+            <div className={`text-sm font-medium ${totalExcedido ? 'text-red-600' : 'text-green-600'}`}>
+              Total: {datos.total}/{numSemillasPRep} semillas
+              {totalExcedido && ' ❌ Excede el límite'}
+              {puedeGuardar && datos.total === numSemillasPRep && ' ✅ Completo'}
             </div>
           </div>
         </div>

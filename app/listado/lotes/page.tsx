@@ -314,7 +314,7 @@ export default function ListadoLotesPage() {
                   )}
                 </TableBody>
               </Table>
-              {/* Paginacin */}
+              {/* Paginación */}
               <div className="flex items-center justify-between mt-4 px-4">
                 <div className="text-sm text-muted-foreground">
                   {totalElements === 0 ? (
@@ -333,7 +333,7 @@ export default function ListadoLotesPage() {
                       // Usar directamente los objetos LoteSimpleDTO devueltos por el backend
                       setLotes(data)
 
-                      // Actualizar metadatos de paginacin desde la respuesta
+                      // Actualizar metadatos de paginación desde la respuesta
                       setTotalPages(resp.totalPages ?? 1)
                       setTotalElements(resp.totalElements ?? (data.length || 0))
                       setCurrentPage(resp.number ?? p)

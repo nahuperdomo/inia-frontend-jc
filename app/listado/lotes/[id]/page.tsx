@@ -1,352 +1,378 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2, AlertTriangle } from "lucide-react"
+import { 
+  Package, 
+  ArrowLeft, 
+  Edit, 
+  Calendar,
+  Building,
+  User,
+  MapPin,
+  Scale,
+  TestTube,
+  Activity,
+  FileText,
+  Eye
+} from "lucide-react"
+import { Toaster, toast } from "sonner"
 import Link from "next/link"
-import { obtenerLotesPaginadas } from "@/app/services/lote-service"
-import Pagination from "@/components/pagination"
-import { LoteSimpleDTO } from "@/app/models"
+import { LoteDTO } from "@/app/models/interfaces/lote"
+import { TipoAnalisis } from "@/app/models/types/enums"
+import { obtenerLotePorId } from "@/app/services/lote-service"
 
-export default function ListadoLotesPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterEstado, setFilterEstado] = useState<string>("todos")
-  const [filterCultivo, setFilterCultivo] = useState<string>("todos")
-  const [lotes, setLotes] = useState<LoteSimpleDTO[]>([])
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+export default function DetalleLotePage() {
+  const params = useParams()
+  const router = useRouter()
+  const [lote, setLote] = useState<LoteDTO | null>(null)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [currentPage, setCurrentPage] = useState(0)
-  const [totalPages, setTotalPages] = useState(0)
-  const [totalElements, setTotalElements] = useState(0)
-  const pageSize = 10
+
+  const loteId = params?.id as string
 
   useEffect(() => {
-    const fetchLotes = async (page: number = 0) => {
+    const fetchLote = async () => {
+      if (!loteId) return
+      
+      setLoading(true)
+      setError(null)
+      
       try {
-        setIsLoading(true)
-        const loteResp = await obtenerLotesPaginadas(page, pageSize)
-        const lotesData = loteResp.content || []
-
-        // No necesitamos transformar los datos, ya vienen como LoteSimpleDTO
-        setLotes(lotesData)
-
-        setTotalPages(loteResp.totalPages ?? 1)
-        setTotalElements(loteResp.totalElements ?? (lotesData.length || 0))
-        setCurrentPage(loteResp.number ?? page)
-      } catch (err) {
-        console.error("Error fetching lotes:", err)
-        setError("Error al cargar los lotes. Intente nuevamente más tarde.")
+        const data = await obtenerLotePorId(parseInt(loteId))
+        setLote(data)
+      } catch (err: any) {
+        const errorMsg = err?.message || "No se pudo cargar la información del lote"
+        setError(errorMsg)
+        toast.error('Error al cargar lote', {
+          description: errorMsg,
+        })
       } finally {
-        setIsLoading(false)
+        setLoading(false)
       }
     }
 
-    fetchLotes(0)
-  }, [])
+    fetchLote()
+  }, [loteId])
 
-  const filteredLotes = lotes.filter((lote) => {
-    const matchesSearch =
-      (lote.ficha || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lote.cultivarNombre || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lote.especieNombre || "").toLowerCase().includes(searchTerm.toLowerCase())
+  const formatearFecha = (fecha?: string) => {
+    if (!fecha) return "-"
+    return new Date(fecha).toLocaleDateString("es-ES")
+  }
 
-    const estadoLote = lote.activo ? "Activo" : "Inactivo"
-    const matchesEstado = filterEstado === "todos" || estadoLote === filterEstado
-    const matchesCultivo = filterCultivo === "todos" || (lote.cultivarNombre || "") === filterCultivo
+  const obtenerLabelTipoAnalisis = (tipo: TipoAnalisis) => {
+    const labels = {
+      PUREZA: "Pureza Física",
+      GERMINACION: "Germinación",
+      PMS: "Peso de Mil Semillas",
+      TETRAZOLIO: "Tetrazolio",
+      DOSN: "DOSN"
+    }
+    return labels[tipo] || tipo
+  }
 
-    return matchesSearch && matchesEstado && matchesCultivo
-  })
+  if (loading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Cargando información del lote...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-  const cultivos = [...new Set(lotes.map((lote) => lote.cultivarNombre || "").filter(Boolean))]
-
-  return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+  if (error || !lote) {
+    return (
+      <div className="p-6 space-y-6">
         <div className="flex items-center gap-4">
-          <Link href="/listado">
+          <Link href="/listado/lotes">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Listados
+              Volver a Lotes
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-balance">Listado de Lotes</h1>
-            <p className="text-muted-foreground text-pretty">
-              Consulta y administra todos los lotes registrados en el sistema
+            <h1 className="text-3xl font-bold text-balance">Error al cargar lote</h1>
+            <p className="text-muted-foreground">{error || "Lote no encontrado"}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+      <Toaster position="top-right" richColors closeButton />
+      
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/listado/lotes">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver a Lotes
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold text-balance">Lote {lote.ficha}</h1>
+            <p className="text-muted-foreground">
+              ID: {lote.loteID} • Registrado
             </p>
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
-          <Link href="/registro/lotes">
+          <Link href={`/listado/lotes/${loteId}/editar`}>
             <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Lote
+              <Edit className="h-4 w-4 mr-2" />
+              Editar Lote
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Lotes</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold">{lotes.length}</p>
-                )}
-              </div>
-              <Package className="h-8 w-8 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Activos</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold">{lotes.filter((l) => l.activo).length}</p>
-                )}
-              </div>
-              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-green-500"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Inactivos</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold">{lotes.filter((l) => !l.activo).length}</p>
-                )}
-              </div>
-              <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-yellow-500"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Con Análisis</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold">0</p>
-                )}
-              </div>
-              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-blue-500"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters and Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filtros y Búsqueda
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por ficha, cultivar o especie..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <Select value={filterEstado} onValueChange={setFilterEstado}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los estados</SelectItem>
-                <SelectItem value="Activo">Activo</SelectItem>
-                <SelectItem value="Inactivo">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterCultivo} onValueChange={setFilterCultivo}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por cultivo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los cultivos</SelectItem>
-                {cultivos.map((cultivo, index) => (
-                  <SelectItem key={`cultivo-${index}-${cultivo}`} value={cultivo}>
-                    {cultivo}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Lotes Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Lotes</CardTitle>
-          <CardDescription>
-            {isLoading
-              ? "Cargando lotes..."
-              : `${filteredLotes.length} lote${filteredLotes.length !== 1 ? "s" : ""} encontrado${filteredLotes.length !== 1 ? "s" : ""}`
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {error ? (
-            <div className="text-center p-6 text-destructive">
-              <p>{error}</p>
-              <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-                Reintentar
-              </Button>
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Ficha</TableHead>
-                    <TableHead>Cultivar</TableHead>
-                    <TableHead>Especie</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    <TableRow key="loading-row">
-                      <TableCell colSpan={5} className="text-center py-8">
-                        <div className="flex flex-col items-center justify-center">
-                          <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-                          <p className="text-muted-foreground">Cargando datos de lotes...</p>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : filteredLotes.length === 0 ? (
-                    <TableRow key="no-data-row">
-                      <TableCell colSpan={5} className="text-center py-8">
-                        <p className="text-muted-foreground">No se encontraron lotes que coincidan con los criterios de búsqueda.</p>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredLotes.map((lote) => (
-                      <TableRow key={lote.loteID}>
-                        <TableCell className="font-medium">{lote.ficha || "-"}</TableCell>
-                        <TableCell>{lote.cultivarNombre || "-"}</TableCell>
-                        <TableCell>{lote.especieNombre || "-"}</TableCell>
-                        <TableCell>
-                          <Badge variant={lote.activo ? "default" : "destructive"}>
-                            {lote.activo ? "Activo" : "Inactivo"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Link href={`/listado/lotes/${lote.loteID}`}>
-                              <Button variant="ghost" size="sm" title="Ver detalles">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                            <Link href={`/listado/lotes/${lote.loteID}/editar`}>
-                              <Button variant="ghost" size="sm" title="Editar">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="text-destructive hover:text-destructive"
-                              title="Eliminar"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-              {/* Paginacin */}
-              <div className="flex items-center justify-between mt-4 px-4">
-                <div className="text-sm text-muted-foreground">
-                  {totalElements === 0 ? (
-                    <>Mostrando 0 de 0 resultados</>
-                  ) : (
-                    <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
-                  )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Información Principal */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Datos Básicos */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Información Básica
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Ficha</label>
+                  <p className="text-sm font-mono">{lote.ficha}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Pagination currentPage={currentPage} totalPages={Math.max(totalPages, 1)} onPageChange={(p) => void (async () => {
-                    setIsLoading(true)
-                    try {
-                      const resp = await obtenerLotesPaginadas(p, pageSize)
-                      const data = resp.content || []
-
-                      // Usar directamente los objetos LoteSimpleDTO devueltos por el backend
-                      setLotes(data)
-
-                      // Actualizar metadatos de paginacin desde la respuesta
-                      setTotalPages(resp.totalPages ?? 1)
-                      setTotalElements(resp.totalElements ?? (data.length || 0))
-                      setCurrentPage(resp.number ?? p)
-                    } catch (err) {
-                      console.error('Error recargando lotes paginados', err)
-                      setError('Error al cargar los lote')
-                    } finally {
-                      setIsLoading(false)
-                    }
-                  })()} showRange={1} alwaysShow={true} />
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Tipo</label>
+                  <p className="text-sm">{lote.tipo || "-"}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Código CC</label>
+                  <p className="text-sm font-mono">{lote.codigoCC || "-"}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Código FF</label>
+                  <p className="text-sm font-mono">{lote.codigoFF || "-"}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Remitente</label>
+                  <p className="text-sm">{lote.remitente || "-"}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Unidad Embolsado</label>
+                  <p className="text-sm">{lote.unidadEmbolsado || "-"}</p>
                 </div>
               </div>
-            </div>
+            </CardContent>
+          </Card>
+
+          {/* Información de Empresa y Cliente */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building className="h-5 w-5" />
+                Empresa y Cliente
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Empresa</label>
+                  <p className="text-sm">{lote.empresaNombre || "-"}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Cliente</label>
+                  <p className="text-sm">{lote.clienteNombre || "-"}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Información del Cultivar */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Información del Cultivar
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Cultivar</label>
+                  <p className="text-sm">{lote.cultivarNombre || "-"}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Especie</label>
+                  <p className="text-sm">-</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Fechas Importantes */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Fechas Importantes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Fecha de Entrega</label>
+                  <p className="text-sm">{formatearFecha(lote.fechaEntrega?.toString())}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Fecha de Recibo</label>
+                  <p className="text-sm">{formatearFecha(lote.fechaRecibo?.toString())}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Fecha de Cosecha</label>
+                  <p className="text-sm">{formatearFecha(lote.fechaCosecha?.toString())}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Información de Cantidad y Peso */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Scale className="h-5 w-5" />
+                Cantidad y Peso
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Kilos Limpios</label>
+                  <p className="text-sm">{lote.kilosLimpios ? `${lote.kilosLimpios} kg` : "-"}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Cantidad</label>
+                  <p className="text-sm">{lote.cantidad ? `${lote.cantidad}` : "-"}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Observaciones */}
+          {lote.observaciones && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Observaciones</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm whitespace-pre-wrap">{lote.observaciones}</p>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Panel Lateral */}
+        <div className="space-y-6">
+          {/* Estado del Lote */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Estado
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Badge variant={lote.activo ? "default" : "secondary"} className="text-sm">
+                {lote.activo ? "Activo" : "Inactivo"}
+              </Badge>
+            </CardContent>
+          </Card>
+
+          {/* Tipos de Análisis Asignados */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TestTube className="h-5 w-5" />
+                Tipos de Análisis Asignados
+              </CardTitle>
+              <CardDescription>
+                Análisis configurados para este lote
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {lote.tiposAnalisisAsignados && lote.tiposAnalisisAsignados.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {lote.tiposAnalisisAsignados.map((tipo) => (
+                    <Badge key={tipo} variant="outline" className="text-xs">
+                      {obtenerLabelTipoAnalisis(tipo)}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No hay tipos de análisis asignados
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Información Adicional */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Ubicación y Estado
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Origen</label>
+                <p className="text-sm">{lote.origenValor || "-"}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Depósito</label>
+                <p className="text-sm">{lote.depositoValor || "-"}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Estado</label>
+                <p className="text-sm">{lote.estadoValor || "-"}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Acciones Rápidas */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Acciones</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Link href={`/listado/lotes/${loteId}/editar`} className="w-full">
+                <Button variant="outline" className="w-full">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar Lote
+                </Button>
+              </Link>
+              <Link href="/registro/analisis" className="w-full">
+                <Button variant="outline" className="w-full">
+                  <TestTube className="h-4 w-4 mr-2" />
+                  Crear Análisis
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }

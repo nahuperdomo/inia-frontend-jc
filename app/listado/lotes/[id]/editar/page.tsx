@@ -1,352 +1,416 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2, AlertTriangle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { 
+  Package, 
+  ArrowLeft, 
+  Save,
+  TestTube,
+  AlertTriangle,
+  CheckCircle,
+  X
+} from "lucide-react"
+import { Toaster, toast } from "sonner"
 import Link from "next/link"
-import { obtenerLotesPaginadas } from "@/app/services/lote-service"
-import Pagination from "@/components/pagination"
-import { LoteSimpleDTO } from "@/app/models"
+import { LoteDTO } from "@/app/models/interfaces/lote"
+import { TipoAnalisis } from "@/app/models/types/enums"
+import { TiposAnalisisSelector } from "@/components/lotes/tipos-analisis-selector"
+import { obtenerLotePorId, actualizarLote, puedeRemoverTipoAnalisis } from "@/app/services/lote-service"
 
-export default function ListadoLotesPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterEstado, setFilterEstado] = useState<string>("todos")
-  const [filterCultivo, setFilterCultivo] = useState<string>("todos")
-  const [lotes, setLotes] = useState<LoteSimpleDTO[]>([])
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+interface TipoAnalisisInfo {
+  tipo: TipoAnalisis
+  puedeRemover: boolean
+  razon?: string
+}
+
+export default function EditarLotePage() {
+  const params = useParams()
+  const router = useRouter()
+  const [lote, setLote] = useState<LoteDTO | null>(null)
+  const [tiposSeleccionados, setTiposSeleccionados] = useState<TipoAnalisis[]>([])
+  const [tiposOriginales, setTiposOriginales] = useState<TipoAnalisis[]>([])
+  const [tiposInfo, setTiposInfo] = useState<TipoAnalisisInfo[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [currentPage, setCurrentPage] = useState(0)
-  const [totalPages, setTotalPages] = useState(0)
-  const [totalElements, setTotalElements] = useState(0)
-  const pageSize = 10
+
+  const loteId = params?.id as string
 
   useEffect(() => {
-    const fetchLotes = async (page: number = 0) => {
+    const fetchLote = async () => {
+      if (!loteId) return
+      
+      setLoading(true)
+      setError(null)
+      
       try {
-        setIsLoading(true)
-        const loteResp = await obtenerLotesPaginadas(page, pageSize)
-        const lotesData = loteResp.content || []
-
-        // No necesitamos transformar los datos, ya vienen como LoteSimpleDTO
-        setLotes(lotesData)
-
-        setTotalPages(loteResp.totalPages ?? 1)
-        setTotalElements(loteResp.totalElements ?? (lotesData.length || 0))
-        setCurrentPage(loteResp.number ?? page)
-      } catch (err) {
-        console.error("Error fetching lotes:", err)
-        setError("Error al cargar los lotes. Intente nuevamente más tarde.")
+        const data = await obtenerLotePorId(parseInt(loteId))
+        setLote(data)
+        
+        // Asegurar que no hay duplicados y limpiar valores undefined/null
+        const tiposOriginalArray = data.tiposAnalisisAsignados || []
+        const tiposLimpios = tiposOriginalArray
+          .filter(tipo => tipo != null) // Eliminar null/undefined
+          .filter((tipo, index, array) => array.indexOf(tipo) === index) // Eliminar duplicados
+        
+        console.log('Tipos originales del backend:', tiposOriginalArray)
+        console.log('Tipos limpios:', tiposLimpios)
+        
+        setTiposSeleccionados([...tiposLimpios])
+        setTiposOriginales([...tiposLimpios])
+        
+        // Verificar qué tipos se pueden remover
+        if (tiposLimpios.length > 0) {
+          await verificarTiposPuedenRemover(data.loteID, tiposLimpios)
+        }
+        
+      } catch (err: any) {
+        const errorMsg = err?.message || "No se pudo cargar la información del lote"
+        setError(errorMsg)
+        toast.error('Error al cargar lote', {
+          description: errorMsg,
+        })
       } finally {
-        setIsLoading(false)
+        setLoading(false)
       }
     }
 
-    fetchLotes(0)
-  }, [])
+    fetchLote()
+  }, [loteId])
 
-  const filteredLotes = lotes.filter((lote) => {
-    const matchesSearch =
-      (lote.ficha || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lote.cultivarNombre || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lote.especieNombre || "").toLowerCase().includes(searchTerm.toLowerCase())
+  const verificarTiposPuedenRemover = async (loteID: number, tipos: TipoAnalisis[]) => {
+    const info: TipoAnalisisInfo[] = []
+    
+    for (const tipo of tipos) {
+      try {
+        const resultado = await puedeRemoverTipoAnalisis(loteID, tipo)
+        info.push({
+          tipo,
+          puedeRemover: resultado.puedeRemover,
+          razon: resultado.razon
+        })
+      } catch {
+        info.push({
+          tipo,
+          puedeRemover: false,
+          razon: "Error al verificar el estado"
+        })
+      }
+    }
+    
+    setTiposInfo(info)
+  }
 
-    const estadoLote = lote.activo ? "Activo" : "Inactivo"
-    const matchesEstado = filterEstado === "todos" || estadoLote === filterEstado
-    const matchesCultivo = filterCultivo === "todos" || (lote.cultivarNombre || "") === filterCultivo
+  const handleTiposChange = (nuevosTipos: TipoAnalisis[]) => {
+    // Eliminar duplicados y valores nulos/undefined de los nuevos tipos
+    const tiposUnicos = nuevosTipos
+      .filter(tipo => tipo != null)
+      .filter((tipo, index, array) => array.indexOf(tipo) === index)
+    
+    console.log('Nuevos tipos recibidos:', nuevosTipos)
+    console.log('Tipos únicos procesados:', tiposUnicos)
+    
+    // Verificar si se está intentando remover un tipo que no se puede
+    const tiposARemover = tiposOriginales.filter(tipo => !tiposUnicos.includes(tipo))
+    
+    for (const tipoARemover of tiposARemover) {
+      const info = tiposInfo.find(t => t.tipo === tipoARemover)
+      if (info && !info.puedeRemover) {
+        toast.error(`No se puede remover ${obtenerLabelTipoAnalisis(tipoARemover)}`, {
+          description: info.razon || "Este tipo de análisis no se puede remover"
+        })
+        return
+      }
+    }
+    
+    setTiposSeleccionados([...tiposUnicos])
+  }
 
-    return matchesSearch && matchesEstado && matchesCultivo
-  })
+  const handleGuardar = async () => {
+    if (!lote) return
+    
+    setSaving(true)
+    
+    try {
+      // Convertir LoteDTO a LoteRequestDTO
+      const datosActualizados = {
+        ficha: lote.ficha,
+        cultivarID: lote.cultivarID,
+        tipo: lote.tipo || "INTERNO",
+        empresaID: lote.empresaID,
+        clienteID: lote.clienteID || 0,
+        codigoCC: lote.codigoCC || "",
+        codigoFF: lote.codigoFF || "",
+        fechaEntrega: lote.fechaEntrega?.toString() || "",
+        fechaRecibo: lote.fechaRecibo?.toString() || "",
+        depositoID: lote.depositoID || 0,
+        unidadEmbolsado: lote.unidadEmbolsado || "",
+        remitente: lote.remitente || "",
+        observaciones: lote.observaciones || "",
+        kilosLimpios: Number(lote.kilosLimpios) || 0,
+        datosHumedad: lote.datosHumedad?.map(h => ({
+          tipoHumedadID: h.humedadID || 0,
+          valor: Number(h.porcentaje) || 0
+        })) || [],
+        numeroArticuloID: lote.numeroArticuloID || 1,
+        cantidad: Number(lote.cantidad) || 0,
+        origenID: lote.origenID || 1,
+        estadoID: lote.estadoID || 1,
+        fechaCosecha: lote.fechaCosecha?.toString() || "",
+        tiposAnalisisAsignados: tiposSeleccionados
+      }
+      
+      await actualizarLote(lote.loteID, datosActualizados)
+      
+      toast.success('Lote actualizado exitosamente', {
+        description: 'Los tipos de análisis han sido actualizados'
+      })
+      
+      // Redirigir a la página de detalle
+      router.push(`/listado/lotes/${loteId}`)
+      
+    } catch (err: any) {
+      toast.error('Error al actualizar lote', {
+        description: err?.message || "No se pudo actualizar el lote"
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
 
-  const cultivos = [...new Set(lotes.map((lote) => lote.cultivarNombre || "").filter(Boolean))]
+  const obtenerLabelTipoAnalisis = (tipo: TipoAnalisis) => {
+    const labels = {
+      PUREZA: "Pureza Física",
+      GERMINACION: "Germinación", 
+      PMS: "Peso de Mil Semillas",
+      TETRAZOLIO: "Tetrazolio",
+      DOSN: "DOSN"
+    }
+    return labels[tipo] || tipo
+  }
 
-  return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+  const hayCarmbios = JSON.stringify(tiposSeleccionados.sort()) !== JSON.stringify(tiposOriginales.sort())
+
+  if (loading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Cargando información del lote...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !lote) {
+    return (
+      <div className="p-6 space-y-6">
         <div className="flex items-center gap-4">
-          <Link href="/listado">
+          <Link href="/listado/lotes">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Listados
+              Volver a Lotes
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-balance">Listado de Lotes</h1>
-            <p className="text-muted-foreground text-pretty">
-              Consulta y administra todos los lotes registrados en el sistema
+            <h1 className="text-3xl font-bold text-balance">Error al cargar lote</h1>
+            <p className="text-muted-foreground">{error || "Lote no encontrado"}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+      <Toaster position="top-right" richColors closeButton />
+      
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href={`/listado/lotes/${loteId}`}>
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver al Detalle
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold text-balance">Editar Lote {lote.ficha}</h1>
+            <p className="text-muted-foreground">
+              Modifica los tipos de análisis asignados a este lote
             </p>
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
+          <Button 
+            onClick={handleGuardar} 
+            disabled={saving || !hayCarmbios}
+            className="min-w-[120px]"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {saving ? "Guardando..." : "Guardar Cambios"}
           </Button>
-          <Link href="/registro/lotes">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Lote
-            </Button>
-          </Link>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Lotes</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold">{lotes.length}</p>
-                )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Formulario de Edición */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Información del Lote */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Información del Lote
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Ficha</label>
+                  <p className="text-sm font-mono">{lote.ficha}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Cultivar</label>
+                  <p className="text-sm">{lote.cultivarNombre || "-"}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Empresa</label>
+                  <p className="text-sm">{lote.empresaNombre || "-"}</p>
+                </div>
               </div>
-              <Package className="h-8 w-8 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Activos</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold">{lotes.filter((l) => l.activo).length}</p>
-                )}
-              </div>
-              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-green-500"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Inactivos</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold">{lotes.filter((l) => !l.activo).length}</p>
-                )}
-              </div>
-              <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-yellow-500"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Con Análisis</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold">0</p>
-                )}
-              </div>
-              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-blue-500"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
 
-      {/* Filters and Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filtros y Búsqueda
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por ficha, cultivar o especie..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <Select value={filterEstado} onValueChange={setFilterEstado}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los estados</SelectItem>
-                <SelectItem value="Activo">Activo</SelectItem>
-                <SelectItem value="Inactivo">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterCultivo} onValueChange={setFilterCultivo}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por cultivo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los cultivos</SelectItem>
-                {cultivos.map((cultivo, index) => (
-                  <SelectItem key={`cultivo-${index}-${cultivo}`} value={cultivo}>
-                    {cultivo}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Lotes Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Lotes</CardTitle>
-          <CardDescription>
-            {isLoading
-              ? "Cargando lotes..."
-              : `${filteredLotes.length} lote${filteredLotes.length !== 1 ? "s" : ""} encontrado${filteredLotes.length !== 1 ? "s" : ""}`
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {error ? (
-            <div className="text-center p-6 text-destructive">
-              <p>{error}</p>
-              <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-                Reintentar
-              </Button>
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Ficha</TableHead>
-                    <TableHead>Cultivar</TableHead>
-                    <TableHead>Especie</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    <TableRow key="loading-row">
-                      <TableCell colSpan={5} className="text-center py-8">
-                        <div className="flex flex-col items-center justify-center">
-                          <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-                          <p className="text-muted-foreground">Cargando datos de lotes...</p>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : filteredLotes.length === 0 ? (
-                    <TableRow key="no-data-row">
-                      <TableCell colSpan={5} className="text-center py-8">
-                        <p className="text-muted-foreground">No se encontraron lotes que coincidan con los criterios de búsqueda.</p>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredLotes.map((lote) => (
-                      <TableRow key={lote.loteID}>
-                        <TableCell className="font-medium">{lote.ficha || "-"}</TableCell>
-                        <TableCell>{lote.cultivarNombre || "-"}</TableCell>
-                        <TableCell>{lote.especieNombre || "-"}</TableCell>
-                        <TableCell>
-                          <Badge variant={lote.activo ? "default" : "destructive"}>
-                            {lote.activo ? "Activo" : "Inactivo"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Link href={`/listado/lotes/${lote.loteID}`}>
-                              <Button variant="ghost" size="sm" title="Ver detalles">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                            <Link href={`/listado/lotes/${lote.loteID}/editar`}>
-                              <Button variant="ghost" size="sm" title="Editar">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="text-destructive hover:text-destructive"
-                              title="Eliminar"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+          {/* Editar Tipos de Análisis */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TestTube className="h-5 w-5" />
+                Tipos de Análisis Asignados
+              </CardTitle>
+              <CardDescription>
+                Selecciona los tipos de análisis que se realizarán para este lote
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <TiposAnalisisSelector
+                tiposSeleccionados={tiposSeleccionados}
+                onChange={handleTiposChange}
+                disabled={saving}
+              />
+              
+              {tiposInfo.length > 0 && (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <p className="font-medium">Restricciones para tipos existentes:</p>
+                      <div className="space-y-1">
+                        {tiposInfo.map((info) => (
+                          <div key={info.tipo} className="flex items-center gap-2 text-sm">
+                            {info.puedeRemover ? (
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <X className="h-4 w-4 text-red-500" />
+                            )}
+                            <span className="font-medium">{obtenerLabelTipoAnalisis(info.tipo)}:</span>
+                            <span className={info.puedeRemover ? "text-green-700" : "text-red-700"}>
+                              {info.puedeRemover ? "Se puede remover" : info.razon}
+                            </span>
                           </div>
-                        </TableCell>
-                      </TableRow>
+                        ))}
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Panel Lateral */}
+        <div className="space-y-6">
+          {/* Estado Actual */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Estado Actual</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Tipos Originales</label>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {tiposOriginales.length > 0 ? (
+                    // Usar Set para eliminar duplicados y crear keys estables
+                    [...new Set(tiposOriginales)].map((tipo, index) => (
+                      <Badge key={`original-${tipo}-${index}`} variant="secondary" className="text-xs">
+                        {obtenerLabelTipoAnalisis(tipo)}
+                      </Badge>
                     ))
-                  )}
-                </TableBody>
-              </Table>
-              {/* Paginacin */}
-              <div className="flex items-center justify-between mt-4 px-4">
-                <div className="text-sm text-muted-foreground">
-                  {totalElements === 0 ? (
-                    <>Mostrando 0 de 0 resultados</>
                   ) : (
-                    <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
+                    <p className="text-sm text-muted-foreground">Sin tipos asignados</p>
                   )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Pagination currentPage={currentPage} totalPages={Math.max(totalPages, 1)} onPageChange={(p) => void (async () => {
-                    setIsLoading(true)
-                    try {
-                      const resp = await obtenerLotesPaginadas(p, pageSize)
-                      const data = resp.content || []
-
-                      // Usar directamente los objetos LoteSimpleDTO devueltos por el backend
-                      setLotes(data)
-
-                      // Actualizar metadatos de paginacin desde la respuesta
-                      setTotalPages(resp.totalPages ?? 1)
-                      setTotalElements(resp.totalElements ?? (data.length || 0))
-                      setCurrentPage(resp.number ?? p)
-                    } catch (err) {
-                      console.error('Error recargando lotes paginados', err)
-                      setError('Error al cargar los lote')
-                    } finally {
-                      setIsLoading(false)
-                    }
-                  })()} showRange={1} alwaysShow={true} />
                 </div>
               </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Tipos Seleccionados</label>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {tiposSeleccionados.length > 0 ? (
+                    // Usar Set para eliminar duplicados y crear keys estables
+                    [...new Set(tiposSeleccionados)].map((tipo, index) => (
+                      <Badge key={`seleccionado-${tipo}-${index}`} variant="default" className="text-xs">
+                        {obtenerLabelTipoAnalisis(tipo)}
+                      </Badge>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Sin tipos seleccionados</p>
+                  )}
+                </div>
+              </div>
+              
+              {hayCarmbios && (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    Hay cambios sin guardar. Recuerda guardar para aplicar las modificaciones.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Información de Reglas */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Reglas de Edición</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span>Puedes agregar nuevos tipos de análisis libremente</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                  <span>Solo puedes remover tipos que no tengan análisis completados</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span>Puedes remover tipos con análisis marcados "A repetir"</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }
