@@ -140,6 +140,7 @@ export default function EditarLotePage() {
       // Convertir LoteDTO a LoteRequestDTO
       const datosActualizados = {
         ficha: lote.ficha,
+        nomLote: lote.nomLote || "",
         cultivarID: lote.cultivarID,
         tipo: lote.tipo || "INTERNO",
         empresaID: lote.empresaID,
@@ -242,7 +243,9 @@ export default function EditarLotePage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-balance">Editar Lote {lote.ficha}</h1>
+            <h1 className="text-3xl font-bold text-balance">
+              Editar {lote.nomLote ? lote.nomLote : `Lote ${lote.ficha}`}
+            </h1>
             <p className="text-muted-foreground">
               Modifica los tipos de análisis asignados a este lote
             </p>
@@ -276,6 +279,10 @@ export default function EditarLotePage() {
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Ficha</label>
                   <p className="text-sm font-mono">{lote.ficha}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Nombre del Lote</label>
+                  <p className="text-sm font-medium">{lote.nomLote || "-"}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Cultivar</label>
