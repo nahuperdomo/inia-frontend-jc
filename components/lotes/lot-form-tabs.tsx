@@ -48,55 +48,55 @@ export function LotFormTabs({
   }
 
   // Memoized options to avoid recalculating on every render
-  const cultivaresOptions = useMemo(() => 
+  const cultivaresOptions = useMemo(() =>
     catalogsData.cultivares.map(cultivar => ({
       id: cultivar.id,
       nombre: cultivar.nombre
     })), [catalogsData.cultivares])
 
-  const empresasOptions = useMemo(() => 
+  const empresasOptions = useMemo(() =>
     catalogsData.empresas.map(empresa => ({
       id: empresa.id,
       nombre: empresa.nombre
     })), [catalogsData.empresas])
 
-  const clientesOptions = useMemo(() => 
+  const clientesOptions = useMemo(() =>
     catalogsData.clientes.map(cliente => ({
       id: cliente.id,
       nombre: cliente.nombre
     })), [catalogsData.clientes])
 
-  const depositosOptions = useMemo(() => 
+  const depositosOptions = useMemo(() =>
     catalogsData.depositos.map((deposito: any) => ({
       id: deposito.id,
       nombre: deposito.nombre
     })), [catalogsData.depositos])
 
-  const tiposHumedadOptions = useMemo(() => 
+  const tiposHumedadOptions = useMemo(() =>
     catalogsData.tiposHumedad.map((tipo: any) => ({
       id: tipo.id,
       nombre: tipo.nombre
     })), [catalogsData.tiposHumedad])
 
-  const origenesOptions = useMemo(() => 
+  const origenesOptions = useMemo(() =>
     catalogsData.origenes.map((origen: any) => ({
       id: origen.id,
       nombre: origen.nombre
     })), [catalogsData.origenes])
 
-  const estadosOptions = useMemo(() => 
+  const estadosOptions = useMemo(() =>
     catalogsData.estados.map((estado: any) => ({
       id: estado.id,
       nombre: estado.nombre
     })), [catalogsData.estados])
 
-  const articulosOptions = useMemo(() => 
+  const articulosOptions = useMemo(() =>
     catalogsData.articulos.map((articulo: any) => ({
       id: articulo.id,
       nombre: articulo.nombre
     })), [catalogsData.articulos])
 
-  const unidadesEmbolsadoOptions = useMemo(() => 
+  const unidadesEmbolsadoOptions = useMemo(() =>
     catalogsData.unidadesEmbolsado.map((unidad: any) => ({
       id: unidad.id,
       nombre: unidad.nombre
@@ -144,22 +144,36 @@ export function LotFormTabs({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Registro - Lotes</CardTitle>
-        <CardDescription>Complete la información del lote en las siguientes pestañas</CardDescription>
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="text-lg sm:text-xl">Registro - Lotes</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">Complete la información del lote en las siguientes pestañas</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 sm:p-6">
         <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="datos">Datos</TabsTrigger>
-            <TabsTrigger value="empresa">Empresa</TabsTrigger>
-            <TabsTrigger value="recepcion">Recepción y almacenamiento</TabsTrigger>
-            <TabsTrigger value="calidad">Calidad y producción</TabsTrigger>
+          {/* Responsive Tabs List */}
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 h-auto p-1">
+            <TabsTrigger value="datos" className="text-xs sm:text-sm py-2">
+              <span className="hidden sm:inline">Datos</span>
+              <span className="sm:hidden">Info</span>
+            </TabsTrigger>
+            <TabsTrigger value="empresa" className="text-xs sm:text-sm py-2">
+              <span className="hidden sm:inline">Empresa</span>
+              <span className="sm:hidden">Emp.</span>
+            </TabsTrigger>
+            <TabsTrigger value="recepcion" className="text-xs sm:text-sm py-2">
+              <span className="hidden md:inline">Recepción y almacenamiento</span>
+              <span className="hidden sm:inline md:hidden">Recepción</span>
+              <span className="sm:hidden">Recep.</span>
+            </TabsTrigger>
+            <TabsTrigger value="calidad" className="text-xs sm:text-sm py-2">
+              <span className="hidden sm:inline">Calidad y producción</span>
+              <span className="sm:hidden">Calidad</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Datos Tab */}
-          <TabsContent value="datos" className="space-y-4 mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TabsContent value="datos" className="space-y-3 sm:space-y-4 mt-4 sm:mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <FormField
                 id="ficha"
                 label="Ficha"
@@ -208,8 +222,8 @@ export function LotFormTabs({
           </TabsContent>
 
           {/* Empresa Tab */}
-          <TabsContent value="empresa" className="space-y-4 mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TabsContent value="empresa" className="space-y-3 sm:space-y-4 mt-4 sm:mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <FormSelect
                 id="empresaID"
                 label="Empresa"
@@ -255,8 +269,8 @@ export function LotFormTabs({
           </TabsContent>
 
           {/* Recepción y almacenamiento Tab */}
-          <TabsContent value="recepcion" className="space-y-4 mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TabsContent value="recepcion" className="space-y-3 sm:space-y-4 mt-4 sm:mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <FormField
                 id="fechaEntrega"
                 label="Fecha de entrega"
@@ -325,9 +339,9 @@ export function LotFormTabs({
           </TabsContent>
 
           {/* Calidad y producción Tab */}
-          <TabsContent value="calidad" className="space-y-4 mt-6">
+          <TabsContent value="calidad" className="space-y-3 sm:space-y-4 mt-4 sm:mt-6">
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <FormField
                   id="kilosLimpios"
                   label="Kilos limpios"

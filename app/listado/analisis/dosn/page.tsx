@@ -13,7 +13,7 @@ import Pagination from "@/components/pagination"
 import { DosnDTO } from "@/app/models"
 import { EstadoAnalisis, TipoListado } from "@/app/models/types/enums"
 
-// Función helper para mostrar nombres legibles de tipos de listado
+// Funcin helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
   switch (tipo) {
     case "MAL_TOLERANCIA_CERO":
@@ -31,7 +31,7 @@ const getTipoListadoDisplay = (tipo: TipoListado) => {
   }
 }
 
-// Función helper para obtener el color del badge según el tipo
+// Funcin helper para obtener el color del badge según el tipo
 const getTipoListadoBadgeColor = (tipo: TipoListado) => {
   switch (tipo) {
     case "MAL_TOLERANCIA_CERO":
@@ -49,7 +49,7 @@ const getTipoListadoBadgeColor = (tipo: TipoListado) => {
   }
 }
 
-// Función utilitaria para formatear fechas correctamente
+// Funcin utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
   if (!fechaString) return ''
 
@@ -166,7 +166,7 @@ export default function ListadoDOSNPage() {
       case "APROBADO":
         return "Aprobado"
       case "PENDIENTE_APROBACION":
-        return "Pend. Aprobación"
+        return "Pend. Aprobacin"
       case "PARA_REPETIR":
         return "Para Repetir"
       default:
@@ -215,7 +215,7 @@ export default function ListadoDOSNPage() {
           </Link>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Análisis DOSN</h1>
-            <p className="text-muted-foreground">Consulta la determinación de otras semillas nocivas</p>
+            <p className="text-muted-foreground">Consulta la determinacin de otras semillas nocivas</p>
           </div>
         </div>
         <Link href="/registro/analisis/dosn">
@@ -300,7 +300,7 @@ export default function ListadoDOSNPage() {
                 <option value="EN_PROCESO">En Proceso</option>
                 <option value="PENDIENTE">Pendiente</option>
                 <option value="APROBADO">Aprobado</option>
-                <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
+                <option value="PENDIENTE_APROBACION">Pend. Aprobacin</option>
               </select>
               <Button variant="outline" size="sm">
                 <Filter className="h-4 w-4 mr-2" />
@@ -425,7 +425,7 @@ export default function ListadoDOSNPage() {
               </TableBody>
             </Table>
           </div>
-          {/* Paginación: centrada en el listado DOSN */}
+          {/* Paginacin: centrada en el listado DOSN */}
           <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
             <div className="text-sm text-muted-foreground">
               {totalElements === 0 ? (

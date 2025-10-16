@@ -327,13 +327,13 @@ export default function UsuarioValidacionPage() {
                     <Link href="/administracion">
                         <Button variant="ghost" size="sm">
                             <ArrowLeft className="h-4 w-4 mr-2" />
-                            Volver a Administración
+                            Volver a Administracin
                         </Button>
                     </Link>
                     <div>
-                        <h1 className="text-3xl font-bold text-balance">Gestión Completa de Usuarios</h1>
+                        <h1 className="text-3xl font-bold text-balance">Gestin Completa de Usuarios</h1>
                         <p className="text-muted-foreground text-pretty">
-                            Validación de solicitudes y administración de usuarios existentes
+                            Validacin de solicitudes y administracin de usuarios existentes
                         </p>
                     </div>
                 </div>
@@ -631,7 +631,7 @@ export default function UsuarioValidacionPage() {
                 </CardContent>
             </Card>
 
-            {/* Dialog de Aprobación */}
+            {/* Dialog de Aprobacin */}
             <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
                 <DialogContent className="max-w-md" showCloseButton={false}>
                     <DialogHeader>
@@ -726,7 +726,7 @@ export default function UsuarioValidacionPage() {
                 </DialogContent>
             </Dialog>
 
-            {/* Dialog de Edición de Usuario Registrado */}
+            {/* Dialog de Edicin de Usuario Registrado */}
             <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
@@ -783,7 +783,7 @@ export default function UsuarioValidacionPage() {
                 </DialogContent>
             </Dialog>
 
-            {/* Dialog de Eliminación de Usuario Registrado */}
+            {/* Dialog de Eliminacin de Usuario Registrado */}
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
@@ -793,12 +793,12 @@ export default function UsuarioValidacionPage() {
                         <DialogTitle className="text-center text-xl">Eliminar Usuario</DialogTitle>
                         <DialogDescription className="text-center">
                             ¿Estás seguro de que deseas eliminar a {selectedRegisteredUser?.nombres} {selectedRegisteredUser?.apellidos}?
-                            Esta acción no se puede deshacer.
+                            Esta accin no se puede deshacer.
                         </DialogDescription>
                     </DialogHeader>
 
                     {selectedRegisteredUser && (
-                        <div className="rounded-lg border p-3 bg-red-50 dark:bg-red-900/20">
+                        <div className="rounded-lg border p-3 bg-red-50">
                             <p className="text-sm"><strong>Usuario:</strong> {selectedRegisteredUser.nombre}</p>
                             <p className="text-sm"><strong>Email:</strong> {selectedRegisteredUser.email}</p>
                             <p className="text-sm"><strong>Rol:</strong> {(selectedRegisteredUser.roles && selectedRegisteredUser.roles[0]) || "Sin rol"}</p>

@@ -83,7 +83,7 @@ export default function RegistroEmpresaPage() {
             {/* Basic Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Información Básica</CardTitle>
+                <CardTitle>Informacin Básica</CardTitle>
                 <CardDescription>Datos principales de la empresa</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -121,15 +121,15 @@ export default function RegistroEmpresaPage() {
                         <SelectItem value="publica">Pública</SelectItem>
                         <SelectItem value="privada">Privada</SelectItem>
                         <SelectItem value="cooperativa">Cooperativa</SelectItem>
-                        <SelectItem value="instituto">Instituto de Investigación</SelectItem>
+                        <SelectItem value="instituto">Instituto de Investigacin</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="md:col-span-2">
-                    <Label htmlFor="direccion">Dirección *</Label>
+                    <Label htmlFor="direccion">Direccin *</Label>
                     <Input
                       id="direccion"
-                      placeholder="Dirección completa"
+                      placeholder="Direccin completa"
                       value={formData.direccion}
                       onChange={(e) => handleInputChange("direccion", e.target.value)}
                       required
@@ -142,7 +142,7 @@ export default function RegistroEmpresaPage() {
             {/* Contact Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Información de Contacto</CardTitle>
+                <CardTitle>Informacin de Contacto</CardTitle>
                 <CardDescription>Datos de contacto y persona responsable</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -187,8 +187,8 @@ export default function RegistroEmpresaPage() {
                       <SelectContent>
                         <SelectItem value="agricultura">Agricultura</SelectItem>
                         <SelectItem value="ganaderia">Ganadería</SelectItem>
-                        <SelectItem value="investigacion">Investigación</SelectItem>
-                        <SelectItem value="comercializacion">Comercialización</SelectItem>
+                        <SelectItem value="investigacion">Investigacin</SelectItem>
+                        <SelectItem value="comercializacion">Comercializacin</SelectItem>
                         <SelectItem value="procesamiento">Procesamiento</SelectItem>
                       </SelectContent>
                     </Select>
@@ -200,12 +200,12 @@ export default function RegistroEmpresaPage() {
             {/* Additional Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Información Adicional</CardTitle>
+                <CardTitle>Informacin Adicional</CardTitle>
                 <CardDescription>Observaciones y notas relevantes</CardDescription>
               </CardHeader>
               <CardContent>
                 <Textarea
-                  placeholder="Información adicional sobre la empresa, servicios, especialidades, etc."
+                  placeholder="Informacin adicional sobre la empresa, servicios, especialidades, etc."
                   value={formData.observaciones}
                   onChange={(e) => handleInputChange("observaciones", e.target.value)}
                   rows={4}

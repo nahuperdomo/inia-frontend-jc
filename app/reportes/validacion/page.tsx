@@ -19,7 +19,7 @@ interface ValidationItem {
   cliente: string
   responsableAnalisis: string
   fechaAnalisis: string
-  estado: "Pendiente" | "Aprobado" | "Rechazado" | "En revisión"
+  estado: "Pendiente" | "Aprobado" | "Rechazado" | "En revisin"
   validador?: string
   fechaValidacion?: string
   observaciones?: string
@@ -90,7 +90,7 @@ export default function ValidacionPage() {
       cliente: "Instituto Semillas",
       responsableAnalisis: "Dr. Carlos Rodríguez",
       fechaAnalisis: "2024-12-12",
-      estado: "En revisión",
+      estado: "En revisin",
       validador: "Dra. María González",
     },
   ]
@@ -106,7 +106,7 @@ export default function ValidacionPage() {
         return "bg-green-100 text-green-800"
       case "Rechazado":
         return "bg-red-100 text-red-800"
-      case "En revisión":
+      case "En revisin":
         return "bg-blue-100 text-blue-800"
       case "Pendiente":
         return "bg-yellow-100 text-yellow-800"
@@ -121,7 +121,7 @@ export default function ValidacionPage() {
         return <CheckCircle className="h-4 w-4 text-green-600" />
       case "Rechazado":
         return <XCircle className="h-4 w-4 text-red-600" />
-      case "En revisión":
+      case "En revisin":
         return <AlertTriangle className="h-4 w-4 text-blue-600" />
       case "Pendiente":
         return <Clock className="h-4 w-4 text-yellow-600" />
@@ -140,7 +140,7 @@ export default function ValidacionPage() {
     pendientes: validationItems.filter((item) => item.estado === "Pendiente").length,
     aprobados: validationItems.filter((item) => item.estado === "Aprobado").length,
     rechazados: validationItems.filter((item) => item.estado === "Rechazado").length,
-    enRevision: validationItems.filter((item) => item.estado === "En revisión").length,
+    enRevision: validationItems.filter((item) => item.estado === "En revisin").length,
   }
 
   return (
@@ -155,9 +155,9 @@ export default function ValidacionPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-balance">Sistema de Validación</h1>
+            <h1 className="text-3xl font-bold text-balance">Sistema de Validacin</h1>
             <p className="text-muted-foreground text-pretty">
-              Validación y autorización de lotes y análisis del laboratorio
+              Validacin y autorizacin de lotes y análisis del laboratorio
             </p>
           </div>
         </div>
@@ -194,7 +194,7 @@ export default function ValidacionPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">En Revisión</p>
+                <p className="text-sm font-medium text-muted-foreground">En Revisin</p>
                 <p className="text-3xl font-bold text-blue-600">{stats.enRevision}</p>
               </div>
               <AlertTriangle className="h-8 w-8 text-blue-600" />
@@ -242,7 +242,7 @@ export default function ValidacionPage() {
                   <SelectContent>
                     <SelectItem value="all">Todos los estados</SelectItem>
                     <SelectItem value="Pendiente">Pendiente</SelectItem>
-                    <SelectItem value="En revisión">En revisión</SelectItem>
+                    <SelectItem value="En revisin">En revisin</SelectItem>
                     <SelectItem value="Aprobado">Aprobado</SelectItem>
                     <SelectItem value="Rechazado">Rechazado</SelectItem>
                   </SelectContent>
@@ -254,8 +254,8 @@ export default function ValidacionPage() {
           {/* Validation Items */}
           <Card>
             <CardHeader>
-              <CardTitle>Items para Validación ({filteredItems.length})</CardTitle>
-              <CardDescription>Lista de análisis y lotes pendientes de validación</CardDescription>
+              <CardTitle>Items para Validacin ({filteredItems.length})</CardTitle>
+              <CardDescription>Lista de análisis y lotes pendientes de validacin</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -308,7 +308,7 @@ export default function ValidacionPage() {
                           </div>
                           {item.fechaValidacion && (
                             <div>
-                              <p className="text-muted-foreground">Fecha Validación</p>
+                              <p className="text-muted-foreground">Fecha Validacin</p>
                               <p className="font-medium">{item.fechaValidacion}</p>
                             </div>
                           )}
@@ -345,7 +345,7 @@ export default function ValidacionPage() {
             <>
               <Card>
                 <CardHeader>
-                  <CardTitle>Detalles de Validación</CardTitle>
+                  <CardTitle>Detalles de Validacin</CardTitle>
                   <CardDescription>{selectedItem.id}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -393,7 +393,7 @@ export default function ValidacionPage() {
                           )}
                           {selectedItem.resultados.germinacion && (
                             <div className="flex justify-between text-sm">
-                              <span>Germinación:</span>
+                              <span>Germinacin:</span>
                               <span className="font-medium">{selectedItem.resultados.germinacion}</span>
                             </div>
                           )}
@@ -425,13 +425,13 @@ export default function ValidacionPage() {
               {selectedItem.estado === "Pendiente" && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Acciones de Validación</CardTitle>
+                    <CardTitle>Acciones de Validacin</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <label className="text-sm font-medium">Observaciones</label>
                       <Textarea
-                        placeholder="Ingrese observaciones sobre la validación..."
+                        placeholder="Ingrese observaciones sobre la validacin..."
                         value={validationNotes}
                         onChange={(e) => setValidationNotes(e.target.value)}
                         rows={3}
@@ -461,7 +461,7 @@ export default function ValidacionPage() {
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Selecciona un item</h3>
                 <p className="text-muted-foreground">
-                  Selecciona un análisis o lote de la lista para ver los detalles y realizar la validación.
+                  Selecciona un análisis o lote de la lista para ver los detalles y realizar la validacin.
                 </p>
               </CardContent>
             </Card>

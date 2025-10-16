@@ -12,6 +12,8 @@ import Link from "next/link"
 import { obtenerLotesPaginadas } from "@/app/services/lote-service"
 import Pagination from "@/components/pagination"
 import { LoteSimpleDTO } from "@/app/models"
+import { BotonExportarExcel } from "@/components/exportar-excel-btn"
+import { DialogExportarConFiltros } from "@/components/dialog-exportar-filtros"
 
 export default function ListadoLotesPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -84,10 +86,11 @@ export default function ListadoLotesPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
+          <BotonExportarExcel 
+            variant="outline"
+            textoBoton="Exportar Todo"
+          />
+          <DialogExportarConFiltros />
           <Link href="/registro/lotes">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -314,7 +317,7 @@ export default function ListadoLotesPage() {
                   )}
                 </TableBody>
               </Table>
-              {/* Paginación */}
+              {/* Paginacin */}
               <div className="flex items-center justify-between mt-4 px-4">
                 <div className="text-sm text-muted-foreground">
                   {totalElements === 0 ? (
@@ -333,7 +336,7 @@ export default function ListadoLotesPage() {
                       // Usar directamente los objetos LoteSimpleDTO devueltos por el backend
                       setLotes(data)
 
-                      // Actualizar metadatos de paginación desde la respuesta
+                      // Actualizar metadatos de paginacin desde la respuesta
                       setTotalPages(resp.totalPages ?? 1)
                       setTotalElements(resp.totalElements ?? (data.length || 0))
                       setCurrentPage(resp.number ?? p)

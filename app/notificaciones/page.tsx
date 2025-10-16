@@ -262,7 +262,7 @@ export default function NotificationsPage() {
                                 Notificaciones ({filteredAndSortedNotifications.length})
                             </CardTitle>
 
-                            {/* Paginación info */}
+                            {/* Paginacin info */}
                             {totalPages > 1 && (
                                 <div className="text-sm text-gray-600">
                                     Página {currentPage + 1} de {totalPages}
@@ -299,7 +299,7 @@ export default function NotificationsPage() {
                                         onMarkAsRead={markAsRead}
                                         onDelete={deleteNotification}
                                         onViewDetails={(notif) => {
-                                            // Aquí puedes implementar navegación a detalles específicos
+                                            // Aquí puedes implementar navegacin a detalles específicos
                                             console.log('Ver detalles:', notif);
                                         }}
                                         className="border rounded-lg hover:shadow-md transition-shadow"
@@ -308,7 +308,7 @@ export default function NotificationsPage() {
                             </div>
                         )}
 
-                        {/* Paginación */}
+                        {/* Paginacin */}
                         {totalPages > 1 && (
                             <div className="flex items-center justify-center gap-2 mt-6">
                                 <Button
