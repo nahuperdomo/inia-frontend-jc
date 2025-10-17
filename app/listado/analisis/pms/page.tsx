@@ -119,7 +119,7 @@ export default function ListadoPMSPage() {
       case "FINALIZADO":
         return "Finalizado"
       case "PENDIENTE_APROBACION":
-        return "Pendiente Aprobacin"
+        return "Pendiente Aprobación"
       case "PENDIENTE":
         return "Pendiente"
       case "PARA_REPETIR":
@@ -302,7 +302,7 @@ export default function ListadoPMSPage() {
                 <SelectItem value="APROBADO">Aprobado</SelectItem>
                 <SelectItem value="EN_PROCESO">En Proceso</SelectItem>
                 <SelectItem value="FINALIZADO">Finalizado</SelectItem>
-                <SelectItem value="PENDIENTE_APROBACION">Pendiente Aprobacin</SelectItem>
+                <SelectItem value="PENDIENTE_APROBACION">Pendiente Aprobación</SelectItem>
                 <SelectItem value="PENDIENTE">Pendiente</SelectItem>
                 <SelectItem value="PARA_REPETIR">Para Repetir</SelectItem>
               </SelectContent>
@@ -331,7 +331,7 @@ export default function ListadoPMSPage() {
                   <TableHead className="whitespace-nowrap">Estado</TableHead>
                   <TableHead className="whitespace-nowrap">Repeticiones</TableHead>
                   <TableHead className="whitespace-nowrap">PMS (g)</TableHead>
-                  <TableHead className="whitespace-nowrap">Coef. Variacin</TableHead>
+                  <TableHead className="whitespace-nowrap">Coef. Variación</TableHead>
                   <TableHead className="whitespace-nowrap">Acciones</TableHead>
                 </TableRow>
               </TableHeader>

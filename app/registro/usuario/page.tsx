@@ -55,13 +55,13 @@ export default function RegistroUsuarioPage() {
         confirmPassword: false,
     })
 
-    // Funcin para marcar un campo como tocado cuando pierde el foco
+    // Función para marcar un campo como tocado cuando pierde el foco
     const handleBlur = (field: keyof UsuarioFormData) => {
         setTouched(prev => ({ ...prev, [field]: true }))
         validateField(field, formData[field])
     }
 
-    // Funcin para validar un campo específico
+    // Función para validar un campo específico
     const validateField = (field: keyof UsuarioFormData, value: string): string => {
         let errorMessage = ""
 
@@ -79,7 +79,7 @@ export default function RegistroUsuarioPage() {
             case "nombres":
                 if (!value.trim()) {
                     errorMessage = "El nombre es obligatorio"
-                } else if (!/^[a-zA-ZáéíúÁÉÍÚñÑ\s]+$/.test(value)) {
+                } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
                     errorMessage = "El nombre solo puede contener letras"
                 }
                 break
@@ -87,16 +87,16 @@ export default function RegistroUsuarioPage() {
             case "apellidos":
                 if (!value.trim()) {
                     errorMessage = "El apellido es obligatorio"
-                } else if (!/^[a-zA-ZáéíúÁÉÍÚñÑ\s]+$/.test(value)) {
+                } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
                     errorMessage = "El apellido solo puede contener letras"
                 }
                 break
 
             case "email":
                 if (!value.trim()) {
-                    errorMessage = "El correo electrnico es obligatorio"
+                    errorMessage = "El correo electrónico es obligatorio"
                 } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                    errorMessage = "Introduce un correo electrnico válido"
+                    errorMessage = "Introduce un correo electrónico válido"
                 }
                 break
 
@@ -124,7 +124,7 @@ export default function RegistroUsuarioPage() {
         return errorMessage
     }
 
-    // Funcin para validar todo el formulario
+    // Función para validar todo el formulario
     const validateForm = (): boolean => {
         const newErrors: FormErrors = {}
         let isValid = true
@@ -170,9 +170,9 @@ export default function RegistroUsuarioPage() {
         setIsLoading(true)
 
         try {
-            // Validacin adicional para asegurar que la contraseña no esté vacía
+            // Validación adicional para asegurar que la contraseña no esté vacía
             if (!formData.password || formData.password.trim() === '') {
-                toast.error("Error de validacin", {
+                toast.error("Error de validación", {
                     description: "La contraseña no puede estar vacía"
                 });
                 setIsLoading(false);
@@ -203,7 +203,7 @@ export default function RegistroUsuarioPage() {
         }
     }
 
-    // Funcin para manejar el cierre del diálogo y redireccin
+    // Función para manejar el cierre del diálogo y redirección
     const handleDialogClose = () => {
         setShowSuccessDialog(false)
         router.push("/login")
@@ -267,7 +267,7 @@ export default function RegistroUsuarioPage() {
                                     <Label htmlFor="apellidos">Apellidos *</Label>
                                     <Input
                                         id="apellidos"
-                                        placeholder="García Lpez"
+                                        placeholder="García López"
                                         value={formData.apellidos}
                                         onChange={(e) => handleInputChange("apellidos", e.target.value)}
                                         onBlur={() => handleBlur("apellidos")}
@@ -355,7 +355,7 @@ export default function RegistroUsuarioPage() {
                         <Link href="/login">
                             <Button variant="ghost" size="sm">
                                 <ArrowLeft className="h-4 w-4 mr-2" />
-                                Volver al inicio de sesin
+                                Volver al inicio de sesión
                             </Button>
                         </Link>
                     </CardFooter>
@@ -379,7 +379,7 @@ export default function RegistroUsuarioPage() {
                         <div className="flex items-center space-x-2 rounded-lg border p-3">
                             <Clock className="h-5 w-5 text-muted-foreground" />
                             <div>
-                                <p className="text-sm font-medium">Esperando aprobacin</p>
+                                <p className="text-sm font-medium">Esperando aprobación</p>
                                 <p className="text-xs text-muted-foreground">
                                     El/la administrador/a del sistema debe aprobar tu solicitud antes de que puedas acceder.
                                     Este proceso puede tomar algún tiempo.
@@ -388,14 +388,14 @@ export default function RegistroUsuarioPage() {
                         </div>
 
                         <p className="text-sm text-muted-foreground text-center">
-                            Una vez aprobada tu solicitud, recibirás una notificacin
-                            por correo electrnico.
+                            Una vez aprobada tu solicitud, recibirás una notificación
+                            por correo electrónico.
                         </p>
                     </div>
 
                     <DialogFooter>
                         <Button onClick={handleDialogClose} className="w-full">
-                            Entendido, ir a inicio de sesin
+                            Entendido, ir a inicio de sesión
                         </Button>
                     </DialogFooter>
                 </DialogContent>

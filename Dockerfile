@@ -7,7 +7,7 @@ WORKDIR /app
 # Dependencias comunes
 FROM base AS dependencies
 COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install --no-frozen-lockfile
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
 # Etapa de desarrollo
 FROM dependencies AS development
@@ -24,23 +24,18 @@ COPY . .
 RUN pnpm run build
 
 # Etapa de producción
-FROM dependencies AS production
+FROM base AS production
 # Establecer variables de entorno para producción
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Aceptar la URL del API como argumento de build
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-
-# Copiar todo el código fuente
-COPY . .
-
-# Construir la aplicación
-RUN pnpm run build
+# Copiar la aplicación construida y los archivos necesarios
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 
 # Exponer el puerto
 EXPOSE 3000
 
 # Comando para iniciar en producción
-CMD ["pnpm", "start"]
+CMD ["node", "server.js"]

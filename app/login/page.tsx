@@ -20,10 +20,10 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  // Funcin helper para manejar cookies
+  // Función helper para manejar cookies
   function setCookie(name: string, value: string, days: number = 1) {
     const maxAge = days * 24 * 60 * 60;
-    // Usamos SameSite=Lax para compatibilidad con dispositivos mviles
+    // Usamos SameSite=Lax para compatibilidad con dispositivos móviles
     document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
   }
 
@@ -88,7 +88,7 @@ export default function LoginPage() {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold text-balance">Sistema INIA</CardTitle>
-            <CardDescription className="text-pretty">Instituto Nacional de Innovacin Agropecuaria</CardDescription>
+            <CardDescription className="text-pretty">Instituto Nacional de Innovación Agropecuaria</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -118,10 +118,10 @@ export default function LoginPage() {
               {isLoading ? (
                 <>
                   <LoadingSpinner className="mr-2" size={16} />
-                  Iniciando sesin...
+                  Iniciando sesión...
                 </>
               ) : (
-                "Iniciar sesin"
+                "Iniciar sesión"
               )}
             </Button>
           </form>

@@ -13,7 +13,7 @@ import { GerminacionListadoDTO } from "@/app/models/interfaces/germinacion"
 import { EstadoAnalisis } from "@/app/models/types/enums"
 import Pagination from "@/components/pagination"
 
-// Funcin utilitaria para formatear fechas correctamente
+// Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
   if (!fechaString) return ''
   
@@ -86,7 +86,7 @@ export default function ListadoGerminacionPage() {
       setIsFirst((meta.number ?? 0) === 0)
       setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1)
     } catch (err) {
-      setError("Error al cargar los análisis de germinacin")
+      setError("Error al cargar los análisis de germinación")
       console.error("Error fetching germinaciones:", err)
     } finally {
       setLoading(false)
@@ -143,7 +143,7 @@ export default function ListadoGerminacionPage() {
       case "APROBADO":
         return "Aprobado"
       case "PENDIENTE_APROBACION":
-        return "Pend. Aprobacin"
+        return "Pend. Aprobación"
       case "A_REPETIR":
         return "A Repetir"
       default:
@@ -163,7 +163,7 @@ export default function ListadoGerminacionPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Cargando análisis de germinacin...</p>
+            <p>Cargando análisis de germinación...</p>
           </div>
         </div>
       </div>
@@ -197,8 +197,8 @@ export default function ListadoGerminacionPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Análisis de Germinacin</h1>
-            <p className="text-muted-foreground">Consulta los análisis de germinacin de semillas</p>
+            <h1 className="text-3xl font-bold tracking-tight">Análisis de Germinación</h1>
+            <p className="text-muted-foreground">Consulta los análisis de germinación de semillas</p>
           </div>
         </div>
         <Link href="/registro/analisis/germinacion">
@@ -283,7 +283,7 @@ export default function ListadoGerminacionPage() {
                 <option value="EN_PROCESO">En Proceso</option>
                 <option value="FINALIZADO">Finalizado</option>
                 <option value="APROBADO">Aprobado</option>
-                <option value="PENDIENTE_APROBACION">Pend. Aprobacin</option>
+                <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
                 <option value="A_REPETIR">A Repetir</option>
               </select>
               <Button variant="outline" size="sm">
@@ -297,7 +297,7 @@ export default function ListadoGerminacionPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Análisis de Germinacin</CardTitle>
+          <CardTitle>Lista de Análisis de Germinación</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -322,7 +322,7 @@ export default function ListadoGerminacionPage() {
                     <TableCell colSpan={10} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <AlertTriangle className="h-8 w-8 text-muted-foreground" />
-                        <p className="text-muted-foreground">No se encontraron análisis de germinacin</p>
+                        <p className="text-muted-foreground">No se encontraron análisis de germinación</p>
                       </div>
                     </TableCell>
                   </TableRow>

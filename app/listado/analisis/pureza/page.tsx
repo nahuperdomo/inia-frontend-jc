@@ -61,7 +61,7 @@ export default function ListadoPurezaPage() {
   const fetchPurezas = async (page: number = 0) => {
     try {
       setIsLoading(true)
-      console.log("🔍 Iniciando peticin para obtener purezas...")
+      console.log("🔍 Iniciando petición para obtener purezas...")
       const res = await obtenerPurezasPaginadas(page, pageSize)
       setLastResponse(res)
       const purezasData = res.content || []

@@ -23,8 +23,6 @@ import {
 } from "recharts" // Fixed missing closing brace in Recharts import
 import { FileText, Download, Filter, BarChart3, TrendingUp, Calendar, Package, Beaker, CheckCircle } from "lucide-react"
 import Link from "next/link"
-import { BotonExportarExcel } from "@/components/exportar-excel-btn"
-import { DialogExportarConFiltros } from "@/components/dialog-exportar-filtros"
 
 export default function ReportesPage() {
   const [reportType, setReportType] = useState("general")
@@ -134,7 +132,7 @@ export default function ReportesPage() {
           <Link href="/reportes/validacion">
             <Button variant="outline">
               <CheckCircle className="h-4 w-4 mr-2" />
-              Validacin
+              Validación
             </Button>
           </Link>
           <Button variant="outline">
@@ -155,7 +153,7 @@ export default function ReportesPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Filter className="h-5 w-5" />
-                Configuracin
+                Configuración
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -289,7 +287,7 @@ export default function ReportesPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Lotes y Análisis por Mes</CardTitle>
-                <CardDescription>Evolucin mensual de lotes registrados y análisis realizados</CardDescription>
+                <CardDescription>Evolución mensual de lotes registrados y análisis realizados</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -307,7 +305,7 @@ export default function ReportesPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Distribucin por Cultivo</CardTitle>
+                <CardTitle>Distribución por Cultivo</CardTitle>
                 <CardDescription>Porcentaje de lotes por tipo de cultivo</CardDescription>
               </CardHeader>
               <CardContent>
@@ -336,7 +334,7 @@ export default function ReportesPage() {
           <Card>
             <CardHeader>
               <CardTitle>Niveles de Pureza por Cultivo</CardTitle>
-              <CardDescription>Comparacin de niveles de pureza promedio</CardDescription>
+              <CardDescription>Comparación de niveles de pureza promedio</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -375,56 +373,6 @@ export default function ReportesPage() {
                     </div>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Sección de Prueba de Exportación Excel */}
-          <Card className="border-2 border-primary/20 bg-primary/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Download className="h-5 w-5 text-primary" />
-                Prueba de Exportación a Excel
-              </CardTitle>
-              <CardDescription>
-                Prueba las funcionalidades de exportación de datos a Excel con diferentes opciones
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 bg-background rounded-lg border">
-                  <h4 className="font-medium mb-2">Exportación Simple</h4>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Exporta todos los lotes activos del sistema en formato Excel
-                  </p>
-                  <BotonExportarExcel 
-                    variant="default" 
-                    textoBoton="Exportar Todos los Lotes"
-                    className="w-full sm:w-auto"
-                  />
-                </div>
-
-                <div className="p-4 bg-background rounded-lg border">
-                  <h4 className="font-medium mb-2">Exportación con Filtros Avanzados</h4>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Configura filtros personalizados por fecha, tipo de análisis y estado
-                  </p>
-                  <DialogExportarConFiltros />
-                </div>
-
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <h4 className="font-medium mb-2 flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Características del Excel
-                  </h4>
-                  <ul className="text-sm space-y-1 text-muted-foreground ml-6">
-                    <li>✓ Múltiples hojas organizadas por tipo de análisis</li>
-                    <li>✓ Formato profesional con colores y estilos</li>
-                    <li>✓ Metadatos incluidos (fecha, filtros aplicados)</li>
-                    <li>✓ Datos validados y estructurados</li>
-                    <li>✓ Compatible con Excel 2007+</li>
-                  </ul>
-                </div>
               </div>
             </CardContent>
           </Card>

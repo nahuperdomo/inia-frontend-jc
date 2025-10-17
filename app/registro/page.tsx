@@ -13,7 +13,7 @@ export default function RegistroPage() {
       icon: Package,
       href: "/registro/lotes",
       color: "text-emerald-600",
-      bgColor: "bg-background",
+      bgColor: "bg-emerald-50",
     },
     {
       title: "Registro de análisis a un lote existente",
@@ -21,7 +21,7 @@ export default function RegistroPage() {
       icon: Beaker,
       href: "/registro/analisis",
       color: "text-purple-600",
-      bgColor: "bg-background",
+      bgColor: "bg-purple-50",
     },
     {
       title: "Registro de Cliente",
@@ -29,7 +29,7 @@ export default function RegistroPage() {
       icon: Building2,
       href: "/registro/empresa",
       color: "text-blue-600",
-      bgColor: "bg-background",
+      bgColor: "bg-blue-50",
     },
     {
       title: "Aceptar nuevo usuario",
@@ -37,7 +37,7 @@ export default function RegistroPage() {
       icon: Users,
       href: "/validacion/usuario",
       color: "text-blue-600",
-      bgColor: "bg-background",
+      bgColor: "bg-blue-50",
     },
   ]
 
@@ -138,4 +138,3 @@ export default function RegistroPage() {
     </div>
   )
 }
-
