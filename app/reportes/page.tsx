@@ -134,7 +134,7 @@ export default function ReportesPage() {
           <Link href="/reportes/validacion">
             <Button variant="outline">
               <CheckCircle className="h-4 w-4 mr-2" />
-              Validacin
+              Validación
             </Button>
           </Link>
           <Button variant="outline">
@@ -155,7 +155,7 @@ export default function ReportesPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Filter className="h-5 w-5" />
-                Configuracin
+                Configuración
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -289,7 +289,7 @@ export default function ReportesPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Lotes y Análisis por Mes</CardTitle>
-                <CardDescription>Evolucin mensual de lotes registrados y análisis realizados</CardDescription>
+                <CardDescription>Evolución mensual de lotes registrados y análisis realizados</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -307,7 +307,7 @@ export default function ReportesPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Distribucin por Cultivo</CardTitle>
+                <CardTitle>Distribución por Cultivo</CardTitle>
                 <CardDescription>Porcentaje de lotes por tipo de cultivo</CardDescription>
               </CardHeader>
               <CardContent>
@@ -336,7 +336,7 @@ export default function ReportesPage() {
           <Card>
             <CardHeader>
               <CardTitle>Niveles de Pureza por Cultivo</CardTitle>
-              <CardDescription>Comparacin de niveles de pureza promedio</CardDescription>
+              <CardDescription>Comparación de niveles de pureza promedio</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>

@@ -120,11 +120,17 @@ export default function DetalleLotePage() {
             </Button>
           </Link>
           <div>
+<<<<<<< HEAD
             <h1 className="text-3xl font-bold text-balance">
               {lote.nomLote ? lote.nomLote : `Lote ${lote.ficha}`}
             </h1>
             <p className="text-muted-foreground">
               Ficha: {lote.ficha} • ID: {lote.loteID}
+=======
+            <h1 className="text-3xl font-bold text-balance">Lote {lote.ficha}</h1>
+            <p className="text-muted-foreground">
+              ID: {lote.loteID} • Registrado
+>>>>>>> parent of 6e03797 (PWA CON CAMBIOS DE ESTILOS)
             </p>
           </div>
         </div>
@@ -156,10 +162,13 @@ export default function DetalleLotePage() {
                   <p className="text-sm font-mono">{lote.ficha}</p>
                 </div>
                 <div>
+<<<<<<< HEAD
                   <label className="text-sm font-medium text-muted-foreground">Nombre del Lote</label>
                   <p className="text-sm font-medium">{lote.nomLote || "-"}</p>
                 </div>
                 <div>
+=======
+>>>>>>> parent of 6e03797 (PWA CON CAMBIOS DE ESTILOS)
                   <label className="text-sm font-medium text-muted-foreground">Tipo</label>
                   <p className="text-sm">{lote.tipo || "-"}</p>
                 </div>
