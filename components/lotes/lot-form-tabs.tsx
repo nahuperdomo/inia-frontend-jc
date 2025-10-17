@@ -170,6 +170,17 @@ export function LotFormTabs({
                 required={true}
               />
 
+              <FormField
+                id="nomLote"
+                label="Nombre del Lote"
+                value={formData.nomLote}
+                onChange={(e) => handleInputChange("nomLote", e.target.value)}
+                onBlur={() => handleBlur("nomLote")}
+                error={hasError("nomLote") ? getErrorMessage("nomLote") : undefined}
+                required={true}
+                placeholder="Ingrese un nombre único para el lote"
+              />
+
               <FormSelect
                 id="cultivarID"
                 label="Cultivar"
