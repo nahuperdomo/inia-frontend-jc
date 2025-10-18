@@ -1,14 +1,17 @@
 import { apiFetch } from "./api";
-import { 
-  AnalisisGenerico, 
+import {
+  AnalisisGenerico,
   ResumenAnalisis,
-  AnalisisPorLoteResponse 
+  AnalisisPorLoteResponse
 } from "../models";
 
 // Funciones genéricas para análisis
 export async function registrarAnalisis(payload: any, tipo: string) {
   let endpoint = "";
-  switch (tipo) {
+  // Convertir a minúsculas para asegurar compatibilidad
+  const tipoNormalizado = tipo.toLowerCase();
+
+  switch (tipoNormalizado) {
     case "pureza":
       endpoint = "/api/purezas";
       break;
@@ -25,7 +28,7 @@ export async function registrarAnalisis(payload: any, tipo: string) {
       endpoint = "/api/tetrazolios";
       break;
     default:
-      throw new Error("Tipo de análisis no soportado");
+      throw new Error(`Tipo de análisis no soportado: ${tipo}`);
   }
 
   // Debug log para verificar datos antes de enviar al backend
@@ -73,12 +76,15 @@ export async function obtenerDosnPorLote(loteID: string) {
 
 // Cambiar estado de un análisis
 export async function cambiarEstadoAnalisis(
-  tipo: string, 
-  id: number, 
+  tipo: string,
+  id: number,
   accion: 'finalizar' | 'aprobar' | 'repetir'
 ): Promise<any> {
   let endpoint = "";
-  switch (tipo) {
+  // Convertir a minúsculas para asegurar compatibilidad
+  const tipoNormalizado = tipo.toLowerCase();
+
+  switch (tipoNormalizado) {
     case "pureza":
       endpoint = `/api/purezas/${id}/${accion}`;
       break;
@@ -95,9 +101,9 @@ export async function cambiarEstadoAnalisis(
       endpoint = `/api/dosn/${id}/${accion}`;
       break;
     default:
-      throw new Error("Tipo de análisis no soportado");
+      throw new Error(`Tipo de análisis no soportado: ${tipo}`);
   }
-  
+
   return apiFetch(endpoint, {
     method: "PUT",
   });
@@ -106,7 +112,7 @@ export async function cambiarEstadoAnalisis(
 // Obtener resumen de análisis por estado
 export async function obtenerResumenAnalisis(loteID: number): Promise<ResumenAnalisis> {
   const analises = await obtenerAnalisisPorLote(loteID);
-  
+
   const todosList = [
     ...analises.purezas,
     ...analises.germinaciones,

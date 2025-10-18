@@ -29,12 +29,12 @@ type Props = {
 export default function MalezaFields({ titulo, registros, onChangeListados }: Props) {
   const initialMalezas = registros && registros.length > 0
     ? registros.map((r) => ({
-        tipoMaleza: r.listadoTipo || "",
-        listado: r.catalogo?.nombreComun || "",
-        entidad: r.listadoInsti?.toLowerCase() || "",
-        numero: r.listadoNum?.toString() || "",
-        idCatalogo: r.catalogo?.catalogoID || null,
-      }))
+      tipoMaleza: r.listadoTipo || "",
+      listado: r.catalogo?.nombreComun || "",
+      entidad: r.listadoInsti?.toLowerCase() || "",
+      numero: r.listadoNum?.toString() || "",
+      idCatalogo: r.catalogo?.catalogoID || null,
+    }))
     : [{ tipoMaleza: "" as const, listado: "", entidad: "", numero: "", idCatalogo: null }]
 
   // ✅ Usar persistencia solo si no hay registros precargados
@@ -197,7 +197,7 @@ export default function MalezaFields({ titulo, registros, onChangeListados }: Pr
                     </Select>
                   </div>
 
-                  {/* Listado */}
+                  {/* Especie de Maleza */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-foreground">Especie</Label>
                     <Select
@@ -214,7 +214,7 @@ export default function MalezaFields({ titulo, registros, onChangeListados }: Pr
                           !error &&
                           opcionesMalezas.map((opcion) => (
                             <SelectItem key={opcion.catalogoID} value={opcion.nombreComun}>
-                              {opcion.nombreComun}
+                              {opcion.nombreComun} {opcion.nombreCientifico && `(${opcion.nombreCientifico})`}
                             </SelectItem>
                           ))}
                       </SelectContent>

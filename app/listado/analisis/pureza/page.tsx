@@ -38,6 +38,8 @@ interface AnalisisPureza {
   malezas: number
   pureza: number
   comentarios: string
+  idLote?: number // ID numérico del lote
+  purezaOriginal?: PurezaDTO // Objeto original del backend
 }
 
 export default function ListadoPurezaPage() {
@@ -66,6 +68,7 @@ export default function ListadoPurezaPage() {
       setLastResponse(res)
       const purezasData = res.content || []
       console.log("📊 Datos de purezas recibidos:", purezasData)
+      console.log("📊 Respuesta completa:", res)
 
       const purezasTransformed = purezasData.map((pureza: PurezaDTO) => {
         const purezaPercent = pureza.semillaPura_g > 0 && pureza.pesoInicial_g > 0
@@ -105,17 +108,19 @@ export default function ListadoPurezaPage() {
           malezas: pureza.malezas_g,
           pureza: purezaPercent,
           comentarios: pureza.comentarios || "Sin comentarios registrados",
+          idLote: pureza.idLote, // Guardamos el idLote original
+          purezaOriginal: pureza, // Guardamos el objeto completo para usar en actualizaciones
         }
       })
 
       setAnalisis(purezasTransformed)
 
-      const meta = (res as any).page || {}
-      setTotalPages(meta.totalPages ?? 1)
-      setTotalElements(meta.totalElements ?? (purezasData.length || 0))
-      setCurrentPage(meta.number ?? page)
-      setIsFirst((meta.number ?? 0) === 0)
-      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1)
+      // Extraer metadatos de paginación directamente de la respuesta
+      setTotalPages(res.totalPages ?? 1)
+      setTotalElements(res.totalElements ?? (purezasData.length || 0))
+      setCurrentPage(page)
+      setIsFirst(res.first ?? (page === 0))
+      setIsLast(res.last ?? (page >= (res.totalPages ?? 1) - 1))
     } catch (err) {
       console.error("❌ Error al obtener purezas:", err)
       console.error("⚠️ Detalles completos:", err instanceof Error ? err.message : JSON.stringify(err))
@@ -190,15 +195,22 @@ export default function ListadoPurezaPage() {
         // Extract the numeric ID from the PF### format
         const purezaId = parseInt(selectedAnalisis.id.replace('PF', ''), 10)
 
-        // In a real implementation, we would need to fetch the full pureza data first
-        // to avoid losing other fields when updating
-        const pureza = await obtenerPurezaPorId(purezaId)
+        console.log("💾 Guardando comentarios para pureza ID:", purezaId)
+        console.log("💬 Nuevos comentarios:", editingComentarios)
 
-        // Create the update request DTO
+        // Fetch the full pureza data to get all required fields
+        const pureza = await obtenerPurezaPorId(purezaId)
+        console.log("📦 Datos completos de pureza obtenidos:", pureza)
+
+        // Validate we have the idLote
+        if (!pureza.idLote) {
+          throw new Error("No se pudo obtener el ID del lote")
+        }
+
+        // Create the update request DTO with all required fields
         const updateRequest = {
-          idLote: parseInt(pureza.lote.split('-').pop() || '0', 10), // Extract number from lote ID
+          idLote: pureza.idLote,
           comentarios: editingComentarios,
-          // We need to include all other required fields from the pureza object
           fecha: pureza.fecha,
           pesoInicial_g: pureza.pesoInicial_g,
           semillaPura_g: pureza.semillaPura_g,
@@ -207,8 +219,23 @@ export default function ListadoPurezaPage() {
           malezas_g: pureza.malezas_g,
           malezasToleradas_g: pureza.malezasToleradas_g,
           pesoTotal_g: pureza.pesoTotal_g,
-          // Transform otrasSemillas to match ListadoRequestDTO
-          otrasSemillas: pureza.otrasSemillas.map(item => ({
+          cumpleEstandar: pureza.cumpleEstandar,
+          // Optional redon fields
+          redonSemillaPura: pureza.redonSemillaPura,
+          redonMateriaInerte: pureza.redonMateriaInerte,
+          redonOtrosCultivos: pureza.redonOtrosCultivos,
+          redonMalezas: pureza.redonMalezas,
+          redonMalezasToleradas: pureza.redonMalezasToleradas,
+          redonPesoTotal: pureza.redonPesoTotal,
+          // Optional inase fields
+          inasePura: pureza.inasePura,
+          inaseMateriaInerte: pureza.inaseMateriaInerte,
+          inaseOtrosCultivos: pureza.inaseOtrosCultivos,
+          inaseMalezas: pureza.inaseMalezas,
+          inaseMalezasToleradas: pureza.inaseMalezasToleradas,
+          inaseFecha: pureza.inaseFecha,
+          // Transform otrasSemillas to match ListadoRequestDTO[]
+          otrasSemillas: (pureza.otrasSemillas || []).map(item => ({
             listadoTipo: item.listadoTipo,
             listadoInsti: item.listadoInsti,
             listadoNum: item.listadoNum,
@@ -216,14 +243,17 @@ export default function ListadoPurezaPage() {
           }))
         }
 
+        console.log("📤 Request de actualización:", updateRequest)
+
         // Update pureza in the backend
-        await actualizarPureza(purezaId, updateRequest)
+        const updatedPureza = await actualizarPureza(purezaId, updateRequest)
+        console.log("✅ Pureza actualizada:", updatedPureza)
 
         // Update local state
         setAnalisis(prevAnalisis =>
           prevAnalisis.map(item =>
             item.id === selectedAnalisis.id
-              ? { ...item, comentarios: editingComentarios }
+              ? { ...item, comentarios: editingComentarios, purezaOriginal: updatedPureza }
               : item
           )
         )
@@ -258,12 +288,13 @@ export default function ListadoPurezaPage() {
           }, 3000)
         }
       } catch (err) {
-        console.error("Error updating pureza comments:", err)
+        console.error("❌ Error al actualizar comentarios de pureza:", err)
+        console.error("❌ Detalles del error:", err instanceof Error ? err.message : JSON.stringify(err))
 
         // Show error message
         const errorMessage = document.createElement('div')
         errorMessage.className = 'bg-red-50 text-red-700 p-2 rounded-md text-sm mt-2'
-        errorMessage.innerText = 'Error al guardar los comentarios. Intente nuevamente.'
+        errorMessage.innerText = `Error al guardar los comentarios: ${err instanceof Error ? err.message : 'Error desconocido'}. Intente nuevamente.`
 
         // Add to DOM temporarily
         const notificationContainer = document.getElementById('notification-container')
