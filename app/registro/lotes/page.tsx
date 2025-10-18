@@ -30,6 +30,7 @@ export default function RegistroLotesPage() {
   // Estado inicial del formulario
   const initialFormData: LoteFormData = {
     ficha: "",
+    nomLote: "",
     cultivarID: "",
     tipo: "INTERNO",
     empresaID: "",
