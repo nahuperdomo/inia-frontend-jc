@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, UserCheck, Shield, ArrowRight, Settings, Database, FileText, BarChart3 } from "lucide-react"
+import { Users, UserCheck, Shield, ArrowRight, Settings, Database, FileText, Contact } from "lucide-react"
 import Link from "next/link"
 
 export default function AdministracionPage() {
@@ -87,7 +87,7 @@ export default function AdministracionPage() {
                     </CardContent>
                 </Card>
 
-                {/* Gestión de Datos */}
+                {/* Gestión de Catálogos */}
                 <Card className="hover:shadow-lg transition-shadow">
                     <CardHeader className="pb-3">
                         <div className="flex items-center gap-3">
@@ -95,9 +95,9 @@ export default function AdministracionPage() {
                                 <Database className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                             </div>
                             <div>
-                                <CardTitle className="text-xl">Gestión de Datos</CardTitle>
+                                <CardTitle className="text-xl">Gestión de Catálogos</CardTitle>
                                 <CardDescription>
-                                    Respaldos y mantenimiento de datos
+                                    Administrar catálogos del sistema
                                 </CardDescription>
                             </div>
                         </div>
@@ -105,14 +105,14 @@ export default function AdministracionPage() {
                     <CardContent>
                         <div className="space-y-4">
                             <div className="text-sm text-muted-foreground">
-                                • Respaldos automáticos<br />
-                                • Exportar/importar datos<br />
-                                • Limpieza de datos<br />
-                                • Logs del sistema
+                                • Catálogos generales<br />
+                                • Especies y cultivares<br />
+                                • Malezas y cultivos<br />
+                                • Datos maestros
                             </div>
-                            <Link href="/administracion/datos">
+                            <Link href="/administracion/catalogos">
                                 <Button className="w-full" variant="outline">
-                                    Gestionar Datos
+                                    Gestionar Catálogos
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </Link>
@@ -120,17 +120,17 @@ export default function AdministracionPage() {
                     </CardContent>
                 </Card>
 
-                {/* Reportes del Sistema */}
+                {/* Gestión de Contactos */}
                 <Card className="hover:shadow-lg transition-shadow">
                     <CardHeader className="pb-3">
                         <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20">
-                                <BarChart3 className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                                <Contact className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                             </div>
                             <div>
-                                <CardTitle className="text-xl">Reportes de Sistema</CardTitle>
+                                <CardTitle className="text-xl">Gestión de Contactos</CardTitle>
                                 <CardDescription>
-                                    Estadísticas y análisis del sistema
+                                    Administrar contactos del sistema
                                 </CardDescription>
                             </div>
                         </div>
@@ -138,14 +138,14 @@ export default function AdministracionPage() {
                     <CardContent>
                         <div className="space-y-4">
                             <div className="text-sm text-muted-foreground">
-                                • Uso del sistema<br />
-                                • Estadísticas de usuarios<br />
-                                • Rendimiento del sistema<br />
-                                • Reportes de actividad
+                                • Empresas y productores<br />
+                                • Información de contacto<br />
+                                • Gestión de relaciones<br />
+                                • Directorio completo
                             </div>
-                            <Link href="/administracion/reportes">
+                            <Link href="/administracion/contactos">
                                 <Button className="w-full" variant="outline">
-                                    Ver Reportes
+                                    Gestionar Contactos
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </Link>
