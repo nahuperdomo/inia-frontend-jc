@@ -315,39 +315,75 @@ export default function ContactosPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-muted/30 p-4 md:p-8">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-lg font-medium">Cargando contactos...</p>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <Toaster position="top-right" richColors />
+    <div className="min-h-screen bg-muted/30">
+      <Toaster position="top-right" richColors closeButton />
       
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Link href="/administracion">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            <h1 className="text-3xl font-bold tracking-tight">Gestión de Contactos</h1>
+      <div className="sticky top-0 z-10 bg-background border-b">
+        <div className="container max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div className="flex items-start gap-4 flex-1">
+              <Link href="/administracion">
+                <Button variant="ghost" size="sm" className="mt-1">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Volver
+                </Button>
+              </Link>
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-1">
+                  <Users className="h-8 w-8 text-primary" />
+                  <h1 className="text-2xl md:text-3xl font-bold">Gestión de Contactos</h1>
+                </div>
+                <p className="text-sm md:text-base text-muted-foreground">
+                  Administra empresas y clientes del sistema
+                </p>
+              </div>
+            </div>
           </div>
-          <p className="text-muted-foreground">
-            Administra empresas y clientes del sistema
-          </p>
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setSearchTerm("") }} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
-          <TabsTrigger value="empresas" className="gap-2">
-            <Building2 className="h-4 w-4" />
-            Empresas
+      {/* Content */}
+      <div className="container max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8">
+        <Card className="border-2">
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-2xl">Administrar Contactos</CardTitle>
+                <CardDescription className="mt-2">
+                  Crea, edita y gestiona empresas y clientes del sistema
+                </CardDescription>
+              </div>
+              <div className="relative w-full sm:w-80">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setSearchTerm("") }} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="empresas" className="text-sm sm:text-base">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Empresas
           </TabsTrigger>
           <TabsTrigger value="clientes" className="gap-2">
             <Users className="h-4 w-4" />
@@ -617,6 +653,9 @@ export default function ContactosPage() {
           </Card>
         </TabsContent>
       </Tabs>
+        </CardContent>
+      </Card>
+    </div>
 
       {/* Dialog para Crear/Editar */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

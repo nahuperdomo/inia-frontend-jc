@@ -124,6 +124,8 @@ export default function CatalogosPage() {
   // Estados de especies
   const [especies, setEspecies] = useState<EspecieDTO[]>([])
   const [especiesFiltradas, setEspeciesFiltradas] = useState<EspecieDTO[]>([])
+  const [especiesActivas, setEspeciesActivas] = useState<EspecieDTO[]>([])
+  const [hayEspeciesActivas, setHayEspeciesActivas] = useState<boolean>(true)
 
   // Estados de cultivares
   const [cultivares, setCultivares] = useState<CultivarDTO[]>([])
@@ -200,16 +202,19 @@ export default function CatalogosPage() {
         ]
       }
       
-      const [catalogosData, especiesData, cultivaresData] = await Promise.all([
+      const [catalogosData, especiesData, cultivaresData, especiesActivasData] = await Promise.all([
         obtenerCatalogoPorTipo(tipoSeleccionado, catalogoActivo),
         obtenerTodasEspecies(especieActivo),
-        obtenerTodosCultivares(cultivarActivo)
+        obtenerTodosCultivares(cultivarActivo),
+        obtenerTodasEspecies(true) // Verificar si hay especies activas
       ])
 
       setCatalogos(catalogosData)
       setEspecies(especiesData)
       setCultivares(cultivaresData)
       setMalezasCultivos(malezasConActivo)
+      setEspeciesActivas(especiesActivasData)
+      setHayEspeciesActivas(especiesActivasData.length > 0)
       
       setCatalogosFiltrados(catalogosData)
       setEspeciesFiltradas(especiesData)
@@ -449,7 +454,7 @@ export default function CatalogosPage() {
   const handleCreateCultivar = () => {
     setCultivarForm({
       nombre: "",
-      especieID: especies.length > 0 ? especies[0].especieID : 0
+      especieID: especiesActivas.length > 0 ? especiesActivas[0].especieID : 0
     })
     setEntityType("cultivar")
     setDialogMode("create")
@@ -931,20 +936,20 @@ export default function CatalogosPage() {
                       <SelectItem value="todos">Todos</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button onClick={handleCreateCultivar} disabled={especies.length === 0}>
+                  <Button onClick={handleCreateCultivar} disabled={!hayEspeciesActivas}>
                     <Plus className="h-4 w-4 mr-2" />
                     Nuevo Cultivar
                   </Button>
                 </div>
 
-                {especies.length === 0 && (
+                {!hayEspeciesActivas && (
                   <Card className="border-yellow-200 bg-yellow-50">
                     <CardContent className="pt-6">
                       <div className="flex items-center gap-3 text-yellow-800">
                         <AlertCircle className="h-6 w-6" />
                         <div>
-                          <p className="font-medium">No hay especies registradas</p>
-                          <p className="text-sm">Debes crear al menos una especie antes de agregar cultivares</p>
+                          <p className="font-medium">No hay especies activas registradas</p>
+                          <p className="text-sm">Debes crear o reactivar al menos una especie antes de agregar cultivares</p>
                         </div>
                       </div>
                     </CardContent>
@@ -1285,7 +1290,7 @@ export default function CatalogosPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {especies.filter(e => e.activo).map((especie) => (
+                      {especiesActivas.map((especie) => (
                         <SelectItem key={especie.especieID} value={especie.especieID.toString()}>
                           {especie.nombreComun} ({especie.nombreCientifico})
                         </SelectItem>
