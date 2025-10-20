@@ -55,72 +55,76 @@ export function LotList({ lots = [], onViewDetails }: LotListProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Últimos Lotes Registrados
+      <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="min-w-0 flex-1">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <Package className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+              <span className="truncate">Últimos Lotes Registrados</span>
             </CardTitle>
-            <CardDescription>Consulta y busca entre los lotes registrados recientemente</CardDescription>
+            <CardDescription className="text-xs sm:text-sm mt-1">
+              Consulta y busca entre los lotes registrados recientemente
+            </CardDescription>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-initial">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por lote, especie, cultivar..."
+                placeholder="Buscar lote..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-80"
+                className="pl-10 w-full sm:w-64 lg:w-80"
               />
             </div>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      <CardContent className="px-4 sm:px-6">
+        <div className="space-y-3 sm:space-y-4">
           {filteredLots.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No se encontraron lotes que coincidan con la búsqueda</p>
+            <div className="text-center py-6 sm:py-8 text-muted-foreground">
+              <Package className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" />
+              <p className="text-sm sm:text-base">No se encontraron lotes que coincidan con la búsqueda</p>
             </div>
           ) : (
-            <div className="grid gap-4">
+            <div className="grid gap-3 sm:gap-4">
               {filteredLots.map((lot) => (
                 <div
                   key={lot.loteID}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-3 sm:gap-4"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
-                      <Wheat className="h-5 w-5 text-primary" />
+                  <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                    <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-lg flex-shrink-0">
+                      <Wheat className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                     </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium">Ficha #{lot.numeroFicha}</h4>
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <h4 className="font-medium text-sm sm:text-base">Ficha #{lot.numeroFicha}</h4>
                         <Badge variant="outline" className="text-xs">
                           {lot.ficha}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Wheat className="h-3 w-3" />
-                          {lot.especieNombre} - {lot.cultivarNombre}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1 truncate">
+                          <Wheat className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{lot.especieNombre} - {lot.cultivarNombre}</span>
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Building2 className="h-3 w-3" />
-                          {lot.empresaNombre}
+                        <span className="flex items-center gap-1 truncate">
+                          <Building2 className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{lot.empresaNombre}</span>
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
+                        <span className="flex items-center gap-1 whitespace-nowrap">
+                          <Calendar className="h-3 w-3 flex-shrink-0" />
                           {new Date(lot.fechaRecibo).toLocaleDateString("es-ES")}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Badge className={getStatusColor(lot.activo ? "Activo" : "Inactivo")}>{lot.activo ? "Activo" : "Inactivo"}</Badge>
-                    <Button variant="ghost" size="sm" onClick={() => onViewDetails(lot)}>
+                  <div className="flex items-center gap-2 sm:gap-3 justify-between sm:justify-end">
+                    <Badge className={getStatusColor(lot.activo ? "Activo" : "Inactivo")}>
+                      {lot.activo ? "Activo" : "Inactivo"}
+                    </Badge>
+                    <Button variant="ghost" size="sm" onClick={() => onViewDetails(lot)} className="text-xs sm:text-sm">
                       Ver detalles
                     </Button>
                   </div>

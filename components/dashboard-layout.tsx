@@ -13,7 +13,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Leaf, Plus, List, BarChart3, Settings, LogOut, Shield, Bell } from "lucide-react"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { Leaf, Plus, List, BarChart3, Settings, LogOut, Shield, Bell, Menu } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -36,6 +43,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Hook para badge de notificaciones en el sidebar
   const { unreadCount } = useNotificationBadge()
@@ -74,6 +82,65 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="flex h-screen bg-background">
+      {/* Mobile menu */}
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <SheetContent side="left" className="w-64 p-0">
+          <div className="flex flex-col h-full pt-5 bg-card">
+            <SheetHeader className="px-4 pb-4">
+              <div className="flex items-center">
+                <div className="bg-primary rounded-full p-2">
+                  <Leaf className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <div className="ml-3">
+                  <SheetTitle className="text-lg">Sistema INIA</SheetTitle>
+                  <p className="text-xs text-muted-foreground">Gestión Agropecuaria</p>
+                </div>
+              </div>
+            </SheetHeader>
+
+            <div className="flex-grow flex flex-col">
+              <nav className="flex-1 px-2 space-y-1">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors relative",
+                      pathname === item.href || pathname.startsWith(item.href + "/")
+                        ? "bg-primary text-primary-foreground"
+                        : "text-foreground hover:bg-accent hover:text-accent-foreground",
+                    )}
+                  >
+                    <item.icon className="mr-3 h-5 w-5" />
+                    {item.name}
+                    {/* Badge para notificaciones no leídas */}
+                    {item.href === "/notificaciones" && unreadCount > 0 && (
+                      <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+              </nav>
+              <div className="flex-shrink-0 p-2">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start mt-2 text-destructive hover:text-destructive"
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    setShowLogoutDialog(true)
+                  }}
+                >
+                  <LogOut className="mr-3 h-5 w-5" />
+                  Cerrar Sesión
+                </Button>
+              </div>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* Sidebar */}
       <div className="hidden md:flex md:w-64 md:flex-col">
         <div className="flex flex-col flex-grow pt-5 bg-card border-r overflow-y-auto">
@@ -129,6 +196,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Header */}
         <header className="bg-white border-b border-gray-200 px-4 py-3">
           <div className="flex items-center justify-between">
+            {/* Mobile menu button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu className="h-6 w-6" />
+            </Button>
+
             {/* Title/Breadcrumb area */}
             <div className="flex-1">
               <h2 className="text-lg font-semibold text-gray-900">

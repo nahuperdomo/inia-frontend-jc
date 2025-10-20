@@ -30,6 +30,7 @@ export default function RegistroLotesPage() {
   // Estado inicial del formulario
   const initialFormData: LoteFormData = {
     ficha: "",
+    nomLote: "",
     cultivarID: "",
     tipo: "INTERNO",
     empresaID: "",
@@ -186,27 +187,29 @@ export default function RegistroLotesPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/registro">
-            <Button variant="ghost" size="sm">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+          <Link href="/registro" className="inline-block">
+            <Button variant="ghost" size="sm" className="w-full sm:w-auto">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver al Registro
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-balance">Registro de Lotes</h1>
-            <p className="text-muted-foreground text-pretty">Registra un nuevo lote de semillas en el sistema</p>
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-balance">Registro de Lotes</h1>
+            <p className="text-sm sm:text-base text-muted-foreground text-pretty">
+              Registra un nuevo lote de semillas en el sistema
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Package className="h-8 w-8 text-primary" />
+        <div className="flex items-center gap-2 justify-end sm:justify-start">
+          <Package className="h-6 w-6 sm:h-8 sm:w-8 text-primary flex-shrink-0" />
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         <div className="space-y-6">
           <LotFormTabs
             formData={formData}
@@ -222,8 +225,15 @@ export default function RegistroLotesPage() {
 
           {/* Submit Button */}
           <div className="flex justify-end">
-            <Button type="submit" disabled={isLoading} className="min-w-[200px]">
-              {isLoading ? "Registrando..." : "Registrar Lote"}
+            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto sm:min-w-[200px]">
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Registrando...
+                </>
+              ) : (
+                "Registrar Lote"
+              )}
             </Button>
           </div>
         </div>
@@ -231,8 +241,8 @@ export default function RegistroLotesPage() {
 
       <Toaster richColors />
 
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Últimos lotes registrados</h2>
+      <div className="mt-6 sm:mt-8">
+        <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Últimos lotes registrados</h2>
         <LotList lots={recentLots} onViewDetails={handleViewDetails} />
       </div>
 
