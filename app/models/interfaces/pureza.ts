@@ -11,6 +11,7 @@ export interface PurezaDTO extends AnalisisDTO {
   otrosCultivos_g: number;
   malezas_g: number;
   malezasToleradas_g: number;
+  malezasTolCero_g: number;
   pesoTotal_g: number;
 
   redonSemillaPura?: number;
@@ -18,6 +19,7 @@ export interface PurezaDTO extends AnalisisDTO {
   redonOtrosCultivos?: number;
   redonMalezas?: number;
   redonMalezasToleradas?: number;
+  redonMalezasTolCero?: number;
   redonPesoTotal?: number;
 
   inasePura?: number;
@@ -25,6 +27,7 @@ export interface PurezaDTO extends AnalisisDTO {
   inaseOtrosCultivos?: number;
   inaseMalezas?: number;
   inaseMalezasToleradas?: number;
+  inaseMalezasTolCero?: number;
   inaseFecha?: string; // LocalDate as string
 
   otrasSemillas: ListadoDTO[];
@@ -40,6 +43,7 @@ export interface PurezaRequestDTO extends AnalisisRequestDTO {
   otrosCultivos_g: number;
   malezas_g: number;
   malezasToleradas_g: number;
+  malezasTolCero_g: number;
   pesoTotal_g: number;
 
   redonSemillaPura?: number;
@@ -47,6 +51,7 @@ export interface PurezaRequestDTO extends AnalisisRequestDTO {
   redonOtrosCultivos?: number;
   redonMalezas?: number;
   redonMalezasToleradas?: number;
+  redonMalezasTolCero?: number;
   redonPesoTotal?: number;
 
   inasePura?: number;
@@ -54,6 +59,7 @@ export interface PurezaRequestDTO extends AnalisisRequestDTO {
   inaseOtrosCultivos?: number;
   inaseMalezas?: number;
   inaseMalezasToleradas?: number;
+  inaseMalezasTolCero?: number;
   inaseFecha?: string; // LocalDate as string
 
   otrasSemillas: ListadoRequestDTO[];

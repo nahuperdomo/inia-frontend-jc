@@ -2,8 +2,14 @@ import { apiFetch } from "./api";
 import { EspecieDTO, EspecieRequestDTO } from "../models";
 
 // Funciones de especies
-export async function obtenerTodasEspecies(): Promise<EspecieDTO[]> {
-  return apiFetch("/api/especie");
+export async function obtenerTodasEspecies(activo?: boolean | null): Promise<EspecieDTO[]> {
+  const params = new URLSearchParams();
+  if (activo !== undefined && activo !== null) {
+    params.append('activo', activo.toString());
+  }
+  const queryString = params.toString();
+  const url = queryString ? `/api/especie?${queryString}` : '/api/especie';
+  return apiFetch(url);
 }
 
 export async function obtenerEspeciesInactivas(): Promise<EspecieDTO[]> {

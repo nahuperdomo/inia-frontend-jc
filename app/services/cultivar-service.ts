@@ -2,8 +2,14 @@ import { apiFetch } from "./api";
 import { CultivarDTO, CultivarRequestDTO } from "../models";
 
 // Funciones de cultivares
-export async function obtenerTodosCultivares(): Promise<CultivarDTO[]> {
-  const response = await apiFetch("/api/cultivar");
+export async function obtenerTodosCultivares(activo?: boolean | null): Promise<CultivarDTO[]> {
+  const params = new URLSearchParams();
+  if (activo !== undefined && activo !== null) {
+    params.append('activo', activo.toString());
+  }
+  const queryString = params.toString();
+  const url = queryString ? `/api/cultivar?${queryString}` : '/api/cultivar';
+  const response = await apiFetch(url);
 
   // Asegurar que siempre devolvemos un array, incluso si la respuesta está en otra estructura
   if (response && Array.isArray(response)) {

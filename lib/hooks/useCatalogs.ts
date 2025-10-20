@@ -1,16 +1,39 @@
 import { useQuery } from '@tanstack/react-query'
 import {
-  obtenerCultivares,
-  obtenerEmpresas,
-  obtenerClientes,
   obtenerDepositos,
   obtenerTiposHumedad,
   obtenerOrigenes,
   obtenerEstados,
-  obtenerEspecies,
   obtenerUnidadesEmbolsado,
-  obtenerArticulos
-} from '@/app/services/catalogo-form-service'
+  obtenerNumerosArticulo as obtenerArticulos
+} from '@/app/services/catalogo-service'
+import { obtenerTodosCultivares } from '@/app/services/cultivar-service'
+import { obtenerTodasEspecies } from '@/app/services/especie-service'
+import { 
+  obtenerEmpresas as obtenerEmpresasBase, 
+  obtenerClientes as obtenerClientesBase 
+} from '@/app/services/contacto-service'
+
+// Adaptar datos para formularios - SOLO ACTIVOS para registros
+const obtenerCultivares = async () => {
+  const cultivares = await obtenerTodosCultivares(true) // Solo activos
+  return cultivares.map(c => ({ id: c.cultivarID, nombre: c.nombre }))
+}
+
+const obtenerEspecies = async () => {
+  const especies = await obtenerTodasEspecies(true) // Solo activos
+  return especies.map(e => ({ id: e.especieID, nombre: e.nombreComun }))
+}
+
+const obtenerEmpresas = async () => {
+  const empresas = await obtenerEmpresasBase(true) // Solo activos
+  return empresas.map(e => ({ id: e.contactoID, nombre: e.nombre }))
+}
+
+const obtenerClientes = async () => {
+  const clientes = await obtenerClientesBase(true) // Solo activos
+  return clientes.map(c => ({ id: c.contactoID, nombre: c.nombre }))
+}
 
 // Query keys for consistent caching
 export const CATALOG_KEYS = {

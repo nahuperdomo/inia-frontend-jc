@@ -154,8 +154,13 @@ export default function RegistroAnalisisPage() {
   const [cultivosList, setCultivosList] = useState<any[]>([]);
   const [brassicasList, setBrassicasList] = useState<any[]>([]);
 
-  // Estado específico para malezas de pureza
+  // Estado específico para Pureza (3 listas separadas)
   const [purezaMalezasList, setPurezaMalezasList] = useState<any[]>([]);
+  const [purezaCultivosList, setPurezaCultivosList] = useState<any[]>([]);
+  const [purezaBrassicasList, setPurezaBrassicasList] = useState<any[]>([]);
+  
+  // Key para forzar reset del componente PurezaFields después de un registro exitoso
+  const [purezaFormKey, setPurezaFormKey] = useState(0);
 
   // Funciones de callback con logs para debugging - memoizadas para evitar re-renders infinitos
   const handleMalezasChange = useCallback((list: any[]) => {
@@ -173,10 +178,20 @@ export default function RegistroAnalisisPage() {
     setBrassicasList(list);
   }, []);
 
-  // Callback específico para malezas de pureza
+  // Callbacks específicos para Pureza (3 listas separadas)
   const handlePurezaMalezasChange = useCallback((list: any[]) => {
     console.log("🐛 DEBUG - handlePurezaMalezasChange llamado con:", list);
     setPurezaMalezasList(list);
+  }, []);
+
+  const handlePurezaCultivosChange = useCallback((list: any[]) => {
+    console.log("🐛 DEBUG - handlePurezaCultivosChange llamado con:", list);
+    setPurezaCultivosList(list);
+  }, []);
+
+  const handlePurezaBrassicasChange = useCallback((list: any[]) => {
+    console.log("🐛 DEBUG - handlePurezaBrassicasChange llamado con:", list);
+    setPurezaBrassicasList(list);
   }, []);
 
   const [mostrarValidacionDosn, setMostrarValidacionDosn] = useState(false)
@@ -434,77 +449,54 @@ export default function RegistroAnalisisPage() {
         console.log(`✅ Se enviarán ${listados.length} listados al backend`);
       }
     } else if (selectedAnalysisType === "PUREZA") {
-      // Debug: Verificar estado de la lista de malezas de pureza
-      console.log("🔍 DEBUG - Malezas de pureza antes de procesar:", purezaMalezasList);
-
-      // Procesar malezas de pureza similar a como se hace en DOSN
-      const malezasDetalladas = purezaMalezasList
-        .filter((m) => {
-          // Verificar que tenga los campos requeridos y no sea "NO_CONTIENE"
-          const hasRequiredFields = m.listadoTipo && m.listadoTipo !== "NO_CONTIENE" &&
-            m.listadoInsti && m.idCatalogo;
-          return hasRequiredFields;
-        })
-        .map((m) => ({
-          listadoTipo: m.listadoTipo,
-          listadoInsti: m.listadoInsti,
+      // Combinar las 3 listas igual que DOSN (simple y directo)
+      const otrasSemillas = [
+        ...purezaMalezasList.map((m) => ({
+          ...m,
           listadoNum: m.listadoNum !== null && m.listadoNum !== undefined ? m.listadoNum : null,
-          idCatalogo: m.idCatalogo,
-        }));
+        })),
+        ...purezaCultivosList.map((c) => ({ ...c, listadoTipo: "OTROS" })),
+        ...purezaBrassicasList.map((b) => ({ ...b, listadoTipo: "BRASSICA" })),
+      ];
 
-      console.log("🔍 DEBUG - Malezas procesadas para envío:", malezasDetalladas);
-
+      // ✅ Construir payload limpio solo con campos requeridos por el backend
       payload = {
-        ...payload,
+        idLote: formData.loteid,
+        comentarios: formData.observaciones,
+        estado: "REGISTRADO",
+        cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : null,
+        
         // Datos en gramos
-        pesoInicial_g: toNum(formData.pesoInicial),
-        semillaPura_g: toNum(formData.semillaPura),
-        materiaInerte_g: toNum(formData.materiaInerte),
-        otrosCultivos_g: toNum(formData.otrosCultivos),
-        malezas_g: toNum(formData.malezas),
-        malezasToleridas_g: toNum(formData.malezasToleridas),
-        malezasToleranciasCero_g: toNum(formData.malezasToleranciasCero),
-        pesoTotal_g: formData.pesoTotal ? parseFloat(formData.pesoTotal) : null,
+        fecha: formData.fecha,
+        pesoInicial_g: parseFloat((formData as any).pesoInicial_g) || 0,
+        semillaPura_g: parseFloat((formData as any).semillaPura_g) || 0,
+        materiaInerte_g: parseFloat((formData as any).materiaInerte_g) || 0,
+        otrosCultivos_g: parseFloat((formData as any).otrosCultivos_g) || 0,
+        malezas_g: parseFloat((formData as any).malezas_g) || 0,
+        malezasToleradas_g: parseFloat((formData as any).malezasToleradas_g) || 0,
+        malezasTolCero_g: parseFloat((formData as any).malezasTolCero_g) || 0,
+        pesoTotal_g: parseFloat((formData as any).pesoTotal_g) || 0,
 
-        // Porcentajes manuales
-        semillaPuraPorcentaje: toNum(formData.semillaPuraPorcentaje),
-        materiaInertePorcentaje: toNum(formData.materiaInertePorcentaje),
-        otrosCultivosPorcentaje: toNum(formData.otrosCultivosPorcentaje),
-        malezasPorcentaje: toNum(formData.malezasPorcentaje),
-        malezasTolerididasPorcentaje: toNum(formData.malezasTolerididasPorcentaje),
-        malezasToleranciasCeroPorcentaje: toNum(formData.malezasToleranciasCeroPorcentaje),
+        // Porcentajes con redondeo
+        redonSemillaPura: (formData as any).redonSemillaPura ? parseFloat((formData as any).redonSemillaPura) : undefined,
+        redonMateriaInerte: (formData as any).redonMateriaInerte ? parseFloat((formData as any).redonMateriaInerte) : undefined,
+        redonOtrosCultivos: (formData as any).redonOtrosCultivos ? parseFloat((formData as any).redonOtrosCultivos) : undefined,
+        redonMalezas: (formData as any).redonMalezas ? parseFloat((formData as any).redonMalezas) : undefined,
+        redonMalezasToleradas: (formData as any).redonMalezasToleradas ? parseFloat((formData as any).redonMalezasToleradas) : undefined,
+        redonMalezasTolCero: (formData as any).redonMalezasTolCero ? parseFloat((formData as any).redonMalezasTolCero) : undefined,
+        redonPesoTotal: (formData as any).redonPesoTotal ? parseFloat((formData as any).redonPesoTotal) : undefined,
 
-        // Porcentajes redondeados manuales
-        semillaPuraRedondeado: formData.semillaPuraRedondeado || null,
-        materiaInerteRedondeado: formData.materiaInerteRedondeado || null,
-        otrosCultivosRedondeado: formData.otrosCultivosRedondeado || null,
-        malezasRedondeado: formData.malezasRedondeado || null,
-        malezasTolerididasRedondeado: formData.malezasTolerididasRedondeado || null,
-        malezasToleranciasCeroRedondeado: formData.malezasToleranciasCeroRedondeado || null,
+        // Datos INASE
+        inasePura: (formData as any).inasePura ? parseFloat((formData as any).inasePura) : undefined,
+        inaseMateriaInerte: (formData as any).inaseMateriaInerte ? parseFloat((formData as any).inaseMateriaInerte) : undefined,
+        inaseOtrosCultivos: (formData as any).inaseOtrosCultivos ? parseFloat((formData as any).inaseOtrosCultivos) : undefined,
+        inaseMalezas: (formData as any).inaseMalezas ? parseFloat((formData as any).inaseMalezas) : undefined,
+        inaseMalezasToleradas: (formData as any).inaseMalezasToleradas ? parseFloat((formData as any).inaseMalezasToleradas) : undefined,
+        inaseMalezasTolCero: (formData as any).inaseMalezasTolCero ? parseFloat((formData as any).inaseMalezasTolCero) : undefined,
+        inaseFecha: (formData as any).inaseFecha || undefined,
 
-        // Datos INIA manuales
-        iniaSemillaPuraPorcentaje: toNum(formData.iniaSemillaPuraPorcentaje),
-        iniaMateriaInertePorcentaje: toNum(formData.iniaMateriaInertePorcentaje),
-        iniaOtrosCultivosPorcentaje: toNum(formData.iniaOtrosCultivosPorcentaje),
-        iniaMalezasPorcentaje: toNum(formData.iniaMalezasPorcentaje),
-        iniaMalezasTolerididasPorcentaje: toNum(formData.iniaMalezasTolerididasPorcentaje),
-        iniaMalezasToleranciasCeroPorcentaje: toNum(formData.iniaMalezasToleranciasCeroPorcentaje),
-
-        // Datos INASE manuales
-        inaseSemillaPuraPorcentaje: toNum(formData.inaseSemillaPuraPorcentaje),
-        inaseMateriaInertePorcentaje: toNum(formData.inaseMateriaInertePorcentaje),
-        inaseOtrosCultivosPorcentaje: toNum(formData.inaseOtrosCultivosPorcentaje),
-        inaseMalezasPorcentaje: toNum(formData.inaseMalezasPorcentaje),
-        inaseMalezasTolerididasPorcentaje: toNum(formData.inaseMalezasTolerididasPorcentaje),
-        inaseMalezasToleranciasCeroPorcentaje: toNum(formData.inaseMalezasToleranciasCeroPorcentaje),
-
-        // Alerta diferencia
-        alertaDiferenciaPeso: formData.alertaDiferenciaPeso || null,
-
-        fecha: new Date().toISOString().split('T')[0], // Fecha actual en formato ISO (YYYY-MM-DD)
-        observaciones: formData.observaciones,
-        malezasDetalladas: malezasDetalladas, // Incluir las malezas detalladas
-        otrasSemillas: [] // Array vacío de otras semillas o añadir lógica para incluirlas
+        // Malezas/cultivos listados (combinados de las 3 listas)
+        otrasSemillas,
       };
     } else if (selectedAnalysisType === "GERMINACION") {
       // Validaciones específicas para germinación
@@ -761,6 +753,9 @@ export default function RegistroAnalisisPage() {
         }, 1500);
       } else {
         // Registrar otros tipos (DOSN, Pureza, etc.)
+        console.log("📤 PAYLOAD COMPLETO A ENVIAR:", JSON.stringify(payload, null, 2));
+        console.log("📤 Tipo de análisis:", selectedAnalysisType);
+        
         const result = await registrarAnalisis(payload, selectedAnalysisType);
 
         toast.success('Análisis registrado exitosamente', {
@@ -770,8 +765,20 @@ export default function RegistroAnalisisPage() {
         // ✅ Limpiar storage según el tipo de análisis
         if (selectedAnalysisType === "DOSN") {
           clearDosnStorage()
+          setMalezasList([])
+          setCultivosList([])
+          setBrassicasList([])
         } else if (selectedAnalysisType === "PUREZA") {
           clearPurezaStorage()
+          setPurezaMalezasList([])
+          setPurezaCultivosList([])
+          setPurezaBrassicasList([])
+          // Incrementar el key para forzar el reset completo del componente
+          setPurezaFormKey(prev => prev + 1)
+        } else if (selectedAnalysisType === "GERMINACION") {
+          clearGerminacionStorage()
+        } else if (selectedAnalysisType === "TETRAZOLIO") {
+          clearTetrazolioStorage()
         }
 
         // Redirigir según el tipo de análisis
@@ -1038,9 +1045,17 @@ export default function RegistroAnalisisPage() {
 
           {selectedAnalysisType === "PUREZA" && (
             <PurezaFields
-              formData={formData}
+              key={purezaFormKey}
+              formData={{
+                ...formData,
+                malezas: purezaMalezasList,
+                cultivos: purezaCultivosList,
+                brassicas: purezaBrassicasList,
+              }}
               handleInputChange={handlePurezaInputChange}
               onChangeMalezas={handlePurezaMalezasChange}
+              onChangeCultivos={handlePurezaCultivosChange}
+              onChangeBrassicas={handlePurezaBrassicasChange}
             />
           )}
           {selectedAnalysisType === "DOSN" && (

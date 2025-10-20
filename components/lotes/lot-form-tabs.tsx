@@ -39,7 +39,8 @@ export function LotFormTabs({
   // Opciones estáticas
   const tipoOptions = useMemo(() => [
     { id: "INTERNO", nombre: "Interno" },
-    { id: "EXTERNO", nombre: "Externo" }
+    { id: "OTROS_CENTROS_COSTOS", nombre: "Otros Centros de Costos" },
+    { id: "EXTERNOS", nombre: "Externos" }
   ], [])
 
   // Función para manejar cambios sin validación automática
