@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -148,6 +148,7 @@ const analysisTypes = [
 export default function RegistroAnalisisPage() {
   const [selectedAnalysisType, setSelectedAnalysisType] = useState<TipoAnalisis | "">("");
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [selectedLote, setSelectedLote] = useState("");
   // Estados para listados de malezas, cultivos y brassicas
   const [malezasList, setMalezasList] = useState<any[]>([]);
@@ -812,6 +813,29 @@ export default function RegistroAnalisisPage() {
   const [lotesError, setLotesError] = useState<string | null>(null)
 
   // Cargar lotes cuando cambia el tipo de análisis
+  // Preseleccionar tipo de análisis y lote desde URL
+  useEffect(() => {
+    const tipoParam = searchParams.get('tipo')
+    const loteIdParam = searchParams.get('loteId')
+    
+    if (tipoParam) {
+      const tipoValido = analysisTypes.find(type => type.id === tipoParam)
+      if (tipoValido) {
+        setSelectedAnalysisType(tipoParam as TipoAnalisis)
+        
+        // Guardar loteId para preselección posterior
+        if (loteIdParam) {
+          sessionStorage.setItem('preselectedLoteId', loteIdParam)
+        }
+      }
+    }
+    
+    // Limpiar la URL sin parámetros
+    if (tipoParam || loteIdParam) {
+      router.replace('/registro/analisis', { scroll: false })
+    }
+  }, [searchParams, router])
+
   useEffect(() => {
     const fetchLotes = async () => {
       if (!selectedAnalysisType) {
@@ -826,6 +850,18 @@ export default function RegistroAnalisisPage() {
       try {
         const data = await obtenerLotesElegibles(selectedAnalysisType as TipoAnalisis);
         setLotes(data)
+
+        // Preseleccionar lote si viene desde URL
+        const preselectedLoteId = sessionStorage.getItem('preselectedLoteId')
+        if (preselectedLoteId) {
+          const loteExiste = data.find(lote => lote.loteID.toString() === preselectedLoteId)
+          if (loteExiste) {
+            setSelectedLote(preselectedLoteId)
+            setFormData(prev => ({ ...prev, loteid: preselectedLoteId }))
+          }
+          // Limpiar el sessionStorage después de usarlo
+          sessionStorage.removeItem('preselectedLoteId')
+        }
 
         if (data.length === 0) {
           toast.info('Sin lotes elegibles', {
