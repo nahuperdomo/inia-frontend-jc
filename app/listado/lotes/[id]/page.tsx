@@ -120,9 +120,11 @@ export default function DetalleLotePage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-balance">Lote {lote.ficha}</h1>
+            <h1 className="text-3xl font-bold text-balance">
+              {lote.nomLote ? lote.nomLote : `Lote ${lote.ficha}`}
+            </h1>
             <p className="text-muted-foreground">
-              ID: {lote.loteID} • Registrado
+              Ficha: {lote.ficha} • ID: {lote.loteID}
             </p>
           </div>
         </div>
@@ -152,6 +154,10 @@ export default function DetalleLotePage() {
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Ficha</label>
                   <p className="text-sm font-mono">{lote.ficha}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Nombre del Lote</label>
+                  <p className="text-sm font-medium">{lote.nomLote || "-"}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Tipo</label>

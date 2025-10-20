@@ -68,6 +68,14 @@ export type AnalysisFormData = {
   iniaMalezasTolerididasPorcentaje: string
   iniaMalezasToleranciasCeroPorcentaje: string
 
+  // Pureza - Datos INASE manuales
+  inaseSemillaPuraPorcentaje: string
+  inaseMateriaInertePorcentaje: string
+  inaseOtrosCultivosPorcentaje: string
+  inaseMalezasPorcentaje: string
+  inaseMalezasTolerididasPorcentaje: string
+  inaseMalezasToleranciasCeroPorcentaje: string
+
   // Pureza - Alerta diferencia
   alertaDiferenciaPeso: string
 
@@ -146,8 +154,13 @@ export default function RegistroAnalisisPage() {
   const [cultivosList, setCultivosList] = useState<any[]>([]);
   const [brassicasList, setBrassicasList] = useState<any[]>([]);
 
-  // Estado específico para malezas de pureza
+  // Estado específico para Pureza (3 listas separadas)
   const [purezaMalezasList, setPurezaMalezasList] = useState<any[]>([]);
+  const [purezaCultivosList, setPurezaCultivosList] = useState<any[]>([]);
+  const [purezaBrassicasList, setPurezaBrassicasList] = useState<any[]>([]);
+  
+  // Key para forzar reset del componente PurezaFields después de un registro exitoso
+  const [purezaFormKey, setPurezaFormKey] = useState(0);
 
   // Funciones de callback con logs para debugging - memoizadas para evitar re-renders infinitos
   const handleMalezasChange = useCallback((list: any[]) => {
@@ -165,10 +178,20 @@ export default function RegistroAnalisisPage() {
     setBrassicasList(list);
   }, []);
 
-  // Callback específico para malezas de pureza
+  // Callbacks específicos para Pureza (3 listas separadas)
   const handlePurezaMalezasChange = useCallback((list: any[]) => {
     console.log("🐛 DEBUG - handlePurezaMalezasChange llamado con:", list);
     setPurezaMalezasList(list);
+  }, []);
+
+  const handlePurezaCultivosChange = useCallback((list: any[]) => {
+    console.log("🐛 DEBUG - handlePurezaCultivosChange llamado con:", list);
+    setPurezaCultivosList(list);
+  }, []);
+
+  const handlePurezaBrassicasChange = useCallback((list: any[]) => {
+    console.log("🐛 DEBUG - handlePurezaBrassicasChange llamado con:", list);
+    setPurezaBrassicasList(list);
   }, []);
 
   const [mostrarValidacionDosn, setMostrarValidacionDosn] = useState(false)
@@ -214,6 +237,14 @@ export default function RegistroAnalisisPage() {
     iniaMalezasPorcentaje: "",
     iniaMalezasTolerididasPorcentaje: "",
     iniaMalezasToleranciasCeroPorcentaje: "",
+
+    // Pureza - Datos INASE manuales
+    inaseSemillaPuraPorcentaje: "",
+    inaseMateriaInertePorcentaje: "",
+    inaseOtrosCultivosPorcentaje: "",
+    inaseMalezasPorcentaje: "",
+    inaseMalezasTolerididasPorcentaje: "",
+    inaseMalezasToleranciasCeroPorcentaje: "",
 
     // Pureza - Alerta diferencia
     alertaDiferenciaPeso: "",
@@ -277,34 +308,39 @@ export default function RegistroAnalisisPage() {
     setFormData((prev) => ({ ...prev, [field]: value as any }))
   }, [])
 
+  // Wrapper para PurezaFields que acepta string como field
+  const handlePurezaInputChange = useCallback((field: string, value: any) => {
+    handleInputChange(field as keyof AnalysisFormData, value)
+  }, [handleInputChange])
+
   const toNum = (v: string) => (v === "" ? undefined : Number(v))
 
   const validarDosn = (data: AnalysisFormData) => {
-  const tieneAnalisisINIA =
-    data.iniaCompleto || data.iniaReducido || data.iniaLimitado || data.iniaReducidoLimitado
-  const tieneAnalisisINASE =
-    data.inaseCompleto || data.inaseReducido || data.inaseLimitado || data.inaseReducidoLimitado
+    const tieneAnalisisINIA =
+      data.iniaCompleto || data.iniaReducido || data.iniaLimitado || data.iniaReducidoLimitado
+    const tieneAnalisisINASE =
+      data.inaseCompleto || data.inaseReducido || data.inaseLimitado || data.inaseReducidoLimitado
 
-  const fechaINIAValida = data.iniaFecha && new Date(data.iniaFecha) <= new Date()
-  const fechaINASEValida = data.inaseFecha && new Date(data.inaseFecha) <= new Date()
+    const fechaINIAValida = data.iniaFecha && new Date(data.iniaFecha) <= new Date()
+    const fechaINASEValida = data.inaseFecha && new Date(data.inaseFecha) <= new Date()
 
-  const gramosINIAValido = data.iniaGramos && Number(data.iniaGramos) > 0
-  const gramosINASEValido = data.inaseGramos && Number(data.inaseGramos) > 0
+    const gramosINIAValido = data.iniaGramos && Number(data.iniaGramos) > 0
+    const gramosINASEValido = data.inaseGramos && Number(data.inaseGramos) > 0
 
-  const errores: string[] = []
+    const errores: string[] = []
 
-  if (!tieneAnalisisINIA) errores.push("Debe seleccionar al menos un tipo de análisis para INIA")
-  if (!tieneAnalisisINASE) errores.push("Debe seleccionar al menos un tipo de análisis para INASE")
-  if (!fechaINIAValida) errores.push("Fecha de análisis INIA inválida")
-  if (!fechaINASEValida) errores.push("Fecha de análisis INASE inválida")
-  if (!gramosINIAValido) errores.push("Debe ingresar gramos válidos para INIA")
-  if (!gramosINASEValido) errores.push("Debe ingresar gramos válidos para INASE")
+    if (!tieneAnalisisINIA) errores.push("Debe seleccionar al menos un tipo de análisis para INIA")
+    if (!tieneAnalisisINASE) errores.push("Debe seleccionar al menos un tipo de análisis para INASE")
+    if (!fechaINIAValida) errores.push("Fecha de análisis INIA inválida")
+    if (!fechaINASEValida) errores.push("Fecha de análisis INASE inválida")
+    if (!gramosINIAValido) errores.push("Debe ingresar gramos válidos para INIA")
+    if (!gramosINASEValido) errores.push("Debe ingresar gramos válidos para INASE")
 
-  return {
-    valido: errores.length === 0,
-    errores,
+    return {
+      valido: errores.length === 0,
+      errores,
+    }
   }
-}
 
 
   const handleSubmit = async () => {
@@ -332,150 +368,135 @@ export default function RegistroAnalisisPage() {
       estado: "REGISTRADO",
     };
 
-  if (selectedAnalysisType === "DOSN") {
-setMostrarValidacionDosn(true)
+    if (selectedAnalysisType === "DOSN") {
+      setMostrarValidacionDosn(true)
 
-const { valido, errores } = validarDosn(formData)
-if (!valido) {
-  setLoading(false)
-  toast.error("Hay errores en el formulario DOSN", {
-    description: errores.join(" • "),
-  })
-  return // 🔥 DETIENE el envío al backend
-}
-
-    const mapTipoDosn = (obj: any, prefix: string) => [
-      obj[`${prefix}Completo`] ? "COMPLETO" : null,
-      obj[`${prefix}Reducido`] ? "REDUCIDO" : null,
-      obj[`${prefix}Limitado`] ? "LIMITADO" : null,
-      obj[`${prefix}ReducidoLimitado`] ? "REDUCIDO_LIMITADO" : null,
-    ].filter(Boolean);
-
-    // Debug: Verificar estados de los arrays antes de procesar
-    console.log("🔍 DEBUG - Estados de arrays antes de procesar:");
-    console.log("  - malezasList.length:", malezasList.length);
-    console.log("  - cultivosList.length:", cultivosList.length);
-    console.log("  - brassicasList.length:", brassicasList.length);
-
-    // Agregar otrosCultivos
-    let cultivosListWithOtros = [...cultivosList];
-    if (formData.otrosCultivos && formData.otrosCultivos !== "") {
-      cultivosListWithOtros.push({
-        listadoTipo: "OTROS",
-        listadoInsti: formData.otrosCultivosInsti || "INIA",
-        listadoNum: Number(formData.otrosCultivosNum) || 1,
-        idCatalogo: formData.otrosCultivosIdCatalogo || null
-      });
-    }
-
-    // mapeo de malezas - ya no es necesario mapear porque el componente envía los valores correctos
-    const listados = [
-      ...malezasList.map((m) => ({
-        ...m,
-        listadoNum: m.listadoNum !== null && m.listadoNum !== undefined ? m.listadoNum : null, // mantener null si no hay valor
-      })),
-      ...cultivosListWithOtros.map((c) => ({ ...c, listadoTipo: "OTROS" })),
-      ...brassicasList.map((b) => ({ ...b, listadoTipo: "BRASSICA" })),
-    ];
-
-    payload = {
-      idLote: formData.loteid,
-      comentarios: formData.observaciones,
-      // Cumple estándar
-      cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : null,
-      // INIA
-      fechaINIA: formData.iniaFecha || null,
-      gramosAnalizadosINIA: toNum(formData.iniaGramos),
-      tipoINIA: mapTipoDosn(formData, "inia"),
-      // INASE
-      fechaINASE: formData.inaseFecha || null,
-      gramosAnalizadosINASE: toNum(formData.inaseGramos),
-      tipoINASE: mapTipoDosn(formData, "inase"),
-      // Cuscuta - usar fecha actual si hay datos de cuscuta y no se especificó fecha
-      cuscuta_g: toNum(formData.cuscutaGramos),
-      cuscutaNum: toNum(formData.cuscutaNumero),
-      fechaCuscuta: ((toNum(formData.cuscutaGramos) || 0) > 0 || (toNum(formData.cuscutaNumero) || 0) > 0)
-        ? new Date().toISOString().split('T')[0] // Fecha actual en formato YYYY-MM-DD
-        : null,
-      // Listados
-      listados,
-    };
-
-    // Debug logs para verificar datos antes de enviar
-    console.log("🔍 DEBUG - Datos de DOSN antes de enviar:");
-    console.log("  - listados finales:", listados);
-    console.log("  - payload.listados:", payload.listados);
-
-    // Validación adicional para asegurar que hay datos para enviar
-    if (listados.length === 0) {
-      console.warn("⚠️ WARNING: No hay listados para enviar. Esto podría ser normal si el análisis no requiere listados.");
-    } else {
-      console.log(`✅ Se enviarán ${listados.length} listados al backend`);
-    }
-  } else if (selectedAnalysisType === "PUREZA") {
-      // Debug: Verificar estado de la lista de malezas de pureza
-      console.log("🔍 DEBUG - Malezas de pureza antes de procesar:", purezaMalezasList);
-
-      // Procesar malezas de pureza similar a como se hace en DOSN
-      const malezasDetalladas = purezaMalezasList
-        .filter((m) => {
-          // Verificar que tenga los campos requeridos y no sea "NO_CONTIENE"
-          const hasRequiredFields = m.listadoTipo && m.listadoTipo !== "NO_CONTIENE" &&
-            m.listadoInsti && m.idCatalogo;
-          return hasRequiredFields;
+      const { valido, errores } = validarDosn(formData)
+      if (!valido) {
+        setLoading(false)
+        toast.error("Hay errores en el formulario DOSN", {
+          description: errores.join(" • "),
         })
-        .map((m) => ({
-          listadoTipo: m.listadoTipo,
-          listadoInsti: m.listadoInsti,
-          listadoNum: m.listadoNum !== null && m.listadoNum !== undefined ? m.listadoNum : null,
-          idCatalogo: m.idCatalogo,
-        }));
+        return // 🔥 DETIENE el envío al backend
+      }
 
-      console.log("🔍 DEBUG - Malezas procesadas para envío:", malezasDetalladas);
+      const mapTipoDosn = (obj: any, prefix: string) => [
+        obj[`${prefix}Completo`] ? "COMPLETO" : null,
+        obj[`${prefix}Reducido`] ? "REDUCIDO" : null,
+        obj[`${prefix}Limitado`] ? "LIMITADO" : null,
+        obj[`${prefix}ReducidoLimitado`] ? "REDUCIDO_LIMITADO" : null,
+      ].filter(Boolean);
+
+      // Debug: Verificar estados de los arrays antes de procesar
+      console.log("🔍 DEBUG - Estados de arrays antes de procesar:");
+      console.log("  - malezasList.length:", malezasList.length);
+      console.log("  - cultivosList.length:", cultivosList.length);
+      console.log("  - brassicasList.length:", brassicasList.length);
+
+      // Agregar otrosCultivos
+      let cultivosListWithOtros = [...cultivosList];
+      if (formData.otrosCultivos && formData.otrosCultivos !== "") {
+        cultivosListWithOtros.push({
+          listadoTipo: "OTROS",
+          listadoInsti: formData.otrosCultivosInsti || "INIA",
+          listadoNum: Number(formData.otrosCultivosNum) || 1,
+          idCatalogo: formData.otrosCultivosIdCatalogo || null
+        });
+      }
+
+      // mapeo de malezas - ya no es necesario mapear porque el componente envía los valores correctos
+      const listados = [
+        ...malezasList.map((m) => ({
+          ...m,
+          listadoNum: m.listadoNum !== null && m.listadoNum !== undefined ? m.listadoNum : null, // mantener null si no hay valor
+        })),
+        ...cultivosListWithOtros.map((c) => ({ ...c, listadoTipo: "OTROS" })),
+        ...brassicasList.map((b) => ({ ...b, listadoTipo: "BRASSICA" })),
+      ];
 
       payload = {
-        ...payload,
+        idLote: formData.loteid,
+        comentarios: formData.observaciones,
+        // Cumple estándar
+        cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : null,
+        // INIA
+        fechaINIA: formData.iniaFecha || null,
+        gramosAnalizadosINIA: toNum(formData.iniaGramos),
+        tipoINIA: mapTipoDosn(formData, "inia"),
+        // INASE
+        fechaINASE: formData.inaseFecha || null,
+        gramosAnalizadosINASE: toNum(formData.inaseGramos),
+        tipoINASE: mapTipoDosn(formData, "inase"),
+        // Cuscuta - usar fecha actual si hay datos de cuscuta y no se especificó fecha
+        cuscuta_g: toNum(formData.cuscutaGramos),
+        cuscutaNum: toNum(formData.cuscutaNumero),
+        fechaCuscuta: ((toNum(formData.cuscutaGramos) || 0) > 0 || (toNum(formData.cuscutaNumero) || 0) > 0)
+          ? new Date().toISOString().split('T')[0] // Fecha actual en formato YYYY-MM-DD
+          : null,
+        // Listados
+        listados,
+      };
+
+      // Debug logs para verificar datos antes de enviar
+      console.log("🔍 DEBUG - Datos de DOSN antes de enviar:");
+      console.log("  - listados finales:", listados);
+      console.log("  - payload.listados:", payload.listados);
+
+      // Validación adicional para asegurar que hay datos para enviar
+      if (listados.length === 0) {
+        console.warn("⚠️ WARNING: No hay listados para enviar. Esto podría ser normal si el análisis no requiere listados.");
+      } else {
+        console.log(`✅ Se enviarán ${listados.length} listados al backend`);
+      }
+    } else if (selectedAnalysisType === "PUREZA") {
+      // Combinar las 3 listas igual que DOSN (simple y directo)
+      const otrasSemillas = [
+        ...purezaMalezasList.map((m) => ({
+          ...m,
+          listadoNum: m.listadoNum !== null && m.listadoNum !== undefined ? m.listadoNum : null,
+        })),
+        ...purezaCultivosList.map((c) => ({ ...c, listadoTipo: "OTROS" })),
+        ...purezaBrassicasList.map((b) => ({ ...b, listadoTipo: "BRASSICA" })),
+      ];
+
+      // ✅ Construir payload limpio solo con campos requeridos por el backend
+      payload = {
+        idLote: formData.loteid,
+        comentarios: formData.observaciones,
+        estado: "REGISTRADO",
+        cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : null,
+        
         // Datos en gramos
-        pesoInicial_g: toNum(formData.pesoInicial),
-        semillaPura_g: toNum(formData.semillaPura),
-        materiaInerte_g: toNum(formData.materiaInerte),
-        otrosCultivos_g: toNum(formData.otrosCultivos),
-        malezas_g: toNum(formData.malezas),
-        malezasToleridas_g: toNum(formData.malezasToleridas),
-        malezasToleranciasCero_g: toNum(formData.malezasToleranciasCero),
-        pesoTotal_g: formData.pesoTotal ? parseFloat(formData.pesoTotal) : null,
+        fecha: formData.fecha,
+        pesoInicial_g: parseFloat((formData as any).pesoInicial_g) || 0,
+        semillaPura_g: parseFloat((formData as any).semillaPura_g) || 0,
+        materiaInerte_g: parseFloat((formData as any).materiaInerte_g) || 0,
+        otrosCultivos_g: parseFloat((formData as any).otrosCultivos_g) || 0,
+        malezas_g: parseFloat((formData as any).malezas_g) || 0,
+        malezasToleradas_g: parseFloat((formData as any).malezasToleradas_g) || 0,
+        malezasTolCero_g: parseFloat((formData as any).malezasTolCero_g) || 0,
+        pesoTotal_g: parseFloat((formData as any).pesoTotal_g) || 0,
 
-        // Porcentajes manuales
-        semillaPuraPorcentaje: toNum(formData.semillaPuraPorcentaje),
-        materiaInertePorcentaje: toNum(formData.materiaInertePorcentaje),
-        otrosCultivosPorcentaje: toNum(formData.otrosCultivosPorcentaje),
-        malezasPorcentaje: toNum(formData.malezasPorcentaje),
-        malezasTolerididasPorcentaje: toNum(formData.malezasTolerididasPorcentaje),
-        malezasToleranciasCeroPorcentaje: toNum(formData.malezasToleranciasCeroPorcentaje),
+        // Porcentajes con redondeo
+        redonSemillaPura: (formData as any).redonSemillaPura ? parseFloat((formData as any).redonSemillaPura) : undefined,
+        redonMateriaInerte: (formData as any).redonMateriaInerte ? parseFloat((formData as any).redonMateriaInerte) : undefined,
+        redonOtrosCultivos: (formData as any).redonOtrosCultivos ? parseFloat((formData as any).redonOtrosCultivos) : undefined,
+        redonMalezas: (formData as any).redonMalezas ? parseFloat((formData as any).redonMalezas) : undefined,
+        redonMalezasToleradas: (formData as any).redonMalezasToleradas ? parseFloat((formData as any).redonMalezasToleradas) : undefined,
+        redonMalezasTolCero: (formData as any).redonMalezasTolCero ? parseFloat((formData as any).redonMalezasTolCero) : undefined,
+        redonPesoTotal: (formData as any).redonPesoTotal ? parseFloat((formData as any).redonPesoTotal) : undefined,
 
-        // Porcentajes redondeados manuales
-        semillaPuraRedondeado: formData.semillaPuraRedondeado || null,
-        materiaInerteRedondeado: formData.materiaInerteRedondeado || null,
-        otrosCultivosRedondeado: formData.otrosCultivosRedondeado || null,
-        malezasRedondeado: formData.malezasRedondeado || null,
-        malezasTolerididasRedondeado: formData.malezasTolerididasRedondeado || null,
-        malezasToleranciasCeroRedondeado: formData.malezasToleranciasCeroRedondeado || null,
+        // Datos INASE
+        inasePura: (formData as any).inasePura ? parseFloat((formData as any).inasePura) : undefined,
+        inaseMateriaInerte: (formData as any).inaseMateriaInerte ? parseFloat((formData as any).inaseMateriaInerte) : undefined,
+        inaseOtrosCultivos: (formData as any).inaseOtrosCultivos ? parseFloat((formData as any).inaseOtrosCultivos) : undefined,
+        inaseMalezas: (formData as any).inaseMalezas ? parseFloat((formData as any).inaseMalezas) : undefined,
+        inaseMalezasToleradas: (formData as any).inaseMalezasToleradas ? parseFloat((formData as any).inaseMalezasToleradas) : undefined,
+        inaseMalezasTolCero: (formData as any).inaseMalezasTolCero ? parseFloat((formData as any).inaseMalezasTolCero) : undefined,
+        inaseFecha: (formData as any).inaseFecha || undefined,
 
-        // Datos INIA manuales
-        iniaSemillaPuraPorcentaje: toNum(formData.iniaSemillaPuraPorcentaje),
-        iniaMateriaInertePorcentaje: toNum(formData.iniaMateriaInertePorcentaje),
-        iniaOtrosCultivosPorcentaje: toNum(formData.iniaOtrosCultivosPorcentaje),
-        iniaMalezasPorcentaje: toNum(formData.iniaMalezasPorcentaje),
-        iniaMalezasTolerididasPorcentaje: toNum(formData.iniaMalezasTolerididasPorcentaje),
-        iniaMalezasToleranciasCeroPorcentaje: toNum(formData.iniaMalezasToleranciasCeroPorcentaje),
-
-        // Alerta diferencia
-        alertaDiferenciaPeso: formData.alertaDiferenciaPeso || null,
-
-        fecha: new Date().toISOString().split('T')[0], // Fecha actual en formato ISO (YYYY-MM-DD)
-        observaciones: formData.observaciones,
-        malezasDetalladas: malezasDetalladas, // Incluir las malezas detalladas
-        otrasSemillas: [] // Array vacío de otras semillas o añadir lógica para incluirlas
+        // Malezas/cultivos listados (combinados de las 3 listas)
+        otrasSemillas,
       };
     } else if (selectedAnalysisType === "GERMINACION") {
       // Validaciones específicas para germinación
@@ -615,7 +636,7 @@ if (!valido) {
         setLoading(false);
         return;
       }
-      
+
       // Validar tiempo de tinción considerando que puede ser string o número
       const tincionHsValue = formData.tincionHs === "Otra (especificar)"
         ? parseFloat(formData.tincionHsOtro)
@@ -732,6 +753,9 @@ if (!valido) {
         }, 1500);
       } else {
         // Registrar otros tipos (DOSN, Pureza, etc.)
+        console.log("📤 PAYLOAD COMPLETO A ENVIAR:", JSON.stringify(payload, null, 2));
+        console.log("📤 Tipo de análisis:", selectedAnalysisType);
+        
         const result = await registrarAnalisis(payload, selectedAnalysisType);
 
         toast.success('Análisis registrado exitosamente', {
@@ -741,8 +765,20 @@ if (!valido) {
         // ✅ Limpiar storage según el tipo de análisis
         if (selectedAnalysisType === "DOSN") {
           clearDosnStorage()
+          setMalezasList([])
+          setCultivosList([])
+          setBrassicasList([])
         } else if (selectedAnalysisType === "PUREZA") {
           clearPurezaStorage()
+          setPurezaMalezasList([])
+          setPurezaCultivosList([])
+          setPurezaBrassicasList([])
+          // Incrementar el key para forzar el reset completo del componente
+          setPurezaFormKey(prev => prev + 1)
+        } else if (selectedAnalysisType === "GERMINACION") {
+          clearGerminacionStorage()
+        } else if (selectedAnalysisType === "TETRAZOLIO") {
+          clearTetrazolioStorage()
         }
 
         // Redirigir según el tipo de análisis
@@ -790,7 +826,7 @@ if (!valido) {
       try {
         const data = await obtenerLotesElegibles(selectedAnalysisType as TipoAnalisis);
         setLotes(data)
-        
+
         if (data.length === 0) {
           toast.info('Sin lotes elegibles', {
             description: `No hay lotes elegibles para análisis de ${getAnalysisTypeName(selectedAnalysisType)}. Esto puede ocurrir si no hay lotes con este tipo de análisis asignado o si todos ya tienen análisis completados.`,
@@ -893,12 +929,12 @@ if (!valido) {
                   disabled={!selectedAnalysisType}
                 >
                   <SelectTrigger>
-                    <SelectValue 
+                    <SelectValue
                       placeholder={
-                        !selectedAnalysisType 
+                        !selectedAnalysisType
                           ? "Primero selecciona un tipo de análisis"
                           : "Seleccionar lote elegible"
-                      } 
+                      }
                     />
                   </SelectTrigger>
                   <SelectContent>
@@ -1009,9 +1045,17 @@ if (!valido) {
 
           {selectedAnalysisType === "PUREZA" && (
             <PurezaFields
-              formData={formData}
-              handleInputChange={(field, value) => handleInputChange(field as keyof AnalysisFormData, value)}
+              key={purezaFormKey}
+              formData={{
+                ...formData,
+                malezas: purezaMalezasList,
+                cultivos: purezaCultivosList,
+                brassicas: purezaBrassicasList,
+              }}
+              handleInputChange={handlePurezaInputChange}
               onChangeMalezas={handlePurezaMalezasChange}
+              onChangeCultivos={handlePurezaCultivosChange}
+              onChangeBrassicas={handlePurezaBrassicasChange}
             />
           )}
           {selectedAnalysisType === "DOSN" && (

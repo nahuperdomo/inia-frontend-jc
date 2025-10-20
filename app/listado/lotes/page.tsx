@@ -12,8 +12,6 @@ import Link from "next/link"
 import { obtenerLotesPaginadas } from "@/app/services/lote-service"
 import Pagination from "@/components/pagination"
 import { LoteSimpleDTO } from "@/app/models"
-import { BotonExportarExcel } from "@/components/exportar-excel-btn"
-import { DialogExportarConFiltros } from "@/components/dialog-exportar-filtros"
 
 export default function ListadoLotesPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -54,6 +52,7 @@ export default function ListadoLotesPage() {
   const filteredLotes = lotes.filter((lote) => {
     const matchesSearch =
       (lote.ficha || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (lote.nomLote || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (lote.cultivarNombre || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (lote.especieNombre || "").toLowerCase().includes(searchTerm.toLowerCase())
 
@@ -85,11 +84,10 @@ export default function ListadoLotesPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <BotonExportarExcel 
-            variant="outline"
-            textoBoton="Exportar Todo"
-          />
-          <DialogExportarConFiltros />
+          <Button variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Exportar
+          </Button>
           <Link href="/registro/lotes">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -195,7 +193,7 @@ export default function ListadoLotesPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por ficha, cultivar o especie..."
+                  placeholder="Buscar por ficha, nombre de lote, cultivar o especie..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -254,6 +252,7 @@ export default function ListadoLotesPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Ficha</TableHead>
+                    <TableHead>Nombre Lote</TableHead>
                     <TableHead>Cultivar</TableHead>
                     <TableHead>Especie</TableHead>
                     <TableHead>Estado</TableHead>
@@ -263,7 +262,7 @@ export default function ListadoLotesPage() {
                 <TableBody>
                   {isLoading ? (
                     <TableRow key="loading-row">
-                      <TableCell colSpan={5} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         <div className="flex flex-col items-center justify-center">
                           <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
                           <p className="text-muted-foreground">Cargando datos de lotes...</p>
@@ -272,7 +271,7 @@ export default function ListadoLotesPage() {
                     </TableRow>
                   ) : filteredLotes.length === 0 ? (
                     <TableRow key="no-data-row">
-                      <TableCell colSpan={5} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         <p className="text-muted-foreground">No se encontraron lotes que coincidan con los criterios de búsqueda.</p>
                       </TableCell>
                     </TableRow>
@@ -280,6 +279,7 @@ export default function ListadoLotesPage() {
                     filteredLotes.map((lote) => (
                       <TableRow key={lote.loteID}>
                         <TableCell className="font-medium">{lote.ficha || "-"}</TableCell>
+                        <TableCell className="font-medium">{lote.nomLote || "-"}</TableCell>
                         <TableCell>{lote.cultivarNombre || "-"}</TableCell>
                         <TableCell>{lote.especieNombre || "-"}</TableCell>
                         <TableCell>

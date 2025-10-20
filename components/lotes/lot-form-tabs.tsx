@@ -39,7 +39,8 @@ export function LotFormTabs({
   // Opciones estáticas
   const tipoOptions = useMemo(() => [
     { id: "INTERNO", nombre: "Interno" },
-    { id: "EXTERNO", nombre: "Externo" }
+    { id: "OTROS_CENTROS_COSTOS", nombre: "Otros Centros de Costos" },
+    { id: "EXTERNOS", nombre: "Externos" }
   ], [])
 
   // Función para manejar cambios sin validación automática
@@ -168,6 +169,17 @@ export function LotFormTabs({
                 onBlur={() => handleBlur("ficha")}
                 error={hasError("ficha") ? getErrorMessage("ficha") : undefined}
                 required={true}
+              />
+
+              <FormField
+                id="nomLote"
+                label="Nombre del Lote"
+                value={formData.nomLote}
+                onChange={(e) => handleInputChange("nomLote", e.target.value)}
+                onBlur={() => handleBlur("nomLote")}
+                error={hasError("nomLote") ? getErrorMessage("nomLote") : undefined}
+                required={true}
+                placeholder="Ingrese un nombre único para el lote"
               />
 
               <FormSelect
