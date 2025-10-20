@@ -72,6 +72,7 @@ export function clearPurezaStorage() {
   const purezaKeys = [
     "pureza-datos-generales",
     "pureza-malezas",
+    "dosn-malezas-Detalle de Malezas / Otros Cultivos", // Clave real del componente MalezaFields usado en Pureza
     // Agregar más claves según sea necesario
   ]
 

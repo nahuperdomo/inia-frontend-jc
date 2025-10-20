@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
     Card,
     CardContent,
@@ -31,211 +31,162 @@ import {
     FlaskConical,
     Microscope,
     PieChart,
-    BarChartHorizontal,
     FileText,
     Percent,
     Building2,
-    AlertTriangle,
     Leaf,
-    Droplets,
-    CheckCircle2
+    CheckCircle2,
+    XCircle,
+    Calendar,
+    Calculator,
+    ClipboardList
 } from "lucide-react";
 import MalezaFields from "@/components/malezas-u-otros-cultivos/fields-maleza";
+import OtrosCultivosFields from "@/components/malezas-u-otros-cultivos/fields-otros-cultivos";
+import BrassicaFields from "@/app/registro/analisis/dosn/fields/fields-brassica";
 
 type Props = {
     formData: {
-        pesoInicial?: string;
-        semillaPura?: string;
-        materiaInerte?: string;
-        otrosCultivos?: string;
-        malezas?: string;
-        malezasToleridas?: string;
-        malezasToleranciasCero?: string;
-        pesoTotal?: string;
-        semillaPuraPorcentaje?: string;
-        materiaInertePorcentaje?: string;
-        otrosCultivosPorcentaje?: string;
-        malezasPorcentaje?: string;
-        malezasTolerididasPorcentaje?: string;
-        malezasToleranciasCeroPorcentaje?: string;
-        semillaPuraRedondeado?: string;
-        materiaInerteRedondeado?: string;
-        otrosCultivosRedondeado?: string;
-        malezasRedondeado?: string;
-        malezasTolerididasRedondeado?: string;
-        malezasToleranciasCeroRedondeado?: string;
-        iniaSemillaPuraPorcentaje?: string;
-        iniaMateriaInertePorcentaje?: string;
-        iniaOtrosCultivosPorcentaje?: string;
-        iniaMalezasPorcentaje?: string;
-        iniaMalezasTolerididasPorcentaje?: string;
-        iniaMalezasToleranciasCeroPorcentaje?: string;
-        inaseSemillaPuraPorcentaje?: string;
-        inaseMateriaInertePorcentaje?: string;
-        inaseOtrosCultivosPorcentaje?: string;
-        inaseMalezasPorcentaje?: string;
-        inaseMalezasTolerididasPorcentaje?: string;
-        inaseMalezasToleranciasCeroPorcentaje?: string;
-        alertaDiferenciaPeso?: string;
+        fecha?: string;
+        pesoInicial_g?: string;
+        semillaPura_g?: string;
+        materiaInerte_g?: string;
+        otrosCultivos_g?: string;
+        malezas_g?: string;
+        malezasToleradas_g?: string;
+        malezasTolCero_g?: string;
+        pesoTotal_g?: string;
+        
+        redonSemillaPura?: string;
+        redonMateriaInerte?: string;
+        redonOtrosCultivos?: string;
+        redonMalezas?: string;
+        redonMalezasToleradas?: string;
+        redonMalezasTolCero?: string;
+        redonPesoTotal?: string;
+        
+        inasePura?: string;
+        inaseMateriaInerte?: string;
+        inaseOtrosCultivos?: string;
+        inaseMalezas?: string;
+        inaseMalezasToleradas?: string;
+        inaseMalezasTolCero?: string;
+        inaseFecha?: string;
+        
+        cumpleEstandar?: string;
         observaciones?: string;
+        otrasSemillas?: any[];
+        malezas?: any[];
+        cultivos?: any[];
+        brassicas?: any[];
         [key: string]: any;
     };
     handleInputChange: (field: string, value: any) => void;
     onChangeMalezas?: (list: any[]) => void;
+    onChangeCultivos?: (list: any[]) => void;
+    onChangeBrassicas?: (list: any[]) => void;
 }
 
-// Componente reutilizable para campos de pureza - FUERA del componente principal
-const CampoPureza = ({
-    numero,
-    titulo,
-    icono: Icono,
-    colorClase = "blue",
-    campoGramos,
-    campoPorcentaje,
-    campoRedondeado,
-    requerido = false,
-    formData,
-    handleInputChange
-}: any) => {
-    const colores: any = {
-        blue: "border-blue-200 bg-blue-50",
-        green: "border-green-200 bg-green-50",
-        amber: "border-amber-200 bg-amber-50",
-        purple: "border-purple-200 bg-purple-50",
-        orange: "border-orange-200 bg-orange-50",
-        pink: "border-pink-200 bg-pink-50"
-    };
+const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCultivos, onChangeBrassicas }: Props) => {
+    const [activeTab, setActiveTab] = useState("generales");
+    
+    // Calcular porcentajes automáticamente en tiempo real (4 decimales)
+    const porcentajes = useMemo(() => {
+        const pesoInicial = parseFloat(formData.pesoInicial_g as string) || 0;
+        const semillaPura = parseFloat(formData.semillaPura_g as string) || 0;
+        const materiaInerte = parseFloat(formData.materiaInerte_g as string) || 0;
+        const otrosCultivos = parseFloat(formData.otrosCultivos_g as string) || 0;
+        const malezas = parseFloat(formData.malezas_g as string) || 0;
+        const malezasToleradas = parseFloat(formData.malezasToleradas_g as string) || 0;
+        const malezasTolCero = parseFloat(formData.malezasTolCero_g as string) || 0;
 
-    return (
-        <Card className={`border ${colores[colorClase] || colores.blue}`}>
-            <CardContent className="pt-6">
-                <div className="space-y-4">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-lg bg-${colorClase}-100`}>
-                            <Icono className={`h-5 w-5 text-${colorClase}-600`} />
-                        </div>
-                        <div>
-                            <h4 className="font-semibold text-base">{numero}. {titulo}</h4>
-                            {requerido && <span className="text-xs text-red-600">* Campo requerido</span>}
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium flex items-center gap-2">
-                                <Scale className="h-4 w-4 text-muted-foreground" />
-                                Gramos (g)
-                            </Label>
-                            <Input
-                                type="number"
-                                step="any"
-                                value={formData[campoGramos] || ""}
-                                onChange={(e) => handleInputChange(campoGramos, e.target.value)}
-                                placeholder="0.000"
-                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-200 bg-white"
-                            />
-                        </div>
-
-                        {campoPorcentaje && (
-                            <div className="space-y-2">
-                                <Label className="text-sm font-medium flex items-center gap-2">
-                                    <Percent className="h-4 w-4 text-muted-foreground" />
-                                    Porcentaje (%)
-                                </Label>
-                                <Input
-                                    type="number"
-                                    step="any"
-                                    value={formData[campoPorcentaje] || ""}
-                                    onChange={(e) => handleInputChange(campoPorcentaje, e.target.value)}
-                                    placeholder="0.00"
-                                    className="h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-200 bg-white"
-                                />
-                            </div>
-                        )}
-
-                        {campoRedondeado && (
-                            <div className="space-y-2">
-                                <Label className="text-sm font-medium flex items-center gap-2">
-                                    <Percent className="h-4 w-4 text-muted-foreground" />
-                                    % Redondeado
-                                </Label>
-                                <Input
-                                    type="text"
-                                    value={formData[campoRedondeado] || ""}
-                                    onChange={(e) => handleInputChange(campoRedondeado, e.target.value)}
-                                    placeholder="0"
-                                    className="h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-200 bg-white"
-                                />
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
-};
-
-const PurezaFields = ({ formData, handleInputChange, onChangeMalezas }: Props) => {
-    const [activeTab, setActiveTab] = useState("datos-principales");
-
-    // Calcular la diferencia de peso (solo para mostrar, sin modificar el estado)
-    const calcularDiferenciaPeso = React.useMemo(() => {
-        const pesoInicial = parseFloat(formData.pesoInicial || "0");
-        const semillaPura = parseFloat(formData.semillaPura || "0");
-        const materiaInerte = parseFloat(formData.materiaInerte || "0");
-        const otrosCultivos = parseFloat(formData.otrosCultivos || "0");
-        const malezas = parseFloat(formData.malezas || "0");
-        const malezasToleridas = parseFloat(formData.malezasToleridas || "0");
-        const malezasToleranciasCero = parseFloat(formData.malezasToleranciasCero || "0");
-
-        if (pesoInicial <= 0) {
+        console.log('=== DEBUG PORCENTAJES ===');
+        console.log('Peso inicial:', pesoInicial, 'tipo:', typeof formData.pesoInicial_g);
+        console.log('Semilla pura gramos:', semillaPura);
+        console.log('Materia inerte gramos:', materiaInerte);
+        console.log('Malezas tolerancia cero gramos:', malezasTolCero);
+        
+        if (pesoInicial === 0 || isNaN(pesoInicial)) {
+            console.log('Peso inicial es 0 o NaN, retornando 0s');
             return {
-                mensaje: "Ingrese el peso inicial para calcular",
-                esAlerta: false,
-                mostrarCalculo: false
+                semillaPura: 0,
+                materiaInerte: 0,
+                otrosCultivos: 0,
+                malezas: 0,
+                malezasToleradas: 0,
+                malezasTolCero: 0,
             };
         }
-
-        const totalComponentes = semillaPura + materiaInerte + otrosCultivos + malezas + malezasToleridas + malezasToleranciasCero;
-
-        if (totalComponentes === 0) {
-            return {
-                mensaje: "Ingrese los componentes para calcular",
-                esAlerta: false,
-                mostrarCalculo: false
-            };
-        }
-
-        const diferencia = totalComponentes - pesoInicial;
-        const porcentajeDiferencia = (diferencia / pesoInicial) * 100;
-        const porcentajeAbsoluto = Math.abs(porcentajeDiferencia);
-
-        const formula = `(${totalComponentes.toFixed(3)} - ${pesoInicial.toFixed(3)}) / ${pesoInicial.toFixed(3)} × 100 = ${porcentajeDiferencia.toFixed(2)}%`;
-        const esAlerta = porcentajeAbsoluto >= 5;
-
-        const mensaje = esAlerta
-            ? `⚠️ ALERTA: Diferencia de ${porcentajeAbsoluto.toFixed(2)}% (≥5%)`
-            : `✓ OK: Diferencia de ${porcentajeAbsoluto.toFixed(2)}% (<5%)`;
-
-        return {
-            formula,
-            porcentajeDiferencia: porcentajeDiferencia.toFixed(2),
-            porcentajeAbsoluto: porcentajeAbsoluto.toFixed(2),
-            mensaje,
-            esAlerta,
-            mostrarCalculo: true,
-            totalComponentes: totalComponentes.toFixed(3),
-            diferencia: diferencia.toFixed(3)
+        
+        const result = {
+            semillaPura: (semillaPura / pesoInicial) * 100,
+            materiaInerte: (materiaInerte / pesoInicial) * 100,
+            otrosCultivos: (otrosCultivos / pesoInicial) * 100,
+            malezas: (malezas / pesoInicial) * 100,
+            malezasToleradas: (malezasToleradas / pesoInicial) * 100,
+            malezasTolCero: (malezasTolCero / pesoInicial) * 100,
         };
+        
+        console.log('Resultado porcentajes:', result);
+        
+        return result;
     }, [
-        formData.pesoInicial,
-        formData.semillaPura,
-        formData.materiaInerte,
-        formData.otrosCultivos,
-        formData.malezas,
-        formData.malezasToleridas,
-        formData.malezasToleranciasCero
+        formData.pesoInicial_g,
+        formData.semillaPura_g,
+        formData.materiaInerte_g,
+        formData.otrosCultivos_g,
+        formData.malezas_g,
+        formData.malezasToleradas_g,
+        formData.malezasTolCero_g
     ]);
+
+    // Validar que los porcentajes redondeados sumen 100
+    // NOTA: redonPesoTotal NO se incluye porque se calcula automáticamente
+    const sumaPorcentajesRedondeados = useMemo(() => {
+        const suma = (
+            parseFloat(formData.redonSemillaPura || "0") +
+            parseFloat(formData.redonMateriaInerte || "0") +
+            parseFloat(formData.redonOtrosCultivos || "0") +
+            parseFloat(formData.redonMalezas || "0") +
+            parseFloat(formData.redonMalezasToleradas || "0") +
+            parseFloat(formData.redonMalezasTolCero || "0")
+        );
+        return suma.toFixed(2);
+    }, [
+        formData.redonSemillaPura,
+        formData.redonMateriaInerte,
+        formData.redonOtrosCultivos,
+        formData.redonMalezas,
+        formData.redonMalezasToleradas,
+        formData.redonMalezasTolCero
+    ]);
+
+    // Calcular redonPesoTotal automáticamente (100 - suma de los otros)
+    // Este representa cuánto falta para llegar a 100%
+    const redonPesoTotalCalculado = useMemo(() => {
+        const suma = (
+            parseFloat(formData.redonSemillaPura || "0") +
+            parseFloat(formData.redonMateriaInerte || "0") +
+            parseFloat(formData.redonOtrosCultivos || "0") +
+            parseFloat(formData.redonMalezas || "0") +
+            parseFloat(formData.redonMalezasToleradas || "0") +
+            parseFloat(formData.redonMalezasTolCero || "0")
+        );
+        // Mostrar la suma total de todos los porcentajes
+        return suma.toFixed(2);
+    }, [
+        formData.redonSemillaPura,
+        formData.redonMateriaInerte,
+        formData.redonOtrosCultivos,
+        formData.redonMalezas,
+        formData.redonMalezasToleradas,
+        formData.redonMalezasTolCero
+    ]);
+
+    // Sincronizar redonPesoTotal calculado con formData para que se envíe en el payload
+    useEffect(() => {
+        handleInputChange("redonPesoTotal", redonPesoTotalCalculado);
+    }, [redonPesoTotalCalculado]);
 
     return (
         <Card className="border-0 shadow-sm bg-card">
@@ -249,552 +200,668 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas }: Props) =
                             Análisis de Pureza Física
                         </CardTitle>
                         <p className="text-sm text-muted-foreground mt-1">
-                            Registre los componentes y porcentajes del análisis de pureza
+                            Análisis cuantitativo de componentes de semillas
                         </p>
                     </div>
                 </div>
             </CardHeader>
 
             <CardContent>
+                {/* Observaciones - Arriba, fuera de tabs como en DOSN */}
+                <Card className="border-0 shadow-sm mb-6">
+                    <CardHeader className="pb-4">
+                        <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                            <MessageCircle className="h-5 w-5 text-primary" />
+                            Observaciones
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Textarea
+                            placeholder="Ingrese observaciones específicas del análisis de pureza física, condiciones especiales, particularidades encontradas u otra información relevante..."
+                            value={formData.observaciones || ""}
+                            onChange={(e) => handleInputChange("observaciones", e.target.value)}
+                            rows={6}
+                            className="resize-y min-h-[120px] transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                        />
+                    </CardContent>
+                </Card>
+
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 mb-6 h-auto gap-2">
-                        <TabsTrigger value="datos-principales" className="flex items-center gap-2 py-3">
-                            <Scale className="h-4 w-4" />
-                            <span className="hidden sm:inline">Datos Principales</span>
-                            <span className="sm:hidden">Datos</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="inia-porcentajes" className="flex items-center gap-2 py-3">
-                            <Building2 className="h-4 w-4" />
-                            <span className="hidden sm:inline">INIA %</span>
-                            <span className="sm:hidden">INIA</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="inase-porcentajes" className="flex items-center gap-2 py-3">
-                            <Building2 className="h-4 w-4" />
-                            <span className="hidden sm:inline">INASE %</span>
-                            <span className="sm:hidden">INASE</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="detalle-malezas" className="flex items-center gap-2 py-3">
-                            <Microscope className="h-4 w-4" />
-                            <span className="hidden sm:inline">Detalle Malezas</span>
-                            <span className="sm:hidden">Malezas</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="observaciones" className="flex items-center gap-2 py-3">
+                    <TabsList className="flex flex-wrap gap-2 w-full mb-6">
+                        <TabsTrigger value="generales" className="flex items-center gap-2 px-3 py-2 text-sm">
                             <FileText className="h-4 w-4" />
-                            <span className="hidden sm:inline">Observaciones</span>
-                            <span className="sm:hidden">Obs.</span>
+                            Datos generales
+                        </TabsTrigger>
+                        <TabsTrigger value="registros" className="flex items-center gap-2 px-3 py-2 text-sm">
+                            <ClipboardList className="h-4 w-4" />
+                            Registros
                         </TabsTrigger>
                     </TabsList>
 
-                    {/* TAB: Datos Principales */}
-                    <TabsContent value="datos-principales" className="space-y-6">
-                        <div className="space-y-6">
-                            {/* Peso Inicial */}
-                            <Card className="border border-blue-300 bg-gradient-to-br from-blue-50 to-blue-100">
-                                <CardContent className="pt-6">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-200">
-                                            <Scale className="h-5 w-5 text-blue-700" />
+                    <TabsContent value="generales" className="space-y-6">
+                        {/* SECCIÓN INIA */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50">
+                                    <Building2 className="h-5 w-5 text-emerald-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold">INIA</h3>
+                                    <p className="text-sm text-muted-foreground">Instituto Nacional de Investigación Agropecuaria</p>
+                                </div>
+                            </div>
+
+                            {/* Card 1: Fecha y Datos en Gramos */}
+                            <Card className="border-0 shadow-sm">
+                                <CardHeader className="pb-4">
+                                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                                        Fecha y Valores en Gramos
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                        {/* Fecha */}
+                                        <div className="space-y-2 md:col-span-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                                Fecha del análisis *
+                                            </Label>
+                                            <Input
+                                                type="date"
+                                                value={formData.fecha || ""}
+                                                onChange={(e) => handleInputChange("fecha", e.target.value)}
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
                                         </div>
-                                        <div>
-                                            <h4 className="font-semibold text-base">1. Peso Inicial</h4>
-                                            <span className="text-xs text-red-600">* Campo requerido</span>
+
+                                        {/* Peso Inicial */}
+                                        <div className="space-y-2 md:col-span-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Scale className="h-4 w-4 text-muted-foreground" />
+                                                Peso inicial (g) *
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.001"
+                                                value={formData.pesoInicial_g || ""}
+                                                onChange={(e) => handleInputChange("pesoInicial_g", e.target.value)}
+                                                placeholder="0.000"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
                                         </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-sm font-medium">Peso inicial de la muestra (g)</Label>
-                                        <Input
-                                            type="number"
-                                            step="any"
-                                            value={formData.pesoInicial || ""}
-                                            onChange={(e) => handleInputChange("pesoInicial", e.target.value)}
-                                            placeholder="Ej: 100.000"
-                                            className="h-12 text-lg font-medium transition-all duration-200 focus:ring-2 focus:ring-blue-300 bg-white"
-                                        />
-                                        <p className="text-xs text-muted-foreground">
-                                            Peso de la muestra antes de separar los componentes
-                                        </p>
+
+                                        {/* Semilla Pura */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <FlaskConical className="h-4 w-4 text-green-600" />
+                                                Semilla pura (g) *
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.001"
+                                                value={formData.semillaPura_g || ""}
+                                                onChange={(e) => handleInputChange("semillaPura_g", e.target.value)}
+                                                placeholder="0.000"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
+
+                                        {/* Materia Inerte */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Microscope className="h-4 w-4 text-amber-600" />
+                                                Materia inerte (g) *
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.001"
+                                                value={formData.materiaInerte_g || ""}
+                                                onChange={(e) => handleInputChange("materiaInerte_g", e.target.value)}
+                                                placeholder="0.000"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
+
+                                        {/* Otros Cultivos */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <PieChart className="h-4 w-4 text-purple-600" />
+                                                Otros cultivos (g) *
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.001"
+                                                value={formData.otrosCultivos_g || ""}
+                                                onChange={(e) => handleInputChange("otrosCultivos_g", e.target.value)}
+                                                placeholder="0.000"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
+
+                                        {/* Malezas */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Leaf className="h-4 w-4 text-orange-600" />
+                                                Malezas (g) *
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.001"
+                                                value={formData.malezas_g || ""}
+                                                onChange={(e) => handleInputChange("malezas_g", e.target.value)}
+                                                placeholder="0.000"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
+
+                                        {/* Malezas Toleradas */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <CheckCircle2 className="h-4 w-4 text-pink-600" />
+                                                Malezas toleradas (g) *
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.001"
+                                                value={formData.malezasToleradas_g || ""}
+                                                onChange={(e) => handleInputChange("malezasToleradas_g", e.target.value)}
+                                                placeholder="0.000"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
+
+                                        {/* Malezas Tolerancia Cero */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <CheckCircle2 className="h-4 w-4 text-red-600" />
+                                                Malezas tol. cero (g) *
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.001"
+                                                value={formData.malezasTolCero_g || ""}
+                                                onChange={(e) => handleInputChange("malezasTolCero_g", e.target.value)}
+                                                placeholder="0.000"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
+
+                                        {/* Peso Total */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Scale className="h-4 w-4 text-muted-foreground" />
+                                                Peso total (g) *
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.001"
+                                                value={formData.pesoTotal_g || ""}
+                                                onChange={(e) => handleInputChange("pesoTotal_g", e.target.value)}
+                                                placeholder="0.000"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
 
-                            {/* Semilla Pura */}
-                            <CampoPureza
-                                numero="2"
-                                titulo="Semilla Pura"
-                                icono={FlaskConical}
-                                colorClase="green"
-                                campoGramos="semillaPura"
-                                campoPorcentaje="semillaPuraPorcentaje"
-                                campoRedondeado="semillaPuraRedondeado"
-                                requerido
-                                formData={formData}
-                                handleInputChange={handleInputChange}
-                            />
-
-                            {/* Materia Inerte */}
-                            <CampoPureza
-                                numero="3"
-                                titulo="Materia Inerte"
-                                icono={Droplets}
-                                colorClase="amber"
-                                campoGramos="materiaInerte"
-                                campoPorcentaje="materiaInertePorcentaje"
-                                campoRedondeado="materiaInerteRedondeado"
-                                requerido
-                                formData={formData}
-                                handleInputChange={handleInputChange}
-                            />
-
-                            {/* Otros Cultivos */}
-                            <CampoPureza
-                                numero="4"
-                                titulo="Otros Cultivos"
-                                icono={PieChart}
-                                colorClase="purple"
-                                campoGramos="otrosCultivos"
-                                campoPorcentaje="otrosCultivosPorcentaje"
-                                campoRedondeado="otrosCultivosRedondeado"
-                                requerido
-                                formData={formData}
-                                handleInputChange={handleInputChange}
-                            />
-
-                            {/* Malezas */}
-                            <CampoPureza
-                                numero="5"
-                                titulo="Malezas"
-                                icono={Leaf}
-                                colorClase="orange"
-                                campoGramos="malezas"
-                                campoPorcentaje="malezasPorcentaje"
-                                campoRedondeado="malezasRedondeado"
-                                requerido
-                                formData={formData}
-                                handleInputChange={handleInputChange}
-                            />
-
-                            {/* Malezas Toleradas */}
-                            <CampoPureza
-                                numero="6"
-                                titulo="Malezas Toleradas"
-                                icono={Microscope}
-                                colorClase="pink"
-                                campoGramos="malezasToleridas"
-                                campoPorcentaje="malezasTolerididasPorcentaje"
-                                campoRedondeado="malezasTolerididasRedondeado"
-                                formData={formData}
-                                handleInputChange={handleInputChange}
-                            />
-
-                            {/* Malezas con Tolerancia Cero */}
-                            <CampoPureza
-                                numero="7"
-                                titulo="Malezas con Tolerancia Cero"
-                                icono={AlertTriangle}
-                                colorClase="orange"
-                                campoGramos="malezasToleranciasCero"
-                                campoPorcentaje="malezasToleranciasCeroPorcentaje"
-                                campoRedondeado="malezasToleranciasCeroRedondeado"
-                                formData={formData}
-                                handleInputChange={handleInputChange}
-                            />
-
-                            {/* Peso Total */}
-                            <Card className="border border-purple-300 bg-gradient-to-br from-purple-50 to-purple-100">
-                                <CardContent className="pt-6">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-200">
-                                            <Scale className="h-5 w-5 text-purple-700" />
+                            {/* Card 2: Porcentajes SIN REDONDEO (Calculados Automáticamente) */}
+                            <Card className="border-0 shadow-sm">
+                                <CardHeader className="pb-4">
+                                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                                        <Calculator className="h-4 w-4 text-emerald-600" />
+                                        Porcentajes sin Redondeo (Automático - 4 decimales)
+                                    </CardTitle>
+                                    <p className="text-xs text-muted-foreground mt-1">Calculados automáticamente en tiempo real</p>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {/* Semilla Pura % */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <FlaskConical className="h-4 w-4 text-green-600" />
+                                                Semilla pura (%)
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                value={porcentajes.semillaPura.toFixed(4)}
+                                                readOnly
+                                                className="h-11 bg-emerald-50 border-emerald-300 font-semibold text-emerald-700"
+                                            />
                                         </div>
-                                        <div>
-                                            <h4 className="font-semibold text-base">8. Peso Total</h4>
+
+                                        {/* Materia Inerte % */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Microscope className="h-4 w-4 text-amber-600" />
+                                                Materia inerte (%)
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                value={porcentajes.materiaInerte.toFixed(4)}
+                                                readOnly
+                                                className="h-11 bg-amber-50 border-amber-300 font-semibold text-amber-700"
+                                            />
+                                        </div>
+
+                                        {/* Otros Cultivos % */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <PieChart className="h-4 w-4 text-purple-600" />
+                                                Otros cultivos (%)
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                value={porcentajes.otrosCultivos.toFixed(4)}
+                                                readOnly
+                                                className="h-11 bg-purple-50 border-purple-300 font-semibold text-purple-700"
+                                            />
+                                        </div>
+
+                                        {/* Malezas % */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Leaf className="h-4 w-4 text-orange-600" />
+                                                Malezas (%)
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                value={porcentajes.malezas.toFixed(4)}
+                                                readOnly
+                                                className="h-11 bg-orange-50 border-orange-300 font-semibold text-orange-700"
+                                            />
+                                        </div>
+
+                                        {/* Malezas Toleradas % */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <CheckCircle2 className="h-4 w-4 text-pink-600" />
+                                                Malezas toleradas (%)
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                value={porcentajes.malezasToleradas.toFixed(4)}
+                                                readOnly
+                                                className="h-11 bg-pink-50 border-pink-300 font-semibold text-pink-700"
+                                            />
+                                        </div>
+
+                                        {/* Malezas Tolerancia Cero % */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <CheckCircle2 className="h-4 w-4 text-red-600" />
+                                                Malezas tol. cero (%)
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                value={porcentajes.malezasTolCero.toFixed(4)}
+                                                readOnly
+                                                className="h-11 bg-red-50 border-red-300 font-semibold text-red-700"
+                                            />
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-sm font-medium">Seleccione el peso total utilizado</Label>
-                                        <Select
-                                            value={formData.pesoTotal || ""}
-                                            onValueChange={(value) => handleInputChange("pesoTotal", value)}
+                                </CardContent>
+                            </Card>
+
+                            {/* Card 3: Porcentajes CON REDONDEO (Manual) */}
+                            <Card className="border-0 shadow-sm">
+                                <CardHeader className="pb-4">
+                                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                                        <Percent className="h-4 w-4 text-blue-600" />
+                                        Porcentajes con Redondeo (Manual)
+                                    </CardTitle>
+                                    <p className="text-xs text-muted-foreground mt-1">Ingrese manualmente los valores redondeados. La suma debe ser 100%</p>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {/* Semilla Pura Redondeado */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <FlaskConical className="h-4 w-4 text-green-600" />
+                                                Semilla pura (%)
+                                            </Label>
+                                            <Input
+                                                type={(porcentajes.semillaPura > 0 && porcentajes.semillaPura < 0.05) ? "text" : "number"}
+                                                step="0.01"
+                                                value={(porcentajes.semillaPura > 0 && porcentajes.semillaPura < 0.05) ? "tr" : (formData.redonSemillaPura || "")}
+                                                onChange={(e) => handleInputChange("redonSemillaPura", e.target.value)}
+                                                placeholder={(porcentajes.semillaPura > 0 && porcentajes.semillaPura < 0.05) ? "tr" : "0.00"}
+                                                readOnly={porcentajes.semillaPura > 0 && porcentajes.semillaPura < 0.05}
+                                                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${(porcentajes.semillaPura > 0 && porcentajes.semillaPura < 0.05) ? "bg-muted italic" : ""}`}
+                                            />
+                                        </div>
+
+                                        {/* Materia Inerte Redondeado */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Microscope className="h-4 w-4 text-amber-600" />
+                                                Materia inerte (%)
+                                            </Label>
+                                            <Input
+                                                type={(porcentajes.materiaInerte > 0 && porcentajes.materiaInerte < 0.05) ? "text" : "number"}
+                                                step="0.01"
+                                                value={(porcentajes.materiaInerte > 0 && porcentajes.materiaInerte < 0.05) ? "tr" : (formData.redonMateriaInerte || "")}
+                                                onChange={(e) => handleInputChange("redonMateriaInerte", e.target.value)}
+                                                placeholder={(porcentajes.materiaInerte > 0 && porcentajes.materiaInerte < 0.05) ? "tr" : "0.00"}
+                                                readOnly={porcentajes.materiaInerte > 0 && porcentajes.materiaInerte < 0.05}
+                                                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${(porcentajes.materiaInerte > 0 && porcentajes.materiaInerte < 0.05) ? "bg-muted italic" : ""}`}
+                                            />
+                                        </div>
+
+                                        {/* Otros Cultivos Redondeado */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <PieChart className="h-4 w-4 text-purple-600" />
+                                                Otros cultivos (%)
+                                            </Label>
+                                            <Input
+                                                type={(porcentajes.otrosCultivos > 0 && porcentajes.otrosCultivos < 0.05) ? "text" : "number"}
+                                                step="0.01"
+                                                value={(porcentajes.otrosCultivos > 0 && porcentajes.otrosCultivos < 0.05) ? "tr" : (formData.redonOtrosCultivos || "")}
+                                                onChange={(e) => handleInputChange("redonOtrosCultivos", e.target.value)}
+                                                placeholder={(porcentajes.otrosCultivos > 0 && porcentajes.otrosCultivos < 0.05) ? "tr" : "0.00"}
+                                                readOnly={porcentajes.otrosCultivos > 0 && porcentajes.otrosCultivos < 0.05}
+                                                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${(porcentajes.otrosCultivos > 0 && porcentajes.otrosCultivos < 0.05) ? "bg-muted italic" : ""}`}
+                                            />
+                                        </div>
+
+                                        {/* Malezas Redondeado */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Leaf className="h-4 w-4 text-orange-600" />
+                                                Malezas (%)
+                                            </Label>
+                                            <Input
+                                                type={(porcentajes.malezas > 0 && porcentajes.malezas < 0.05) ? "text" : "number"}
+                                                step="0.01"
+                                                value={(porcentajes.malezas > 0 && porcentajes.malezas < 0.05) ? "tr" : (formData.redonMalezas || "")}
+                                                onChange={(e) => handleInputChange("redonMalezas", e.target.value)}
+                                                placeholder={(porcentajes.malezas > 0 && porcentajes.malezas < 0.05) ? "tr" : "0.00"}
+                                                readOnly={porcentajes.malezas > 0 && porcentajes.malezas < 0.05}
+                                                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${(porcentajes.malezas > 0 && porcentajes.malezas < 0.05) ? "bg-muted italic" : ""}`}
+                                            />
+                                        </div>
+
+                                        {/* Malezas Toleradas Redondeado */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <CheckCircle2 className="h-4 w-4 text-pink-600" />
+                                                Malezas toleradas (%)
+                                            </Label>
+                                            <Input
+                                                type={(porcentajes.malezasToleradas > 0 && porcentajes.malezasToleradas < 0.05) ? "text" : "number"}
+                                                step="0.01"
+                                                value={(porcentajes.malezasToleradas > 0 && porcentajes.malezasToleradas < 0.05) ? "tr" : (formData.redonMalezasToleradas || "")}
+                                                onChange={(e) => handleInputChange("redonMalezasToleradas", e.target.value)}
+                                                placeholder={(porcentajes.malezasToleradas > 0 && porcentajes.malezasToleradas < 0.05) ? "tr" : "0.00"}
+                                                readOnly={porcentajes.malezasToleradas > 0 && porcentajes.malezasToleradas < 0.05}
+                                                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${(porcentajes.malezasToleradas > 0 && porcentajes.malezasToleradas < 0.05) ? "bg-muted italic" : ""}`}
+                                            />
+                                        </div>
+
+                                        {/* Malezas Tolerancia Cero Redondeado */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <CheckCircle2 className="h-4 w-4 text-red-600" />
+                                                Malezas tol. cero (%)
+                                            </Label>
+                                            <Input
+                                                type={(porcentajes.malezasTolCero > 0 && porcentajes.malezasTolCero < 0.05) ? "text" : "number"}
+                                                step="0.01"
+                                                value={(porcentajes.malezasTolCero > 0 && porcentajes.malezasTolCero < 0.05) ? "tr" : (formData.redonMalezasTolCero || "")}
+                                                onChange={(e) => handleInputChange("redonMalezasTolCero", e.target.value)}
+                                                placeholder={(porcentajes.malezasTolCero > 0 && porcentajes.malezasTolCero < 0.05) ? "tr" : "0.00"}
+                                                readOnly={porcentajes.malezasTolCero > 0 && porcentajes.malezasTolCero < 0.05}
+                                                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${(porcentajes.malezasTolCero > 0 && porcentajes.malezasTolCero < 0.05) ? "bg-muted italic" : ""}`}
+                                            />
+                                        </div>
+
+                                        {/* Peso Total Redondeado - AUTO CALCULADO */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Scale className="h-4 w-4 text-blue-600" />
+                                                Peso total (%) - Auto
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                value={redonPesoTotalCalculado}
+                                                readOnly
+                                                className="h-11 bg-blue-50 border-blue-300 font-semibold text-blue-700"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Validación de Suma = 100 */}
+                                    <Alert className={`mt-4 ${sumaPorcentajesRedondeados === "100.00" ? "border-green-300 bg-green-50" : "border-red-300 bg-red-50"}`}>
+                                        <AlertDescription className={sumaPorcentajesRedondeados === "100.00" ? "text-green-800" : "text-red-800"}>
+                                            <div className="flex items-center gap-2 font-semibold">
+                                                {sumaPorcentajesRedondeados === "100.00" ? (
+                                                    <>
+                                                        <CheckCircle2 className="h-4 w-4" />
+                                                        Suma correcta: {sumaPorcentajesRedondeados}%
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <XCircle className="h-4 w-4" />
+                                                        Suma incorrecta: {sumaPorcentajesRedondeados}% (debe ser 100.00%)
+                                                    </>
+                                                )}
+                                            </div>
+                                        </AlertDescription>
+                                    </Alert>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* SECCIÓN INASE */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
+                                    <Building2 className="h-5 w-5 text-blue-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold">INASE</h3>
+                                    <p className="text-sm text-muted-foreground">Instituto Nacional de Semillas</p>
+                                </div>
+                            </div>
+
+                            {/* Card 4: Porcentajes INASE */}
+                            <Card className="border-0 shadow-sm">
+                                <CardHeader className="pb-4">
+                                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                                        <Percent className="h-4 w-4 text-blue-600" />
+                                        Porcentajes INASE
+                                    </CardTitle>
+                                    <p className="text-xs text-muted-foreground mt-1">Ingrese los porcentajes oficiales de INASE</p>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {/* INASE Semilla Pura */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <FlaskConical className="h-4 w-4 text-blue-600" />
+                                                Semilla pura (%)
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                value={formData.inasePura || ""}
+                                                onChange={(e) => handleInputChange("inasePura", e.target.value)}
+                                                placeholder="0.00"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
+
+                                        {/* INASE Materia Inerte */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Microscope className="h-4 w-4 text-blue-600" />
+                                                Materia inerte (%)
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                value={formData.inaseMateriaInerte || ""}
+                                                onChange={(e) => handleInputChange("inaseMateriaInerte", e.target.value)}
+                                                placeholder="0.00"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
+
+                                        {/* INASE Otros Cultivos */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <PieChart className="h-4 w-4 text-blue-600" />
+                                                Otros cultivos (%)
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                value={formData.inaseOtrosCultivos || ""}
+                                                onChange={(e) => handleInputChange("inaseOtrosCultivos", e.target.value)}
+                                                placeholder="0.00"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
+
+                                        {/* INASE Malezas */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Leaf className="h-4 w-4 text-blue-600" />
+                                                Malezas (%)
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                value={formData.inaseMalezas || ""}
+                                                onChange={(e) => handleInputChange("inaseMalezas", e.target.value)}
+                                                placeholder="0.00"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
+
+                                        {/* INASE Malezas Toleradas */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                                                Malezas toleradas (%)
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                value={formData.inaseMalezasToleradas || ""}
+                                                onChange={(e) => handleInputChange("inaseMalezasToleradas", e.target.value)}
+                                                placeholder="0.00"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
+
+                                        {/* INASE Malezas Tolerancia Cero */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <CheckCircle2 className="h-4 w-4 text-red-600" />
+                                                Malezas tol. cero (%)
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                value={formData.inaseMalezasTolCero || ""}
+                                                onChange={(e) => handleInputChange("inaseMalezasTolCero", e.target.value)}
+                                                placeholder="0.00"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
+
+                                        {/* INASE Fecha */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Calendar className="h-4 w-4 text-blue-600" />
+                                                Fecha INASE
+                                            </Label>
+                                            <Input
+                                                type="date"
+                                                value={formData.inaseFecha || ""}
+                                                onChange={(e) => handleInputChange("inaseFecha", e.target.value)}
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* Card 5: Cumple Estándar */}
+                        <Card className="border-0 shadow-sm">
+                            <CardHeader className="pb-4">
+                                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                                    Cumplimiento del Estándar
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Estado de cumplimiento</Label>
+                                    <Select
+                                        value={formData.cumpleEstandar || ""}
+                                        onValueChange={(value) => handleInputChange("cumpleEstandar", value)}
+                                    >
+                                        <SelectTrigger className="w-full h-11 border rounded-md shadow-sm transition-all duration-200 focus:ring-2 focus:ring-primary/20">
+                                            <SelectValue placeholder="Seleccionar estado" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="si">
+                                                <div className="flex items-center gap-2">
+                                                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                                                    Cumple con el estándar
+                                                </div>
+                                            </SelectItem>
+                                            <SelectItem value="no">
+                                                <div className="flex items-center gap-2">
+                                                    <XCircle className="h-4 w-4 text-red-500" />
+                                                    No cumple con el estándar
+                                                </div>
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Mensaje dinámico */}
+                                {formData.cumpleEstandar && (
+                                    <div
+                                        className={`mt-4 rounded-lg border p-4 transition-colors ${formData.cumpleEstandar === "si"
+                                            ? "bg-emerald-50 border-emerald-200"
+                                            : "bg-red-50 border-red-200"
+                                            }`}
+                                    >
+                                        <div
+                                            className={`flex items-center gap-2 ${formData.cumpleEstandar === "si"
+                                                ? "text-emerald-800"
+                                                : "text-red-800"
+                                                }`}
                                         >
-                                            <SelectTrigger className="h-11 bg-white transition-all duration-200 focus:ring-2 focus:ring-purple-300">
-                                                <SelectValue placeholder="Seleccione un peso estándar" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="3.000">3.000 g</SelectItem>
-                                                <SelectItem value="5.000">5.000 g</SelectItem>
-                                                <SelectItem value="10.000">10.000 g</SelectItem>
-                                                <SelectItem value="25.000">25.000 g</SelectItem>
-                                                <SelectItem value="50.000">50.000 g</SelectItem>
-                                                <SelectItem value="100.000">100.000 g</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            {/* Alerta Diferencia de Peso */}
-                            <Card className={`border ${calcularDiferenciaPeso.esAlerta
-                                ? 'border-red-300 bg-gradient-to-br from-red-50 to-red-100'
-                                : 'border-green-300 bg-gradient-to-br from-green-50 to-green-100'
-                                }`}>
-                                <CardContent className="pt-6">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${calcularDiferenciaPeso.esAlerta ? 'bg-red-200' : 'bg-green-200'
-                                            }`}>
-                                            <AlertTriangle className={`h-5 w-5 ${calcularDiferenciaPeso.esAlerta ? 'text-red-700' : 'text-green-700'
-                                                }`} />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold text-base">9. Alerta Diferencia de Peso</h4>
-                                            <span className="text-xs text-muted-foreground">Cálculo automático</span>
-                                        </div>
-                                    </div>
-
-                                    {calcularDiferenciaPeso.mostrarCalculo ? (
-                                        <div className="space-y-3">
-                                            {/* Resumen visual */}
-                                            <Alert className={`${calcularDiferenciaPeso.esAlerta
-                                                ? 'border-red-400 bg-red-100'
-                                                : 'border-green-400 bg-green-100'
-                                                }`}>
-                                                <AlertDescription className={
-                                                    calcularDiferenciaPeso.esAlerta ? 'text-red-900' : 'text-green-900'
-                                                }>
-                                                    <div className="font-semibold text-lg mb-2">
-                                                        {calcularDiferenciaPeso.mensaje}
-                                                    </div>
-                                                    <div className="space-y-1 text-sm">
-                                                        <p>• Peso inicial: <strong>{formData.pesoInicial || '0'} g</strong></p>
-                                                        <p>• Total componentes: <strong>{calcularDiferenciaPeso.totalComponentes} g</strong></p>
-                                                        <p>• Diferencia: <strong>{calcularDiferenciaPeso.diferencia} g</strong></p>
-                                                    </div>
-                                                </AlertDescription>
-                                            </Alert>
-
-                                            {/* Fórmula detallada */}
-                                            <div className="p-3 bg-white rounded-lg border border-gray-200">
-                                                <Label className="text-xs font-medium text-gray-600 mb-1 block">
-                                                    Fórmula de cálculo:
-                                                </Label>
-                                                <code className="text-sm font-mono text-gray-800 break-all">
-                                                    {calcularDiferenciaPeso.formula}
-                                                </code>
-                                            </div>
-
-                                            {/* Campo manual opcional */}
-                                            <div className="space-y-2">
-                                                <Label className="text-sm font-medium">
-                                                    Notas adicionales (opcional)
-                                                </Label>
-                                                <Input
-                                                    type="text"
-                                                    value={formData.alertaDiferenciaPeso || ""}
-                                                    onChange={(e) => handleInputChange("alertaDiferenciaPeso", e.target.value)}
-                                                    placeholder="Ingrese observaciones adicionales si es necesario..."
-                                                    className={`h-11 transition-all duration-200 ${calcularDiferenciaPeso.esAlerta
-                                                        ? 'focus:ring-2 focus:ring-red-300'
-                                                        : 'focus:ring-2 focus:ring-green-300'
-                                                        } bg-white`}
-                                                />
-                                            </div>
-
-                                            {calcularDiferenciaPeso.esAlerta && (
-                                                <Alert className="border-amber-300 bg-amber-50">
-                                                    <AlertTriangle className="h-4 w-4 text-amber-600" />
-                                                    <AlertDescription className="text-amber-900 text-sm">
-                                                        <strong>Recomendación:</strong> La diferencia es ≥5%.
-                                                        Por favor, verifique los valores ingresados o documente la razón de la diferencia.
-                                                    </AlertDescription>
-                                                </Alert>
+                                            {formData.cumpleEstandar === "si" ? (
+                                                <>
+                                                    <CheckCircle2 className="h-4 w-4" />
+                                                    <span className="font-semibold">La muestra cumple con los estándares establecidos</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <XCircle className="h-4 w-4" />
+                                                    <span className="font-semibold">La muestra NO cumple con los estándares establecidos</span>
+                                                </>
                                             )}
                                         </div>
-                                    ) : (
-                                        <Alert className="border-gray-300 bg-gray-50">
-                                            <AlertDescription className="text-gray-600">
-                                                {calcularDiferenciaPeso.mensaje}
-                                            </AlertDescription>
-                                        </Alert>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </TabsContent>
-
-                    {/* TAB: INIA Porcentajes */}
-                    <TabsContent value="inia-porcentajes" className="space-y-6">
-                        <div className="space-y-4">
-                            <Alert className="border-emerald-300 bg-emerald-50">
-                                <Building2 className="h-4 w-4 text-emerald-600" />
-                                <AlertDescription className="text-emerald-800">
-                                    <strong>INIA - Instituto Nacional de Investigación Agropecuaria</strong>
-                                    <br />
-                                    Ingrese los porcentajes oficiales para el registro de INIA
-                                </AlertDescription>
-                            </Alert>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Card className="border-emerald-200 bg-emerald-50">
-                                    <CardContent className="pt-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <FlaskConical className="h-5 w-5 text-emerald-600" />
-                                            <Label className="text-sm font-medium text-emerald-900">Semilla pura (%)</Label>
-                                        </div>
-                                        <Input
-                                            type="number"
-                                            step="any"
-                                            value={formData.iniaSemillaPuraPorcentaje || ""}
-                                            onChange={(e) => handleInputChange("iniaSemillaPuraPorcentaje", e.target.value)}
-                                            placeholder="0.00"
-                                            className="h-11 bg-white border-emerald-300 transition-all duration-200 focus:ring-2 focus:ring-emerald-300"
-                                        />
-                                    </CardContent>
-                                </Card>
-
-                                <Card className="border-emerald-200 bg-emerald-50">
-                                    <CardContent className="pt-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <BarChartHorizontal className="h-5 w-5 text-emerald-600" />
-                                            <Label className="text-sm font-medium text-emerald-900">Materia inerte (%)</Label>
-                                        </div>
-                                        <Input
-                                            type="number"
-                                            step="any"
-                                            value={formData.iniaMateriaInertePorcentaje || ""}
-                                            onChange={(e) => handleInputChange("iniaMateriaInertePorcentaje", e.target.value)}
-                                            placeholder="0.00"
-                                            className="h-11 bg-white border-emerald-300 transition-all duration-200 focus:ring-2 focus:ring-emerald-300"
-                                        />
-                                    </CardContent>
-                                </Card>
-
-                                <Card className="border-emerald-200 bg-emerald-50">
-                                    <CardContent className="pt-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <PieChart className="h-5 w-5 text-emerald-600" />
-                                            <Label className="text-sm font-medium text-emerald-900">Otros cultivos (%)</Label>
-                                        </div>
-                                        <Input
-                                            type="number"
-                                            step="any"
-                                            value={formData.iniaOtrosCultivosPorcentaje || ""}
-                                            onChange={(e) => handleInputChange("iniaOtrosCultivosPorcentaje", e.target.value)}
-                                            placeholder="0.00"
-                                            className="h-11 bg-white border-emerald-300 transition-all duration-200 focus:ring-2 focus:ring-emerald-300"
-                                        />
-                                    </CardContent>
-                                </Card>
-
-                                <Card className="border-emerald-200 bg-emerald-50">
-                                    <CardContent className="pt-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Microscope className="h-5 w-5 text-emerald-600" />
-                                            <Label className="text-sm font-medium text-emerald-900">Malezas (%)</Label>
-                                        </div>
-                                        <Input
-                                            type="number"
-                                            step="any"
-                                            value={formData.iniaMalezasPorcentaje || ""}
-                                            onChange={(e) => handleInputChange("iniaMalezasPorcentaje", e.target.value)}
-                                            placeholder="0.00"
-                                            className="h-11 bg-white border-emerald-300 transition-all duration-200 focus:ring-2 focus:ring-emerald-300"
-                                        />
-                                    </CardContent>
-                                </Card>
-
-                                <Card className="border-emerald-200 bg-emerald-50">
-                                    <CardContent className="pt-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                                            <Label className="text-sm font-medium text-emerald-900">Malezas toleradas (%)</Label>
-                                        </div>
-                                        <Input
-                                            type="number"
-                                            step="any"
-                                            value={formData.iniaMalezasTolerididasPorcentaje || ""}
-                                            onChange={(e) => handleInputChange("iniaMalezasTolerididasPorcentaje", e.target.value)}
-                                            placeholder="0.00"
-                                            className="h-11 bg-white border-emerald-300 transition-all duration-200 focus:ring-2 focus:ring-emerald-300"
-                                        />
-                                    </CardContent>
-                                </Card>
-
-                                <Card className="border-emerald-200 bg-emerald-50">
-                                    <CardContent className="pt-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <AlertTriangle className="h-5 w-5 text-emerald-600" />
-                                            <Label className="text-sm font-medium text-emerald-900">Malezas tolerancia cero (%)</Label>
-                                        </div>
-                                        <Input
-                                            type="number"
-                                            step="any"
-                                            value={formData.iniaMalezasToleranciasCeroPorcentaje || ""}
-                                            onChange={(e) => handleInputChange("iniaMalezasToleranciasCeroPorcentaje", e.target.value)}
-                                            placeholder="0.00"
-                                            className="h-11 bg-white border-emerald-300 transition-all duration-200 focus:ring-2 focus:ring-emerald-300"
-                                        />
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </div>
-                    </TabsContent>
-
-                    {/* TAB: INASE Porcentajes */}
-                    <TabsContent value="inase-porcentajes" className="space-y-6">
-                        <div className="space-y-4">
-                            <Alert className="border-indigo-300 bg-indigo-50">
-                                <Building2 className="h-4 w-4 text-indigo-600" />
-                                <AlertDescription className="text-indigo-800">
-                                    <strong>INASE - Instituto Nacional de Semillas</strong>
-                                    <br />
-                                    Ingrese los porcentajes oficiales para el registro de INASE
-                                </AlertDescription>
-                            </Alert>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Card className="border-indigo-200 bg-indigo-50">
-                                    <CardContent className="pt-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <FlaskConical className="h-5 w-5 text-indigo-600" />
-                                            <Label className="text-sm font-medium text-indigo-900">Semilla pura (%)</Label>
-                                        </div>
-                                        <Input
-                                            type="number"
-                                            step="any"
-                                            value={formData.inaseSemillaPuraPorcentaje || ""}
-                                            onChange={(e) => handleInputChange("inaseSemillaPuraPorcentaje", e.target.value)}
-                                            placeholder="0.00"
-                                            className="h-11 bg-white border-indigo-300 transition-all duration-200 focus:ring-2 focus:ring-indigo-300"
-                                        />
-                                    </CardContent>
-                                </Card>
-
-                                <Card className="border-indigo-200 bg-indigo-50">
-                                    <CardContent className="pt-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <BarChartHorizontal className="h-5 w-5 text-indigo-600" />
-                                            <Label className="text-sm font-medium text-indigo-900">Materia inerte (%)</Label>
-                                        </div>
-                                        <Input
-                                            type="number"
-                                            step="any"
-                                            value={formData.inaseMateriaInertePorcentaje || ""}
-                                            onChange={(e) => handleInputChange("inaseMateriaInertePorcentaje", e.target.value)}
-                                            placeholder="0.00"
-                                            className="h-11 bg-white border-indigo-300 transition-all duration-200 focus:ring-2 focus:ring-indigo-300"
-                                        />
-                                    </CardContent>
-                                </Card>
-
-                                <Card className="border-indigo-200 bg-indigo-50">
-                                    <CardContent className="pt-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <PieChart className="h-5 w-5 text-indigo-600" />
-                                            <Label className="text-sm font-medium text-indigo-900">Otros cultivos (%)</Label>
-                                        </div>
-                                        <Input
-                                            type="number"
-                                            step="any"
-                                            value={formData.inaseOtrosCultivosPorcentaje || ""}
-                                            onChange={(e) => handleInputChange("inaseOtrosCultivosPorcentaje", e.target.value)}
-                                            placeholder="0.00"
-                                            className="h-11 bg-white border-indigo-300 transition-all duration-200 focus:ring-2 focus:ring-indigo-300"
-                                        />
-                                    </CardContent>
-                                </Card>
-
-                                <Card className="border-indigo-200 bg-indigo-50">
-                                    <CardContent className="pt-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Microscope className="h-5 w-5 text-indigo-600" />
-                                            <Label className="text-sm font-medium text-indigo-900">Malezas (%)</Label>
-                                        </div>
-                                        <Input
-                                            type="number"
-                                            step="any"
-                                            value={formData.inaseMalezasPorcentaje || ""}
-                                            onChange={(e) => handleInputChange("inaseMalezasPorcentaje", e.target.value)}
-                                            placeholder="0.00"
-                                            className="h-11 bg-white border-indigo-300 transition-all duration-200 focus:ring-2 focus:ring-indigo-300"
-                                        />
-                                    </CardContent>
-                                </Card>
-
-                                <Card className="border-indigo-200 bg-indigo-50">
-                                    <CardContent className="pt-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <CheckCircle2 className="h-5 w-5 text-indigo-600" />
-                                            <Label className="text-sm font-medium text-indigo-900">Malezas toleradas (%)</Label>
-                                        </div>
-                                        <Input
-                                            type="number"
-                                            step="any"
-                                            value={formData.inaseMalezasTolerididasPorcentaje || ""}
-                                            onChange={(e) => handleInputChange("inaseMalezasTolerididasPorcentaje", e.target.value)}
-                                            placeholder="0.00"
-                                            className="h-11 bg-white border-indigo-300 transition-all duration-200 focus:ring-2 focus:ring-indigo-300"
-                                        />
-                                    </CardContent>
-                                </Card>
-
-                                <Card className="border-indigo-200 bg-indigo-50">
-                                    <CardContent className="pt-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <AlertTriangle className="h-5 w-5 text-indigo-600" />
-                                            <Label className="text-sm font-medium text-indigo-900">Malezas tolerancia cero (%)</Label>
-                                        </div>
-                                        <Input
-                                            type="number"
-                                            step="any"
-                                            value={formData.inaseMalezasToleranciasCeroPorcentaje || ""}
-                                            onChange={(e) => handleInputChange("inaseMalezasToleranciasCeroPorcentaje", e.target.value)}
-                                            placeholder="0.00"
-                                            className="h-11 bg-white border-indigo-300 transition-all duration-200 focus:ring-2 focus:ring-indigo-300"
-                                        />
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </div>
-                    </TabsContent>
-
-                    {/* TAB: Detalle de Malezas */}
-                    <TabsContent value="detalle-malezas" className="space-y-6">
-                        <Alert className="border-blue-300 bg-blue-50">
-                            <Microscope className="h-4 w-4 text-blue-600" />
-                            <AlertDescription className="text-blue-800">
-                                Esta sección permite registrar el detalle específico de las malezas encontradas
-                                durante el análisis de pureza física.
-                            </AlertDescription>
-                        </Alert>
-
-                        <MalezaFields
-                            titulo="Identificación Detallada de Malezas"
-                            registros={[]}
-                            onChangeListados={onChangeMalezas}
-                        />
-                    </TabsContent>
-
-                    {/* TAB: Observaciones */}
-                    <TabsContent value="observaciones" className="space-y-6">
-                        <Card className="border-blue-200 bg-blue-50">
-                            <CardContent className="pt-6">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-200">
-                                        <MessageCircle className="h-5 w-5 text-blue-700" />
                                     </div>
-                                    <div>
-                                        <h4 className="font-semibold text-base">Observaciones del Análisis</h4>
-                                        <p className="text-xs text-muted-foreground">Campo opcional para notas adicionales</p>
-                                    </div>
-                                </div>
-                                <Textarea
-                                    placeholder="Ingrese observaciones específicas del análisis de pureza física, condiciones especiales, particularidades encontradas u otra información relevante..."
-                                    value={formData.observaciones || ""}
-                                    onChange={(e) => handleInputChange("observaciones", e.target.value)}
-                                    rows={10}
-                                    className="resize-y min-h-[200px] transition-all duration-200 focus:ring-2 focus:ring-blue-200 bg-white"
-                                />
+                                )}
                             </CardContent>
                         </Card>
+                    </TabsContent>
+
+                    <TabsContent value="registros" className="space-y-6">
+                        <MalezaFields titulo="Malezas" registros={formData.malezas && formData.malezas.length > 0 ? formData.malezas : undefined} onChangeListados={onChangeMalezas} />
+                        <OtrosCultivosFields registros={formData.cultivos && formData.cultivos.length > 0 ? formData.cultivos : undefined} onChangeListados={onChangeCultivos} />
+                        <BrassicaFields registros={formData.brassicas && formData.brassicas.length > 0 ? formData.brassicas : undefined} onChangeListados={onChangeBrassicas} />
                     </TabsContent>
                 </Tabs>
             </CardContent>
