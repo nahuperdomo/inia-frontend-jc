@@ -13,8 +13,8 @@ RUN npm install -g pnpm && pnpm install --frozen-lockfile
 FROM dependencies AS development
 # Copiar archivos de configuración
 COPY tsconfig.json next.config.mjs components.json .
-# Comando para desarrollo
-CMD ["pnpm", "dev"]
+# Comando para desarrollo - escuchar en todas las interfaces
+CMD ["pnpm", "dev", "--hostname", "0.0.0.0"]
 
 # Etapa de construcción
 FROM dependencies AS builder
@@ -37,5 +37,9 @@ COPY --from=builder /app/public ./public
 # Exponer el puerto
 EXPOSE 3000
 
-# Comando para iniciar en producción
+# Comando para iniciar en producción - escuchar en todas las interfaces
 CMD ["node", "server.js"]
+
+# Variables de entorno para que Next.js escuche en 0.0.0.0
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=3000
