@@ -240,11 +240,11 @@ export function DialogExportarConFiltros() {
                 <div className="flex flex-wrap gap-2">
                   {resumen.tieneFiltros ? (
                     <Badge variant="default" className="text-xs">
-                      ✓ Exportación filtrada
+                      Exportación filtrada
                     </Badge>
                   ) : (
                     <Badge variant="secondary" className="text-xs">
-                      ⚠️ Exportación completa (sin filtros)
+                      Exportación completa (sin filtros)
                     </Badge>
                   )}
                 </div>
