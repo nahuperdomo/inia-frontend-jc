@@ -889,48 +889,49 @@ export default function RegistroAnalisisPage() {
   const selectedLoteInfo = selectedLote ? lotes.find((l) => l.loteID.toString() === selectedLote) : null
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
       <Toaster position="top-right" richColors closeButton />
-      <div className="flex items-center gap-4">
-        <Link href="/registro">
-          <Button variant="ghost" size="sm">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <Link href="/registro" className="sm:self-start">
+          <Button variant="ghost" size="sm" className="w-fit">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver a Registro
+            <span className="hidden sm:inline">Volver a Registro</span>
+            <span className="sm:hidden">Volver</span>
           </Button>
         </Link>
-        <div>
-          <h1 className="text-3xl font-bold">Registro de Análisis</h1>
-          <p className="text-muted-foreground">Registra nuevos análisis para lotes existentes en el sistema</p>
+        <div className="text-center sm:text-left flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold">Registro de Análisis</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Registra nuevos análisis para lotes existentes en el sistema</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Seleccionar Tipo de Análisis</CardTitle>
-          <p className="text-sm text-muted-foreground">Elige el tipo de análisis que deseas registrar</p>
+          <CardTitle className="text-lg sm:text-xl">Seleccionar Tipo de Análisis</CardTitle>
+          <p className="text-xs sm:text-sm text-muted-foreground">Elige el tipo de análisis que deseas registrar</p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {analysisTypes.map((type) => {
               const IconComponent = type.icon
               const isSelected = selectedAnalysisType === type.id
               return (
                 <div
                   key={type.id}
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${isSelected ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                  className={`border-2 rounded-lg p-3 sm:p-4 cursor-pointer transition-all hover:shadow-md ${isSelected ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:border-gray-300"
                     }`}
                   onClick={() => {
                     setSelectedAnalysisType(type.id);
                   }}
                 >
-                  <div className="flex items-center gap-3 mb-2">
-                    <IconComponent className={`h-5 w-5 ${isSelected ? "text-blue-600" : "text-gray-500"}`} />
-                    <h3 className="font-semibold">{type.name}</h3>
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                    <IconComponent className={`h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 ${isSelected ? "text-blue-600" : "text-gray-500"}`} />
+                    <h3 className="font-semibold text-sm sm:text-base">{type.name}</h3>
                     {isSelected && (
-                      <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">Seleccionado</span>
+                      <span className="text-xs px-2 py-0.5 sm:py-1 rounded-full bg-blue-100 text-blue-700 whitespace-nowrap ml-auto">Seleccionado</span>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{type.description}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{type.description}</p>
                 </div>
               )
             })}
@@ -940,14 +941,14 @@ export default function RegistroAnalisisPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Detalles del Análisis</CardTitle>
-          <p className="text-sm text-muted-foreground">Completa la información para registrar el análisis</p>
+          <CardTitle className="text-lg sm:text-xl">Detalles del Análisis</CardTitle>
+          <p className="text-xs sm:text-sm text-muted-foreground">Completa la información para registrar el análisis</p>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CardContent className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="lote">Lote a Analizar</Label>
+                <Label htmlFor="lote" className="text-sm sm:text-base">Lote a Analizar</Label>
                 <Select
                   value={selectedLote}
                   onValueChange={(value) => {
@@ -964,7 +965,7 @@ export default function RegistroAnalisisPage() {
                   }}
                   disabled={!selectedAnalysisType}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base">
                     <SelectValue
                       placeholder={
                         !selectedAnalysisType
@@ -990,55 +991,54 @@ export default function RegistroAnalisisPage() {
                 </Select>
               </div>
 
-              {selectedAnalysisType !== "PUREZA" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="observaciones">Observaciones</Label>
-                    <Textarea
-                      id="observaciones"
-                      placeholder="Observaciones adicionales sobre el análisis..."
-                      value={formData.observaciones}
-                      onChange={(e) => handleInputChange("observaciones", e.target.value)}
-                      rows={4}
-                    />
-                  </div>
+              <div className="w-full">
+                <div>
+                  <Label htmlFor="observaciones" className="text-sm sm:text-base">Observaciones</Label>
+                  <Textarea
+                    id="observaciones"
+                    placeholder="Observaciones adicionales sobre el análisis..."
+                    value={formData.observaciones}
+                    onChange={(e) => handleInputChange("observaciones", e.target.value)}
+                    rows={4}
+                    className="text-sm sm:text-base"
+                  />
                 </div>
-              )}
+              </div>
             </div>
 
             <div className="space-y-4">
               {selectedLoteInfo && (
                 <Card className="bg-gray-50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm">Información del Lote</CardTitle>
+                  <CardHeader className="pb-2 sm:pb-3">
+                    <CardTitle className="text-sm sm:text-base">Información del Lote</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span className="text-muted-foreground">Ficha:</span>
                       <span className="font-medium">{selectedLoteInfo.ficha}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span className="text-muted-foreground">ID:</span>
                       <span>{selectedLoteInfo.loteID}</span>
                     </div>
                     {selectedLoteInfo.cultivarNombre && (
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-xs sm:text-sm">
                         <span className="text-muted-foreground">Cultivar:</span>
-                        <span>{selectedLoteInfo.cultivarNombre}</span>
+                        <span className="break-words text-right">{selectedLoteInfo.cultivarNombre}</span>
                       </div>
                     )}
                     {selectedLoteInfo.especieNombre && (
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-xs sm:text-sm">
                         <span className="text-muted-foreground">Especie:</span>
-                        <span>{selectedLoteInfo.especieNombre}</span>
+                        <span className="break-words text-right">{selectedLoteInfo.especieNombre}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span className="text-muted-foreground">Activo:</span>
                       <span>{selectedLoteInfo.activo ? "Sí" : "No"}</span>
                     </div>
                     {selectedAnalysisType && (
-                      <div className="mt-3 pt-3 border-t">
+                      <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t">
                         <div className="text-xs text-green-600 font-medium mb-1">
                           ✅ Este lote es elegible para {getAnalysisTypeName(selectedAnalysisType)}
                         </div>
@@ -1054,20 +1054,20 @@ export default function RegistroAnalisisPage() {
               {/* Información sobre filtrado de lotes */}
               {selectedAnalysisType && (
                 <Card className="bg-blue-50 border-blue-200">
-                  <CardContent className="pt-4">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-200">
-                        <TestTube className="h-4 w-4 text-blue-700" />
+                  <CardContent className="pt-3 sm:pt-4">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="flex h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-200">
+                        <TestTube className="h-3 w-3 sm:h-4 sm:w-4 text-blue-700" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-medium text-blue-900 mb-2">Filtrado de Lotes Elegibles</h4>
-                        <div className="space-y-1 text-sm text-blue-800">
+                        <h4 className="font-medium text-blue-900 mb-1 sm:mb-2 text-sm sm:text-base">Filtrado de Lotes Elegibles</h4>
+                        <div className="space-y-1 text-xs sm:text-sm text-blue-800">
                           <div>• Solo se muestran lotes que tienen {getAnalysisTypeName(selectedAnalysisType)} asignado</div>
                           <div>• Excluye lotes con análisis completados de este tipo</div>
                           <div>• Incluye lotes con análisis "A repetir" del mismo tipo</div>
                           {lotes.length === 0 && !lotesLoading && (
                             <div className="text-amber-700 font-medium mt-2">
-                              ⚠️ No hay lotes elegibles disponibles
+                              No hay lotes elegibles disponibles
                             </div>
                           )}
                         </div>
@@ -1124,17 +1124,17 @@ export default function RegistroAnalisisPage() {
             />
           )}
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 pt-4">
             <Button
               variant="outline"
-              className="w-full sm:flex-1 bg-transparent"
+              className="w-full sm:flex-1 bg-transparent text-sm sm:text-base"
               disabled={loading}
               onClick={() => window.history.back()}
             >
               Cancelar
             </Button>
             <Button
-              className="w-full sm:flex-1 bg-green-700 hover:bg-green-700"
+              className="w-full sm:flex-1 bg-green-700 hover:bg-green-700 text-sm sm:text-base"
               onClick={handleSubmit}
               disabled={loading}
             >
