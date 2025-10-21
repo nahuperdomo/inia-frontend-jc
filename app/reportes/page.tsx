@@ -407,7 +407,7 @@ export default function ReportesPage() {
                 <div className="p-4 bg-background rounded-lg border">
                   <h4 className="font-medium mb-2">Exportación con Filtros Avanzados</h4>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Configura filtros personalizados por fecha, tipo de análisis y estado
+                    Configura filtros personalizados por fecha, tipo de análisis y estado con vista previa
                   </p>
                   <DialogExportarConFiltros />
                 </div>
@@ -423,6 +423,8 @@ export default function ReportesPage() {
                     <li>✓ Metadatos incluidos (fecha, filtros aplicados)</li>
                     <li>✓ Datos validados y estructurados</li>
                     <li>✓ Compatible con Excel 2007+</li>
+                    <li>✓ Vista previa de filtros antes de exportar</li>
+                    <li>✓ Advertencias de exportaciones grandes</li>
                   </ul>
                 </div>
               </div>
