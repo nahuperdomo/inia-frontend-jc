@@ -71,11 +71,11 @@ export interface RegistroUsuarioRequest {
 }
 
 export interface AprobarUsuarioRequest {
-  rolID: number;
+  rol: string; // Enum Rol del backend: "ADMIN", "ANALISTA", "OBSERVADOR"
 }
 
 export interface GestionarUsuarioRequest {
-  rolID?: number;
+  rol?: string; // Enum Rol del backend: "ADMIN", "ANALISTA", "OBSERVADOR"
   activo?: boolean;
 }
 

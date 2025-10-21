@@ -18,55 +18,12 @@ export async function crearPureza(solicitud: PurezaRequestDTO): Promise<PurezaDT
 export async function obtenerTodasPurezasActivas(): Promise<PurezaDTO[]> {
   console.log("🔍 Iniciando petición para obtener purezas...")
   try {
-    // Intentamos directamente con el endpoint exacto que vemos en Swagger
     console.log("🔄 Realizando petición a: /api/purezas");
-
-    // Llamada directa a fetch para tener más control sobre los detalles
-    const token = localStorage.getItem("token");
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-
-    console.log(`🔑 Token disponible: ${token ? "Sí" : "No"}`);
-    console.log(`🌐 URL completa: ${API_BASE_URL}/api/purezas`);
-
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-    };
-
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    console.log("📤 Headers:", headers);
-
-    const res = await fetch(`${API_BASE_URL}/api/purezas`, {
+    
+    // Usar apiFetch que maneja cookies HttpOnly automáticamente
+    const data = await apiFetch("/api/purezas", {
       method: "GET",
-      headers,
-      credentials: "include"
     });
-
-    console.log(`📥 Status: ${res.status} ${res.statusText}`);
-    console.log(`📥 Headers:`, Object.fromEntries(res.headers.entries()));
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error(`❌ Error response:`, errorText);
-
-      // Intentar parsear como JSON si es posible
-      try {
-        if (errorText && errorText.trim().startsWith('{')) {
-          const errorJson = JSON.parse(errorText);
-          console.error('❌ Error JSON:', errorJson);
-        }
-      } catch (e) {
-        // Si no se puede parsear, usar el texto como está
-      }
-
-      throw new Error(`Error ${res.status}: ${errorText}`);
-    }
-
-    const contentType = res.headers.get("content-type");
-    const data = contentType?.includes("application/json") ? await res.json() : await res.text();
 
     console.log("✅ Datos recibidos:", data);
 

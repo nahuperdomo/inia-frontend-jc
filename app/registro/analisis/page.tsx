@@ -686,11 +686,11 @@ export default function RegistroAnalisisPage() {
     }
 
     try {
-      // Verificar cookies
+      // Verificar cookies (debug)
       const cookies = document.cookie;
       console.log("Cookies disponibles:", cookies);
-      const tokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
-      console.log("Token en cookies:", tokenCookie ? "✅ Existe" : "❌ No existe");
+      const accessTokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('accessToken='));
+      console.log("accessToken en cookies:", accessTokenCookie ? "✅ Existe" : "❌ No existe");
 
       console.log("Enviando payload:", payload);
 

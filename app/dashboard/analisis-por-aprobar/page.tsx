@@ -52,11 +52,35 @@ export default function AnalisisPorAprobarPage() {
         const perfil = await obtenerPerfil()
         console.log("🔍 Análisis por Aprobar - Perfil obtenido:", perfil)
         
-        const role = perfil.roles && perfil.roles.length > 0 ? perfil.roles[0] : null
-        console.log("🔍 Análisis por Aprobar - Rol detectado:", role)
-        setUserRole(role)
+        // Extraer rol usando la misma lógica robusta del dashboard
+        let roleFromBackend: string | null = null
+        try {
+          const p: any = perfil
+          if (typeof p === 'object' && p !== null) {
+            if (typeof p.rol === 'string' && p.rol.trim().length > 0) {
+              roleFromBackend = p.rol
+            } else if (typeof p.role === 'string' && p.role.trim().length > 0) {
+              roleFromBackend = p.role
+            } else if (p.usuario) {
+              if (Array.isArray(p.usuario.roles) && p.usuario.roles.length > 0) {
+                roleFromBackend = String(p.usuario.roles[0])
+              } else if (typeof p.usuario.rol === 'string' && p.usuario.rol.trim().length > 0) {
+                roleFromBackend = p.usuario.rol
+              }
+            }
+          }
+        } catch (extractErr) {
+          console.warn('⚠️ Análisis por Aprobar - Error extrayendo rol:', extractErr)
+        }
         
-        const isAdmin = role?.trim().toUpperCase() === "ADMIN"
+        // Normalizar y quitar el prefijo ROLE_ si existe
+        if (roleFromBackend) {
+          roleFromBackend = roleFromBackend.trim().replace(/^ROLE_/, '')
+        }
+        console.log("🔍 Análisis por Aprobar - Rol detectado:", roleFromBackend)
+        setUserRole(roleFromBackend)
+        
+        const isAdmin = roleFromBackend?.toUpperCase() === "ADMIN"
         console.log("🔍 Análisis por Aprobar - Es admin?:", isAdmin)
         
         if (!isAdmin) {

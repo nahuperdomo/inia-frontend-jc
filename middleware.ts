@@ -2,19 +2,19 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-    // Obtenemos el token de las cookies
-    const token = request.cookies.get('token')?.value
+    // Obtenemos el accessToken de las cookies HttpOnly
+    const accessToken = request.cookies.get('accessToken')?.value
 
-    // Si la ruta es /login y hay token, redirigimos al dashboard
-    if (request.nextUrl.pathname === '/login' && token) {
+    // Si la ruta es /login y hay accessToken, redirigimos al dashboard
+    if (request.nextUrl.pathname === '/login' && accessToken) {
         return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
     // Lista de rutas públicas que no requieren autenticación
     const publicRoutes = ['/login', '/registro/usuario'];
 
-    // Si no hay token y no estamos en una ruta pública, redirigimos a /login
-    if (!token && !publicRoutes.includes(request.nextUrl.pathname)) {
+    // Si no hay accessToken y no estamos en una ruta pública, redirigimos a /login
+    if (!accessToken && !publicRoutes.includes(request.nextUrl.pathname)) {
         return NextResponse.redirect(new URL('/login', request.url))
     }
 

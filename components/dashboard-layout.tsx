@@ -42,14 +42,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleLogout = async () => {
     try {
-      // Eliminar token de las cookies
-      if (typeof document !== 'undefined') {
-        // Eliminar cookie del token
-        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+      // Llamar al endpoint de logout del backend para limpiar cookies HttpOnly
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      
+      try {
+        await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
+          method: "POST",
+          credentials: "include" // Importante para enviar cookies HttpOnly
+        });
+      } catch (error) {
+        console.error('Error al llamar a logout del backend:', error);
+        // Continuar con el logout del frontend aunque falle el backend
+      }
 
-        // También eliminar cualquier otra información de sesión que pueda estar almacenada
-        localStorage.removeItem('user')
-        sessionStorage.clear()
+      // Limpiar datos locales (no sensibles)
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('usuario');
+        sessionStorage.clear();
       }
 
       // Mostrar mensaje de confirmación

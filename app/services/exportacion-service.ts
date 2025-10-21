@@ -8,21 +8,13 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
  * Exporta todos los lotes activos o lotes específicos a Excel
  */
 export async function exportarLotesExcel(loteIds?: number[]): Promise<Blob> {
-  const token = localStorage.getItem('token');
-  
-  if (!token) {
-    throw new Error('No hay token de autenticación');
-  }
-
   const params = loteIds && loteIds.length > 0 
     ? `?loteIds=${loteIds.join(',')}` 
     : '';
 
   const response = await fetch(`${API_BASE_URL}/api/exportaciones/excel${params}`, {
     method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
+    credentials: 'include', // Envía cookies HttpOnly automáticamente
   });
 
   if (!response.ok) {
@@ -37,17 +29,9 @@ export async function exportarLotesExcel(loteIds?: number[]): Promise<Blob> {
  * Exporta un lote específico a Excel
  */
 export async function exportarLoteEspecificoExcel(loteId: number): Promise<Blob> {
-  const token = localStorage.getItem('token');
-  
-  if (!token) {
-    throw new Error('No hay token de autenticación');
-  }
-
   const response = await fetch(`${API_BASE_URL}/api/exportaciones/excel/lote/${loteId}`, {
     method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
+    credentials: 'include', // Envía cookies HttpOnly automáticamente
   });
 
   if (!response.ok) {
@@ -62,18 +46,12 @@ export async function exportarLoteEspecificoExcel(loteId: number): Promise<Blob>
  * Exporta lotes con filtros avanzados
  */
 export async function exportarLotesConFiltros(filtros: ExportacionFiltrosDTO): Promise<Blob> {
-  const token = localStorage.getItem('token');
-  
-  if (!token) {
-    throw new Error('No hay token de autenticación');
-  }
-
   const response = await fetch(`${API_BASE_URL}/api/exportaciones/excel/avanzado`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
     },
+    credentials: 'include', // Envía cookies HttpOnly automáticamente
     body: JSON.stringify(filtros),
   });
 

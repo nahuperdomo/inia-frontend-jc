@@ -1,40 +1,27 @@
 // URL para desarrollo local (frontend local y backend en Docker)
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
-function getToken() {
-  // Método profesional: leer token de HttpOnly cookies
-  // Las cookies se envían automáticamente, pero también podemos leerlas si no son HttpOnly
-  if (typeof document !== 'undefined') {
-    const cookies = document.cookie.split(';');
-    for (let cookie of cookies) {
-      const [name, value] = cookie.trim().split('=');
-      if (name === 'token') {
-        return decodeURIComponent(value); // Decodificar por si tiene caracteres especiales
-      }
-    }
-  }
-  return null;
-}
-
+/**
+ * Cliente API que usa cookies HttpOnly para autenticación.
+ * El backend envía tokens en cookies HttpOnly (no accesibles desde JavaScript).
+ * fetch() con credentials: 'include' envía automáticamente estas cookies.
+ */
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const token = getToken();
-
   console.log(`🔍 API Call: ${endpoint}`);
-  console.log(`🔑 Token encontrado: ${token ? '✅ Sí' : '❌ No'}`);
   console.log(`🌐 URL completa: ${API_BASE_URL}${endpoint}`);
 
   const headers = {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   };
 
+  // NO se lee ni se envía token manualmente — las cookies HttpOnly se envían automáticamente
   console.log(`📤 Headers enviados:`, headers);
 
   try {
     const res = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers,
-      credentials: "include", // Esto es importante para enviar cookies
+      credentials: "include", // CRÍTICO: envía cookies automáticamente (incluyendo accessToken HttpOnly)
       ...options,
     });
 

@@ -27,30 +27,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const cargarDatos = async () => {
-      // Primero, intentar obtener el rol desde cookies (preferible cuando se migre a cookie-only auth)
-      const getCookie = (name: string) => {
-        if (typeof document === 'undefined') return null
-        const match = document.cookie.match(new RegExp('(^|; )' + name + '=([^;]*)'))
-        return match ? decodeURIComponent(match[2]) : null
-      }
-
-      const roleFromCookie = getCookie('userRole')
-      console.log('🔄 Dashboard - Rol desde cookie:', roleFromCookie)
-
-      if (roleFromCookie) {
-        setUserRole(roleFromCookie)
-      }
-
-      // Fallback: intentar obtener el rol de localStorage (método más rápido cuando aún se usa localStorage)
-      if (!roleFromCookie) {
-        const roleFromStorage = localStorage.getItem('userRole')
-        console.log('🔄 Dashboard - Rol desde localStorage (fallback):', roleFromStorage)
-        if (roleFromStorage) setUserRole(roleFromStorage)
-      }
-      
-      // Luego, intentar actualizar desde el backend
+      // Obtener rol desde el backend usando cookies HttpOnly automáticamente
       try {
-        console.log("🔄 Dashboard - Intentando obtener perfil del usuario desde backend...")
+        console.log("🔄 Dashboard - Obteniendo perfil del usuario desde backend...")
         const perfil = await obtenerPerfil()
         console.log("✅ Dashboard - Perfil obtenido del backend:", perfil)
         
@@ -85,32 +64,16 @@ export default function DashboardPage() {
         if (roleFromBackend) roleFromBackend = roleFromBackend.trim()
         console.log('🔍 Dashboard - Rol de usuario del backend (resuelto):', roleFromBackend)
 
-        // Guardar automáticamente si viene del backend
+        // Actualizar estado React (NO guardar en localStorage/cookies client-side)
         if (roleFromBackend) {
-          // 1) actualizar estado React
           setUserRole(roleFromBackend)
-
-          // 2) intentar persistir en cookie para que otras pestañas/recargas lo lean
-          try {
-            // cookie no HttpOnly (para que el frontend pueda leerla) — we'll migrate to HttpOnly server-set cookie later
-            const maxAgeSec = 60 * 60 // 1 hora
-            document.cookie = `userRole=${encodeURIComponent(roleFromBackend)}; path=/; max-age=${maxAgeSec}; SameSite=Lax`
-            console.log('🔐 Dashboard - Rol guardado en cookie userRole (client):', roleFromBackend)
-          } catch (cookieErr) {
-            console.warn('⚠️ No se pudo escribir la cookie userRole en el cliente:', cookieErr)
-          }
-
-          // 3) mantener compatibilidad: también guardar en localStorage (temporal)
-          try {
-            localStorage.setItem('userRole', roleFromBackend)
-          } catch (lsErr) {
-            console.warn('⚠️ No se pudo escribir userRole en localStorage:', lsErr)
-          }
+          console.log('✅ Dashboard - Rol actualizado en estado:', roleFromBackend)
         }
       } catch (error) {
         console.error("❌ Error al obtener perfil del backend:", error)
         console.error("🔍 Detalles del error:", error)
-        // No pasa nada, ya tenemos el rol de localStorage si estaba
+        // Si falla la autenticación, el usuario podría necesitar login
+        console.warn("⚠️ No se pudo obtener perfil. Usuario posiblemente no autenticado.")
       }
 
       // Cargar estadísticas
