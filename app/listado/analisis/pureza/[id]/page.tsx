@@ -232,44 +232,44 @@ export default function PurezaDetailPage() {
     <div className="min-h-screen bg-muted/30">
       {/* Header sticky */}
       <div className="bg-background border-b sticky top-0 z-40">
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col gap-6">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+          <div className="flex flex-col gap-3">
             <Link href="/listado/analisis/pureza">
-              <Button variant="ghost" size="sm" className="gap-2 -ml-2">
-                <ArrowLeft className="h-4 w-4" />
-                Volver
+              <Button variant="ghost" size="sm" className="gap-1 -ml-2 h-8">
+                <ArrowLeft className="h-3 w-3" />
+                <span className="text-xs sm:text-sm">Volver</span>
               </Button>
             </Link>
 
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-3xl lg:text-4xl font-bold text-balance">
+            <div className="flex flex-col gap-2">
+              <div className="space-y-1 text-center lg:text-left">
+                <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-start">
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-balance">
                     Análisis de Pureza #{pureza.analisisID}
                   </h1>
                   <Badge
                     variant={getEstadoBadgeVariant(pureza.estado)}
-                    className="text-sm px-3 py-1"
+                    className="text-xs px-2 py-0.5"
                   >
                     {pureza.estado}
                   </Badge>
                 </div>
-                <p className="text-base text-muted-foreground text-pretty">
+                <p className="text-xs sm:text-sm text-muted-foreground text-pretty">
                   Análisis de Pureza de Semillas • Lote {pureza.lote}
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link href={`/listado/analisis/pureza/${pureza.analisisID}/editar`}>
-                  <Button size="lg" className="gap-2 w-full sm:w-auto">
-                    <Edit className="h-4 w-4" />
-                    Editar análisis
+              <div className="flex flex-col sm:flex-row gap-2 justify-center lg:justify-end">
+                <Link href={`/listado/analisis/pureza/${pureza.analisisID}/editar`} className="w-full sm:w-auto">
+                  <Button size="sm" className="gap-1.5 w-full h-9">
+                    <Edit className="h-3.5 w-3.5" />
+                    <span className="text-xs sm:text-sm">Editar análisis</span>
                   </Button>
                 </Link>
                 <Button
-                  size="lg"
+                  size="sm"
                   variant="destructive"
-                  className="gap-2 w-full sm:w-auto"
+                  className="gap-1.5 w-full sm:w-auto h-9"
                   onClick={async () => {
                     try {
                       // Validación básica
@@ -287,7 +287,7 @@ export default function PurezaDetailPage() {
                     }
                   }}
                 >
-                  Finalizar Análisis
+                  <span className="text-xs sm:text-sm">Finalizar Análisis</span>
                 </Button>
               </div>
             </div>

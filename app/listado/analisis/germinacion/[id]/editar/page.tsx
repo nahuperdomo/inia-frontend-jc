@@ -279,9 +279,9 @@ export default function GerminacionDetailPage() {
         <Card>
           <CardContent className="p-6 text-center">
             <p className="text-red-600">No se pudo cargar la información del análisis</p>
-            <Button 
-              onClick={() => router.back()} 
-              variant="outline" 
+            <Button
+              onClick={() => router.back()}
+              variant="outline"
               className="mt-4"
             >
               Volver
@@ -412,12 +412,8 @@ export default function GerminacionDetailPage() {
                                 <span className="font-medium">{selectedLoteInfo.ficha}</span>
                               </div>
                               <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">ID:</span>
-                                <span>{selectedLoteInfo.loteID}</span>
-                              </div>
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Número Ficha:</span>
-                                <span>{selectedLoteInfo.numeroFicha}</span>
+                                <span className="text-muted-foreground">Nombre Lote:</span>
+                                <span>{selectedLoteInfo.nomLote}</span>
                               </div>
                               <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Activo:</span>

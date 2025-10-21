@@ -58,7 +58,7 @@ export default function ListadoLegadoPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 space-y-6 p-6">
+      <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -71,7 +71,7 @@ export default function ListadoLegadoPage() {
 
   if (error) {
     return (
-      <div className="flex-1 space-y-6 p-6">
+      <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
@@ -85,19 +85,20 @@ export default function ListadoLegadoPage() {
   }
 
   return (
-    <div className="flex-1 space-y-6 p-6">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/listado">
-            <Button variant="ghost" size="sm">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          <Link href="/listado" className="sm:self-start">
+            <Button variant="ghost" size="sm" className="w-fit">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Listados
+              <span className="hidden sm:inline">Volver a Listados</span>
+              <span className="sm:hidden">Volver</span>
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Datos Legados</h1>
-            <p className="text-muted-foreground">Consulta los datos históricos importados desde Excel</p>
+          <div className="text-center sm:text-left flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-balance">Datos Legados</h1>
+            <p className="text-sm sm:text-base text-muted-foreground text-pretty">Consulta los datos históricos importados desde Excel</p>
           </div>
         </div>
       </div>

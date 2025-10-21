@@ -161,7 +161,8 @@ export default function ListadoTetrazolioPage() {
   
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -303,11 +304,11 @@ export default function ListadoTetrazolioPage() {
         <CardHeader>
           <CardTitle>Lista de Análisis de Tetrazolio</CardTitle>
           <CardDescription>
-            {filteredAnalisis.length} análisis encontrado{filteredAnalisis.length !== 1 ? "s" : ""}
+           {filteredAnalisis.length} análisis encontrado{filteredAnalisis.length !== 1 ? "s" : ""}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto max-w-full">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -385,6 +386,7 @@ export default function ListadoTetrazolioPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

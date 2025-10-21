@@ -203,31 +203,32 @@ export default function ListadoDOSNPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-          <Link href="/listado" className="sm:self-start">
-            <Button variant="ghost" size="sm" className="w-fit">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Volver a Listados</span>
-              <span className="sm:hidden">Volver</span>
-            </Button>
-          </Link>
-          <div className="text-center sm:text-left flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Análisis DOSN</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Consulta la determinación de otras semillas nocivas</p>
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <Link href="/listado" className="sm:self-start">
+              <Button variant="ghost" size="sm" className="w-fit">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Volver a Listados</span>
+                <span className="sm:hidden">Volver</span>
+              </Button>
+            </Link>
+            <div className="text-center sm:text-left flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Análisis DOSN</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">Consulta la determinación de otras semillas nocivas</p>
+            </div>
+          </div>
+          <div className="flex justify-center sm:justify-end">
+            <Link href="/registro/analisis?tipo=DOSN">
+              <Button className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                Nuevo Análisis
+              </Button>
+            </Link>
           </div>
         </div>
-        <div className="flex justify-center sm:justify-end">
-          <Link href="/registro/analisis?tipo=DOSN">
-            <Button className="w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Análisis
-            </Button>
-          </Link>
-        </div>
-      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -320,8 +321,8 @@ export default function ListadoDOSNPage() {
         <CardHeader>
           <CardTitle>Lista de Análisis DOSN</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto max-w-full">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -450,6 +451,7 @@ export default function ListadoDOSNPage() {
         </CardContent>
       </Card>
 
+      </div>
     </div>
   )
 }

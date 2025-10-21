@@ -153,37 +153,33 @@ export default function GerminacionDetailPage() {
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="bg-background border-b sticky top-0 z-10">
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col gap-6">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+          <div className="flex flex-col gap-3">
             <Link href="/listado/analisis/germinacion">
-              <Button variant="ghost" size="sm" className="gap-2 -ml-2">
-                <ArrowLeft className="h-4 w-4" />
-                Volver
+              <Button variant="ghost" size="sm" className="gap-1 -ml-2 h-8">
+                <ArrowLeft className="h-3 w-3" />
+                <span className="text-xs sm:text-sm">Volver</span>
               </Button>
             </Link>
 
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-3xl lg:text-4xl font-bold text-balance">Análisis de Germinación #{germinacion.analisisID}</h1>
-                  <Badge variant={getEstadoBadgeVariant(germinacion.estado)} className="text-sm px-3 py-1">
+            <div className="flex flex-col gap-2">
+              <div className="space-y-1 text-center lg:text-left">
+                <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-start">
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-balance">Análisis de Germinación #{germinacion.analisisID}</h1>
+                  <Badge variant={getEstadoBadgeVariant(germinacion.estado)} className="text-xs px-2 py-0.5">
                     {germinacion.estado}
                   </Badge>
                 </div>
-                <p className="text-base text-muted-foreground text-pretty">
+                <p className="text-xs sm:text-sm text-muted-foreground text-pretty">
                   Ensayo de germinación estándar • Lote {germinacion.lote}
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button variant="outline" size="lg" className="gap-2 bg-transparent">
-                  <Download className="h-4 w-4" />
-                  Exportar
-                </Button>
-                <Link href={`/listado/analisis/germinacion/${germinacion.analisisID}/editar`}>
-                  <Button size="lg" className="gap-2 w-full sm:w-auto">
-                    <Edit className="h-4 w-4" />
-                    Editar análisis
+              <div className="flex flex-col sm:flex-row gap-2 justify-center lg:justify-end">
+                <Link href={`/listado/analisis/germinacion/${germinacion.analisisID}/editar`} className="w-full sm:w-auto">
+                  <Button size="sm" className="gap-1.5 w-full h-9">
+                    <Edit className="h-3.5 w-3.5" />
+                    <span className="text-xs sm:text-sm">Editar análisis</span>
                   </Button>
                 </Link>
               </div>

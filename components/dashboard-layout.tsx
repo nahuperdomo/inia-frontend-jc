@@ -13,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Leaf, Plus, List, BarChart3, Settings, LogOut, Shield, Bell, Menu, X } from "lucide-react"
+import { Leaf, Plus, List, BarChart3, Settings, LogOut, Shield, Bell, Menu, X, Home } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -25,6 +25,7 @@ interface DashboardLayoutProps {
 }
 
 const navigation = [
+  { name: "Inicio", href: "/dashboard", icon: Home },
   { name: "Registro", href: "/registro", icon: Plus },
   { name: "Listado", href: "/listado", icon: List },
   { name: "Reportes", href: "/reportes", icon: BarChart3 },
@@ -62,7 +63,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     try {
       // Llamar al endpoint de logout del backend para limpiar cookies HttpOnly
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-      
+
       try {
         await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
           method: "POST",
@@ -100,18 +101,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex min-h-screen bg-background">
       {/* Overlay para menú móvil */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-opacity-90 z-40 lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       {/* Sidebar Desktop (> 800px) */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow pt-5 bg-card border-r overflow-y-auto">
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
+        <div className="flex flex-col flex-grow pt-5 bg-card border-r overflow-y-auto h-full">
           <div className="flex items-center flex-shrink-0 px-4">
             <div className="bg-primary rounded-full p-2">
               <Leaf className="h-6 w-6 text-primary-foreground" />
@@ -160,7 +161,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* Sidebar Mobile (< 800px) - Menú hamburguesa */}
-      <div 
+      <div
         className={cn(
           "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r transform transition-transform duration-300 ease-in-out lg:hidden",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
@@ -225,9 +226,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* Main content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="w-full lg:ml-64 flex flex-col min-h-screen overflow-x-hidden">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-4 py-3">
+        <header className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-30 flex-shrink-0">
           <div className="flex items-center justify-between">
             {/* Botón hamburguesa para móvil */}
             <Button
@@ -268,9 +269,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </header>
 
         {/* Content area */}
-        <div className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-x-hidden">
           {children}
-        </div>
+        </main>
       </div>
 
       {/* Logout confirmation dialog */}

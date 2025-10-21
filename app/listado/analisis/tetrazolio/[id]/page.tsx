@@ -964,7 +964,10 @@ export default function TetrazolioDetailPage() {
 
                     {/* Validación del total */}
                     {(() => {
-                      const total = (nuevaRepeticion.viablesNum || 0) + (nuevaRepeticion.duras || 0) + (nuevaRepeticion.noViablesNum || 0)
+                      const total = 
+                        (parseInt(String(nuevaRepeticion.viablesNum) || '0') || 0) + 
+                        (parseInt(String(nuevaRepeticion.duras) || '0') || 0) + 
+                        (parseInt(String(nuevaRepeticion.noViablesNum) || '0') || 0)
                       const esperado = tetrazolio?.numSemillasPorRep || 50
                       const diferencia = Math.abs(total - esperado)
 

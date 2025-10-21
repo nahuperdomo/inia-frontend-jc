@@ -167,11 +167,12 @@ export default function ListadoPMSPage() {
   }
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
-      <Toaster position="top-right" richColors closeButton />
-      
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:gap-4">
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+        <Toaster position="top-right" richColors closeButton />
+        
+        {/* Header */}
+        <div className="flex flex-col gap-3 sm:gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <Link href="/listado" className="sm:self-start">
             <Button variant="ghost" size="sm" className="w-fit">
@@ -316,8 +317,8 @@ export default function ListadoPMSPage() {
             {totalElements} análisis
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border overflow-x-auto">
+        <CardContent className="p-0 sm:p-6">
+          <div className="rounded-md border overflow-x-auto max-w-full">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -420,6 +421,7 @@ export default function ListadoPMSPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

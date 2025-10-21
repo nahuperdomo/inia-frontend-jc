@@ -172,7 +172,8 @@ export default function ListadoPurezaPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -287,8 +288,8 @@ export default function ListadoPurezaPage() {
         <CardHeader>
           <CardTitle>Lista de Análisis de Pureza Física</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto max-w-full">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -407,6 +408,7 @@ export default function ListadoPurezaPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

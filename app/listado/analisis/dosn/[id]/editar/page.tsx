@@ -1081,32 +1081,6 @@ export default function EditarDosnPage() {
             )}
           </CardContent>
         </Card>
-
-        <Card className="border-2 border-primary/20">
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href={`/listado/analisis/dosn/${dosnId}`} className="flex-1">
-                <Button variant="outline" size="lg" className="w-full bg-transparent">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Cancelar
-                </Button>
-              </Link>
-              <Button onClick={handleSave} disabled={saving} size="lg" className="flex-1">
-                {saving ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Guardando cambios...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-5 w-5 mr-2" />
-                    Guardar Cambios
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   )

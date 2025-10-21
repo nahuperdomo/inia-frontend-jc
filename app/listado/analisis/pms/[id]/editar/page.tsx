@@ -592,34 +592,41 @@ export default function EditarPMSPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="min-h-screen bg-muted/30">
       <Toaster position="top-right" richColors closeButton />
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link href={`/listado/analisis/pms/${pmsId}`}>
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver al Detalle
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">Editar Análisis PMS #{analisis.analisisID}</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">
-              Modificar parámetros y repeticiones del análisis
-            </p>
+      <div className="bg-background border-b sticky top-0 z-40">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+          <div className="flex flex-col gap-3">
+            <Link href={`/listado/analisis/pms/${pmsId}`}>
+              <Button variant="ghost" size="sm" className="gap-1 -ml-2 h-8">
+                <ArrowLeft className="h-3 w-3" />
+                <span className="text-xs sm:text-sm">Volver al Detalle</span>
+              </Button>
+            </Link>
+
+            <div className="space-y-1 text-center lg:text-left">
+              <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-start">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Editar Análisis PMS #{analisis.analisisID}</h1>
+                <Badge variant={getEstadoBadgeVariant(analisis.estado || "")} className="text-xs px-2 py-0.5">
+                  {analisis.estado === "APROBADO" ? "Aprobado" : 
+                   analisis.estado === "EN_PROCESO" ? "En Proceso" : 
+                   analisis.estado === "FINALIZADO" ? "Finalizado" :
+                   analisis.estado === "PENDIENTE_APROBACION" ? "Pendiente Aprobación" :
+                   analisis.estado === "PENDIENTE" ? "Pendiente" :
+                   analisis.estado === "PARA_REPETIR" ? "Para Repetir" : analisis.estado}
+                </Badge>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Modificar parámetros y repeticiones del análisis
+              </p>
+            </div>
           </div>
         </div>
-        <Badge variant={getEstadoBadgeVariant(analisis.estado || "")} className="self-start sm:self-center">
-          {analisis.estado === "APROBADO" ? "Aprobado" : 
-           analisis.estado === "EN_PROCESO" ? "En Proceso" : 
-           analisis.estado === "FINALIZADO" ? "Finalizado" :
-           analisis.estado === "PENDIENTE_APROBACION" ? "Pendiente Aprobación" :
-           analisis.estado === "PENDIENTE" ? "Pendiente" :
-           analisis.estado === "PARA_REPETIR" ? "Para Repetir" : analisis.estado}
-        </Badge>
       </div>
+
+      <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-6">
 
       {/* Información del Análisis */}
       <Card>
@@ -1264,6 +1271,7 @@ export default function EditarPMSPage() {
           </Button>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

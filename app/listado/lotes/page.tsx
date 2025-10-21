@@ -66,9 +66,10 @@ export default function ListadoLotesPage() {
   const cultivos = [...new Set(lotes.map((lote) => lote.cultivarNombre || "").filter(Boolean))]
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/listado">
             <Button variant="ghost" size="sm">
@@ -243,7 +244,7 @@ export default function ListadoLotesPage() {
               </Button>
             </div>
           ) : (
-            <div className="rounded-md border">
+            <div className="rounded-md border overflow-x-auto max-w-full">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -346,6 +347,7 @@ export default function ListadoLotesPage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

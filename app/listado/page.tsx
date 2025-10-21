@@ -1,8 +1,15 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FlaskConical, Package, Calendar, TestTube, Microscope, Beaker, Activity } from "lucide-react"
+import { FlaskConical, Package, Calendar, TestTube, Microscope, Beaker, Activity, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { obtenerLotesPaginadas } from "@/app/services/lote-service"
+import { obtenerPurezasPaginadas } from "@/app/services/pureza-service"
+import { obtenerGerminacionesPaginadas } from "@/app/services/germinacion-service"
+import { obtenerTetrazoliosPaginadas } from "@/app/services/tetrazolio-service"
+import { obtenerPmsPaginadas } from "@/app/services/pms-service"
+import { obtenerDosnPaginadas } from "@/app/services/dosn-service"
 
 const listingOptions = [
   {
@@ -65,9 +72,112 @@ const listingOptions = [
     iconColor: "text-red-600",
     count: "19 análisis",
   },
+  {
+    id: "legado",
+    title: "Datos Legados",
+    description: "Consulta los datos históricos importados desde Excel",
+    icon: Calendar,
+    href: "/listado/legado",
+    color: "bg-amber-50 border-amber-200 hover:bg-amber-100",
+    iconColor: "text-amber-600",
+    count: "Datos históricos",
+  },
 ]
 
 export default function ListadoPage() {
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    totalLotes: 0,
+    totalAnalisis: 0,
+    analisisActivos: 0,
+    analisisCompletados: 0,
+    totalPureza: 0,
+    totalGerminacion: 0,
+    totalTetrazolio: 0,
+    totalPms: 0,
+    totalDosn: 0,
+  })
+
+  useEffect(() => {
+    const cargarEstadisticas = async () => {
+      try {
+        setLoading(true)
+        
+        // Cargar todos los datos para contar correctamente
+        const [lotesResp, purezasResp, germinacionesResp, tetrazoliosResp, pmsResp, dosnResp] = await Promise.all([
+          obtenerLotesPaginadas(0, 9999).catch(() => ({ content: [], totalElements: 0 })),
+          obtenerPurezasPaginadas(0, 9999).catch(() => ({ content: [], totalElements: 0 })),
+          obtenerGerminacionesPaginadas(0, 9999).catch(() => ({ content: [], totalElements: 0 })),
+          obtenerTetrazoliosPaginadas(0, 9999).catch(() => ({ content: [], totalElements: 0 })),
+          obtenerPmsPaginadas(0, 9999).catch(() => ({ content: [], totalElements: 0 })),
+          obtenerDosnPaginadas(0, 9999).catch(() => ({ content: [], totalElements: 0 })),
+        ])
+
+        // Contar IDs únicos de cada tipo
+        const totalLotes = lotesResp.content?.length || 0
+        const totalPureza = purezasResp.content?.length || 0
+        const totalGerminacion = germinacionesResp.content?.length || 0
+        const totalTetrazolio = tetrazoliosResp.content?.length || 0
+        const totalPms = pmsResp.content?.length || 0
+        const totalDosn = dosnResp.content?.length || 0
+
+        const totalAnalisis = totalPureza + totalGerminacion + totalTetrazolio + totalPms + totalDosn
+
+        // Contar análisis por estado
+        let activos = 0
+        let completados = 0
+
+        // Contar purezas
+        purezasResp.content?.forEach((p: any) => {
+          if (p.estado === 'EN_PROCESO' || p.estado === 'PENDIENTE') activos++
+          else if (p.estado === 'FINALIZADO' || p.estado === 'APROBADO') completados++
+        })
+
+        // Contar germinaciones
+        germinacionesResp.content?.forEach((g: any) => {
+          if (g.estado === 'EN_PROCESO' || g.estado === 'PENDIENTE') activos++
+          else if (g.estado === 'FINALIZADO' || g.estado === 'APROBADO') completados++
+        })
+
+        // Contar tetrazolios
+        tetrazoliosResp.content?.forEach((t: any) => {
+          if (t.estado === 'EN_PROCESO' || t.estado === 'PENDIENTE') activos++
+          else if (t.estado === 'FINALIZADO' || t.estado === 'APROBADO') completados++
+        })
+
+        // Contar PMS
+        pmsResp.content?.forEach((p: any) => {
+          if (p.estado === 'EN_PROCESO' || p.estado === 'PENDIENTE') activos++
+          else if (p.estado === 'FINALIZADO' || p.estado === 'APROBADO') completados++
+        })
+
+        // Contar DOSN
+        dosnResp.content?.forEach((d: any) => {
+          if (d.estado === 'EN_PROCESO' || d.estado === 'PENDIENTE') activos++
+          else if (d.estado === 'FINALIZADO' || d.estado === 'APROBADO') completados++
+        })
+
+        setStats({
+          totalLotes,
+          totalAnalisis,
+          analisisActivos: activos,
+          analisisCompletados: completados,
+          totalPureza,
+          totalGerminacion,
+          totalTetrazolio,
+          totalPms,
+          totalDosn,
+        })
+      } catch (error) {
+        console.error("Error cargando estadísticas:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    cargarEstadisticas()
+  }, [])
+
   return (
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
       {/* Header */}
@@ -84,7 +194,11 @@ export default function ListadoPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Lotes</p>
-                <p className="text-xl sm:text-2xl font-bold">24</p>
+                {loading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                ) : (
+                  <p className="text-xl sm:text-2xl font-bold">{stats.totalLotes}</p>
+                )}
               </div>
               <Package className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
             </div>
@@ -95,7 +209,11 @@ export default function ListadoPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">Análisis Totales</p>
-                <p className="text-xl sm:text-2xl font-bold">156</p>
+                {loading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                ) : (
+                  <p className="text-xl sm:text-2xl font-bold">{stats.totalAnalisis}</p>
+                )}
               </div>
               <FlaskConical className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
             </div>
@@ -106,7 +224,11 @@ export default function ListadoPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">Análisis Activos</p>
-                <p className="text-xl sm:text-2xl font-bold">43</p>
+                {loading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                ) : (
+                  <p className="text-xl sm:text-2xl font-bold">{stats.analisisActivos}</p>
+                )}
               </div>
               <TestTube className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600" />
             </div>
@@ -117,7 +239,11 @@ export default function ListadoPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">Análisis Completados</p>
-                <p className="text-xl sm:text-2xl font-bold">113</p>
+                {loading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                ) : (
+                  <p className="text-xl sm:text-2xl font-bold">{stats.analisisCompletados}</p>
+                )}
               </div>
               <Microscope className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-600" />
             </div>
@@ -131,6 +257,35 @@ export default function ListadoPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {listingOptions.map((option) => {
             const IconComponent = option.icon
+            
+            // Obtener el conteo real según el tipo
+            let count = option.count
+            if (!loading) {
+              switch(option.id) {
+                case "lotes":
+                  count = `${stats.totalLotes} lotes`
+                  break
+                case "pureza":
+                  count = `${stats.totalPureza} análisis`
+                  break
+                case "germinacion":
+                  count = `${stats.totalGerminacion} análisis`
+                  break
+                case "tetrazolio":
+                  count = `${stats.totalTetrazolio} análisis`
+                  break
+                case "pms":
+                  count = `${stats.totalPms} análisis`
+                  break
+                case "dosn":
+                  count = `${stats.totalDosn} análisis`
+                  break
+                case "legado":
+                  count = "Datos históricos"
+                  break
+              }
+            }
+            
             return (
               <Link key={option.id} href={option.href}>
                 <Card className={`${option.color} transition-all duration-200 cursor-pointer hover:shadow-md`}>
@@ -145,9 +300,13 @@ export default function ListadoPage() {
                       <h3 className="font-semibold text-base sm:text-lg">{option.title}</h3>
                       <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{option.description}</p>
                       <div className="pt-2">
-                        <span className="text-xs font-medium text-muted-foreground bg-white/50 px-2 py-1 rounded">
-                          {option.count}
-                        </span>
+                        {loading ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        ) : (
+                          <span className="text-xs font-medium text-muted-foreground bg-white/50 px-2 py-1 rounded">
+                            {count}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -157,41 +316,6 @@ export default function ListadoPage() {
           })}
         </div>
       </div>
-
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader className="pb-3 sm:pb-6">
-          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
-            Actividad Reciente
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 sm:space-y-3">
-            <div className="flex items-center justify-between py-2 border-b border-muted">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                <span className="text-xs sm:text-sm">Nuevo análisis de pureza completado</span>
-              </div>
-              <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">Hace 2 horas</span>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-muted">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                <span className="text-xs sm:text-sm">Lote L-2024-003 registrado</span>
-              </div>
-              <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">Hace 4 horas</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></div>
-                <span className="text-xs sm:text-sm">Análisis de tetrazolio iniciado</span>
-              </div>
-              <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">Hace 6 horas</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }
