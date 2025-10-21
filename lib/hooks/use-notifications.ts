@@ -99,9 +99,11 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
 
             setUnreadNotifications(unreadData);
             setUnreadCount(countData);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error loading unread notifications:', err);
-            if (showToasts) {
+            // No mostrar toast si es un error de autenticación (403/401)
+            // ya que el error-handler ya lo maneja
+            if (showToasts && err?.status !== 403 && err?.status !== 401) {
                 toast.error('Error al cargar notificaciones no leídas');
             }
         }
