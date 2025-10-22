@@ -74,7 +74,7 @@ type Props = {
         inaseFecha?: string;
         
         cumpleEstandar?: string;
-        observaciones?: string;
+        observacionesPureza?: string;
         otrasSemillas?: any[];
         malezas?: any[];
         cultivos?: any[];
@@ -843,14 +843,14 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                             <CardHeader className="pb-4">
                                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                                     <MessageCircle className="h-5 w-5 text-primary" />
-                                    Observaciones
+                                    Observaciones Específicas de Pureza
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <Textarea
                                     placeholder="Ingrese observaciones específicas del análisis de pureza física, condiciones especiales, particularidades encontradas u otra información relevante..."
-                                    value={formData.observaciones || ""}
-                                    onChange={(e) => handleInputChange("observaciones", e.target.value)}
+                                    value={formData.observacionesPureza || ""}
+                                    onChange={(e) => handleInputChange("observacionesPureza", e.target.value)}
                                     rows={6}
                                     className="resize-y min-h-[120px] transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                                 />
@@ -859,9 +859,9 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                     </TabsContent>
 
                     <TabsContent value="registros" className="space-y-6">
-                        <MalezaFields titulo="Malezas" registros={formData.malezas && formData.malezas.length > 0 ? formData.malezas : undefined} onChangeListados={onChangeMalezas} />
-                        <OtrosCultivosFields registros={formData.cultivos && formData.cultivos.length > 0 ? formData.cultivos : undefined} onChangeListados={onChangeCultivos} />
-                        <BrassicaFields registros={formData.brassicas && formData.brassicas.length > 0 ? formData.brassicas : undefined} onChangeListados={onChangeBrassicas} />
+                        <MalezaFields titulo="Malezas" contexto="pureza" registros={formData.malezas && formData.malezas.length > 0 ? formData.malezas : undefined} onChangeListados={onChangeMalezas} />
+                        <OtrosCultivosFields contexto="pureza" registros={formData.cultivos && formData.cultivos.length > 0 ? formData.cultivos : undefined} onChangeListados={onChangeCultivos} />
+                        <BrassicaFields contexto="pureza" registros={formData.brassicas && formData.brassicas.length > 0 ? formData.brassicas : undefined} onChangeListados={onChangeBrassicas} />
                     </TabsContent>
                 </Tabs>
             </CardContent>

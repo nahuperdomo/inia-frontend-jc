@@ -33,6 +33,7 @@ export type AnalysisFormData = {
   responsable: string
   prioridad: string
   observaciones: string
+  observacionesPureza: string
 
   // Pureza - Datos en gramos
   pesoInicial: string
@@ -204,6 +205,7 @@ export default function RegistroAnalisisPage() {
     responsable: "",
     prioridad: "",
     observaciones: "",
+    observacionesPureza: "",
 
     // Pureza - Datos en gramos
     pesoInicial: "",
@@ -463,7 +465,7 @@ export default function RegistroAnalisisPage() {
       // ✅ Construir payload limpio solo con campos requeridos por el backend
       payload = {
         idLote: formData.loteid,
-        comentarios: formData.observaciones,
+        comentarios: formData.observacionesPureza || "",
         estado: "REGISTRADO",
         cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : null,
         
@@ -835,6 +837,31 @@ export default function RegistroAnalisisPage() {
       router.replace('/registro/analisis', { scroll: false })
     }
   }, [searchParams, router])
+
+  // ✅ Limpiar storage del tipo de análisis anterior cuando se cambia
+  useEffect(() => {
+    if (!selectedAnalysisType) return
+
+    // Limpiar storage del otro tipo de análisis para evitar contaminación de datos
+    if (selectedAnalysisType === "PUREZA") {
+      clearDosnStorage()
+      setMalezasList([])
+      setCultivosList([])
+      setBrassicasList([])
+    } else if (selectedAnalysisType === "DOSN") {
+      clearPurezaStorage()
+      setPurezaMalezasList([])
+      setPurezaCultivosList([])
+      setPurezaBrassicasList([])
+      setPurezaFormKey(prev => prev + 1)
+    } else if (selectedAnalysisType === "GERMINACION") {
+      clearDosnStorage()
+      clearPurezaStorage()
+    } else if (selectedAnalysisType === "TETRAZOLIO") {
+      clearDosnStorage()
+      clearPurezaStorage()
+    }
+  }, [selectedAnalysisType])
 
   useEffect(() => {
     const fetchLotes = async () => {

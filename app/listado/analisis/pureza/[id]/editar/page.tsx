@@ -52,7 +52,7 @@ export default function EditarPurezaPage() {
     inaseFecha: "",
     
     cumpleEstandar: "",
-    observaciones: "",
+    observacionesPureza: "",
   })
 
   useEffect(() => {
@@ -98,7 +98,7 @@ export default function EditarPurezaPage() {
           
           // Convertir boolean a "si"/"no" para el Select
           cumpleEstandar: purezaData.cumpleEstandar === true ? "si" : purezaData.cumpleEstandar === false ? "no" : "",
-          observaciones: purezaData.comentarios || "",
+          observacionesPureza: purezaData.comentarios || "",
         })
 
         // Cargar listados existentes
@@ -140,7 +140,7 @@ export default function EditarPurezaPage() {
       // Construir el request DTO
       const requestData: PurezaRequestDTO = {
         idLote: pureza!.idLote!,
-        comentarios: formData.observaciones || undefined,
+        comentarios: formData.observacionesPureza || undefined,
         // Mapear "si"/"no" a boolean correctamente
         cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : undefined,
         
