@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2, AlertTriangle } from "lucide-react"
+import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
-import { obtenerLotesPaginadas } from "@/app/services/lote-service"
+import { obtenerLotesPaginadas, eliminarLote, activarLote } from "@/app/services/lote-service"
+import { obtenerPerfil } from "@/app/services/auth-service"
 import Pagination from "@/components/pagination"
 import { LoteSimpleDTO } from "@/app/models"
+import { toast } from "sonner"
 
 export default function ListadoLotesPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -23,7 +25,23 @@ export default function ListadoLotesPage() {
   const [currentPage, setCurrentPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const pageSize = 10
+
+  // Fetch user profile to get role
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        const perfil = await obtenerPerfil()
+        const role = perfil?.roles?.[0] || ''
+        const cleanRole = role.replace('ROLE_', '')
+        setUserRole(cleanRole)
+      } catch (error) {
+        console.error("Error obteniendo rol de usuario:", error)
+      }
+    }
+    fetchUserRole()
+  }, [])
 
   useEffect(() => {
     const fetchLotes = async (page: number = 0) => {
@@ -64,6 +82,48 @@ export default function ListadoLotesPage() {
   })
 
   const cultivos = [...new Set(lotes.map((lote) => lote.cultivarNombre || "").filter(Boolean))]
+
+  // Handler para desactivar lote
+  const handleDesactivarLote = async (id: number) => {
+    if (!confirm("¿Está seguro de que desea desactivar este lote?")) {
+      return
+    }
+
+    try {
+      await eliminarLote(id)
+      toast.success("Lote desactivado exitosamente")
+      // Recargar lotes
+      setIsLoading(true)
+      const loteResp = await obtenerLotesPaginadas(currentPage, pageSize)
+      setLotes(loteResp.content || [])
+      setTotalPages(loteResp.totalPages ?? 1)
+      setTotalElements(loteResp.totalElements ?? 0)
+      setIsLoading(false)
+    } catch (error: any) {
+      toast.error("Error al desactivar lote", {
+        description: error?.message
+      })
+    }
+  }
+
+  // Handler para reactivar lote
+  const handleReactivarLote = async (id: number) => {
+    try {
+      await activarLote(id)
+      toast.success("Lote reactivado exitosamente")
+      // Recargar lotes
+      setIsLoading(true)
+      const loteResp = await obtenerLotesPaginadas(currentPage, pageSize)
+      setLotes(loteResp.content || [])
+      setTotalPages(loteResp.totalPages ?? 1)
+      setTotalElements(loteResp.totalElements ?? 0)
+      setIsLoading(false)
+    } catch (error: any) {
+      toast.error("Error al reactivar lote", {
+        description: error?.message
+      })
+    }
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -299,14 +359,29 @@ export default function ListadoLotesPage() {
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </Link>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="text-destructive hover:text-destructive"
-                              title="Eliminar"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {userRole === "ADMIN" && (
+                              lote.activo ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDesactivarLote(lote.loteID)}
+                                  className="text-red-600 hover:text-red-700"
+                                  title="Desactivar"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleReactivarLote(lote.loteID)}
+                                  className="text-green-600 hover:text-green-700"
+                                  title="Reactivar"
+                                >
+                                  <RefreshCw className="h-4 w-4" />
+                                </Button>
+                              )
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

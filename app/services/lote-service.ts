@@ -43,6 +43,12 @@ export async function eliminarLote(id: number): Promise<void> {
   });
 }
 
+export async function activarLote(id: number): Promise<LoteDTO> {
+  return apiFetch(`/api/lotes/${id}/reactivar`, {
+    method: "PUT",
+  });
+}
+
 export async function obtenerLotesElegiblesParaTipoAnalisis(tipoAnalisis: TipoAnalisis): Promise<LoteSimpleDTO[]> {
   const res = await apiFetch(`/api/lotes/elegibles/${tipoAnalisis}`) as ResponseListadoLoteSimple;
   return res.lotes || [];

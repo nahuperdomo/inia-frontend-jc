@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Activity, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, AlertTriangle } from "lucide-react"
+import { Activity, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { obtenerTodasDosnActivas, obtenerDosnPaginadas } from "@/app/services/dosn-service"
+import { obtenerTodasDosnActivas, obtenerDosnPaginadas, desactivarDosn, activarDosn } from "@/app/services/dosn-service"
 import Pagination from "@/components/pagination"
 import { DosnDTO } from "@/app/models"
 import { EstadoAnalisis, TipoListado } from "@/app/models/types/enums"
+import { toast } from "sonner"
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -81,6 +82,8 @@ const formatearFechaLocal = (fechaString: string): string => {
 export default function ListadoDOSNPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
+  const [filtroActivo, setFiltroActivo] = useState("todos")
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [dosns, setDosns] = useState<DosnDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -92,10 +95,24 @@ export default function ListadoDOSNPage() {
   const pageSize = 10
   const [lastResponse, setLastResponse] = useState<any>(null)
 
-  const fetchDosns = async (page: number = 0) => {
+  // Obtener rol del usuario
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]))
+        setUserRole(payload.rol)
+      } catch (error) {
+        console.error("Error al decodificar el token:", error)
+      }
+    }
+  }, [])
+
+
+  const fetchDosns = async (page: number = 0, filtro: string = "todos") => {
     try {
       setLoading(true);
-      const data = await obtenerDosnPaginadas(page, pageSize);
+      const data = await obtenerDosnPaginadas(page, pageSize, filtro);
       console.log("DEBUG obtenerDosnPaginadas response:", data);
 
       // Datos principales
@@ -120,6 +137,35 @@ export default function ListadoDOSNPage() {
   useEffect(() => {
     fetchDosns(0)
   }, [])
+
+  // Actualizar cuando cambia el filtro de activo
+  useEffect(() => {
+    fetchDosns(0, filtroActivo)
+  }, [filtroActivo])
+
+  // Handlers para desactivar/reactivar
+  const handleDesactivar = async (id: number) => {
+    if (!confirm("¿Está seguro de desactivar este análisis DOSN?")) return
+    try {
+      await desactivarDosn(id)
+      toast.success("Análisis DOSN desactivado exitosamente")
+      await fetchDosns(currentPage, filtroActivo)
+    } catch (error) {
+      console.error("Error al desactivar DOSN:", error)
+      toast.error("Error al desactivar el análisis")
+    }
+  }
+
+  const handleReactivar = async (id: number) => {
+    try {
+      await activarDosn(id)
+      toast.success("Análisis DOSN reactivado exitosamente")
+      await fetchDosns(currentPage, filtroActivo)
+    } catch (error) {
+      console.error("Error al reactivar DOSN:", error)
+      toast.error("Error al reactivar el análisis")
+    }
+  }
 
   const filteredAnalysis = dosns.filter((analysis) => {
     const searchLower = searchTerm.toLowerCase()
@@ -302,6 +348,15 @@ export default function ListadoDOSNPage() {
                 <option value="APROBADO">Aprobado</option>
                 <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
               </select>
+              <select
+                value={filtroActivo}
+                onChange={(e) => setFiltroActivo(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+              >
+                <option value="todos">Todos</option>
+                <option value="activos">Activos</option>
+                <option value="inactivos">Inactivos</option>
+              </select>
               <Button variant="outline" size="sm">
                 <Filter className="h-4 w-4 mr-2" />
                 Filtros
@@ -414,9 +469,29 @@ export default function ListadoDOSNPage() {
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <Button variant="ghost" size="sm" title="Eliminar">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {userRole === "ADMIN" && (
+                            analysis.activo ? (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                title="Desactivar"
+                                onClick={() => handleDesactivar(analysis.analisisID)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                title="Reactivar"
+                                onClick={() => handleReactivar(analysis.analisisID)}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <RefreshCw className="h-4 w-4" />
+                              </Button>
+                            )
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

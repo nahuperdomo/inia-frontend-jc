@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { FlaskConical, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle } from "lucide-react"
+import { FlaskConical, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
-import { obtenerPurezasPaginadas } from "@/app/services/pureza-service"
+import { obtenerPurezasPaginadas, desactivarPureza, activarPureza } from "@/app/services/pureza-service"
+import { obtenerPerfil } from "@/app/services/auth-service"
 import Pagination from "@/components/pagination"
 import { PurezaDTO, EstadoAnalisis } from "@/app/models"
+import { toast } from "sonner"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -44,6 +46,7 @@ const formatearFechaLocal = (fechaString: string): string => {
 export default function ListadoPurezaPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
+  const [filtroActivo, setFiltroActivo] = useState("todos") // nuevo filtro
   const [purezas, setPurezas] = useState<PurezaDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -52,11 +55,28 @@ export default function ListadoPurezaPage() {
   const [totalElements, setTotalElements] = useState(0)
   const [isLast, setIsLast] = useState(false)
   const [isFirst, setIsFirst] = useState(true)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const pageSize = 10
-  const fetchPurezas = async (page: number = 0) => {
+
+  // Fetch user profile to get role
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        const perfil = await obtenerPerfil()
+        const role = perfil?.roles?.[0] || ''
+        const cleanRole = role.replace('ROLE_', '')
+        setUserRole(cleanRole)
+      } catch (error) {
+        console.error("Error obteniendo rol de usuario:", error)
+      }
+    }
+    fetchUserRole()
+  }, [])
+
+  const fetchPurezas = async (page: number = 0, filtro: string = filtroActivo) => {
     try {
       setLoading(true);
-      const data = await obtenerPurezasPaginadas(page, pageSize);
+      const data = await obtenerPurezasPaginadas(page, pageSize, filtro);
       console.log("DEBUG obtenerPurezasPaginadas response:", data);
 
       // Datos principales
@@ -79,8 +99,30 @@ export default function ListadoPurezaPage() {
   };
 
   useEffect(() => {
-    fetchPurezas(0)
-  }, [])
+    fetchPurezas(0, filtroActivo)
+  }, [filtroActivo])
+
+  // Handlers para desactivar/reactivar
+  const handleDesactivar = async (id: number) => {
+    if (!confirm("¿Está seguro de que desea desactivar este análisis?")) return
+    try {
+      await desactivarPureza(id)
+      toast.success("Análisis desactivado exitosamente")
+      await fetchPurezas(currentPage, filtroActivo)
+    } catch (error: any) {
+      toast.error("Error al desactivar análisis", { description: error?.message })
+    }
+  }
+
+  const handleReactivar = async (id: number) => {
+    try {
+      await activarPureza(id)
+      toast.success("Análisis reactivado exitosamente")
+      await fetchPurezas(currentPage, filtroActivo)
+    } catch (error: any) {
+      toast.error("Error al reactivar análisis", { description: error?.message })
+    }
+  }
 
   const filteredAnalysis = purezas.filter((analysis) => {
     const searchLower = searchTerm.toLowerCase()
@@ -271,6 +313,15 @@ export default function ListadoPurezaPage() {
                 <option value="APROBADO">Aprobado</option>
                 <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
               </select>
+              <select
+                value={filtroActivo}
+                onChange={(e) => setFiltroActivo(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+              >
+                <option value="todos">Todos</option>
+                <option value="activos">Activos</option>
+                <option value="inactivos">Inactivos</option>
+              </select>
               <Button variant="outline" size="sm">
                 <Filter className="h-4 w-4 mr-2" />
                 Filtros
@@ -372,9 +423,29 @@ export default function ListadoPurezaPage() {
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </Link>
-                            <Button variant="ghost" size="sm" title="Eliminar">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {userRole === "ADMIN" && (
+                              analysis.activo ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDesactivar(analysis.analisisID)}
+                                  className="text-red-600 hover:text-red-700"
+                                  title="Desactivar"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleReactivar(analysis.analisisID)}
+                                  className="text-green-600 hover:text-green-700"
+                                  title="Reactivar"
+                                >
+                                  <RefreshCw className="h-4 w-4" />
+                                </Button>
+                              )
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

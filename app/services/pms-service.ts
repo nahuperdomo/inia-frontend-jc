@@ -35,12 +35,24 @@ export async function eliminarPms(id: number): Promise<void> {
   });
 }
 
+export async function desactivarPms(id: number): Promise<void> {
+  return apiFetch(`/api/pms/${id}/desactivar`, {
+    method: "PUT",
+  });
+}
+
+export async function activarPms(id: number): Promise<PmsDTO> {
+  return apiFetch(`/api/pms/${id}/reactivar`, {
+    method: "PUT",
+  });
+}
+
 export async function obtenerPmsPorIdLote(idLote: number): Promise<PmsDTO[]> {
   return apiFetch(`/api/pms/lote/${idLote}`);
 }
 
-export async function obtenerPmsPaginadas(page: number = 0, size: number = 10): Promise<{ content: PmsDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
-  return apiFetch(`/api/pms/listado?page=${page}&size=${size}`);
+export async function obtenerPmsPaginadas(page: number = 0, size: number = 10, filtroActivo: string = "todos"): Promise<{ content: PmsDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  return apiFetch(`/api/pms/listado?page=${page}&size=${size}&filtroActivo=${filtroActivo}`);
 }
 
 export async function finalizarAnalisis(id: number): Promise<PmsDTO> {

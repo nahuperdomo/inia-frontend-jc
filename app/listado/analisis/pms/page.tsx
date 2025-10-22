@@ -8,11 +8,11 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-import { Scale, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle } from "lucide-react"
+import { Scale, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { Toaster, toast } from "sonner"
 import Pagination from "@/components/pagination"
-import { obtenerPmsPaginadas, eliminarPms } from "@/app/services/pms-service"
+import { obtenerPmsPaginadas, eliminarPms, desactivarPms, activarPms } from "@/app/services/pms-service"
 import { PmsDTO } from "@/app/models"
 
 interface AnalisisPMS {
@@ -31,12 +31,15 @@ interface AnalisisPMS {
   desviacionEstandar: number
   coeficienteVariacion: number
   pesoCorregido: number
+  activo?: boolean
 }
 
 export default function ListadoPMSPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState<string>("todos")
   const [filterPrioridad, setFilterPrioridad] = useState<string>("todos")
+  const [filtroActivo, setFiltroActivo] = useState("todos")
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [analisis, setAnalisis] = useState<AnalisisPMS[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -45,11 +48,24 @@ export default function ListadoPMSPage() {
   const [totalElements, setTotalElements] = useState(0)
   const pageSize = 10
 
+  // Obtener rol del usuario
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]))
+        setUserRole(payload.rol)
+      } catch (error) {
+        console.error("Error al decodificar el token:", error)
+      }
+    }
+  }, [])
+
   // Fetch paginated PMS
-  const fetchPms = async (page: number = 0) => {
+  const fetchPms = async (page: number = 0, filtro: string = "todos") => {
     try {
       setLoading(true)
-      const data = await obtenerPmsPaginadas(page, pageSize)
+      const data = await obtenerPmsPaginadas(page, pageSize, filtro)
       // data.content expected
       setAnalisis((data.content || []).map((p: any) => ({
         id: `PMS${p.analisisID}`,
@@ -67,6 +83,7 @@ export default function ListadoPMSPage() {
         desviacionEstandar: p.desviacionEstandar || 0,
         coeficienteVariacion: p.coeficienteVariacion || 0,
         pesoCorregido: p.pesoCorregido || 0,
+        activo: p.activo ?? true,
       })))
 
       const meta = (data as any).page || {}
@@ -82,6 +99,35 @@ export default function ListadoPMSPage() {
   }
 
   useEffect(() => { fetchPms(0) }, [])
+
+  // Actualizar cuando cambia el filtro de activo
+  useEffect(() => {
+    fetchPms(0, filtroActivo)
+  }, [filtroActivo])
+
+  // Handlers para desactivar/reactivar
+  const handleDesactivar = async (id: number) => {
+    if (!confirm("¿Está seguro de desactivar este análisis PMS?")) return
+    try {
+      await desactivarPms(id)
+      toast.success("Análisis PMS desactivado exitosamente")
+      await fetchPms(currentPage, filtroActivo)
+    } catch (error) {
+      console.error("Error al desactivar PMS:", error)
+      toast.error("Error al desactivar el análisis")
+    }
+  }
+
+  const handleReactivar = async (id: number) => {
+    try {
+      await activarPms(id)
+      toast.success("Análisis PMS reactivado exitosamente")
+      await fetchPms(currentPage, filtroActivo)
+    } catch (error) {
+      console.error("Error al reactivar PMS:", error)
+      toast.error("Error al reactivar el análisis")
+    }
+  }
 
   const filteredAnalisis = analisis.filter((item) => {
     const matchesSearch =
@@ -307,6 +353,15 @@ export default function ListadoPMSPage() {
                 <SelectItem value="PARA_REPETIR">Para Repetir</SelectItem>
               </SelectContent>
             </Select>
+            <select
+              value={filtroActivo}
+              onChange={(e) => setFiltroActivo(e.target.value)}
+              className="px-3 py-2 border border-input bg-background rounded-md text-sm w-full md:w-48"
+            >
+              <option value="todos">Todos</option>
+              <option value="activos">Activos</option>
+              <option value="inactivos">Inactivos</option>
+            </select>
           </div>
         </CardContent>
       </Card>
@@ -387,15 +442,29 @@ export default function ListadoPMSPage() {
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-destructive hover:text-destructive"
-                            title="Eliminar"
-                            onClick={() => handleEliminar(parseInt(item.id.replace('PMS', '')))}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {userRole === "ADMIN" && (
+                            item.activo ? (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                title="Desactivar"
+                                onClick={() => handleDesactivar(parseInt(item.id.replace('PMS', '')))}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                title="Reactivar"
+                                onClick={() => handleReactivar(parseInt(item.id.replace('PMS', '')))}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <RefreshCw className="h-4 w-4" />
+                              </Button>
+                            )
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

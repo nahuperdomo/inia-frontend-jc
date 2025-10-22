@@ -63,6 +63,18 @@ export async function eliminarPureza(id: number): Promise<void> {
   });
 }
 
+export async function desactivarPureza(id: number): Promise<void> {
+  return apiFetch(`/api/purezas/${id}/desactivar`, {
+    method: "PUT",
+  });
+}
+
+export async function activarPureza(id: number): Promise<PurezaDTO> {
+  return apiFetch(`/api/purezas/${id}/reactivar`, {
+    method: "PUT",
+  });
+}
+
 export async function obtenerPurezasPorIdLote(idLote: number): Promise<PurezaDTO[]> {
   return apiFetch(`/api/purezas/lote/${idLote}`);
 }
@@ -71,8 +83,8 @@ export async function obtenerTodosCatalogos(): Promise<MalezasYCultivosCatalogoD
   return apiFetch("/api/purezas/catalogos");
 }
 
-export async function obtenerPurezasPaginadas(page: number = 0, size: number = 10): Promise<{ content: PurezaDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
-  return apiFetch(`/api/purezas/listado?page=${page}&size=${size}`);
+export async function obtenerPurezasPaginadas(page: number = 0, size: number = 10, filtroActivo: string = "todos"): Promise<{ content: PurezaDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  return apiFetch(`/api/purezas/listado?page=${page}&size=${size}&filtroActivo=${filtroActivo}`);
 }
 
 export async function finalizarAnalisis(id: number): Promise<PurezaDTO> {

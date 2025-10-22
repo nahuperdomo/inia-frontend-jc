@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Activity, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react"
+import { Activity, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, AlertTriangle, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { obtenerGerminacionesPaginadas } from "@/app/services/germinacion-service"
+import { obtenerGerminacionesPaginadas, desactivarGerminacion, activarGerminacion } from "@/app/services/germinacion-service"
 import { GerminacionListadoDTO } from "@/app/models/interfaces/germinacion"
 import { EstadoAnalisis } from "@/app/models/types/enums"
 import Pagination from "@/components/pagination"
+import { toast } from "sonner"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -63,6 +64,8 @@ const formatearFechaHora = (fechaString: string): string => {
 export default function ListadoGerminacionPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
+  const [filtroActivo, setFiltroActivo] = useState("todos")
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [germinaciones, setGerminaciones] = useState<GerminacionListadoDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -73,10 +76,23 @@ export default function ListadoGerminacionPage() {
   const [isFirst, setIsFirst] = useState(true)
   const pageSize = 10
 
-  const fetchGerminaciones = async (page: number = 0) => {
+  // Obtener rol del usuario
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]))
+        setUserRole(payload.rol)
+      } catch (error) {
+        console.error("Error al decodificar el token:", error)
+      }
+    }
+  }, [])
+
+  const fetchGerminaciones = async (page: number = 0, filtro: string = "todos") => {
     try {
       setLoading(true)
-      const data = await obtenerGerminacionesPaginadas(page, pageSize)
+      const data = await obtenerGerminacionesPaginadas(page, pageSize, filtro)
       // data may contain 'content' and a nested 'page' meta like the DOSN endpoint
       setGerminaciones((data as any).content || [])
       const meta = (data as any).page || {}
@@ -96,6 +112,35 @@ export default function ListadoGerminacionPage() {
   useEffect(() => {
     fetchGerminaciones(0)
   }, [])
+
+  // Actualizar cuando cambia el filtro de activo
+  useEffect(() => {
+    fetchGerminaciones(0, filtroActivo)
+  }, [filtroActivo])
+
+  // Handlers para desactivar/reactivar
+  const handleDesactivar = async (id: number) => {
+    if (!confirm("¿Está seguro de desactivar este análisis de Germinación?")) return
+    try {
+      await desactivarGerminacion(id)
+      toast.success("Análisis de Germinación desactivado exitosamente")
+      await fetchGerminaciones(currentPage, filtroActivo)
+    } catch (error) {
+      console.error("Error al desactivar Germinación:", error)
+      toast.error("Error al desactivar el análisis")
+    }
+  }
+
+  const handleReactivar = async (id: number) => {
+    try {
+      await activarGerminacion(id)
+      toast.success("Análisis de Germinación reactivado exitosamente")
+      await fetchGerminaciones(currentPage, filtroActivo)
+    } catch (error) {
+      console.error("Error al reactivar Germinación:", error)
+      toast.error("Error al reactivar el análisis")
+    }
+  }
 
   const filteredAnalysis = germinaciones.filter((analysis) => {
     const searchLower = searchTerm.toLowerCase()
@@ -286,6 +331,15 @@ export default function ListadoGerminacionPage() {
                 <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
                 <option value="A_REPETIR">A Repetir</option>
               </select>
+              <select
+                value={filtroActivo}
+                onChange={(e) => setFiltroActivo(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+              >
+                <option value="todos">Todos</option>
+                <option value="activos">Activos</option>
+                <option value="inactivos">Inactivos</option>
+              </select>
               <Button variant="outline" size="sm">
                 <Filter className="h-4 w-4 mr-2" />
                 Filtros
@@ -377,9 +431,29 @@ export default function ListadoGerminacionPage() {
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <Button variant="ghost" size="sm" title="Eliminar">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {userRole === "ADMIN" && (
+                            analysis.activo ? (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                title="Desactivar"
+                                onClick={() => handleDesactivar(analysis.analisisID)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                title="Reactivar"
+                                onClick={() => handleReactivar(analysis.analisisID)}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <RefreshCw className="h-4 w-4" />
+                              </Button>
+                            )
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

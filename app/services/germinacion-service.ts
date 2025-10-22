@@ -28,8 +28,8 @@ export async function obtenerTodasGerminaciones(): Promise<GerminacionDTO[]> {
   return res.germinaciones || [];
 }
 
-export async function obtenerGerminacionesPaginadas(page: number = 0, size: number = 10): Promise<{ content: GerminacionListadoDTO[], totalElements: number, totalPages: number, last: boolean, first: boolean }> {
-  return apiFetch(`/api/germinaciones/listado?page=${page}&size=${size}`);
+export async function obtenerGerminacionesPaginadas(page: number = 0, size: number = 10, filtroActivo: string = "todos"): Promise<{ content: GerminacionListadoDTO[], totalElements: number, totalPages: number, last: boolean, first: boolean }> {
+  return apiFetch(`/api/germinaciones/listado?page=${page}&size=${size}&filtroActivo=${filtroActivo}`);
 }
 
 export async function obtenerGerminacionPorId(id: number): Promise<GerminacionDTO> {
@@ -46,6 +46,18 @@ export async function actualizarGerminacion(id: number, solicitud: GerminacionEd
 export async function eliminarGerminacion(id: number): Promise<void> {
   return apiFetch(`/api/germinaciones/${id}`, {
     method: "DELETE",
+  });
+}
+
+export async function desactivarGerminacion(id: number): Promise<void> {
+  return apiFetch(`/api/germinaciones/${id}/desactivar`, {
+    method: "PUT",
+  });
+}
+
+export async function activarGerminacion(id: number): Promise<GerminacionDTO> {
+  return apiFetch(`/api/germinaciones/${id}/reactivar`, {
+    method: "PUT",
   });
 }
 

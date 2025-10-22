@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Microscope, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle } from "lucide-react"
+import { Microscope, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
-import { obtenerTodosTetrazolio, obtenerTetrazoliosPaginadas } from '@/app/services/tetrazolio-service'
+import { obtenerTodosTetrazolio, obtenerTetrazoliosPaginadas, desactivarTetrazolio, activarTetrazolio } from '@/app/services/tetrazolio-service'
 import Pagination from "@/components/pagination"
+import { toast } from "sonner"
 
 interface AnalisisTetrazolio {
   id: string
@@ -28,10 +29,13 @@ interface AnalisisTetrazolio {
   vigor: string
   semillasViables: number
   semillasNoViables: number
+  activo?: boolean
 }
 
 export default function ListadoTetrazolioPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [filtroActivo, setFiltroActivo] = useState("todos")
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [filterEstado, setFilterEstado] = useState<string>("todos")
   const [filterPrioridad, setFilterPrioridad] = useState<string>("todos")
 
@@ -45,12 +49,25 @@ export default function ListadoTetrazolioPage() {
   const [isFirst, setIsFirst] = useState(true)
   const [lastResponse, setLastResponse] = useState<any>(null)
   const pageSize = 10
+
+  // Obtener rol del usuario
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]))
+        setUserRole(payload.rol)
+      } catch (error) {
+        console.error("Error al decodificar el token:", error)
+      }
+    }
+  }, [])
   
-  const fetchTetrazolio = async (page: number = 0) => {
+  const fetchTetrazolio = async (page: number = 0, filtro: string = "todos") => {
     try {
       setLoading(true)
       setError("")
-      const data = await obtenerTetrazoliosPaginadas(page, pageSize)
+      const data = await obtenerTetrazoliosPaginadas(page, pageSize, filtro)
       setLastResponse(data)
 
       const content = data.content || []
@@ -70,6 +87,7 @@ export default function ListadoTetrazolioPage() {
         vigor: t.vigor || "",
         semillasViables: t.semillasViables || 0,
         semillasNoViables: t.semillasNoViables || 0,
+        activo: t.activo ?? true,
       })) as AnalisisTetrazolio[]
 
       setAnalisis(mapped)
@@ -91,6 +109,35 @@ export default function ListadoTetrazolioPage() {
   useEffect(() => {
     fetchTetrazolio(0)
   }, [])
+
+  // Actualizar cuando cambia el filtro de activo
+  useEffect(() => {
+    fetchTetrazolio(0, filtroActivo)
+  }, [filtroActivo])
+
+  // Handlers para desactivar/reactivar
+  const handleDesactivar = async (id: number) => {
+    if (!confirm("¿Está seguro de desactivar este análisis Tetrazolio?")) return
+    try {
+      await desactivarTetrazolio(id)
+      toast.success("Análisis Tetrazolio desactivado exitosamente")
+      await fetchTetrazolio(currentPage, filtroActivo)
+    } catch (error) {
+      console.error("Error al desactivar Tetrazolio:", error)
+      toast.error("Error al desactivar el análisis")
+    }
+  }
+
+  const handleReactivar = async (id: number) => {
+    try {
+      await activarTetrazolio(id)
+      toast.success("Análisis Tetrazolio reactivado exitosamente")
+      await fetchTetrazolio(currentPage, filtroActivo)
+    } catch (error) {
+      console.error("Error al reactivar Tetrazolio:", error)
+      toast.error("Error al reactivar el análisis")
+    }
+  }
 
   const filteredAnalisis = analisis.filter((item) => {
     const matchesSearch =
@@ -297,6 +344,15 @@ export default function ListadoTetrazolioPage() {
                 <SelectItem value="Baja">Baja</SelectItem>
               </SelectContent>
             </Select>
+            <select
+              value={filtroActivo}
+              onChange={(e) => setFiltroActivo(e.target.value)}
+              className="px-3 py-2 border border-input bg-background rounded-md text-sm w-full md:w-48"
+            >
+              <option value="todos">Todos</option>
+              <option value="activos">Activos</option>
+              <option value="inactivos">Inactivos</option>
+            </select>
           </div>
         </CardContent>
       </Card>
@@ -359,9 +415,29 @@ export default function ListadoTetrazolioPage() {
                             <Edit className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {userRole === "ADMIN" && (
+                          item.activo ? (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              title="Desactivar"
+                              onClick={() => handleDesactivar(parseInt(item.id))}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              title="Reactivar"
+                              onClick={() => handleReactivar(parseInt(item.id))}
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                            </Button>
+                          )
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
