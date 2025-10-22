@@ -39,7 +39,8 @@ import {
     XCircle,
     Calendar,
     Calculator,
-    ClipboardList
+    ClipboardList,
+    AlertTriangle
 } from "lucide-react";
 import MalezaFields from "@/components/malezas-u-otros-cultivos/fields-maleza";
 import OtrosCultivosFields from "@/components/malezas-u-otros-cultivos/fields-otros-cultivos";
@@ -164,6 +165,22 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
     useEffect(() => {
         handleInputChange("redonPesoTotal", redonPesoTotalCalculado);
     }, [redonPesoTotalCalculado]);
+
+    // ✅ Validaciones de peso (del backend)
+    const pesoInicialNum = parseFloat(formData.pesoInicial_g as string) || 0;
+    const pesoTotalNum = parseFloat(formData.pesoTotal_g as string) || 0;
+    
+    // Validación: peso inicial debe ser mayor a cero
+    const pesoInicialValido = pesoInicialNum > 0;
+    
+    // Validación: peso total no puede ser mayor al inicial
+    const pesoTotalMayorQueInicial = pesoTotalNum > 0 && pesoTotalNum > pesoInicialNum;
+    
+    // Validación: advertencia si se pierde más del 5% de la muestra
+    const porcentajePerdida = pesoInicialNum > 0 && pesoTotalNum > 0 
+        ? ((pesoInicialNum - pesoTotalNum) / pesoInicialNum) * 100 
+        : 0;
+    const perdidaExcedeLimite = porcentajePerdida > 5.0;
 
     return (
         <Card className="border-0 shadow-sm bg-card">
@@ -357,10 +374,29 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                                                 value={formData.pesoTotal_g || ""}
                                                 onChange={(e) => handleInputChange("pesoTotal_g", e.target.value)}
                                                 placeholder="0.000"
-                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
+                                                    pesoTotalMayorQueInicial ? "border-red-500 focus:ring-red-500/20" : ""
+                                                }`}
                                             />
+                                            {pesoTotalMayorQueInicial && (
+                                                <p className="text-xs text-red-600 flex items-center gap-1">
+                                                    <XCircle className="h-3 w-3" />
+                                                    El peso total no puede ser mayor al peso inicial
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
+
+                                    {/* ✅ Alertas de validación de pesos */}
+                                    {perdidaExcedeLimite && (
+                                        <Alert className="border-amber-200 bg-amber-50">
+                                            <AlertTriangle className="h-4 w-4 text-amber-600" />
+                                            <AlertDescription className="text-amber-800">
+                                                La muestra ha perdido <strong>{porcentajePerdida.toFixed(2)}%</strong> de su peso inicial 
+                                                ({(pesoInicialNum - pesoTotalNum).toFixed(2)}g), lo cual excede el límite recomendado del 5%.
+                                            </AlertDescription>
+                                        </Alert>
+                                    )}
                                 </CardContent>
                             </Card>
 
@@ -622,6 +658,9 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                                     <h3 className="text-lg font-semibold">INASE</h3>
                                     <p className="text-sm text-muted-foreground">Instituto Nacional de Semillas</p>
                                 </div>
+
+
+                                
                             </div>
 
                             {/* Card 4: Porcentajes INASE */}
@@ -629,7 +668,7 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                                 <CardHeader className="pb-4">
                                     <CardTitle className="text-base font-semibold flex items-center gap-2">
                                         <Percent className="h-4 w-4 text-blue-600" />
-                                        Porcentajes INASE
+                                        Fecha y Porcentajes INASE
                                     </CardTitle>
                                     <p className="text-xs text-muted-foreground mt-1">Ingrese los porcentajes oficiales de INASE</p>
                                 </CardHeader>
