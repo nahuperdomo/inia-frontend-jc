@@ -1109,16 +1109,10 @@ export default function RegistroAnalisisPage() {
           {selectedAnalysisType === "PUREZA" && (
             <PurezaFields
               key={purezaFormKey}
-              formData={{
-                ...formData,
-                malezas: purezaMalezasList,
-                cultivos: purezaCultivosList,
-                brassicas: purezaBrassicasList,
-              }}
+              formData={formData}
               handleInputChange={handlePurezaInputChange}
               onChangeMalezas={handlePurezaMalezasChange}
               onChangeCultivos={handlePurezaCultivosChange}
-              onChangeBrassicas={handlePurezaBrassicasChange}
             />
           )}
           {selectedAnalysisType === "DOSN" && (

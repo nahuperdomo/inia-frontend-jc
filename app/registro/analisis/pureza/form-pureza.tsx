@@ -43,52 +43,29 @@ import {
 } from "lucide-react";
 import MalezaFields from "@/components/malezas-u-otros-cultivos/fields-maleza";
 import OtrosCultivosFields from "@/components/malezas-u-otros-cultivos/fields-otros-cultivos";
-import BrassicaFields from "@/app/registro/analisis/dosn/fields/fields-brassica";
+import CumplimientoEstandarFields from "@/app/registro/analisis/dosn/fields/fields-cumplio-estandar";
+import { Separator } from "@/components/ui/separator";
+// ❌ NO incluir BrassicaFields ni CuscutaFields en PUREZA
 
 type Props = {
-    formData: {
-        fecha?: string;
-        pesoInicial_g?: string;
-        semillaPura_g?: string;
-        materiaInerte_g?: string;
-        otrosCultivos_g?: string;
-        malezas_g?: string;
-        malezasToleradas_g?: string;
-        malezasTolCero_g?: string;
-        pesoTotal_g?: string;
-        
-        redonSemillaPura?: string;
-        redonMateriaInerte?: string;
-        redonOtrosCultivos?: string;
-        redonMalezas?: string;
-        redonMalezasToleradas?: string;
-        redonMalezasTolCero?: string;
-        redonPesoTotal?: string;
-        
-        inasePura?: string;
-        inaseMateriaInerte?: string;
-        inaseOtrosCultivos?: string;
-        inaseMalezas?: string;
-        inaseMalezasToleradas?: string;
-        inaseMalezasTolCero?: string;
-        inaseFecha?: string;
-        
-        cumpleEstandar?: string;
-        observacionesPureza?: string;
-        otrasSemillas?: any[];
-        malezas?: any[];
-        cultivos?: any[];
-        brassicas?: any[];
-        [key: string]: any;
-    };
+    formData: any;
     handleInputChange: (field: string, value: any) => void;
     onChangeMalezas?: (list: any[]) => void;
     onChangeCultivos?: (list: any[]) => void;
-    onChangeBrassicas?: (list: any[]) => void;
+    // ❌ NO incluir onChangeBrassicas en PUREZA
 }
 
-const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCultivos, onChangeBrassicas }: Props) => {
+const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCultivos }: Props) => {
     const [activeTab, setActiveTab] = useState("generales");
+    
+    // ✅ Extraer listas de registros SOLO si vienen con estructura completa del backend (modo edición)
+    // Si malezas/cultivos está vacío o undefined, MalezaFields usará su propio estado interno
+    const malezas = (formData.malezas && formData.malezas.length > 0 && formData.malezas[0]?.catalogo) 
+        ? formData.malezas 
+        : undefined;
+    const cultivos = (formData.cultivos && formData.cultivos.length > 0 && formData.cultivos[0]?.catalogo) 
+        ? formData.cultivos 
+        : undefined;
     
     // Calcular porcentajes automáticamente en tiempo real (4 decimales)
     const porcentajes = useMemo(() => {
@@ -658,6 +635,20 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {/* INASE Fecha - PRIMERO */}
+                                        <div className="space-y-2 md:col-span-3">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Calendar className="h-4 w-4 text-blue-600" />
+                                                Fecha INASE
+                                            </Label>
+                                            <Input
+                                                type="date"
+                                                value={formData.inaseFecha || ""}
+                                                onChange={(e) => handleInputChange("inaseFecha", e.target.value)}
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        </div>
+
                                         {/* INASE Semilla Pura */}
                                         <div className="space-y-2">
                                             <Label className="text-sm font-medium flex items-center gap-2">
@@ -753,20 +744,6 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                                                 className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                                             />
                                         </div>
-
-                                        {/* INASE Fecha */}
-                                        <div className="space-y-2">
-                                            <Label className="text-sm font-medium flex items-center gap-2">
-                                                <Calendar className="h-4 w-4 text-blue-600" />
-                                                Fecha INASE
-                                            </Label>
-                                            <Input
-                                                type="date"
-                                                value={formData.inaseFecha || ""}
-                                                onChange={(e) => handleInputChange("inaseFecha", e.target.value)}
-                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-                                            />
-                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -839,10 +816,12 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                         </Card>
                     </TabsContent>
 
-                    <TabsContent value="registros" className="space-y-6">
-                        <MalezaFields titulo="Malezas" contexto="pureza" registros={formData.malezas && formData.malezas.length > 0 ? formData.malezas : undefined} onChangeListados={onChangeMalezas} />
-                        <OtrosCultivosFields contexto="pureza" registros={formData.cultivos && formData.cultivos.length > 0 ? formData.cultivos : undefined} onChangeListados={onChangeCultivos} />
-                        <BrassicaFields contexto="pureza" registros={formData.brassicas && formData.brassicas.length > 0 ? formData.brassicas : undefined} onChangeListados={onChangeBrassicas} />
+                    <TabsContent value="registros" className="space-y-6 mt-6">
+                        <MalezaFields titulo="Malezas" contexto="pureza" registros={malezas} onChangeListados={onChangeMalezas} />
+                        <OtrosCultivosFields contexto="pureza" registros={cultivos} onChangeListados={onChangeCultivos} />
+                        {/* ❌ NO incluir BrassicaFields ni CuscutaFields en PUREZA */}
+                        <Separator />
+                        <CumplimientoEstandarFields formData={formData} handleInputChange={handleInputChange ?? (() => {})} />
                     </TabsContent>
                 </Tabs>
             </CardContent>

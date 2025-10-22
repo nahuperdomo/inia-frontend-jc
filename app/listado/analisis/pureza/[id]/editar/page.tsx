@@ -22,6 +22,7 @@ export default function EditarPurezaPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [malezasList, setMalezasList] = useState<any[]>([])
+  const [cultivosList, setCultivosList] = useState<any[]>([])
 
   // Form state
   const [formData, setFormData] = useState({
@@ -101,9 +102,18 @@ export default function EditarPurezaPage() {
           observacionesPureza: purezaData.comentarios || "",
         })
 
-        // Cargar listados existentes
+        // Cargar listados existentes y separarlos por tipo
         if (purezaData.otrasSemillas && purezaData.otrasSemillas.length > 0) {
-          setMalezasList(purezaData.otrasSemillas)
+          const malezas = purezaData.otrasSemillas.filter(
+            (l: any) =>
+              l.listadoTipo === "MAL_TOLERANCIA_CERO" ||
+              l.listadoTipo === "MAL_TOLERANCIA" ||
+              l.listadoTipo === "MAL_COMUNES"
+          )
+          const cultivos = purezaData.otrasSemillas.filter((l: any) => l.listadoTipo === "OTROS")
+          
+          setMalezasList(malezas)
+          setCultivosList(cultivos)
         }
 
       } catch (err) {
@@ -129,6 +139,11 @@ export default function EditarPurezaPage() {
   const handleMalezasChange = useCallback((list: any[]) => {
     console.log("Malezas actualizadas:", list)
     setMalezasList(list)
+  }, [])
+
+  const handleCultivosChange = useCallback((list: any[]) => {
+    console.log("Cultivos actualizados:", list)
+    setCultivosList(list)
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -170,12 +185,22 @@ export default function EditarPurezaPage() {
         inaseMalezasTolCero: formData.inaseMalezasTolCero ? parseFloat(formData.inaseMalezasTolCero) : undefined,
         inaseFecha: formData.inaseFecha || undefined,
         
-        otrasSemillas: malezasList.map(m => ({
-          listadoTipo: m.listadoTipo,
-          listadoInsti: m.listadoInsti,
-          listadoNum: m.listadoNum,
-          idCatalogo: m.idCatalogo || m.catalogo?.catalogoID
-        }))
+        // Combinar malezas y cultivos en otrasSemillas
+        otrasSemillas: [
+          ...malezasList.map(m => ({
+            listadoTipo: m.listadoTipo,
+            listadoInsti: m.listadoInsti,
+            listadoNum: m.listadoNum,
+            idCatalogo: m.idCatalogo || m.catalogo?.catalogoID
+          })),
+          ...cultivosList.map(c => ({
+            listadoTipo: c.listadoTipo,
+            listadoInsti: c.listadoInsti,
+            listadoNum: c.listadoNum,
+            idCatalogo: c.idCatalogo || c.catalogo?.catalogoID
+          }))
+          // ❌ NO incluir brassicas en PUREZA
+        ]
       }
 
       console.log("Enviando actualización:", requestData)
@@ -295,9 +320,14 @@ export default function EditarPurezaPage() {
               </CardHeader>
               <CardContent className="p-6">
                 <PurezaFields
-                  formData={formData}
+                  formData={{
+                    ...formData,
+                    malezas: malezasList,
+                    cultivos: cultivosList,
+                  }}
                   handleInputChange={handleInputChange}
                   onChangeMalezas={handleMalezasChange}
+                  onChangeCultivos={handleCultivosChange}
                 />
               </CardContent>
             </Card>
