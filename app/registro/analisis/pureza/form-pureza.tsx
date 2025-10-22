@@ -74,7 +74,7 @@ type Props = {
         inaseFecha?: string;
         
         cumpleEstandar?: string;
-        observaciones?: string;
+        observacionesPureza?: string;
         otrasSemillas?: any[];
         malezas?: any[];
         cultivos?: any[];
@@ -207,25 +207,6 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
             </CardHeader>
 
             <CardContent>
-                {/* Observaciones - Arriba, fuera de tabs como en DOSN */}
-                <Card className="border-0 shadow-sm mb-6">
-                    <CardHeader className="pb-4">
-                        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                            <MessageCircle className="h-5 w-5 text-primary" />
-                            Observaciones
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Textarea
-                            placeholder="Ingrese observaciones específicas del análisis de pureza física, condiciones especiales, particularidades encontradas u otra información relevante..."
-                            value={formData.observaciones || ""}
-                            onChange={(e) => handleInputChange("observaciones", e.target.value)}
-                            rows={6}
-                            className="resize-y min-h-[120px] transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-                        />
-                    </CardContent>
-                </Card>
-
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="flex flex-wrap gap-2 w-full mb-6">
                         <TabsTrigger value="generales" className="flex items-center gap-2 px-3 py-2 text-sm">
@@ -737,7 +718,7 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                                                 value={formData.inaseMalezas || ""}
                                                 onChange={(e) => handleInputChange("inaseMalezas", e.target.value)}
                                                 placeholder="0.00"
-                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-2 focus:ring-primary/20"
+                                                className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                                             />
                                         </div>
 
@@ -859,9 +840,9 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                     </TabsContent>
 
                     <TabsContent value="registros" className="space-y-6">
-                        <MalezaFields titulo="Malezas" registros={formData.malezas && formData.malezas.length > 0 ? formData.malezas : undefined} onChangeListados={onChangeMalezas} />
-                        <OtrosCultivosFields registros={formData.cultivos && formData.cultivos.length > 0 ? formData.cultivos : undefined} onChangeListados={onChangeCultivos} />
-                        <BrassicaFields registros={formData.brassicas && formData.brassicas.length > 0 ? formData.brassicas : undefined} onChangeListados={onChangeBrassicas} />
+                        <MalezaFields titulo="Malezas" contexto="pureza" registros={formData.malezas && formData.malezas.length > 0 ? formData.malezas : undefined} onChangeListados={onChangeMalezas} />
+                        <OtrosCultivosFields contexto="pureza" registros={formData.cultivos && formData.cultivos.length > 0 ? formData.cultivos : undefined} onChangeListados={onChangeCultivos} />
+                        <BrassicaFields contexto="pureza" registros={formData.brassicas && formData.brassicas.length > 0 ? formData.brassicas : undefined} onChangeListados={onChangeBrassicas} />
                     </TabsContent>
                 </Tabs>
             </CardContent>

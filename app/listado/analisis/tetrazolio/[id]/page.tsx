@@ -849,26 +849,6 @@ export default function TetrazolioDetailPage() {
                 </div>
               </div>
 
-              {/* Comentarios */}
-              <div className="space-y-2">
-                <Label>Comentarios</Label>
-                {editandoTetrazolio ? (
-                  <Textarea
-                    value={tetrazolioEditado.comentarios}
-                    onChange={(e) => setTetrazolioEditado(prev => ({ ...prev, comentarios: e.target.value }))}
-                    placeholder="Observaciones generales o particulares del análisis..."
-                    rows={3}
-                  />
-                ) : (
-                  <div className="text-sm min-h-[60px] p-3 border rounded-md bg-muted/50">
-                    {tetrazolio.comentarios || 'Sin comentarios'}
-                  </div>
-                )}
-                <div className="text-xs text-muted-foreground">
-                  Campo abierto para notas del analista.
-                </div>
-              </div>
-
               {/* Notas generales */}
               {!editandoTetrazolio && (
                 <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-md">
@@ -964,7 +944,10 @@ export default function TetrazolioDetailPage() {
 
                     {/* Validación del total */}
                     {(() => {
-                      const total = (nuevaRepeticion.viablesNum || 0) + (nuevaRepeticion.duras || 0) + (nuevaRepeticion.noViablesNum || 0)
+                      const total = 
+                        (parseInt(String(nuevaRepeticion.viablesNum) || '0') || 0) + 
+                        (parseInt(String(nuevaRepeticion.duras) || '0') || 0) + 
+                        (parseInt(String(nuevaRepeticion.noViablesNum) || '0') || 0)
                       const esperado = tetrazolio?.numSemillasPorRep || 50
                       const diferencia = Math.abs(total - esperado)
 

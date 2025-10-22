@@ -204,7 +204,7 @@ export default function ListadoGerminacionPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 space-y-6 p-6">
+      <div className="space-y-6 p-3 sm:p-4 md:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -217,7 +217,7 @@ export default function ListadoGerminacionPage() {
 
   if (error) {
     return (
-      <div className="flex-1 space-y-6 p-6">
+      <div className="space-y-6 p-3 sm:p-4 md:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
@@ -231,27 +231,31 @@ export default function ListadoGerminacionPage() {
   }
 
   return (
-    <div className="flex-1 space-y-6 p-6">
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/listado">
-            <Button variant="ghost" size="sm">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          <Link href="/listado" className="sm:self-start">
+            <Button variant="ghost" size="sm" className="w-fit">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Listados
+              <span className="hidden sm:inline">Volver a Listados</span>
+              <span className="sm:hidden">Volver</span>
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Análisis de Germinación</h1>
-            <p className="text-muted-foreground">Consulta los análisis de germinación de semillas</p>
+          <div className="text-center sm:text-left flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Análisis de Germinación</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Consulta los análisis de germinación de semillas</p>
           </div>
         </div>
-        <Link href="/registro/analisis/germinacion">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Análisis
-          </Button>
-        </Link>
+        <div className="flex justify-center sm:justify-end">
+          <Link href="/registro/analisis?tipo=GERMINACION">
+            <Button className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Nuevo Análisis
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}
@@ -353,8 +357,8 @@ export default function ListadoGerminacionPage() {
         <CardHeader>
           <CardTitle>Lista de Análisis de Germinación</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto max-w-full">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -482,6 +486,7 @@ export default function ListadoGerminacionPage() {
        </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

@@ -85,6 +85,60 @@ export function generarNombreArchivo(prefijo: string = 'analisis'): string {
   return `${prefijo}_${timestamp}.xlsx`;
 }
 
+/**
+ * Genera un resumen de los filtros aplicados (solo frontend, sin backend)
+ */
+export function generarResumenFiltros(filtros: ExportacionFiltrosDTO): ResumenFiltros {
+  const filtrosAplicados: string[] = [];
+  let advertencias: string[] = [];
+  
+  // Analizar rango de fechas
+  if (filtros.fechaDesde || filtros.fechaHasta) {
+    const desde = filtros.fechaDesde ? new Date(filtros.fechaDesde) : null;
+    const hasta = filtros.fechaHasta ? new Date(filtros.fechaHasta) : new Date();
+    
+    if (desde && hasta) {
+      const diasDiferencia = Math.floor((hasta.getTime() - desde.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diasDiferencia > 365) {
+        advertencias.push('Rango de fechas mayor a 1 año - La exportación puede tardar');
+      } else if (diasDiferencia > 180) {
+        advertencias.push('Rango de fechas mayor a 6 meses - Puede generar un archivo grande');
+      }
+      
+      filtrosAplicados.push(`Fechas: ${desde.toLocaleDateString('es-ES')} - ${hasta.toLocaleDateString('es-ES')}`);
+    } else if (desde) {
+      filtrosAplicados.push(`Desde: ${desde.toLocaleDateString('es-ES')}`);
+    } else if (filtros.fechaHasta) {
+      filtrosAplicados.push(`Hasta: ${hasta.toLocaleDateString('es-ES')}`);
+    }
+  } else {
+    filtrosAplicados.push('Todas las fechas');
+    advertencias.push('Sin filtro de fechas - Se exportarán todos los registros históricos');
+  }
+  
+  // Tipos de análisis
+  if (filtros.tiposAnalisis && filtros.tiposAnalisis.length > 0) {
+    filtrosAplicados.push(`Tipos: ${filtros.tiposAnalisis.join(', ')}`);
+  } else {
+    filtrosAplicados.push('Todos los tipos de análisis');
+  }
+  
+  // Lotes activos/inactivos
+  if (filtros.incluirInactivos) {
+    filtrosAplicados.push('Incluye lotes activos e inactivos');
+  } else {
+    filtrosAplicados.push('Solo lotes activos');
+  }
+  
+  return {
+    filtrosAplicados,
+    advertencias,
+    tieneFiltros: !!(filtros.fechaDesde || filtros.fechaHasta || 
+                     (filtros.tiposAnalisis && filtros.tiposAnalisis.length > 0))
+  };
+}
+
 // Tipos para filtros de exportación
 export interface ExportacionFiltrosDTO {
   loteIds?: number[];
@@ -97,4 +151,11 @@ export interface ExportacionFiltrosDTO {
   incluirEncabezados?: boolean;
   incluirColoresEstilo?: boolean;
   formatoFecha?: string;
+}
+
+// Tipos para resumen de filtros (frontend only)
+export interface ResumenFiltros {
+  filtrosAplicados: string[];
+  advertencias: string[];
+  tieneFiltros: boolean;
 }

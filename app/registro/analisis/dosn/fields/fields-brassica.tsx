@@ -19,9 +19,10 @@ type Brassica = {
 type Props = {
   registros?: any[]
   onChangeListados?: (listados: any[]) => void
+  contexto?: string // 'pureza' | 'dosn' para diferenciar persistencia
 }
 
-export default function BrassicaSection({ registros, onChangeListados }: Props) {
+export default function BrassicaSection({ registros, onChangeListados, contexto = 'dosn' }: Props) {
   const initialBrassicas = registros && registros.length > 0
     ? registros.map((r) => ({
         contiene: "si" as const,
@@ -32,7 +33,7 @@ export default function BrassicaSection({ registros, onChangeListados }: Props) 
 
   // ✅ Usar persistencia solo si no hay registros precargados
   const persistence = usePersistentArray<Brassica>(
-    "dosn-brassicas",
+    `${contexto}-brassicas`,
     initialBrassicas
   )
 
@@ -87,6 +88,9 @@ export default function BrassicaSection({ registros, onChangeListados }: Props) 
     }
     setBrassicas(updated)
   }
+
+  // ✅ Verificar si alguna brassica tiene "no" (No contiene) seleccionado
+  const tieneNoContiene = brassicas.some((b) => b.contiene === "no")
 
   return (
     <Card className="border-border/50 bg-background shadow-sm">
@@ -196,12 +200,19 @@ export default function BrassicaSection({ registros, onChangeListados }: Props) 
           <Button
             onClick={addBrassica}
             variant="outline"
+            disabled={tieneNoContiene}
             className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent 
-               text-sm px-2 py-1"
+               text-sm px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="h-3 w-3 mr-1" />
             Agregar registro
           </Button>
+          {tieneNoContiene && (
+            <p className="text-xs text-muted-foreground ml-3 flex items-center">
+              <XCircle className="h-3 w-3 mr-1" />
+              No se pueden agregar más registros cuando hay "No contiene" seleccionado
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>

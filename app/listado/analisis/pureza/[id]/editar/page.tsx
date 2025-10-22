@@ -52,7 +52,7 @@ export default function EditarPurezaPage() {
     inaseFecha: "",
     
     cumpleEstandar: "",
-    observaciones: "",
+    observacionesPureza: "",
   })
 
   useEffect(() => {
@@ -98,7 +98,7 @@ export default function EditarPurezaPage() {
           
           // Convertir boolean a "si"/"no" para el Select
           cumpleEstandar: purezaData.cumpleEstandar === true ? "si" : purezaData.cumpleEstandar === false ? "no" : "",
-          observaciones: purezaData.comentarios || "",
+          observacionesPureza: purezaData.comentarios || "",
         })
 
         // Cargar listados existentes
@@ -140,7 +140,7 @@ export default function EditarPurezaPage() {
       // Construir el request DTO
       const requestData: PurezaRequestDTO = {
         idLote: pureza!.idLote!,
-        comentarios: formData.observaciones || undefined,
+        comentarios: formData.observacionesPureza || undefined,
         // Mapear "si"/"no" a boolean correctamente
         cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : undefined,
         
@@ -232,48 +232,50 @@ export default function EditarPurezaPage() {
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="bg-background border-b sticky top-0 z-40">
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col gap-6">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+          <div className="flex flex-col gap-3">
             <Link href={`/listado/analisis/pureza/${purezaId}`}>
-              <Button variant="ghost" size="sm" className="gap-2 -ml-2">
-                <ArrowLeft className="h-4 w-4" />
-                Cancelar
+              <Button variant="ghost" size="sm" className="gap-1 -ml-2 h-8">
+                <ArrowLeft className="h-3 w-3" />
+                <span className="text-xs sm:text-sm">Cancelar</span>
               </Button>
             </Link>
 
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-3xl lg:text-4xl font-bold text-balance">
+            <div className="flex flex-col gap-2">
+              <div className="space-y-1 text-center lg:text-left">
+                <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-start">
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-balance">
                     Editar Análisis de Pureza #{pureza.analisisID}
                   </h1>
-                  <Badge variant="secondary" className="text-sm px-3 py-1">
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
                     {pureza.estado}
                   </Badge>
                 </div>
-                <p className="text-base text-muted-foreground text-pretty">
+                <p className="text-xs sm:text-sm text-muted-foreground text-pretty">
                   Lote {pureza.lote}
                 </p>
               </div>
 
-              <Button 
-                size="lg" 
-                className="gap-2 w-full sm:w-auto"
-                onClick={handleSubmit}
-                disabled={saving}
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" />
-                    Guardar cambios
-                  </>
-                )}
-              </Button>
+              <div className="flex justify-center lg:justify-end">
+                <Button 
+                  size="sm" 
+                  className="gap-1.5 w-full sm:w-auto h-9"
+                  onClick={handleSubmit}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <span className="text-xs sm:text-sm">Guardando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-3.5 w-3.5" />
+                      <span className="text-xs sm:text-sm">Guardar cambios</span>
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

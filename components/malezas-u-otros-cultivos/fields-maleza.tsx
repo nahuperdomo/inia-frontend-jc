@@ -24,9 +24,10 @@ type Props = {
   titulo: string
   registros?: any[]
   onChangeListados?: (listados: any[]) => void
+  contexto?: string // 'pureza' | 'dosn' para diferenciar persistencia
 }
 
-export default function MalezaFields({ titulo, registros, onChangeListados }: Props) {
+export default function MalezaFields({ titulo, registros, onChangeListados, contexto = 'dosn' }: Props) {
   const initialMalezas = registros && registros.length > 0
     ? registros.map((r) => ({
       tipoMaleza: r.listadoTipo || "",
@@ -37,9 +38,9 @@ export default function MalezaFields({ titulo, registros, onChangeListados }: Pr
     }))
     : [{ tipoMaleza: "" as const, listado: "", entidad: "", numero: "", idCatalogo: null }]
 
-  // ✅ Usar persistencia solo si no hay registros precargados
+  // Usar persistencia solo si no hay registros precargados
   const persistence = usePersistentArray<Maleza>(
-    `dosn-malezas-${titulo}`, // Clave única por título
+    `${contexto}-malezas-${titulo}`, // Clave única por contexto y título
     initialMalezas
   )
 
@@ -122,6 +123,9 @@ export default function MalezaFields({ titulo, registros, onChangeListados }: Pr
     updated[index] = { ...updated[index], listado: especie, idCatalogo }
     setMalezas(updated)
   }
+
+  // ✅ Verificar si alguna maleza tiene "NO_CONTIENE" seleccionado
+  const tieneNoContiene = malezas.some((m) => m.tipoMaleza === "NO_CONTIENE")
 
   return (
     <Card className="border-border/50 bg-background shadow-sm">
@@ -261,11 +265,18 @@ export default function MalezaFields({ titulo, registros, onChangeListados }: Pr
             <Button
               onClick={addMaleza}
               variant="outline"
-              className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent text-sm px-2 py-1"
+              disabled={tieneNoContiene}
+              className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent text-sm px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="h-3 w-3 mr-1" />
               Agregar registro
             </Button>
+            {tieneNoContiene && (
+              <p className="text-xs text-muted-foreground ml-3 flex items-center">
+                <XCircle className="h-3 w-3 mr-1" />
+                No se pueden agregar más registros cuando hay "No contiene" seleccionado
+              </p>
+            )}
           </div>
         ) : null}
       </CardContent>
