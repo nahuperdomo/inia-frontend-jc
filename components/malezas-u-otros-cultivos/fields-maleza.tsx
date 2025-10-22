@@ -38,7 +38,7 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
     }))
     : [{ tipoMaleza: "" as const, listado: "", entidad: "", numero: "", idCatalogo: null }]
 
-  // ✅ Usar persistencia solo si no hay registros precargados
+  // Usar persistencia solo si no hay registros precargados
   const persistence = usePersistentArray<Maleza>(
     `${contexto}-malezas-${titulo}`, // Clave única por contexto y título
     initialMalezas

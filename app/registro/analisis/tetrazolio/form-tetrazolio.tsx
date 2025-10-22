@@ -420,21 +420,6 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
             </div>
           </div>
         </div>
-
-        {/* Comentarios */}
-        <div className="space-y-6">
-          <Label htmlFor="comentarios" className="text-sm font-medium">
-            Comentarios
-          </Label>
-          <Textarea
-            id="comentarios"
-            value={data.comentarios || ""}
-            onChange={(e) => handleInputChange("comentarios", e.target.value)}
-            placeholder="Observaciones generales o particulares del análisis..."
-            rows={3}
-            className="resize-none transition-all duration-200 focus:ring-2 focus:ring-orange-200"
-          />
-        </div>
       </CardContent>
     </Card>
   )

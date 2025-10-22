@@ -849,26 +849,6 @@ export default function TetrazolioDetailPage() {
                 </div>
               </div>
 
-              {/* Comentarios */}
-              <div className="space-y-2">
-                <Label>Comentarios</Label>
-                {editandoTetrazolio ? (
-                  <Textarea
-                    value={tetrazolioEditado.comentarios}
-                    onChange={(e) => setTetrazolioEditado(prev => ({ ...prev, comentarios: e.target.value }))}
-                    placeholder="Observaciones generales o particulares del análisis..."
-                    rows={3}
-                  />
-                ) : (
-                  <div className="text-sm min-h-[60px] p-3 border rounded-md bg-muted/50">
-                    {tetrazolio.comentarios || 'Sin comentarios'}
-                  </div>
-                )}
-                <div className="text-xs text-muted-foreground">
-                  Campo abierto para notas del analista.
-                </div>
-              </div>
-
               {/* Notas generales */}
               {!editandoTetrazolio && (
                 <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-md">

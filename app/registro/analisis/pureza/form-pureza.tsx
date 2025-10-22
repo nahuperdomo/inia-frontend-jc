@@ -837,25 +837,6 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                                 )}
                             </CardContent>
                         </Card>
-
-                        {/* Observaciones - Card independiente */}
-                        <Card className="border-0 shadow-sm">
-                            <CardHeader className="pb-4">
-                                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                                    <MessageCircle className="h-5 w-5 text-primary" />
-                                    Observaciones Específicas de Pureza
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Textarea
-                                    placeholder="Ingrese observaciones específicas del análisis de pureza física, condiciones especiales, particularidades encontradas u otra información relevante..."
-                                    value={formData.observacionesPureza || ""}
-                                    onChange={(e) => handleInputChange("observacionesPureza", e.target.value)}
-                                    rows={6}
-                                    className="resize-y min-h-[120px] transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-                                />
-                            </CardContent>
-                        </Card>
                     </TabsContent>
 
                     <TabsContent value="registros" className="space-y-6">
