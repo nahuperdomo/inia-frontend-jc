@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { AlertCircle, Plus, ArrowLeft, Loader2, CheckCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { obtenerAnalisisPendientesKeyset, AnalisisPendiente, KeysetCursor } from "@/app/services/dashboard-service"
+import { obtenerAnalisisPendientesKeyset, AnalisisPendiente } from "@/app/services/dashboard-service"
 
 const tipoAnalisisLabels: Record<string, string> = {
   PUREZA: "Pureza",
@@ -32,7 +32,7 @@ export default function AnalisisPendientesPage() {
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [nextCursor, setNextCursor] = useState<KeysetCursor | null>(null)
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(false)
   const pageSize = 20
 
@@ -44,7 +44,7 @@ export default function AnalisisPendientesPage() {
     try {
       setLoading(true)
       setError(null)
-      const response = await obtenerAnalisisPendientesKeyset(undefined, undefined, pageSize)
+  const response = await obtenerAnalisisPendientesKeyset(undefined, pageSize)
       setPendientes(response.items)
       setNextCursor(response.nextCursor)
       setHasMore(response.hasMore)
@@ -57,14 +57,13 @@ export default function AnalisisPendientesPage() {
   }
 
   const cargarMas = async () => {
-    if (!nextCursor || loadingMore) return
+  if (!nextCursor || loadingMore) return
     
     try {
       setLoadingMore(true)
       setError(null)
       const response = await obtenerAnalisisPendientesKeyset(
-        nextCursor.lastId,
-        nextCursor.lastFecha,  // En pendientes usamos lastFecha como tipo
+        nextCursor,
         pageSize
       )
       setPendientes(prev => [...prev, ...response.items])

@@ -19,14 +19,9 @@ export interface PaginatedResponse<T> {
   empty: boolean
 }
 
-export interface KeysetCursor {
-  lastFecha: string
-  lastId: number
-}
-
 export interface CursorPageResponse<T> {
   items: T[]
-  nextCursor: KeysetCursor | null
+  nextCursor: string | null  // Base64-encoded cursor
   hasMore: boolean
   size: number
 }
@@ -75,15 +70,16 @@ export async function obtenerAnalisisPorAprobar(
 /**
  * Keyset pagination para análisis pendientes.
  * Más eficiente para scroll infinito / "cargar más".
+ * 
+ * @param cursor Base64-encoded cursor (null para primera página)
+ * @param size Número de items por página
  */
 export async function obtenerAnalisisPendientesKeyset(
-  lastLoteId?: number,
-  lastTipo?: string,
+  cursor?: string | null,
   size: number = 20
 ): Promise<CursorPageResponse<AnalisisPendiente>> {
   const params = new URLSearchParams({ size: size.toString() })
-  if (lastLoteId !== undefined) params.append("lastLoteId", lastLoteId.toString())
-  if (lastTipo !== undefined) params.append("lastTipo", lastTipo)
+  if (cursor) params.append("cursor", cursor)
   
   return await apiFetch<CursorPageResponse<AnalisisPendiente>>(
     `/api/dashboard/analisis-pendientes/keyset?${params.toString()}`
@@ -93,15 +89,16 @@ export async function obtenerAnalisisPendientesKeyset(
 /**
  * Keyset pagination para análisis por aprobar.
  * Más eficiente para scroll infinito / "cargar más".
+ * 
+ * @param cursor Base64-encoded cursor (null para primera página)
+ * @param size Número de items por página
  */
 export async function obtenerAnalisisPorAprobarKeyset(
-  lastFecha?: string,
-  lastId?: number,
+  cursor?: string | null,
   size: number = 20
 ): Promise<CursorPageResponse<AnalisisPorAprobar>> {
   const params = new URLSearchParams({ size: size.toString() })
-  if (lastFecha !== undefined) params.append("lastFecha", lastFecha)
-  if (lastId !== undefined) params.append("lastId", lastId.toString())
+  if (cursor) params.append("cursor", cursor)
   
   return await apiFetch<CursorPageResponse<AnalisisPorAprobar>>(
     `/api/dashboard/analisis-por-aprobar/keyset?${params.toString()}`

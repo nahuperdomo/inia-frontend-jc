@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { AlertCircle, Eye, ArrowLeft, ShieldAlert, Loader2, CheckCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { obtenerAnalisisPorAprobarKeyset, AnalisisPorAprobar, KeysetCursor } from "@/app/services/dashboard-service"
+import { obtenerAnalisisPorAprobarKeyset, AnalisisPorAprobar } from "@/app/services/dashboard-service"
 import { obtenerPerfil } from "@/app/services/auth-service"
 import { format, parseISO } from "date-fns"
 import { es } from "date-fns/locale"
@@ -44,7 +44,7 @@ export default function AnalisisPorAprobarPage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
-  const [nextCursor, setNextCursor] = useState<KeysetCursor | null>(null)
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(false)
   const pageSize = 20
 
@@ -69,10 +69,10 @@ export default function AnalisisPorAprobarPage() {
       }
 
       // Cargar primera página
-      const response = await obtenerAnalisisPorAprobarKeyset(undefined, undefined, pageSize)
-      setPorAprobar(response.items)
-      setNextCursor(response.nextCursor)
-      setHasMore(response.hasMore)
+  const response = await obtenerAnalisisPorAprobarKeyset(undefined, pageSize)
+  setPorAprobar(response.items)
+  setNextCursor(response.nextCursor)
+  setHasMore(response.hasMore)
     } catch (err) {
       console.error("Error al cargar análisis por aprobar:", err)
       setError("Error al cargar los análisis por aprobar. Por favor, intente nuevamente.")
@@ -87,11 +87,7 @@ export default function AnalisisPorAprobarPage() {
     try {
       setLoadingMore(true)
       setError(null)
-      const response = await obtenerAnalisisPorAprobarKeyset(
-        nextCursor.lastFecha,
-        nextCursor.lastId,
-        pageSize
-      )
+      const response = await obtenerAnalisisPorAprobarKeyset(nextCursor, pageSize)
       setPorAprobar(prev => [...prev, ...response.items])
       setNextCursor(response.nextCursor)
       setHasMore(response.hasMore)
