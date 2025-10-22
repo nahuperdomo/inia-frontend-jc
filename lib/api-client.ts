@@ -6,11 +6,20 @@ import { handleApiError } from "@/lib/error-handling/error-handler"
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
 /**
- * Obtiene el token de autenticación de las cookies
+ * Obtiene el token de autenticación de localStorage o cookies
  */
 function getToken(): string | null {
-    // Método profesional: leer token de HttpOnly cookies
-    // Las cookies se envían automáticamente, pero también podemos leerlas si no son HttpOnly
+    if (typeof window === 'undefined') {
+        return null;
+    }
+
+    // 1. Primero intentar obtener de localStorage (método principal usado en login)
+    const localStorageToken = localStorage.getItem('token');
+    if (localStorageToken) {
+        return localStorageToken;
+    }
+
+    // 2. Fallback: leer token de cookies (para compatibilidad)
     if (typeof document !== 'undefined') {
         const cookies = document.cookie.split(';')
         for (let cookie of cookies) {
@@ -20,6 +29,7 @@ function getToken(): string | null {
             }
         }
     }
+
     return null
 }
 
@@ -41,7 +51,7 @@ export async function apiFetch<T = any>(endpoint: string, options: ApiOptions = 
     // Debug info
     if (process.env.NODE_ENV !== 'production') {
         console.debug(`🔍 API Call: ${endpoint}`)
-        console.debug(`🔑 Token: ${token ? '✅ Presente' : '❌ No encontrado'}`)
+        console.debug(`🔑 Token: ${token ? '✅ Presente (' + token.substring(0, 20) + '...)' : '❌ No encontrado'}`)
     }
 
     // Configurar headers
@@ -79,6 +89,20 @@ export async function apiFetch<T = any>(endpoint: string, options: ApiOptions = 
                 }
             } catch (e) {
                 errorData = { message: `Error ${res.status}` }
+            }
+
+            // Debug adicional para errores de autenticación
+            if (process.env.NODE_ENV !== 'production') {
+                if (res.status === 403) {
+                    console.error('❌ Error 403 (Forbidden): Problema de autenticación/autorización')
+                    console.error('🔍 Token enviado:', token ? 'Sí' : 'No')
+                    console.error('📍 Endpoint:', endpoint)
+                } else if (res.status === 401) {
+                    console.error('❌ Error 401 (Unauthorized): Token inválido o expirado')
+                }
+                console.error(`❌ Error response body:`, errorData)
+                console.error(`❌ URL solicitada: ${API_BASE_URL}${endpoint}`)
+                console.error(`❌ Status: ${res.status}`)
             }
 
             // Crear error con detalles

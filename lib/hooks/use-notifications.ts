@@ -105,10 +105,10 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
             setUnreadNotifications(unreadData);
             setUnreadCount(countData);
         } catch (err: any) {
-            // Si el error es 403 (no autenticado), no mostrar toast
-            const is403 = err?.message?.includes('403') || err?.message?.includes('Forbidden');
-            
-            if (!is403 && showToasts) {
+            console.error('Error loading unread notifications:', err);
+            // No mostrar toast si es un error de autenticación (403/401)
+            // ya que el error-handler ya lo maneja
+            if (showToasts && err?.status !== 403 && err?.status !== 401) {
                 toast.error('Error al cargar notificaciones no leídas');
             }
             console.error('Error loading unread notifications:', err);
