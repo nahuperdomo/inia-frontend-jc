@@ -1,16 +1,67 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Save, Loader2, AlertTriangle, Search } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ArrowLeft, Save, Loader2, AlertTriangle, Search, Plus, Trash2, Leaf, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 import { obtenerPurezaPorId, actualizarPureza } from "@/app/services/pureza-service"
-import type { PurezaDTO, PurezaRequestDTO } from "@/app/models"
+import { obtenerTodosActivosMalezasCultivos } from "@/app/services/malezas-service"
+import type { PurezaDTO, PurezaRequestDTO, MalezasYCultivosCatalogoDTO, TipoListado, TipoMYCCatalogo } from "@/app/models"
 import { toast } from "sonner"
-import PurezaFields from "@/app/registro/analisis/pureza/form-pureza"
+
+// Función helper para mapear tipos de listado a tipos de catálogo
+const getCompatibleCatalogTypes = (listadoTipo: TipoListado): TipoMYCCatalogo[] => {
+  switch (listadoTipo) {
+    case "MAL_TOLERANCIA":
+    case "MAL_TOLERANCIA_CERO":
+    case "MAL_COMUNES":
+      return ["MALEZA"]
+    case "OTROS":
+      return ["CULTIVO"]
+    default:
+      return ["MALEZA", "CULTIVO"]
+  }
+}
+
+// Función helper para mostrar nombres legibles de tipos de listado
+const getTipoListadoDisplay = (tipo: TipoListado) => {
+  switch (tipo) {
+    case "MAL_TOLERANCIA_CERO":
+      return "Maleza Tolerancia Cero"
+    case "MAL_TOLERANCIA":
+      return "Maleza Tolerancia"
+    case "MAL_COMUNES":
+      return "Malezas Comunes"
+    case "OTROS":
+      return "Otros Cultivos"
+    default:
+      return tipo
+  }
+}
+
+// Función helper para obtener el color del badge según el tipo
+const getTipoListadoBadgeColor = (tipo: TipoListado) => {
+  switch (tipo) {
+    case "MAL_TOLERANCIA_CERO":
+      return "bg-red-100 text-red-700 border-red-200"
+    case "MAL_TOLERANCIA":
+      return "bg-orange-100 text-orange-700 border-orange-200"
+    case "MAL_COMUNES":
+      return "bg-yellow-100 text-yellow-700 border-yellow-200"
+    case "OTROS":
+      return "bg-green-100 text-green-700 border-green-200"
+    default:
+      return "bg-gray-100 text-gray-700 border-gray-200"
+  }
+}
 
 export default function EditarPurezaPage() {
   const params = useParams()
@@ -21,39 +72,48 @@ export default function EditarPurezaPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [malezasList, setMalezasList] = useState<any[]>([])
-  const [cultivosList, setCultivosList] = useState<any[]>([])
+  const [catalogos, setCatalogos] = useState<MalezasYCultivosCatalogoDTO[]>([])
+
+  // Nuevos estados para agregar listados
+  const [showAddListado, setShowAddListado] = useState(false)
+  const [newListado, setNewListado] = useState({
+    listadoTipo: "",
+    listadoInsti: "",
+    listadoNum: 0,
+    idCatalogo: 0,
+  })
 
   // Form state
   const [formData, setFormData] = useState({
     fecha: "",
-    pesoInicial_g: "",
-    semillaPura_g: "",
-    materiaInerte_g: "",
-    otrosCultivos_g: "",
-    malezas_g: "",
-    malezasToleradas_g: "",
-    malezasTolCero_g: "",
-    pesoTotal_g: "",
+    pesoInicial_g: 0,
+    semillaPura_g: 0,
+    materiaInerte_g: 0,
+    otrosCultivos_g: 0,
+    malezas_g: 0,
+    malezasToleradas_g: 0,
+    malezasTolCero_g: 0,
+    pesoTotal_g: 0,
     
-    redonSemillaPura: "",
-    redonMateriaInerte: "",
-    redonOtrosCultivos: "",
-    redonMalezas: "",
-    redonMalezasToleradas: "",
-    redonMalezasTolCero: "",
-    redonPesoTotal: "",
+    redonSemillaPura: 0,
+    redonMateriaInerte: 0,
+    redonOtrosCultivos: 0,
+    redonMalezas: 0,
+    redonMalezasToleradas: 0,
+    redonMalezasTolCero: 0,
+    redonPesoTotal: 0,
     
-    inasePura: "",
-    inaseMateriaInerte: "",
-    inaseOtrosCultivos: "",
-    inaseMalezas: "",
-    inaseMalezasToleradas: "",
-    inaseMalezasTolCero: "",
+    inasePura: 0,
+    inaseMateriaInerte: 0,
+    inaseOtrosCultivos: 0,
+    inaseMalezas: 0,
+    inaseMalezasToleradas: 0,
+    inaseMalezasTolCero: 0,
     inaseFecha: "",
     
     cumpleEstandar: "",
     observacionesPureza: "",
+    listados: [] as any[],
   })
 
   useEffect(() => {
@@ -69,53 +129,71 @@ export default function EditarPurezaPage() {
         console.log("Pureza cargada exitosamente:", purezaData)
         setPureza(purezaData)
 
-        // Poblar formData con los datos existentes
-        setFormData({
-          fecha: purezaData.fecha || "",
-          pesoInicial_g: purezaData.pesoInicial_g?.toString() || "",
-          semillaPura_g: purezaData.semillaPura_g?.toString() || "",
-          materiaInerte_g: purezaData.materiaInerte_g?.toString() || "",
-          otrosCultivos_g: purezaData.otrosCultivos_g?.toString() || "",
-          malezas_g: purezaData.malezas_g?.toString() || "",
-          malezasToleradas_g: purezaData.malezasToleradas_g?.toString() || "",
-          malezasTolCero_g: purezaData.malezasTolCero_g?.toString() || "",
-          pesoTotal_g: purezaData.pesoTotal_g?.toString() || "",
-          
-          redonSemillaPura: purezaData.redonSemillaPura?.toString() || "",
-          redonMateriaInerte: purezaData.redonMateriaInerte?.toString() || "",
-          redonOtrosCultivos: purezaData.redonOtrosCultivos?.toString() || "",
-          redonMalezas: purezaData.redonMalezas?.toString() || "",
-          redonMalezasToleradas: purezaData.redonMalezasToleradas?.toString() || "",
-          redonMalezasTolCero: purezaData.redonMalezasTolCero?.toString() || "",
-          redonPesoTotal: purezaData.redonPesoTotal?.toString() || "",
-          
-          inasePura: purezaData.inasePura?.toString() || "",
-          inaseMateriaInerte: purezaData.inaseMateriaInerte?.toString() || "",
-          inaseOtrosCultivos: purezaData.inaseOtrosCultivos?.toString() || "",
-          inaseMalezas: purezaData.inaseMalezas?.toString() || "",
-          inaseMalezasToleradas: purezaData.inaseMalezasToleradas?.toString() || "",
-          inaseMalezasTolCero: purezaData.inaseMalezasTolCero?.toString() || "",
-          inaseFecha: purezaData.inaseFecha || "",
-          
-          // Convertir boolean a "si"/"no" para el Select
-          cumpleEstandar: purezaData.cumpleEstandar === true ? "si" : purezaData.cumpleEstandar === false ? "no" : "",
-          observacionesPureza: purezaData.comentarios || "",
-        })
-
-        // Cargar listados existentes y separarlos por tipo
-        if (purezaData.otrasSemillas && purezaData.otrasSemillas.length > 0) {
-          const malezas = purezaData.otrasSemillas.filter(
-            (l: any) =>
-              l.listadoTipo === "MAL_TOLERANCIA_CERO" ||
-              l.listadoTipo === "MAL_TOLERANCIA" ||
-              l.listadoTipo === "MAL_COMUNES"
-          )
-          const cultivos = purezaData.otrasSemillas.filter((l: any) => l.listadoTipo === "OTROS")
-          
-          setMalezasList(malezas)
-          setCultivosList(cultivos)
+        // Cargar catálogos
+        try {
+          const catalogosData = await obtenerTodosActivosMalezasCultivos()
+          if (Array.isArray(catalogosData)) {
+            setCatalogos(catalogosData)
+          }
+        } catch (catalogError) {
+          console.error("Error al cargar catálogos:", catalogError)
+          setCatalogos([])
         }
 
+        // Función para formatear fecha
+        const formatDateForInput = (dateString: string | undefined) => {
+          if (!dateString) return ""
+          if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString
+          try {
+            const date = new Date(dateString)
+            const year = date.getFullYear()
+            const month = String(date.getMonth() + 1).padStart(2, '0')
+            const day = String(date.getDate()).padStart(2, '0')
+            return `${year}-${month}-${day}`
+          } catch {
+            return ""
+          }
+        }
+
+        // Poblar el formulario
+        setFormData({
+          fecha: formatDateForInput(purezaData.fecha),
+          pesoInicial_g: purezaData.pesoInicial_g || 0,
+          semillaPura_g: purezaData.semillaPura_g || 0,
+          materiaInerte_g: purezaData.materiaInerte_g || 0,
+          otrosCultivos_g: purezaData.otrosCultivos_g || 0,
+          malezas_g: purezaData.malezas_g || 0,
+          malezasToleradas_g: purezaData.malezasToleradas_g || 0,
+          malezasTolCero_g: purezaData.malezasTolCero_g || 0,
+          pesoTotal_g: purezaData.pesoTotal_g || 0,
+          
+          redonSemillaPura: purezaData.redonSemillaPura || 0,
+          redonMateriaInerte: purezaData.redonMateriaInerte || 0,
+          redonOtrosCultivos: purezaData.redonOtrosCultivos || 0,
+          redonMalezas: purezaData.redonMalezas || 0,
+          redonMalezasToleradas: purezaData.redonMalezasToleradas || 0,
+          redonMalezasTolCero: purezaData.redonMalezasTolCero || 0,
+          redonPesoTotal: purezaData.redonPesoTotal || 0,
+          
+          inasePura: purezaData.inasePura || 0,
+          inaseMateriaInerte: purezaData.inaseMateriaInerte || 0,
+          inaseOtrosCultivos: purezaData.inaseOtrosCultivos || 0,
+          inaseMalezas: purezaData.inaseMalezas || 0,
+          inaseMalezasToleradas: purezaData.inaseMalezasToleradas || 0,
+          inaseMalezasTolCero: purezaData.inaseMalezasTolCero || 0,
+          inaseFecha: formatDateForInput(purezaData.inaseFecha),
+          
+          cumpleEstandar: purezaData.cumpleEstandar === true ? "si" : purezaData.cumpleEstandar === false ? "no" : "",
+          observacionesPureza: purezaData.comentarios || "",
+          listados: purezaData.otrasSemillas?.map((listado) => ({
+            listadoTipo: listado.listadoTipo,
+            listadoInsti: listado.listadoInsti,
+            listadoNum: listado.listadoNum,
+            idCatalogo: listado.catalogo?.catalogoID || null,
+            catalogoNombre: listado.catalogo?.nombreComun || "",
+            catalogoCientifico: listado.catalogo?.nombreCientifico || "",
+          })) || [],
+        })
       } catch (err) {
         console.error("Error al cargar datos:", err)
         setError("Error al cargar los detalles del análisis de Pureza")
@@ -129,90 +207,78 @@ export default function EditarPurezaPage() {
     }
   }, [purezaId])
 
-  const handleInputChange = useCallback((field: string, value: any) => {
-    setFormData(prev => ({
+  const handleInputChange = (field: string, value: any) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }))
-  }, [])
+  }
 
-  const handleMalezasChange = useCallback((list: any[]) => {
-    console.log("Malezas actualizadas:", list)
-    setMalezasList(list)
-  }, [])
+  const handleListadoAdd = (newListado: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      listados: [...prev.listados, newListado],
+    }))
+  }
 
-  const handleCultivosChange = useCallback((list: any[]) => {
-    console.log("Cultivos actualizados:", list)
-    setCultivosList(list)
-  }, [])
+  const handleListadoRemove = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      listados: prev.listados.filter((_, i) => i !== index),
+    }))
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+  const handleSave = async () => {
+    if (!pureza) return
+
     try {
       setSaving(true)
 
-      // Construir el request DTO
-      const requestData: PurezaRequestDTO = {
-        idLote: pureza!.idLote!,
+      const updateData: PurezaRequestDTO = {
+        idLote: pureza.idLote || 0,
         comentarios: formData.observacionesPureza || undefined,
-        // Mapear "si"/"no" a boolean correctamente
         cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : undefined,
         
         fecha: formData.fecha,
-        pesoInicial_g: parseFloat(formData.pesoInicial_g) || 0,
-        semillaPura_g: parseFloat(formData.semillaPura_g) || 0,
-        materiaInerte_g: parseFloat(formData.materiaInerte_g) || 0,
-        otrosCultivos_g: parseFloat(formData.otrosCultivos_g) || 0,
-        malezas_g: parseFloat(formData.malezas_g) || 0,
-        malezasToleradas_g: parseFloat(formData.malezasToleradas_g) || 0,
-        malezasTolCero_g: parseFloat(formData.malezasTolCero_g) || 0,
-        pesoTotal_g: parseFloat(formData.pesoTotal_g) || 0,
+        pesoInicial_g: formData.pesoInicial_g,
+        semillaPura_g: formData.semillaPura_g,
+        materiaInerte_g: formData.materiaInerte_g,
+        otrosCultivos_g: formData.otrosCultivos_g,
+        malezas_g: formData.malezas_g,
+        malezasToleradas_g: formData.malezasToleradas_g,
+        malezasTolCero_g: formData.malezasTolCero_g,
+        pesoTotal_g: formData.pesoTotal_g,
         
-        redonSemillaPura: formData.redonSemillaPura ? parseFloat(formData.redonSemillaPura) : undefined,
-        redonMateriaInerte: formData.redonMateriaInerte ? parseFloat(formData.redonMateriaInerte) : undefined,
-        redonOtrosCultivos: formData.redonOtrosCultivos ? parseFloat(formData.redonOtrosCultivos) : undefined,
-        redonMalezas: formData.redonMalezas ? parseFloat(formData.redonMalezas) : undefined,
-        redonMalezasToleradas: formData.redonMalezasToleradas ? parseFloat(formData.redonMalezasToleradas) : undefined,
-        redonMalezasTolCero: formData.redonMalezasTolCero ? parseFloat(formData.redonMalezasTolCero) : undefined,
-        redonPesoTotal: formData.redonPesoTotal ? parseFloat(formData.redonPesoTotal) : undefined,
+        redonSemillaPura: formData.redonSemillaPura,
+        redonMateriaInerte: formData.redonMateriaInerte,
+        redonOtrosCultivos: formData.redonOtrosCultivos,
+        redonMalezas: formData.redonMalezas,
+        redonMalezasToleradas: formData.redonMalezasToleradas,
+        redonMalezasTolCero: formData.redonMalezasTolCero,
+        redonPesoTotal: formData.redonPesoTotal,
         
-        inasePura: formData.inasePura ? parseFloat(formData.inasePura) : undefined,
-        inaseMateriaInerte: formData.inaseMateriaInerte ? parseFloat(formData.inaseMateriaInerte) : undefined,
-        inaseOtrosCultivos: formData.inaseOtrosCultivos ? parseFloat(formData.inaseOtrosCultivos) : undefined,
-        inaseMalezas: formData.inaseMalezas ? parseFloat(formData.inaseMalezas) : undefined,
-        inaseMalezasToleradas: formData.inaseMalezasToleradas ? parseFloat(formData.inaseMalezasToleradas) : undefined,
-        inaseMalezasTolCero: formData.inaseMalezasTolCero ? parseFloat(formData.inaseMalezasTolCero) : undefined,
+        inasePura: formData.inasePura,
+        inaseMateriaInerte: formData.inaseMateriaInerte,
+        inaseOtrosCultivos: formData.inaseOtrosCultivos,
+        inaseMalezas: formData.inaseMalezas,
+        inaseMalezasToleradas: formData.inaseMalezasToleradas,
+        inaseMalezasTolCero: formData.inaseMalezasTolCero,
         inaseFecha: formData.inaseFecha || undefined,
         
-        // Combinar malezas y cultivos en otrasSemillas
-        otrasSemillas: [
-          ...malezasList.map(m => ({
-            listadoTipo: m.listadoTipo,
-            listadoInsti: m.listadoInsti,
-            listadoNum: m.listadoNum,
-            idCatalogo: m.idCatalogo || m.catalogo?.catalogoID
-          })),
-          ...cultivosList.map(c => ({
-            listadoTipo: c.listadoTipo,
-            listadoInsti: c.listadoInsti,
-            listadoNum: c.listadoNum,
-            idCatalogo: c.idCatalogo || c.catalogo?.catalogoID
-          }))
-          // ❌ NO incluir brassicas en PUREZA
-        ]
+        otrasSemillas: formData.listados.map((listado) => ({
+          listadoTipo: listado.listadoTipo,
+          listadoInsti: listado.listadoInsti,
+          listadoNum: listado.listadoNum,
+          idCatalogo: listado.idCatalogo,
+        })),
       }
 
-      console.log("Enviando actualización:", requestData)
-
-      await actualizarPureza(Number.parseInt(purezaId), requestData)
-
-      toast.success("Análisis de Pureza actualizado exitosamente")
+      await actualizarPureza(Number.parseInt(purezaId), updateData)
+      toast.success("Análisis de Pureza actualizado correctamente")
       router.push(`/listado/analisis/pureza/${purezaId}`)
-      
-    } catch (err: any) {
-      console.error("Error al guardar:", err)
-      toast.error(err?.message || "Error al actualizar el análisis")
+    } catch (err) {
+      console.error("Error updating Pureza:", err)
+      toast.error("Error al actualizar el análisis de Pureza")
     } finally {
       setSaving(false)
     }
@@ -220,12 +286,11 @@ export default function EditarPurezaPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <div className="space-y-2">
-            <p className="text-lg font-medium">Cargando análisis</p>
-            <p className="text-sm text-muted-foreground">Obteniendo datos para edición...</p>
+      <div className="min-h-screen bg-muted/30 p-4 md:p-8">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-lg font-medium">Cargando análisis de Pureza...</p>
           </div>
         </div>
       </div>
@@ -234,21 +299,23 @@ export default function EditarPurezaPage() {
 
   if (error || !pureza) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="text-center space-y-6 max-w-md">
-          <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
-            <AlertTriangle className="h-8 w-8 text-destructive" />
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-semibold text-balance">No se pudo cargar el análisis</h2>
-            <p className="text-muted-foreground text-pretty">{error || "El análisis solicitado no existe"}</p>
-          </div>
-          <Link href="/listado/analisis/pureza">
-            <Button size="lg" className="gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Volver al listado
-            </Button>
-          </Link>
+      <div className="min-h-screen bg-muted/30 p-4 md:p-8">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Card className="max-w-lg w-full">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-destructive" />
+                <h2 className="text-xl font-semibold mb-2">Error al cargar</h2>
+                <p className="text-muted-foreground mb-4">{error}</p>
+                <Link href="/listado/analisis/pureza">
+                  <Button variant="outline">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Volver al listado
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -256,82 +323,523 @@ export default function EditarPurezaPage() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <div className="bg-background border-b sticky top-0 z-40">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
-          <div className="flex flex-col gap-3">
-            <Link href={`/listado/analisis/pureza/${purezaId}`}>
-              <Button variant="ghost" size="sm" className="gap-1 -ml-2 h-8">
-                <ArrowLeft className="h-3 w-3" />
-                <span className="text-xs sm:text-sm">Cancelar</span>
-              </Button>
-            </Link>
-
-            <div className="flex flex-col gap-2">
-              <div className="space-y-1 text-center lg:text-left">
-                <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-start">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-balance">
-                    Editar Análisis de Pureza #{pureza.analisisID}
-                  </h1>
-                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                    {pureza.estado}
-                  </Badge>
+      <div className="sticky top-0 z-10 bg-background border-b">
+        <div className="container max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div className="flex items-start gap-4 flex-1">
+              <Link href={`/listado/analisis/pureza/${purezaId}`}>
+                <Button variant="ghost" size="sm" className="mt-1">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Volver
+                </Button>
+              </Link>
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-1">
+                  <h1 className="text-2xl md:text-3xl font-bold">Editar Análisis de Pureza</h1>
+                  <Badge variant="outline">#{pureza.analisisID}</Badge>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground text-pretty">
-                  Lote {pureza.lote}
+                <p className="text-sm text-muted-foreground">
+                  Lote: {pureza.lote}
                 </p>
               </div>
-
-              <div className="flex justify-center lg:justify-end">
-                <Button 
-                  size="sm" 
-                  className="gap-1.5 w-full sm:w-auto h-9"
-                  onClick={handleSubmit}
-                  disabled={saving}
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      <span className="text-xs sm:text-sm">Guardando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-3.5 w-3.5" />
-                      <span className="text-xs sm:text-sm">Guardar cambios</span>
-                    </>
-                  )}
-                </Button>
-              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Guardar cambios
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="pt-4">
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <form onSubmit={handleSubmit}>
-            <Card className="border-0 shadow-sm">
-              <CardHeader className="border-b bg-muted/50">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <div className="p-2 rounded-lg bg-blue-500/10">
-                    <Search className="h-5 w-5 text-blue-600" />
-                  </div>
-                  Formulario de Edición
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <PurezaFields
-                  formData={{
-                    ...formData,
-                    malezas: malezasList,
-                    cultivos: cultivosList,
-                  }}
-                  handleInputChange={handleInputChange}
-                  onChangeMalezas={handleMalezasChange}
-                  onChangeCultivos={handleCultivosChange}
+      <div className="container max-w-7xl mx-auto px-4 md:px-8 py-8">
+        <div className="space-y-6">
+          {/* Card de Datos Generales - Pesos */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Datos Generales - Pesos (gramos)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Fecha</Label>
+                  <Input
+                    type="date"
+                    value={formData.fecha}
+                    onChange={(e) => handleInputChange("fecha", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Peso Inicial (g)</Label>
+                  <Input
+                    type="number"
+                    step="0.001"
+                    value={formData.pesoInicial_g || ""}
+                    onChange={(e) => handleInputChange("pesoInicial_g", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Semilla Pura (g)</Label>
+                  <Input
+                    type="number"
+                    step="0.001"
+                    value={formData.semillaPura_g || ""}
+                    onChange={(e) => handleInputChange("semillaPura_g", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Materia Inerte (g)</Label>
+                  <Input
+                    type="number"
+                    step="0.001"
+                    value={formData.materiaInerte_g || ""}
+                    onChange={(e) => handleInputChange("materiaInerte_g", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Otros Cultivos (g)</Label>
+                  <Input
+                    type="number"
+                    step="0.001"
+                    value={formData.otrosCultivos_g || ""}
+                    onChange={(e) => handleInputChange("otrosCultivos_g", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Malezas (g)</Label>
+                  <Input
+                    type="number"
+                    step="0.001"
+                    value={formData.malezas_g || ""}
+                    onChange={(e) => handleInputChange("malezas_g", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Malezas Toleradas (g)</Label>
+                  <Input
+                    type="number"
+                    step="0.001"
+                    value={formData.malezasToleradas_g || ""}
+                    onChange={(e) => handleInputChange("malezasToleradas_g", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Malezas Tol. Cero (g)</Label>
+                  <Input
+                    type="number"
+                    step="0.001"
+                    value={formData.malezasTolCero_g || ""}
+                    onChange={(e) => handleInputChange("malezasTolCero_g", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Peso Total (g)</Label>
+                  <Input
+                    type="number"
+                    step="0.001"
+                    value={formData.pesoTotal_g || ""}
+                    onChange={(e) => handleInputChange("pesoTotal_g", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card de Porcentajes Redondeados */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Porcentajes Redondeados</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Semilla Pura (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.redonSemillaPura || ""}
+                    onChange={(e) => handleInputChange("redonSemillaPura", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Materia Inerte (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.redonMateriaInerte || ""}
+                    onChange={(e) => handleInputChange("redonMateriaInerte", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Otros Cultivos (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.redonOtrosCultivos || ""}
+                    onChange={(e) => handleInputChange("redonOtrosCultivos", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Malezas (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.redonMalezas || ""}
+                    onChange={(e) => handleInputChange("redonMalezas", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Malezas Toleradas (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.redonMalezasToleradas || ""}
+                    onChange={(e) => handleInputChange("redonMalezasToleradas", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Malezas Tol. Cero (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.redonMalezasTolCero || ""}
+                    onChange={(e) => handleInputChange("redonMalezasTolCero", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card de INASE */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Porcentajes INASE</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-2 lg:col-span-3">
+                  <Label>Fecha INASE</Label>
+                  <Input
+                    type="date"
+                    value={formData.inaseFecha}
+                    onChange={(e) => handleInputChange("inaseFecha", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Semilla Pura (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.inasePura || ""}
+                    onChange={(e) => handleInputChange("inasePura", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Materia Inerte (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.inaseMateriaInerte || ""}
+                    onChange={(e) => handleInputChange("inaseMateriaInerte", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Otros Cultivos (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.inaseOtrosCultivos || ""}
+                    onChange={(e) => handleInputChange("inaseOtrosCultivos", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Malezas (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.inaseMalezas || ""}
+                    onChange={(e) => handleInputChange("inaseMalezas", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Malezas Toleradas (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.inaseMalezasToleradas || ""}
+                    onChange={(e) => handleInputChange("inaseMalezasToleradas", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Malezas Tol. Cero (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.inaseMalezasTolCero || ""}
+                    onChange={(e) => handleInputChange("inaseMalezasTolCero", Number.parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card de Cumplimiento y Observaciones */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Cumplimiento y Observaciones</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Cumple Estándar</Label>
+                <Select
+                  value={formData.cumpleEstandar}
+                  onValueChange={(value) => handleInputChange("cumpleEstandar", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="si">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        Sí
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Observaciones</Label>
+                <Textarea
+                  value={formData.observacionesPureza}
+                  onChange={(e) => handleInputChange("observacionesPureza", e.target.value)}
+                  rows={4}
                 />
-              </CardContent>
-            </Card>
-          </form>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card de Registros (Malezas y Cultivos) */}
+          <Card className="border-green-200">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Leaf className="h-5 w-5 text-green-600" />
+                  Registros (Malezas y Cultivos)
+                </CardTitle>
+                <Button onClick={() => setShowAddListado(true)} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {showAddListado && (
+                <div className="border-2 border-dashed rounded-lg p-4 mb-4 bg-muted/30">
+                  <h3 className="text-sm font-semibold mb-4">Nuevo Registro</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <div className="space-y-2">
+                      <Label>Tipo</Label>
+                      <Select
+                        value={newListado.listadoTipo}
+                        onValueChange={(value) =>
+                          setNewListado((prev) => ({
+                            ...prev,
+                            listadoTipo: value,
+                            idCatalogo: 0,
+                          }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="MAL_TOLERANCIA_CERO">Maleza Tolerancia Cero</SelectItem>
+                          <SelectItem value="MAL_TOLERANCIA">Maleza Tolerancia</SelectItem>
+                          <SelectItem value="MAL_COMUNES">Malezas Comunes</SelectItem>
+                          <SelectItem value="OTROS">Otros Cultivos</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Instituto</Label>
+                      <Select
+                        value={newListado.listadoInsti}
+                        onValueChange={(value) => setNewListado((prev) => ({ ...prev, listadoInsti: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="INIA">INIA</SelectItem>
+                          <SelectItem value="INASE">INASE</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Número</Label>
+                      <Input
+                        type="number"
+                        value={newListado.listadoNum === 0 ? "" : newListado.listadoNum}
+                        onChange={(e) =>
+                          setNewListado((prev) => ({
+                            ...prev,
+                            listadoNum: e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0
+                          }))
+                        }
+                        min="0"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Especie</Label>
+                      <Select
+                        value={newListado.idCatalogo.toString()}
+                        onValueChange={(value) =>
+                          setNewListado((prev) => ({ ...prev, idCatalogo: Number.parseInt(value) }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar especie" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(() => {
+                            const tiposCompatibles = newListado.listadoTipo
+                              ? getCompatibleCatalogTypes(newListado.listadoTipo as TipoListado)
+                              : ["MALEZA", "CULTIVO"]
+
+                            const catalogosFiltrados = catalogos.filter((cat) =>
+                              tiposCompatibles.includes(cat.tipoMYCCatalogo),
+                            )
+
+                            if (catalogosFiltrados.length === 0) {
+                              return (
+                                <SelectItem value="0" disabled>
+                                  {newListado.listadoTipo ? "No hay especies" : "Selecciona tipo primero"}
+                                </SelectItem>
+                              )
+                            }
+
+                            return catalogosFiltrados.map((catalogo) => (
+                              <SelectItem key={catalogo.catalogoID} value={catalogo.catalogoID.toString()}>
+                                {catalogo.nombreComun}
+                              </SelectItem>
+                            ))
+                          })()}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => {
+                        const hasRequiredFields = newListado.listadoTipo && newListado.listadoInsti && newListado.idCatalogo
+
+                        if (hasRequiredFields) {
+                          const catalogo = catalogos.find((c) => c.catalogoID === newListado.idCatalogo)
+                          handleListadoAdd({
+                            ...newListado,
+                            catalogoNombre: catalogo?.nombreComun || "",
+                            catalogoCientifico: catalogo?.nombreCientifico || "",
+                          })
+                          setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0 })
+                          setShowAddListado(false)
+                          toast.success("Registro agregado")
+                        } else {
+                          toast.error("Complete todos los campos")
+                        }
+                      }}
+                      size="sm"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Agregar
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowAddListado(false)
+                        setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0 })
+                      }}
+                      size="sm"
+                      variant="outline"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {formData.listados.length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed rounded-lg">
+                  <Leaf className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
+                  <p className="text-lg font-medium text-muted-foreground">No hay registros</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Especie</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Instituto</TableHead>
+                        <TableHead>Número</TableHead>
+                        <TableHead>Acciones</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {formData.listados.map((listado, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{listado.catalogoNombre || "--"}</div>
+                              <div className="text-sm text-muted-foreground italic">
+                                {listado.catalogoCientifico}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}>
+                              {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">{listado.listadoInsti}</Badge>
+                          </TableCell>
+                          <TableCell className="font-mono">{listado.listadoNum}</TableCell>
+                          <TableCell>
+                            <Button
+                              onClick={() => {
+                                handleListadoRemove(index)
+                                toast.success("Registro eliminado")
+                              }}
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
