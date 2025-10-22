@@ -12,6 +12,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
   const headers = {
     "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true", // CRÍTICO: evita el warning/block de ngrok
     ...(options.headers || {}),
   };
 

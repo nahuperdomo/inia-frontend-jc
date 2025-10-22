@@ -67,6 +67,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       try {
         await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
           method: "POST",
+          headers: {
+            "ngrok-skip-browser-warning": "true"
+          },
           credentials: "include" // Importante para enviar cookies HttpOnly
         });
       } catch (error) {

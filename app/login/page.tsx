@@ -29,7 +29,8 @@ export default function LoginPage() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json"
+        "Accept": "application/json",
+        "ngrok-skip-browser-warning": "true" // CRÍTICO para ngrok
       },
       body: JSON.stringify({ usuario, password }),
       credentials: "include" // CRÍTICO: permite recibir cookies HttpOnly del backend
