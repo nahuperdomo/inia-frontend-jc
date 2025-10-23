@@ -92,15 +92,21 @@ export default function ListadoGerminacionPage() {
   const fetchGerminaciones = async (page: number = 0, filtro: string = "todos") => {
     try {
       setLoading(true)
-      const data = await obtenerGerminacionesPaginadas(page, pageSize, filtro)
-      // data may contain 'content' and a nested 'page' meta like the DOSN endpoint
-      setGerminaciones((data as any).content || [])
-      const meta = (data as any).page || {}
-      setTotalPages(meta.totalPages ?? 1)
-      setTotalElements(meta.totalElements ?? ((data as any).content?.length ?? 0))
-      setCurrentPage(meta.number ?? page)
-      setIsFirst((meta.number ?? 0) === 0)
-      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1)
+  const data = await obtenerGerminacionesPaginadas(page, pageSize, filtro)
+  const content = (data as any).content || []
+  setGerminaciones(content)
+
+  // support two response shapes: { content, page: { ... } } or Spring page directly { content, totalPages, number, ... }
+  const pageMeta = (data as any).page ? (data as any).page : (data as any)
+  const totalPagesFrom = pageMeta.totalPages ?? 1
+  const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0)
+  const numberFrom = pageMeta.number ?? page
+
+  setTotalPages(totalPagesFrom)
+  setTotalElements(totalElementsFrom)
+  setCurrentPage(numberFrom)
+  setIsFirst(numberFrom === 0)
+  setIsLast(numberFrom >= totalPagesFrom - 1)
     } catch (err) {
       setError("Error al cargar los análisis de germinación")
       console.error("Error fetching germinaciones:", err)
@@ -155,14 +161,13 @@ export default function ListadoGerminacionPage() {
 
   // Calculate stats from current page data
   const totalAnalysis = totalElements
-  const completedAnalysis = germinaciones.filter(g => g.estado === "FINALIZADO" || g.estado === "APROBADO").length
+  const completedAnalysis = germinaciones.filter(g => g.estado === "APROBADO").length
   const inProgressAnalysis = germinaciones.filter(g => g.estado === "EN_PROCESO" || g.estado === "REGISTRADO").length
   const pendingAnalysis = germinaciones.filter(g => g.estado === "PENDIENTE_APROBACION").length
   const complianceRate = germinaciones.length > 0 ? Math.round((germinaciones.filter(g => g.cumpleNorma === true).length / germinaciones.length) * 100) : 0
 
   const getEstadoBadgeVariant = (estado: string) => {
     switch (estado) {
-      case "FINALIZADO":
       case "APROBADO":
         return "default"
       case "EN_PROCESO":
@@ -179,12 +184,10 @@ export default function ListadoGerminacionPage() {
 
   const formatEstado = (estado: string) => {
     switch (estado) {
-      case "FINALIZADO":
-        return "Finalizado"
-      case "EN_PROCESO":
-        return "En Proceso"
       case "REGISTRADO":
         return "Registrado"
+      case "EN_PROCESO":
+        return "En Proceso"
       case "APROBADO":
         return "Aprobado"
       case "PENDIENTE_APROBACION":
@@ -330,9 +333,8 @@ export default function ListadoGerminacionPage() {
                 <option value="all">Todos los estados</option>
                 <option value="REGISTRADO">Registrado</option>
                 <option value="EN_PROCESO">En Proceso</option>
-                <option value="FINALIZADO">Finalizado</option>
-                <option value="APROBADO">Aprobado</option>
                 <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
+                <option value="APROBADO">Aprobado</option>
                 <option value="A_REPETIR">A Repetir</option>
               </select>
               <select

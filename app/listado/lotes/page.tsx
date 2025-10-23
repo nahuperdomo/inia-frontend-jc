@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
-import { obtenerLotesPaginadas, eliminarLote, activarLote } from "@/app/services/lote-service"
+import { obtenerLotesPaginadas, eliminarLote, activarLote, obtenerEstadisticasLotes } from "@/app/services/lote-service"
 import { obtenerPerfil } from "@/app/services/auth-service"
 import Pagination from "@/components/pagination"
 import { LoteSimpleDTO } from "@/app/models"
@@ -27,6 +27,13 @@ export default function ListadoLotesPage() {
   const [totalElements, setTotalElements] = useState(0)
   const [userRole, setUserRole] = useState<string | null>(null)
   const pageSize = 10
+  
+  // Statistics state
+  const [stats, setStats] = useState({
+    total: 0,
+    activos: 0,
+    inactivos: 0
+  })
 
   // Fetch user profile to get role
   useEffect(() => {
@@ -43,29 +50,43 @@ export default function ListadoLotesPage() {
     fetchUserRole()
   }, [])
 
+  // Fetch statistics
   useEffect(() => {
-    const fetchLotes = async (page: number = 0) => {
+    const fetchStats = async () => {
       try {
-        setIsLoading(true)
-        const loteResp = await obtenerLotesPaginadas(page, pageSize)
-        const lotesData = loteResp.content || []
-
-        // No necesitamos transformar los datos, ya vienen como LoteSimpleDTO
-        setLotes(lotesData)
-
-        setTotalPages(loteResp.totalPages ?? 1)
-        setTotalElements(loteResp.totalElements ?? (lotesData.length || 0))
-        setCurrentPage(loteResp.number ?? page)
-      } catch (err) {
-        console.error("Error fetching lotes:", err)
-        setError("Error al cargar los lotes. Intente nuevamente más tarde.")
-      } finally {
-        setIsLoading(false)
+        const estadisticas = await obtenerEstadisticasLotes()
+        setStats(estadisticas)
+      } catch (error) {
+        console.error("Error obteniendo estadísticas:", error)
       }
     }
-
-    fetchLotes(0)
+    fetchStats()
   }, [])
+
+  useEffect(() => {
+    fetchLotes(currentPage)
+  }, [currentPage])
+
+  const fetchLotes = async (page: number = 0) => {
+    try {
+      setIsLoading(true)
+      const loteResp = await obtenerLotesPaginadas(page, pageSize)
+      
+      setLotes(loteResp.content || [])
+      setTotalPages(loteResp.totalPages || 1)
+      setTotalElements(loteResp.totalElements || 0)
+      setCurrentPage(loteResp.currentPage ?? page)
+
+      // Obtener estadísticas para las cards
+      const estadisticas = await obtenerEstadisticasLotes()
+      setStats(estadisticas)
+    } catch (err) {
+      console.error("Error fetching lotes:", err)
+      setError("Error al cargar los lotes. Intente nuevamente más tarde.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const filteredLotes = lotes.filter((lote) => {
     const matchesSearch =
@@ -93,12 +114,7 @@ export default function ListadoLotesPage() {
       await eliminarLote(id)
       toast.success("Lote desactivado exitosamente")
       // Recargar lotes
-      setIsLoading(true)
-      const loteResp = await obtenerLotesPaginadas(currentPage, pageSize)
-      setLotes(loteResp.content || [])
-      setTotalPages(loteResp.totalPages ?? 1)
-      setTotalElements(loteResp.totalElements ?? 0)
-      setIsLoading(false)
+      await fetchLotes(currentPage)
     } catch (error: any) {
       toast.error("Error al desactivar lote", {
         description: error?.message
@@ -112,12 +128,7 @@ export default function ListadoLotesPage() {
       await activarLote(id)
       toast.success("Lote reactivado exitosamente")
       // Recargar lotes
-      setIsLoading(true)
-      const loteResp = await obtenerLotesPaginadas(currentPage, pageSize)
-      setLotes(loteResp.content || [])
-      setTotalPages(loteResp.totalPages ?? 1)
-      setTotalElements(loteResp.totalElements ?? 0)
-      setIsLoading(false)
+      await fetchLotes(currentPage)
     } catch (error: any) {
       toast.error("Error al reactivar lote", {
         description: error?.message
@@ -167,7 +178,7 @@ export default function ListadoLotesPage() {
                     <span>Cargando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl font-bold">{lotes.length}</p>
+                  <p className="text-2xl font-bold">{stats.total}</p>
                 )}
               </div>
               <Package className="h-8 w-8 text-primary" />
@@ -185,7 +196,7 @@ export default function ListadoLotesPage() {
                     <span>Cargando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl font-bold">{lotes.filter((l) => l.activo).length}</p>
+                  <p className="text-2xl font-bold">{stats.activos}</p>
                 )}
               </div>
               <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
@@ -205,7 +216,7 @@ export default function ListadoLotesPage() {
                     <span>Cargando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl font-bold">{lotes.filter((l) => !l.activo).length}</p>
+                  <p className="text-2xl font-bold">{stats.inactivos}</p>
                 )}
               </div>
               <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
@@ -396,26 +407,13 @@ export default function ListadoLotesPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Pagination currentPage={currentPage} totalPages={Math.max(totalPages, 1)} onPageChange={(p) => void (async () => {
-                    setIsLoading(true)
-                    try {
-                      const resp = await obtenerLotesPaginadas(p, pageSize)
-                      const data = resp.content || []
-
-                      // Usar directamente los objetos LoteSimpleDTO devueltos por el backend
-                      setLotes(data)
-
-                      // Actualizar metadatos de paginación desde la respuesta
-                      setTotalPages(resp.totalPages ?? 1)
-                      setTotalElements(resp.totalElements ?? (data.length || 0))
-                      setCurrentPage(resp.number ?? p)
-                    } catch (err) {
-                      console.error('Error recargando lotes paginados', err)
-                      setError('Error al cargar los lote')
-                    } finally {
-                      setIsLoading(false)
-                    }
-                  })()} showRange={1} alwaysShow={true} />
+                  <Pagination 
+                    currentPage={currentPage} 
+                    totalPages={Math.max(totalPages, 1)} 
+                    onPageChange={(p) => setCurrentPage(p)} 
+                    showRange={1} 
+                    alwaysShow={true} 
+                  />
                 </div>
               </div>
             </div>

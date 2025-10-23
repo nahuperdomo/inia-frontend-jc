@@ -67,7 +67,8 @@ export default function ListadoPMSPage() {
       setLoading(true)
       const data = await obtenerPmsPaginadas(page, pageSize, filtro)
       // data.content expected
-      setAnalisis((data.content || []).map((p: any) => ({
+      const content = (data.content || [])
+      setAnalisis(content.map((p: any) => ({
         id: `PMS${p.analisisID}`,
         loteId: p.lote || `#${p.analisisID}`,
         loteName: p.lote || "No especificado",
@@ -86,10 +87,14 @@ export default function ListadoPMSPage() {
         activo: p.activo ?? true,
       })))
 
-      const meta = (data as any).page || {}
-      setTotalPages(meta.totalPages ?? 1)
-      setTotalElements(meta.totalElements ?? (data.content?.length || 0))
-      setCurrentPage(meta.number ?? page)
+      const pageMeta = (data as any).page ? (data as any).page : (data as any)
+      const totalPagesFrom = pageMeta.totalPages ?? 1
+      const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0)
+      const numberFrom = pageMeta.number ?? page
+
+      setTotalPages(totalPagesFrom)
+      setTotalElements(totalElementsFrom)
+      setCurrentPage(numberFrom)
     } catch (err) {
       console.error("Error fetching PMS paginadas:", err)
       setError("Error al cargar los análisis PMS")
@@ -145,11 +150,11 @@ export default function ListadoPMSPage() {
       case "APROBADO":
         return "default"
       case "EN_PROCESO":
-      case "FINALIZADO":
-      case "PENDIENTE_APROBACION":
+      case "REGISTRADO":
         return "secondary"
-      case "PENDIENTE":
-      case "PARA_REPETIR":
+      case "PENDIENTE_APROBACION":
+        return "outline"
+      case "A_REPETIR":
         return "destructive"
       default:
         return "outline"
@@ -162,14 +167,12 @@ export default function ListadoPMSPage() {
         return "Aprobado"
       case "EN_PROCESO":
         return "En Proceso"
-      case "FINALIZADO":
-        return "Finalizado"
+      case "REGISTRADO":
+        return "Registrado"
       case "PENDIENTE_APROBACION":
         return "Pendiente Aprobación"
-      case "PENDIENTE":
-        return "Pendiente"
-      case "PARA_REPETIR":
-        return "Para Repetir"
+      case "A_REPETIR":
+        return "A Repetir"
       default:
         return estado
     }
@@ -343,12 +346,11 @@ export default function ListadoPMSPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos los estados</SelectItem>
-                <SelectItem value="APROBADO">Aprobado</SelectItem>
+                <SelectItem value="REGISTRADO">Registrado</SelectItem>
                 <SelectItem value="EN_PROCESO">En Proceso</SelectItem>
-                <SelectItem value="FINALIZADO">Finalizado</SelectItem>
                 <SelectItem value="PENDIENTE_APROBACION">Pendiente Aprobación</SelectItem>
-                <SelectItem value="PENDIENTE">Pendiente</SelectItem>
-                <SelectItem value="PARA_REPETIR">Para Repetir</SelectItem>
+                <SelectItem value="APROBADO">Aprobado</SelectItem>
+                <SelectItem value="A_REPETIR">A Repetir</SelectItem>
               </SelectContent>
             </Select>
             <select

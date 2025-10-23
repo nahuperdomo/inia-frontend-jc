@@ -76,20 +76,26 @@ export default function ListadoPurezaPage() {
   const fetchPurezas = async (page: number = 0, filtro: string = filtroActivo) => {
     try {
       setLoading(true);
-      const data = await obtenerPurezasPaginadas(page, pageSize, filtro);
-      console.log("DEBUG obtenerPurezasPaginadas response:", data);
+  const data = await obtenerPurezasPaginadas(page, pageSize, filtro);
+  console.log("DEBUG obtenerPurezasPaginadas response:", data);
 
-      // Datos principales
-      setPurezas(data.content || []);
+  // Datos principales
+  const content = data.content || [];
+  setPurezas(content);
 
-      // Extraer metadatos del objeto "page" (nuevo formato del backend)
-      const meta = (data as any).page || {};
+  // Metadata: soportar dos formas que puede devolver el backend
+  // 1) { content: [...], page: { totalPages, totalElements, number, ... } }
+  // 2) Página Spring Data directamente: { content: [...], totalPages, totalElements, number, ... }
+  const pageMeta = (data as any).page ? (data as any).page : (data as any);
+  const totalPagesFrom = pageMeta.totalPages ?? 1;
+  const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0);
+  const numberFrom = pageMeta.number ?? page;
 
-      setTotalPages(meta.totalPages ?? 1);
-      setTotalElements(meta.totalElements ?? (data.content?.length || 0));
-      setCurrentPage(meta.number ?? page);
-      setIsFirst((meta.number ?? 0) === 0);
-      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1);
+  setTotalPages(totalPagesFrom);
+  setTotalElements(totalElementsFrom);
+  setCurrentPage(numberFrom);
+  setIsFirst(numberFrom === 0);
+  setIsLast(numberFrom >= totalPagesFrom - 1);
     } catch (err) {
       setError("Error al cargar los análisis de pureza");
       console.error("Error fetching purezas:", err);
@@ -137,9 +143,9 @@ export default function ListadoPurezaPage() {
 
   // Calculate stats from current page data and total
   const totalAnalysis = totalElements
-  const completedAnalysis = purezas.filter(p => p.estado === "FINALIZADO" || p.estado === "APROBADO").length
+  const completedAnalysis = purezas.filter(p => p.estado === "APROBADO").length
   const inProgressAnalysis = purezas.filter(p => p.estado === "EN_PROCESO").length
-  const pendingAnalysis = purezas.filter(p => p.estado === "PENDIENTE").length
+  const pendingAnalysis = purezas.filter(p => p.estado === "REGISTRADO" || p.estado === "PENDIENTE_APROBACION").length
   
   // Calcular promedio de pureza
   const purezasConDatos = purezas.filter(p => p.semillaPura_g > 0 && p.pesoInicial_g > 0)
@@ -152,15 +158,16 @@ export default function ListadoPurezaPage() {
 
   const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
     switch (estado) {
-      case "FINALIZADO":
       case "APROBADO":
         return "default"
       case "EN_PROCESO":
         return "secondary"
-      case "PENDIENTE":
-        return "destructive"
-      case "PENDIENTE_APROBACION":
+      case "REGISTRADO":
         return "outline"
+      case "PENDIENTE_APROBACION":
+        return "destructive"
+      case "A_REPETIR":
+        return "destructive"
       default:
         return "outline"
     }
@@ -168,18 +175,16 @@ export default function ListadoPurezaPage() {
 
   const formatEstado = (estado: EstadoAnalisis) => {
     switch (estado) {
-      case "FINALIZADO":
-        return "Finalizado"
+      case "REGISTRADO":
+        return "Registrado"
       case "EN_PROCESO":
         return "En Proceso"
-      case "PENDIENTE":
-        return "Pendiente"
       case "APROBADO":
         return "Aprobado"
       case "PENDIENTE_APROBACION":
         return "Pend. Aprobación"
-      case "PARA_REPETIR":
-        return "Para Repetir"
+      case "A_REPETIR":
+        return "A Repetir"
       default:
         return estado
     }
@@ -311,11 +316,11 @@ export default function ListadoPurezaPage() {
                 className="px-3 py-2 border border-input bg-background rounded-md text-sm"
               >
                 <option value="all">Todos los estados</option>
-                <option value="FINALIZADO">Finalizado</option>
+                <option value="REGISTRADO">Registrado</option>
                 <option value="EN_PROCESO">En Proceso</option>
-                <option value="PENDIENTE">Pendiente</option>
-                <option value="APROBADO">Aprobado</option>
                 <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
+                <option value="APROBADO">Aprobado</option>
+                <option value="A_REPETIR">A Repetir</option>
               </select>
               <select
                 value={filtroActivo}

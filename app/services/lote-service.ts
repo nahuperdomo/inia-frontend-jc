@@ -104,8 +104,19 @@ export async function obtenerLotesPaginadas(page: number = 0, size: number = 10)
   content: LoteSimpleDTO[];
   totalPages: number;
   totalElements: number;
-  number: number;
-  size: number;
+  currentPage: number;
+  pageSize: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
 }> {
   return apiFetch(`/api/lotes/listado?page=${page}&size=${size}`);
+}
+
+export async function obtenerEstadisticasLotes(): Promise<{
+  total: number;
+  activos: number;
+  inactivos: number;
+}> {
+  return apiFetch('/api/lotes/estadisticas');
 }

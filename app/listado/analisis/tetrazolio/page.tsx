@@ -92,12 +92,16 @@ export default function ListadoTetrazolioPage() {
 
       setAnalisis(mapped)
 
-      const meta = (data as any).page || {}
-      setTotalPages(meta.totalPages ?? 1)
-      setTotalElements(meta.totalElements ?? (content.length || 0))
-      setCurrentPage(meta.number ?? page)
-      setIsFirst((meta.number ?? 0) === 0)
-      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1)
+      const pageMeta = (data as any).page ? (data as any).page : (data as any);
+      const totalPagesFrom = pageMeta.totalPages ?? 1;
+      const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0);
+      const numberFrom = pageMeta.number ?? page;
+
+      setTotalPages(totalPagesFrom);
+      setTotalElements(totalElementsFrom);
+      setCurrentPage(numberFrom);
+      setIsFirst(numberFrom === 0);
+      setIsLast(numberFrom >= totalPagesFrom - 1);
     } catch (err: any) {
       console.error("Error fetching Tetrazolio paginadas:", err)
       setError("Error al cargar los análisis Tetrazolio")
@@ -155,10 +159,12 @@ export default function ListadoTetrazolioPage() {
   const getEstadoBadgeVariant = (estado: string) => {
     switch (estado) {
       case "Completado":
+      case "Aprobado":
         return "default"
       case "En Proceso":
         return "secondary"
       case "Pendiente":
+      case "A Repetir":
         return "destructive"
       default:
         return "outline"
@@ -326,9 +332,11 @@ export default function ListadoTetrazolioPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos los estados</SelectItem>
-                <SelectItem value="Completado">Completado</SelectItem>
+                <SelectItem value="Registrado">Registrado</SelectItem>
                 <SelectItem value="En Proceso">En Proceso</SelectItem>
-                <SelectItem value="Pendiente">Pendiente</SelectItem>
+                <SelectItem value="Aprobado">Aprobado</SelectItem>
+                <SelectItem value="Completado">Completado</SelectItem>
+                <SelectItem value="A Repetir">A Repetir</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterPrioridad} onValueChange={setFilterPrioridad}>

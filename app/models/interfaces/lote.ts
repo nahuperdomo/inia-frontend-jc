@@ -1,4 +1,4 @@
-import { TipoMYCCatalogo, EstadoLote, TipoAnalisis } from '../types/enums';
+import { TipoMYCCatalogo, TipoAnalisis } from '../types/enums';
 import { DatosHumedadDTO } from './common';
 
 /**

@@ -464,8 +464,8 @@ export default function EditarPMSPage() {
   const puedeFinalizarAnalisis = (): boolean => {
     if (!analisis) return false
     
-    // No se puede finalizar si ya está finalizado o aprobado
-    if (analisis.estado === "FINALIZADO" || analisis.estado === "APROBADO" || analisis.estado === "PENDIENTE_APROBACION") {
+    // No se puede finalizar si ya está aprobado o pendiente de aprobación
+    if (analisis.estado === "APROBADO" || analisis.estado === "PENDIENTE_APROBACION") {
       return false
     }
     
@@ -504,8 +504,8 @@ export default function EditarPMSPage() {
   const puedeEditarPmsConRedondeo = (): boolean => {
     if (!analisis) return false
     
-    // No se puede editar si ya está finalizado o aprobado
-    if (analisis.estado === "FINALIZADO" || analisis.estado === "APROBADO" || analisis.estado === "PENDIENTE_APROBACION") {
+    // No se puede editar si ya está aprobado o pendiente de aprobación
+    if (analisis.estado === "APROBADO" || analisis.estado === "PENDIENTE_APROBACION") {
       return false
     }
     
@@ -541,11 +541,10 @@ export default function EditarPMSPage() {
       case "APROBADO":
         return "default"
       case "EN_PROCESO":
-      case "FINALIZADO":
+      case "REGISTRADO":
       case "PENDIENTE_APROBACION":
         return "secondary"
-      case "PENDIENTE":
-      case "PARA_REPETIR":
+      case "A_REPETIR":
         return "destructive"
       default:
         return "outline"
@@ -610,12 +609,11 @@ export default function EditarPMSPage() {
               <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-start">
                 <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Editar Análisis PMS #{analisis.analisisID}</h1>
                 <Badge variant={getEstadoBadgeVariant(analisis.estado || "")} className="text-xs px-2 py-0.5">
-                  {analisis.estado === "APROBADO" ? "Aprobado" : 
-                   analisis.estado === "EN_PROCESO" ? "En Proceso" : 
-                   analisis.estado === "FINALIZADO" ? "Finalizado" :
+                  {analisis.estado === "APROBADO" ? "Aprobado" :
+                   analisis.estado === "EN_PROCESO" ? "En Proceso" :
+                   analisis.estado === "REGISTRADO" ? "Registrado" :
                    analisis.estado === "PENDIENTE_APROBACION" ? "Pendiente Aprobación" :
-                   analisis.estado === "PENDIENTE" ? "Pendiente" :
-                   analisis.estado === "PARA_REPETIR" ? "Para Repetir" : analisis.estado}
+                   analisis.estado === "A_REPETIR" ? "A Repetir" : analisis.estado}
                 </Badge>
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground">

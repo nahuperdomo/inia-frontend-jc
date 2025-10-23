@@ -112,20 +112,24 @@ export default function ListadoDOSNPage() {
   const fetchDosns = async (page: number = 0, filtro: string = "todos") => {
     try {
       setLoading(true);
-      const data = await obtenerDosnPaginadas(page, pageSize, filtro);
-      console.log("DEBUG obtenerDosnPaginadas response:", data);
+  const data = await obtenerDosnPaginadas(page, pageSize, filtro);
+  console.log("DEBUG obtenerDosnPaginadas response:", data);
 
-      // Datos principales
-      setDosns(data.content || []);
+  // Datos principales
+  const content = data.content || [];
+  setDosns(content);
 
-      // Extraer metadatos del objeto "page" (nuevo formato del backend)
-      const meta = (data as any).page || {};
+  // Extract pagination metadata supporting both shapes
+  const pageMeta = (data as any).page ? (data as any).page : (data as any);
+  const totalPagesFrom = pageMeta.totalPages ?? 1;
+  const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0);
+  const numberFrom = pageMeta.number ?? page;
 
-      setTotalPages(meta.totalPages ?? 1);
-      setTotalElements(meta.totalElements ?? (data.content?.length || 0));
-      setCurrentPage(meta.number ?? page);
-      setIsFirst((meta.number ?? 0) === 0);
-      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1);
+  setTotalPages(totalPagesFrom);
+  setTotalElements(totalElementsFrom);
+  setCurrentPage(numberFrom);
+  setIsFirst(numberFrom === 0);
+  setIsLast(numberFrom >= totalPagesFrom - 1);
     } catch (err) {
       setError("Error al cargar los análisis DOSN");
       console.error("Error fetching DOSNs:", err);
@@ -180,22 +184,23 @@ export default function ListadoDOSNPage() {
 
   // Calculate stats from current page data and total
   const totalAnalysis = totalElements
-  const completedAnalysis = dosns.filter(d => d.estado === "FINALIZADO" || d.estado === "APROBADO").length
+  const completedAnalysis = dosns.filter(d => d.estado === "APROBADO").length
   const inProgressAnalysis = dosns.filter(d => d.estado === "EN_PROCESO").length
-  const pendingAnalysis = dosns.filter(d => d.estado === "PENDIENTE").length
+  const pendingAnalysis = dosns.filter(d => d.estado === "REGISTRADO" || d.estado === "PENDIENTE_APROBACION").length
   const complianceRate = dosns.length > 0 ? Math.round((dosns.filter(d => d.cumpleEstandar === true).length / dosns.length) * 100) : 0
 
   const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
     switch (estado) {
-      case "FINALIZADO":
       case "APROBADO":
         return "default"
       case "EN_PROCESO":
         return "secondary"
-      case "PENDIENTE":
-        return "destructive"
-      case "PENDIENTE_APROBACION":
+      case "REGISTRADO":
         return "outline"
+      case "PENDIENTE_APROBACION":
+        return "destructive"
+      case "A_REPETIR":
+        return "destructive"
       default:
         return "outline"
     }
@@ -203,18 +208,16 @@ export default function ListadoDOSNPage() {
 
   const formatEstado = (estado: EstadoAnalisis) => {
     switch (estado) {
-      case "FINALIZADO":
-        return "Finalizado"
+      case "REGISTRADO":
+        return "Registrado"
       case "EN_PROCESO":
         return "En Proceso"
-      case "PENDIENTE":
-        return "Pendiente"
       case "APROBADO":
         return "Aprobado"
       case "PENDIENTE_APROBACION":
         return "Pend. Aprobación"
-      case "PARA_REPETIR":
-        return "Para Repetir"
+      case "A_REPETIR":
+        return "A Repetir"
       default:
         return estado
     }
@@ -346,11 +349,11 @@ export default function ListadoDOSNPage() {
                 className="px-3 py-2 border border-input bg-background rounded-md text-sm"
               >
                 <option value="all">Todos los estados</option>
-                <option value="FINALIZADO">Finalizado</option>
+                <option value="REGISTRADO">Registrado</option>
                 <option value="EN_PROCESO">En Proceso</option>
-                <option value="PENDIENTE">Pendiente</option>
-                <option value="APROBADO">Aprobado</option>
                 <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
+                <option value="APROBADO">Aprobado</option>
+                <option value="A_REPETIR">A Repetir</option>
               </select>
               <select
                 value={filtroActivo}
