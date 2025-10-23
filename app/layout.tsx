@@ -2,7 +2,6 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
-import { Analytics } from "@vercel/analytics/next"
 import { AuthProvider } from "@/components/auth-provider"
 import { LoadingProvider } from "@/components/loading-provider"
 import { NotificationProvider } from "@/components/notificaciones"
@@ -92,7 +91,6 @@ export default function RootLayout({
             </LoadingProvider>
           </QueryProvider>
         </Suspense>
-        <Analytics />
       </body>
     </html>
   )

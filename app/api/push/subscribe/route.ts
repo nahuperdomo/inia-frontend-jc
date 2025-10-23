@@ -18,9 +18,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Obtener token de autenticación
-        const token = request.cookies.get('token')?.value ||
-            request.headers.get('authorization')?.replace('Bearer ', '');
+        // Obtener token de autenticación (priorizar header sobre cookie)
+        const authHeader = request.headers.get('authorization');
+        const cookieToken = request.cookies.get('token')?.value;
+        const token = authHeader?.replace('Bearer ', '') || cookieToken;
 
         if (!token) {
             return NextResponse.json(
@@ -29,28 +30,46 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Enviar suscripción al backend
+        // Obtener la URL base del backend
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
+        console.log(`[Push Subscribe] Enviando a: ${API_BASE_URL}/api/push/subscribe`);
+
+        // Enviar suscripción al backend con configuración CORS
         const response = await fetch(`${API_BASE_URL}/api/push/subscribe`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
+            credentials: 'include', // IMPORTANTE: Incluir cookies en la petición
             body: JSON.stringify(subscription),
         });
 
+        // Manejo detallado de errores HTTP
         if (!response.ok) {
-            const error = await response.text();
-            console.error('Error from backend:', error);
+            let errorMessage = 'Error al guardar suscripción';
+
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorData.error || errorMessage;
+            } catch {
+                // Si no es JSON, intentar leer como texto
+                const errorText = await response.text();
+                errorMessage = errorText || errorMessage;
+            }
+
+            console.error(`[Push Subscribe] Error ${response.status}:`, errorMessage);
+
             return NextResponse.json(
-                { error: 'Error al guardar suscripción' },
+                { error: errorMessage },
                 { status: response.status }
             );
         }
 
         const data = await response.json();
+
+        console.log('[Push Subscribe] Suscripción guardada exitosamente');
 
         return NextResponse.json(
             { success: true, message: 'Suscripción guardada', data },
@@ -58,10 +77,37 @@ export async function POST(request: NextRequest) {
         );
 
     } catch (error) {
-        console.error('Error in push subscribe:', error);
+        console.error('[Push Subscribe] Error interno:', error);
+
+        // Diferenciar entre errores de red y otros errores
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+            return NextResponse.json(
+                { error: 'No se pudo conectar con el servidor backend' },
+                { status: 503 }
+            );
+        }
+
         return NextResponse.json(
             { error: 'Error interno del servidor' },
             { status: 500 }
         );
     }
+}
+
+/**
+ * OPTIONS /api/push/subscribe
+ * 
+ * Manejo de preflight CORS
+ */
+export async function OPTIONS(request: NextRequest) {
+    return new NextResponse(null, {
+        status: 200,
+        headers: {
+            'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Max-Age': '86400',
+        },
+    });
 }
