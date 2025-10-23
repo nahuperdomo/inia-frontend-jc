@@ -89,21 +89,10 @@ export default function LoginPage() {
 
       console.log("🚀 Redirigiendo a /dashboard...");
       
-      // Usar setTimeout para asegurar que las cookies se establezcan antes de redirigir
-      setTimeout(() => {
-        console.log("⏰ Ejecutando redirección después de timeout...");
-        router.push("/dashboard");
-        
-        // Fallback: si router.push no funciona en 1 segundo, usar window.location
-        setTimeout(() => {
-          if (window.location.pathname === "/login") {
-            console.warn("⚠️ router.push no redirigió, usando window.location.href");
-            window.location.href = "/dashboard";
-          }
-        }, 1000);
-      }, 100);
+      // SOLUCIÓN DEFINITIVA: router.push funciona bien cuando el middleware no bloquea
+      router.push("/dashboard");
       
-      console.log("✅ router.push ejecutado");
+      console.log("✅ Redirección iniciada");
     } catch (error: any) {
       console.error("❌ Error en handleSubmit:", error);
       
