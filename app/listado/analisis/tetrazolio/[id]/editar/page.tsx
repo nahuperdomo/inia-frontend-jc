@@ -5,16 +5,30 @@ import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Save, Loader2, AlertTriangle, TestTube, Target } from "lucide-react"
+import { ArrowLeft, Save, Loader2, AlertTriangle, TestTube, Target, Plus, Hash } from "lucide-react"
 import Link from "next/link"
 import { obtenerTetrazolioPorId, actualizarTetrazolio, actualizarPorcentajesRedondeados } from "@/app/services/tetrazolio-service"
-import { obtenerRepeticionesPorTetrazolio } from "@/app/services/repeticiones-service"
+import { obtenerRepeticionesPorTetrazolio, crearRepTetrazolioViabilidad } from "@/app/services/repeticiones-service"
 import type { TetrazolioDTO, TetrazolioRequestDTO } from "@/app/models/interfaces/tetrazolio"
 import type { RepTetrazolioViabilidadDTO } from "@/app/models/interfaces/repeticiones"
 import { toast } from "sonner"
 import TetrazolioFields from "@/app/registro/analisis/tetrazolio/form-tetrazolio"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+
+// Función utilitaria para formatear fechas
+const formatearFechaLocal = (fechaString: string): string => {
+  if (!fechaString) return ''
+
+  const [year, month, day] = fechaString.split('-').map(Number)
+  const fecha = new Date(year, month - 1, day)
+
+  return fecha.toLocaleDateString('es-UY', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })
+}
 
 // Función utilitaria para convertir fecha para input
 const convertirFechaParaInput = (fechaString: string): string => {
@@ -82,6 +96,18 @@ export default function EditarTetrazolioPage() {
     porcNoViablesRedondeo: '',
     porcDurasRedondeo: ''
   })
+
+  // Estado para nueva repetición
+  const [creatingRepeticion, setCreatingRepeticion] = useState(false)
+  const [nuevaRepeticion, setNuevaRepeticion] = useState<any>({
+    fecha: new Date().toISOString().split('T')[0],
+    viablesNum: '',
+    noViablesNum: '',
+    duras: ''
+  } as any)
+
+  // Fecha de hoy en formato ISO
+  const hoy = new Date().toISOString().split('T')[0]
 
   useEffect(() => {
     const fetchData = async () => {
@@ -198,6 +224,48 @@ export default function EditarTetrazolioPage() {
     } catch (err: any) {
       console.error("❌ Error al actualizar porcentajes:", err)
       toast.error(err.message || 'Error al actualizar porcentajes')
+    }
+  }
+
+  const handleCrearRepeticion = async () => {
+    // Validación de fecha nueva repetición: no puede ser futura
+    if (nuevaRepeticion.fecha > hoy) {
+      toast.error("La fecha de la repetición no puede ser posterior a hoy")
+      return
+    }
+
+    const total =
+      (parseInt(String(nuevaRepeticion.viablesNum) || '0') || 0) +
+      (parseInt(String(nuevaRepeticion.noViablesNum) || '0') || 0) +
+      (parseInt(String(nuevaRepeticion.duras) || '0') || 0)
+
+    const esperado = tetrazolio?.numSemillasPorRep || 50
+    const diferencia = Math.abs(total - esperado)
+
+    if (diferencia > 1) {
+      toast.error(
+        `El total (${total}) difiere más de ±1 del esperado (${esperado}). No se puede crear la repetición.`
+      )
+      return
+    }
+
+    try {
+      setCreatingRepeticion(true)
+      await crearRepTetrazolioViabilidad(parseInt(tetrazolioId), nuevaRepeticion)
+      const repeticionesActualizadas = await obtenerRepeticionesPorTetrazolio(parseInt(tetrazolioId))
+      setRepeticiones(repeticionesActualizadas)
+      setNuevaRepeticion({
+        fecha: new Date().toISOString().split("T")[0],
+        viablesNum: '',
+        noViablesNum: '',
+        duras: '',
+      })
+      toast.success("Repetición creada exitosamente")
+    } catch (err: any) {
+      console.error("❌ Error al crear repetición:", err)
+      toast.error(err.message || "Error al crear repetición")
+    } finally {
+      setCreatingRepeticion(false)
     }
   }
 
@@ -414,6 +482,189 @@ export default function EditarTetrazolioPage() {
               </CardContent>
             </Card>
           </form>
+
+          {/* Sección de Repeticiones */}
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="border-b bg-muted/50">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <div className="p-2 rounded-lg bg-orange-500/10">
+                  <Hash className="h-5 w-5 text-orange-600" />
+                </div>
+                Repeticiones ({repeticiones.length}/{tetrazolio?.numRepeticionesEsperadas || 0})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              {/* Crear nueva repetición */}
+              {repeticiones.length < (tetrazolio?.numRepeticionesEsperadas || 0) && (
+                <Card className="border-dashed">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Plus className="h-5 w-5" />
+                      Nueva Repetición
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                      <div className="space-y-2">
+                        <Label>Fecha</Label>
+                        <Input
+                          type="date"
+                          value={nuevaRepeticion.fecha}
+                          onChange={(e) => setNuevaRepeticion((prev: any) => ({ ...prev, fecha: e.target.value }))}
+                          max={hoy}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-green-600">Viables (n°)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max={tetrazolio?.numSemillasPorRep || 100}
+                          value={nuevaRepeticion.viablesNum}
+                          onChange={(e) => setNuevaRepeticion((prev: any) => ({ ...prev, viablesNum: e.target.value === '' ? '' : e.target.value }))}
+                        />
+                        <div className="text-xs text-muted-foreground">
+                          Semillas viables (teñidas)
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-yellow-600">Duras (n°)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max={tetrazolio?.numSemillasPorRep || 100}
+                          value={nuevaRepeticion.duras}
+                          onChange={(e) => setNuevaRepeticion((prev: any) => ({ ...prev, duras: e.target.value === '' ? '' : e.target.value }))}
+                        />
+                        <div className="text-xs text-muted-foreground">
+                          Semillas duras (no absorbieron agua)
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-red-600">No viables (n°)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max={tetrazolio?.numSemillasPorRep || 100}
+                          value={nuevaRepeticion.noViablesNum}
+                          onChange={(e) => setNuevaRepeticion((prev: any) => ({ ...prev, noViablesNum: e.target.value === '' ? '' : e.target.value }))}
+                        />
+                        <div className="text-xs text-muted-foreground">
+                          Semillas no viables (sin tinción)
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Total</Label>
+                        <div className="h-9 px-3 py-2 border rounded-md bg-muted text-sm flex items-center">
+                          {(parseInt(String(nuevaRepeticion.viablesNum) || '0') || 0) + (parseInt(String(nuevaRepeticion.duras) || '0') || 0) + (parseInt(String(nuevaRepeticion.noViablesNum) || '0') || 0)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Esperado: {tetrazolio?.numSemillasPorRep}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Validación del total */}
+                    {(() => {
+                      const total = 
+                        (parseInt(String(nuevaRepeticion.viablesNum) || '0') || 0) + 
+                        (parseInt(String(nuevaRepeticion.duras) || '0') || 0) + 
+                        (parseInt(String(nuevaRepeticion.noViablesNum) || '0') || 0)
+                      const esperado = tetrazolio?.numSemillasPorRep || 50
+                      const diferencia = Math.abs(total - esperado)
+
+                      if (diferencia > 1) {
+                        return (
+                          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                            <div className="flex items-center gap-2 text-red-700">
+                              <AlertTriangle className="h-4 w-4" />
+                              <span className="text-sm font-medium">
+                                El total ({total}) difiere en más de ±1 del esperado ({esperado})
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      } else if (diferencia === 1) {
+                        return (
+                          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                            <div className="flex items-center gap-2 text-yellow-700">
+                              <AlertTriangle className="h-4 w-4" />
+                              <span className="text-sm">
+                                Ajuste permitido de ±1. Total: {total}, Esperado: {esperado}
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      }
+                      return null
+                    })()}
+
+                    {/* Notas de registro */}
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                      <div className="text-sm text-blue-800">
+                        <strong>Orden de registro:</strong> Viables → Duras → No viables
+                      </div>
+                      <div className="text-xs text-blue-600 mt-1">
+                        Si la suma no coincide exactamente, se permite ajuste de ±1 en Viables.
+                      </div>
+                    </div>
+
+                    <Button
+                      type="button"
+                      onClick={handleCrearRepeticion}
+                      disabled={creatingRepeticion}
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      {creatingRepeticion ? 'Creando...' : 'Crear Repetición'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Lista de repeticiones */}
+              {repeticiones.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="grid gap-4">
+                    {repeticiones.map((repeticion, index) => (
+                      <Card key={repeticion.repTetrazolioViabID} className="border-l-4 border-l-orange-500">
+                        <CardContent className="pt-4">
+                          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Repetición</Label>
+                              <div className="font-medium">#{index + 1}</div>
+                            </div>
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Fecha</Label>
+                              <div>{formatearFechaLocal(repeticion.fecha)}</div>
+                            </div>
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Viables</Label>
+                              <div className="text-green-600 font-medium">{repeticion.viablesNum}</div>
+                            </div>
+                            <div>
+                              <Label className="text-xs text-muted-foreground">No Viables</Label>
+                              <div className="text-red-600 font-medium">{repeticion.noViablesNum}</div>
+                            </div>
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Duras</Label>
+                              <div className="text-yellow-600 font-medium">{repeticion.duras}</div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <TestTube className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No hay repeticiones registradas aún.</p>
+                  <p className="text-sm">Crear la primera repetición para comenzar el análisis.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Sección de Porcentajes Redondeados */}
           {puedeEditarPorcentajes && (

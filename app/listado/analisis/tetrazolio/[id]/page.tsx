@@ -5,16 +5,11 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
-  obtenerTetrazolioPorId,
-  finalizarAnalisis,
-  aprobarAnalisis,
-  marcarParaRepetir
+  obtenerTetrazolioPorId
 } from '@/app/services/tetrazolio-service'
 import {
-  crearRepTetrazolioViabilidad,
   obtenerRepeticionesPorTetrazolio
 } from '@/app/services/repeticiones-service'
 import { TetrazolioDTO } from '@/app/models/interfaces/tetrazolio'
@@ -69,20 +64,7 @@ export default function TetrazolioDetailPage() {
   const [tetrazolio, setTetrazolio] = useState<TetrazolioDTO | null>(null)
   const [repeticiones, setRepeticiones] = useState<RepTetrazolioViabilidadDTO[]>([])
   const [loading, setLoading] = useState(true)
-  const [creatingRepeticion, setCreatingRepeticion] = useState(false)
-  const [finalizing, setFinalizing] = useState(false)
   const [error, setError] = useState<string>("")
-
-  // Estado para nueva repetición
-  const [nuevaRepeticion, setNuevaRepeticion] = useState<any>({
-    fecha: new Date().toISOString().split('T')[0],
-    viablesNum: '',
-    noViablesNum: '',
-    duras: ''
-  } as any)
-
-  // Fecha de hoy en formato ISO (YYYY-MM-DD) para validaciones y atributos max en inputs date
-  const hoy = new Date().toISOString().split('T')[0]
 
   const cargarDatos = async () => {
     try {
@@ -117,63 +99,6 @@ export default function TetrazolioDetailPage() {
       cargarDatos()
     }
   }, [tetrazolioId])
-
-  const handleCrearRepeticion = async () => {
-    // Validación de fecha nueva repetición: no puede ser futura
-    if (nuevaRepeticion.fecha > hoy) {
-      setError("La fecha de la repetición no puede ser posterior a hoy")
-      return
-    }
-
-    const total =
-      (parseInt(String(nuevaRepeticion.viablesNum) || '0') || 0) +
-      (parseInt(String(nuevaRepeticion.noViablesNum) || '0') || 0) +
-      (parseInt(String(nuevaRepeticion.duras) || '0') || 0)
-
-    const esperado = tetrazolio?.numSemillasPorRep || 50
-    const diferencia = Math.abs(total - esperado)
-
-    if (diferencia > 1) {
-      setError(
-        `❌ El total (${total}) difiere más de ±1 del esperado (${esperado}). No se puede crear la repetición.`
-      )
-      return
-    }
-
-    try {
-      setCreatingRepeticion(true)
-      const repeticionCreada = await crearRepTetrazolioViabilidad(parseInt(tetrazolioId), nuevaRepeticion)
-      const repeticionesActualizadas = await obtenerRepeticionesPorTetrazolio(parseInt(tetrazolioId))
-      setRepeticiones(repeticionesActualizadas)
-      setNuevaRepeticion({
-        fecha: new Date().toISOString().split("T")[0],
-        viablesNum: '',
-        noViablesNum: '',
-        duras: '',
-      })
-      setError("")
-    } catch (err: any) {
-      console.error("❌ Error al crear repetición:", err)
-      setError(err.message || "Error al crear repetición")
-    } finally {
-      setCreatingRepeticion(false)
-    }
-  }
-
-
-  const handleFinalizarAnalisis = async () => {
-    try {
-      setFinalizing(true)
-      const tetrazolioFinalizado = await finalizarAnalisis(parseInt(tetrazolioId))
-      setTetrazolio(tetrazolioFinalizado)
-      console.log("✅ Análisis finalizado")
-    } catch (err: any) {
-      console.error("❌ Error al finalizar:", err)
-      setError(err.message || 'Error al finalizar análisis')
-    } finally {
-      setFinalizing(false)
-    }
-  }
 
   const getEstadoBadge = (estado: string) => {
     const variants = {
@@ -384,7 +309,7 @@ export default function TetrazolioDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Sección de repeticiones */}
+          {/* Sección de repeticiones - Solo vista */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -393,135 +318,8 @@ export default function TetrazolioDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Crear nueva repetición */}
-              {repeticiones.length < (tetrazolio.numRepeticionesEsperadas || 0) && (
-                <Card className="border-dashed">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Plus className="h-5 w-5" />
-                      Nueva Repetición
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                      <div className="space-y-2">
-                        <Label>Fecha</Label>
-                        <Input
-                          type="date"
-                          value={nuevaRepeticion.fecha}
-                          onChange={(e) => setNuevaRepeticion((prev: any) => ({ ...prev, fecha: e.target.value }))}
-                          max={hoy}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-green-600">Viables (n°)</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          max={tetrazolio?.numSemillasPorRep || 100}
-                          value={nuevaRepeticion.viablesNum}
-                          onChange={(e) => setNuevaRepeticion((prev: any) => ({ ...prev, viablesNum: e.target.value === '' ? '' : e.target.value }))}
-                        />
-                        <div className="text-xs text-muted-foreground">
-                          Semillas viables (teñidas)
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-yellow-600">Duras (n°)</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          max={tetrazolio?.numSemillasPorRep || 100}
-                          value={nuevaRepeticion.duras}
-                          onChange={(e) => setNuevaRepeticion((prev: any) => ({ ...prev, duras: e.target.value === '' ? '' : e.target.value }))}
-                        />
-                        <div className="text-xs text-muted-foreground">
-                          Semillas duras (no absorbieron agua)
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-red-600">No viables (n°)</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          max={tetrazolio?.numSemillasPorRep || 100}
-                          value={nuevaRepeticion.noViablesNum}
-                          onChange={(e) => setNuevaRepeticion((prev: any) => ({ ...prev, noViablesNum: e.target.value === '' ? '' : e.target.value }))}
-                        />
-                        <div className="text-xs text-muted-foreground">
-                          Semillas no viables (sin tinción)
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Total</Label>
-                        <div className="h-9 px-3 py-2 border rounded-md bg-muted text-sm flex items-center">
-                          {(parseInt(String(nuevaRepeticion.viablesNum) || '0') || 0) + (parseInt(String(nuevaRepeticion.duras) || '0') || 0) + (parseInt(String(nuevaRepeticion.noViablesNum) || '0') || 0)}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Esperado: {tetrazolio?.numSemillasPorRep}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Validación del total */}
-                    {(() => {
-                      const total = 
-                        (parseInt(String(nuevaRepeticion.viablesNum) || '0') || 0) + 
-                        (parseInt(String(nuevaRepeticion.duras) || '0') || 0) + 
-                        (parseInt(String(nuevaRepeticion.noViablesNum) || '0') || 0)
-                      const esperado = tetrazolio?.numSemillasPorRep || 50
-                      const diferencia = Math.abs(total - esperado)
-
-                      if (diferencia > 1) {
-                        return (
-                          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                            <div className="flex items-center gap-2 text-red-700">
-                              <AlertTriangle className="h-4 w-4" />
-                              <span className="text-sm font-medium">
-                                El total ({total}) difiere en más de ±1 del esperado ({esperado})
-                              </span>
-                            </div>
-                          </div>
-                        )
-                      } else if (diferencia === 1) {
-                        return (
-                          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                            <div className="flex items-center gap-2 text-yellow-700">
-                              <AlertTriangle className="h-4 w-4" />
-                              <span className="text-sm">
-                                Ajuste permitido de ±1. Total: {total}, Esperado: {esperado}
-                              </span>
-                            </div>
-                          </div>
-                        )
-                      }
-                      return null
-                    })()}
-
-                    {/* Notas de registro */}
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                      <div className="text-sm text-blue-800">
-                        <strong>Orden de registro:</strong> Viables → Duras → No viables
-                      </div>
-                      <div className="text-xs text-blue-600 mt-1">
-                        Si la suma no coincide exactamente, se permite ajuste de ±1 en Viables.
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={handleCrearRepeticion}
-                      disabled={creatingRepeticion}
-                      className="w-full"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      {creatingRepeticion ? 'Creando...' : 'Crear Repetición'}
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-
               {/* Lista de repeticiones */}
-              {repeticiones.length > 0 && (
+              {repeticiones.length > 0 ? (
                 <div className="space-y-4">
                   <div className="grid gap-4">
                     {repeticiones.map((repeticion, index) => (
@@ -586,14 +384,11 @@ export default function TetrazolioDetailPage() {
                     </Card>
                   )}
                 </div>
-              )}
-
-              {/* Mensaje si no hay repeticiones */}
-              {repeticiones.length === 0 && (
+              ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <TestTube className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No hay repeticiones registradas aún.</p>
-                  <p className="text-sm">Crear la primera repetición para comenzar el análisis.</p>
+                  <p className="text-sm">Las repeticiones se crean desde la página de edición.</p>
                 </div>
               )}
             </CardContent>
