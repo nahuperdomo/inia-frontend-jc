@@ -576,9 +576,9 @@ export default function GerminacionDetailPage() {
           router.push(`/listado/analisis/germinacion/${germinacion.analisisID}`)
         }}
         onFinalizarYAprobar={async () => {
-          // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
+          // Cuando el admin finaliza, el backend automáticamente lo aprueba
           await finalizarGerminacion(germinacion.analisisID)
-          toast.success("Análisis finalizado y aprobado")
+          toast.success("Análisis finalizado y aprobado exitosamente")
           router.push(`/listado/analisis/germinacion/${germinacion.analisisID}`)
         }}
         onFinalizar={async () => {

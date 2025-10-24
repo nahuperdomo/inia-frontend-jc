@@ -309,7 +309,7 @@ export default function EditarPurezaPage() {
     }
   }
 
-  // Aprobar análisis
+  // Aprobar análisis (solo para análisis en PENDIENTE_APROBACION o A_REPETIR)
   const handleAprobar = async () => {
     if (!pureza) return
     
@@ -317,9 +317,7 @@ export default function EditarPurezaPage() {
       console.log("✅ Aprobando análisis Pureza:", pureza.analisisID)
       await aprobarAnalisis(pureza.analisisID)
       toast.success("Análisis aprobado exitosamente")
-      // Recargar datos
-      const purezaData = await obtenerPurezaPorId(Number.parseInt(purezaId))
-      setPureza(purezaData)
+      router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
     } catch (err: any) {
       console.error("❌ Error aprobando análisis:", err)
       toast.error('Error al aprobar análisis', {
@@ -336,9 +334,7 @@ export default function EditarPurezaPage() {
       console.log("🔄 Marcando análisis Pureza para repetir:", pureza.analisisID)
       await marcarParaRepetir(pureza.analisisID)
       toast.success("Análisis marcado para repetir")
-      // Recargar datos
-      const purezaData = await obtenerPurezaPorId(Number.parseInt(purezaId))
-      setPureza(purezaData)
+      router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
     } catch (err: any) {
       console.error("❌ Error marcando para repetir:", err)
       toast.error('Error al marcar para repetir', {
@@ -347,13 +343,14 @@ export default function EditarPurezaPage() {
     }
   }
 
-  // Finalizar y aprobar
+  // Finalizar y aprobar (solo para admin en estados no finalizados)
   const handleFinalizarYAprobar = async () => {
     if (!pureza) return
     
     try {
       console.log("🏁✅ Finalizando y aprobando análisis Pureza:", pureza.analisisID)
-      // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
+      // Cuando el admin finaliza, el backend automáticamente lo aprueba
+      // No necesitamos llamar a aprobarAnalisis por separado
       await finalizarAnalisis(pureza.analisisID)
       toast.success("Análisis finalizado y aprobado exitosamente")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)

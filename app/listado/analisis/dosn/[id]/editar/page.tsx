@@ -1141,18 +1141,19 @@ export default function EditarDosnPage() {
           tipoAnalisis="dosn"
           estado={dosn.estado || ""}
           onAprobar={async () => {
-            const analisisActualizado = await aprobarAnalisis(dosn.analisisID)
+            await aprobarAnalisis(dosn.analisisID)
             toast.success("Análisis aprobado exitosamente")
             router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
           }}
           onMarcarParaRepetir={async () => {
-            const analisisActualizado = await marcarParaRepetir(dosn.analisisID)
+            await marcarParaRepetir(dosn.analisisID)
             toast.success("Análisis marcado para repetir")
             router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
           }}
           onFinalizarYAprobar={async () => {
-            const analisisActualizado = await aprobarAnalisis(dosn.analisisID)
-            toast.success("Análisis finalizado y aprobado")
+            // Cuando el admin finaliza, el backend automáticamente lo aprueba
+            await finalizarAnalisis(dosn.analisisID)
+            toast.success("Análisis finalizado y aprobado exitosamente")
             router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
           }}
           onFinalizar={async () => {

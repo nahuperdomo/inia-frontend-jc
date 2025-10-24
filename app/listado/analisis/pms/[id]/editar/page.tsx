@@ -1269,21 +1269,19 @@ export default function EditarPMSPage() {
         tipoAnalisis="pms"
         estado={analisis.estado || ""}
         onAprobar={async () => {
-          const analisisActualizado = await aprobarAnalisis(analisis.analisisID)
-          setAnalisis(analisisActualizado)
+          await aprobarAnalisis(analisis.analisisID)
           toast.success("Análisis aprobado exitosamente")
           router.push(`/listado/analisis/pms/${analisis.analisisID}`)
         }}
         onMarcarParaRepetir={async () => {
-          const analisisActualizado = await marcarParaRepetir(analisis.analisisID)
-          setAnalisis(analisisActualizado)
+          await marcarParaRepetir(analisis.analisisID)
           toast.success("Análisis marcado para repetir")
           router.push(`/listado/analisis/pms/${analisis.analisisID}`)
         }}
         onFinalizarYAprobar={async () => {
-          const analisisActualizado = await aprobarAnalisis(analisis.analisisID)
-          setAnalisis(analisisActualizado)
-          toast.success("Análisis finalizado y aprobado")
+          // Cuando el admin finaliza, el backend automáticamente lo aprueba
+          await finalizarAnalisis(analisis.analisisID)
+          toast.success("Análisis finalizado y aprobado exitosamente")
           router.push(`/listado/analisis/pms/${analisis.analisisID}`)
         }}
         onFinalizar={handleFinalizarAnalisis}

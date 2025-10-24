@@ -7,10 +7,18 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Save, Loader2, AlertTriangle, TestTube } from "lucide-react"
 import Link from "next/link"
-import { obtenerTetrazolioPorId, actualizarTetrazolio } from "@/app/services/tetrazolio-service"
+import { 
+  obtenerTetrazolioPorId, 
+  actualizarTetrazolio,
+  finalizarAnalisis,
+  aprobarAnalisis,
+  marcarParaRepetir
+} from "@/app/services/tetrazolio-service"
 import type { TetrazolioDTO, TetrazolioRequestDTO } from "@/app/models/interfaces/tetrazolio"
 import { toast } from "sonner"
 import TetrazolioFields from "@/app/registro/analisis/tetrazolio/form-tetrazolio"
+import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
+import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
 
 // Función utilitaria para convertir fecha para input
 const convertirFechaParaInput = (fechaString: string): string => {
@@ -146,7 +154,10 @@ export default function EditarTetrazolioPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    await saveChanges()
+  }
 
+  const saveChanges = async () => {
     // Validaciones
     const hoy = new Date().toISOString().split('T')[0]
     if (!formData.fecha) {
@@ -231,6 +242,76 @@ export default function EditarTetrazolioPage() {
     }
   }
 
+  // Finalizar análisis
+  const handleFinalizarAnalisis = async () => {
+    if (!tetrazolio) return
+    
+    try {
+      console.log("🏁 Finalizando análisis Tetrazolio:", tetrazolio.analisisID)
+      await finalizarAnalisis(tetrazolio.analisisID)
+      toast.success("Análisis finalizado exitosamente")
+      router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
+    } catch (err: any) {
+      console.error("❌ Error finalizando análisis:", err)
+      toast.error('Error al finalizar análisis', {
+        description: err?.message || "No se pudo finalizar el análisis",
+      })
+    }
+  }
+
+  // Aprobar análisis (solo para análisis en PENDIENTE_APROBACION o A_REPETIR)
+  const handleAprobar = async () => {
+    if (!tetrazolio) return
+    
+    try {
+      console.log("✅ Aprobando análisis Tetrazolio:", tetrazolio.analisisID)
+      await aprobarAnalisis(tetrazolio.analisisID)
+      toast.success("Análisis aprobado exitosamente")
+      router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
+    } catch (err: any) {
+      console.error("❌ Error aprobando análisis:", err)
+      toast.error('Error al aprobar análisis', {
+        description: err?.message || "No se pudo aprobar el análisis",
+      })
+    }
+  }
+
+  // Marcar para repetir
+  const handleMarcarParaRepetir = async () => {
+    if (!tetrazolio) return
+    
+    try {
+      console.log("🔄 Marcando análisis Tetrazolio para repetir:", tetrazolio.analisisID)
+      await marcarParaRepetir(tetrazolio.analisisID)
+      toast.success("Análisis marcado para repetir")
+      router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
+    } catch (err: any) {
+      console.error("❌ Error marcando para repetir:", err)
+      toast.error('Error al marcar para repetir', {
+        description: err?.message || "No se pudo marcar el análisis",
+      })
+    }
+  }
+
+  // Finalizar y aprobar (solo para admin en estados no finalizados)
+  const handleFinalizarYAprobar = async () => {
+    if (!tetrazolio) return
+    
+    try {
+      console.log("🏁✅ Finalizando y aprobando análisis Tetrazolio:", tetrazolio.analisisID)
+      // Cuando el admin finaliza, el backend automáticamente lo aprueba
+      // No necesitamos llamar a aprobarAnalisis por separado
+      await finalizarAnalisis(tetrazolio.analisisID)
+      toast.success("Análisis finalizado y aprobado exitosamente")
+      router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
+    } catch (err: any) {
+      console.error("❌ Error finalizando y aprobando:", err)
+      toast.error('Error al finalizar y aprobar', {
+        description: err?.message || "No se pudo completar la acción",
+      })
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
@@ -269,58 +350,21 @@ export default function EditarTetrazolioPage() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <div className="bg-background border-b sticky top-0 z-40">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
-          <div className="flex flex-col gap-3">
-            <Link href={`/listado/analisis/tetrazolio/${tetrazolioId}`}>
-              <Button variant="ghost" size="sm" className="gap-1 -ml-2 h-8">
-                <ArrowLeft className="h-3 w-3" />
-                <span className="text-xs sm:text-sm">Cancelar</span>
-              </Button>
-            </Link>
+      {/* Header Universal */}
+      <AnalisisHeaderBar
+        tipoAnalisis="Tetrazolio"
+        analisisId={tetrazolio.analisisID}
+        estado={tetrazolio.estado || ""}
+        volverUrl={`/listado/analisis/tetrazolio/${tetrazolioId}`}
+        modoEdicion={true}
+        onToggleEdicion={() => router.push(`/listado/analisis/tetrazolio/${tetrazolioId}`)}
+        onGuardarCambios={saveChanges}
+        guardando={saving}
+        tieneCambios={true}
+      />
 
-            <div className="flex flex-col gap-2">
-              <div className="space-y-1 text-center lg:text-left">
-                <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-start">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-balance">
-                    Editar Análisis de Tetrazolio #{tetrazolio.analisisID}
-                  </h1>
-                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                    {tetrazolio.estado}
-                  </Badge>
-                </div>
-                <p className="text-xs sm:text-sm text-muted-foreground text-pretty">
-                  Lote {tetrazolio.lote}
-                </p>
-              </div>
-
-              <div className="flex justify-center lg:justify-end">
-                <Button
-                  size="sm"
-                  className="gap-1.5 w-full sm:w-auto h-9"
-                  onClick={handleSubmit}
-                  disabled={saving}
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      <span className="text-xs sm:text-sm">Guardando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-3.5 w-3.5" />
-                      <span className="text-xs sm:text-sm">Guardar cambios</span>
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="pt-4">
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-6">
           <form onSubmit={handleSubmit}>
             <Card className="border-0 shadow-sm">
               <CardHeader className="border-b bg-muted/50">
@@ -339,6 +383,17 @@ export default function EditarTetrazolioPage() {
               </CardContent>
             </Card>
           </form>
+
+          {/* Card de Acciones */}
+          <AnalisisAccionesCard
+            analisisId={tetrazolio.analisisID}
+            tipoAnalisis="tetrazolio"
+            estado={tetrazolio.estado || ""}
+            onAprobar={handleAprobar}
+            onMarcarParaRepetir={handleMarcarParaRepetir}
+            onFinalizarYAprobar={handleFinalizarYAprobar}
+            onFinalizar={handleFinalizarAnalisis}
+          />
         </div>
       </div>
     </div>
