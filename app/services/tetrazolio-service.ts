@@ -83,6 +83,23 @@ export async function actualizarPorcentajesRedondeados(
   });
 }
 
-export async function obtenerTetrazoliosPaginadas(page: number = 0, size: number = 10, filtroActivo: string = "todos"): Promise<{ content: TetrazolioDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
-  return apiFetch(`/api/tetrazolios/listado?page=${page}&size=${size}&filtroActivo=${filtroActivo}`);
+export async function obtenerTetrazoliosPaginadas(
+  page: number = 0,
+  size: number = 10,
+  search?: string,
+  activo?: boolean,
+  estado?: string,
+  loteId?: number
+): Promise<{ content: TetrazolioDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+  
+  if (search) params.append("search", search);
+  if (activo !== undefined) params.append("activo", activo.toString());
+  if (estado) params.append("estado", estado);
+  if (loteId !== undefined) params.append("loteId", loteId.toString());
+
+  return apiFetch(`/api/tetrazolios/listado?${params.toString()}`);
 }

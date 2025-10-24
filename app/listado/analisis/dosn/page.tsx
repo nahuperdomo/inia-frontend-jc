@@ -81,6 +81,7 @@ const formatearFechaLocal = (fechaString: string): string => {
 
 export default function ListadoDOSNPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [filtroActivo, setFiltroActivo] = useState("todos")
   const [userRole, setUserRole] = useState<string | null>(null)
@@ -94,6 +95,14 @@ export default function ListadoDOSNPage() {
   const [isFirst, setIsFirst] = useState(true)
   const pageSize = 10
   const [lastResponse, setLastResponse] = useState<any>(null)
+
+  // Debounce searchTerm
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
+    return () => clearTimeout(handler)
+  }, [searchTerm])
 
   // Obtener rol del usuario
   useEffect(() => {
@@ -109,10 +118,20 @@ export default function ListadoDOSNPage() {
   }, [])
 
 
-  const fetchDosns = async (page: number = 0, filtro: string = "todos") => {
+  const fetchDosns = async (page: number = 0) => {
     try {
       setLoading(true);
-  const data = await obtenerDosnPaginadas(page, pageSize, filtro);
+  // Convert filtroActivo string to boolean
+  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
+  
+  const data = await obtenerDosnPaginadas(
+    page,
+    pageSize,
+    debouncedSearchTerm || undefined,
+    activoFilter,
+    selectedStatus !== "all" ? selectedStatus : undefined,
+    undefined
+  );
   console.log("DEBUG obtenerDosnPaginadas response:", data);
 
   // Datos principales
@@ -139,13 +158,9 @@ export default function ListadoDOSNPage() {
   };
 
   useEffect(() => {
+    setCurrentPage(0)
     fetchDosns(0)
-  }, [])
-
-  // Actualizar cuando cambia el filtro de activo
-  useEffect(() => {
-    fetchDosns(0, filtroActivo)
-  }, [filtroActivo])
+  }, [filtroActivo, selectedStatus, debouncedSearchTerm])
 
   // Handlers para desactivar/reactivar
   const handleDesactivar = async (id: number) => {
@@ -153,7 +168,7 @@ export default function ListadoDOSNPage() {
     try {
       await desactivarDosn(id)
       toast.success("Análisis DOSN desactivado exitosamente")
-      await fetchDosns(currentPage, filtroActivo)
+      await fetchDosns(currentPage)
     } catch (error) {
       console.error("Error al desactivar DOSN:", error)
       toast.error("Error al desactivar el análisis")
@@ -164,23 +179,15 @@ export default function ListadoDOSNPage() {
     try {
       await activarDosn(id)
       toast.success("Análisis DOSN reactivado exitosamente")
-      await fetchDosns(currentPage, filtroActivo)
+      await fetchDosns(currentPage)
     } catch (error) {
       console.error("Error al reactivar DOSN:", error)
       toast.error("Error al reactivar el análisis")
     }
   }
 
-  const filteredAnalysis = dosns.filter((analysis) => {
-    const searchLower = searchTerm.toLowerCase()
-    const matchesSearch =
-      analysis.analisisID.toString().includes(searchLower) ||
-      analysis.lote.toLowerCase().includes(searchLower) ||
-      (analysis.comentarios && analysis.comentarios.toLowerCase().includes(searchLower)) ||
-      `dosn-${analysis.analisisID}`.includes(searchLower)
-    const matchesStatus = selectedStatus === "all" || analysis.estado === selectedStatus
-    return matchesSearch && matchesStatus
-  })
+  // No client-side filtering - all filtering done on backend
+  const filteredAnalysis = dosns
 
   // Calculate stats from current page data and total
   const totalAnalysis = totalElements

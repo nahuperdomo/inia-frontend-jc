@@ -63,6 +63,7 @@ const formatearFechaHora = (fechaString: string): string => {
 
 export default function ListadoGerminacionPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [filtroActivo, setFiltroActivo] = useState("todos")
   const [userRole, setUserRole] = useState<string | null>(null)
@@ -75,6 +76,14 @@ export default function ListadoGerminacionPage() {
   const [isLast, setIsLast] = useState(false)
   const [isFirst, setIsFirst] = useState(true)
   const pageSize = 10
+
+  // Debounce searchTerm
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
+    return () => clearTimeout(handler)
+  }, [searchTerm])
 
   // Obtener rol del usuario
   useEffect(() => {
@@ -89,10 +98,20 @@ export default function ListadoGerminacionPage() {
     }
   }, [])
 
-  const fetchGerminaciones = async (page: number = 0, filtro: string = "todos") => {
+  const fetchGerminaciones = async (page: number = 0) => {
     try {
       setLoading(true)
-  const data = await obtenerGerminacionesPaginadas(page, pageSize, filtro)
+  // Convert filtroActivo string to boolean
+  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
+  
+  const data = await obtenerGerminacionesPaginadas(
+    page,
+    pageSize,
+    debouncedSearchTerm || undefined,
+    activoFilter,
+    selectedStatus !== "all" ? selectedStatus : undefined,
+    undefined
+  )
   const content = (data as any).content || []
   setGerminaciones(content)
 
@@ -116,13 +135,9 @@ export default function ListadoGerminacionPage() {
   }
 
   useEffect(() => {
+    setCurrentPage(0)
     fetchGerminaciones(0)
-  }, [])
-
-  // Actualizar cuando cambia el filtro de activo
-  useEffect(() => {
-    fetchGerminaciones(0, filtroActivo)
-  }, [filtroActivo])
+  }, [filtroActivo, selectedStatus, debouncedSearchTerm])
 
   // Handlers para desactivar/reactivar
   const handleDesactivar = async (id: number) => {
@@ -130,7 +145,7 @@ export default function ListadoGerminacionPage() {
     try {
       await desactivarGerminacion(id)
       toast.success("Análisis de Germinación desactivado exitosamente")
-      await fetchGerminaciones(currentPage, filtroActivo)
+      await fetchGerminaciones(currentPage)
     } catch (error) {
       console.error("Error al desactivar Germinación:", error)
       toast.error("Error al desactivar el análisis")
@@ -141,23 +156,15 @@ export default function ListadoGerminacionPage() {
     try {
       await activarGerminacion(id)
       toast.success("Análisis de Germinación reactivado exitosamente")
-      await fetchGerminaciones(currentPage, filtroActivo)
+      await fetchGerminaciones(currentPage)
     } catch (error) {
       console.error("Error al reactivar Germinación:", error)
       toast.error("Error al reactivar el análisis")
     }
   }
 
-  const filteredAnalysis = germinaciones.filter((analysis) => {
-    const searchLower = searchTerm.toLowerCase()
-    const matchesSearch =
-      analysis.analisisID.toString().includes(searchLower) ||
-      (analysis.lote && analysis.lote.toLowerCase().includes(searchLower)) ||
-      (analysis.usuarioCreador && analysis.usuarioCreador.toLowerCase().includes(searchLower)) ||
-      `germ-${analysis.analisisID}`.includes(searchLower)
-    const matchesStatus = selectedStatus === "all" || analysis.estado === selectedStatus
-    return matchesSearch && matchesStatus
-  })
+  // No client-side filtering - all filtering done on backend
+  const filteredAnalysis = germinaciones
 
   // Calculate stats from current page data
   const totalAnalysis = totalElements

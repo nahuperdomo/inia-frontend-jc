@@ -28,8 +28,25 @@ export async function obtenerTodasGerminaciones(): Promise<GerminacionDTO[]> {
   return res.germinaciones || [];
 }
 
-export async function obtenerGerminacionesPaginadas(page: number = 0, size: number = 10, filtroActivo: string = "todos"): Promise<{ content: GerminacionListadoDTO[], totalElements: number, totalPages: number, last: boolean, first: boolean }> {
-  return apiFetch(`/api/germinaciones/listado?page=${page}&size=${size}&filtroActivo=${filtroActivo}`);
+export async function obtenerGerminacionesPaginadas(
+  page: number = 0,
+  size: number = 10,
+  search?: string,
+  activo?: boolean,
+  estado?: string,
+  loteId?: number
+): Promise<{ content: GerminacionListadoDTO[], totalElements: number, totalPages: number, last: boolean, first: boolean }> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+  
+  if (search) params.append("search", search);
+  if (activo !== undefined) params.append("activo", activo.toString());
+  if (estado) params.append("estado", estado);
+  if (loteId !== undefined) params.append("loteId", loteId.toString());
+
+  return apiFetch(`/api/germinaciones/listado?${params.toString()}`);
 }
 
 export async function obtenerGerminacionPorId(id: number): Promise<GerminacionDTO> {

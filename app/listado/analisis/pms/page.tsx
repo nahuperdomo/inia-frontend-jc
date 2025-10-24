@@ -36,6 +36,7 @@ interface AnalisisPMS {
 
 export default function ListadoPMSPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState<string>("todos")
   const [filterPrioridad, setFilterPrioridad] = useState<string>("todos")
   const [filtroActivo, setFiltroActivo] = useState("todos")
@@ -47,6 +48,14 @@ export default function ListadoPMSPage() {
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
   const pageSize = 10
+
+  // Debounce searchTerm
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
+    return () => clearTimeout(handler)
+  }, [searchTerm])
 
   // Obtener rol del usuario
   useEffect(() => {
@@ -62,10 +71,20 @@ export default function ListadoPMSPage() {
   }, [])
 
   // Fetch paginated PMS
-  const fetchPms = async (page: number = 0, filtro: string = "todos") => {
+  const fetchPms = async (page: number = 0) => {
     try {
       setLoading(true)
-      const data = await obtenerPmsPaginadas(page, pageSize, filtro)
+  // Convert filtroActivo string to boolean
+  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
+  
+      const data = await obtenerPmsPaginadas(
+        page,
+        pageSize,
+        debouncedSearchTerm || undefined,
+        activoFilter,
+        undefined,
+        undefined
+      )
       // data.content expected
       const content = (data.content || [])
       setAnalisis(content.map((p: any) => ({
@@ -103,12 +122,10 @@ export default function ListadoPMSPage() {
     }
   }
 
-  useEffect(() => { fetchPms(0) }, [])
-
-  // Actualizar cuando cambia el filtro de activo
   useEffect(() => {
-    fetchPms(0, filtroActivo)
-  }, [filtroActivo])
+    setCurrentPage(0)
+    fetchPms(0)
+  }, [filtroActivo, debouncedSearchTerm])
 
   // Handlers para desactivar/reactivar
   const handleDesactivar = async (id: number) => {
@@ -116,7 +133,7 @@ export default function ListadoPMSPage() {
     try {
       await desactivarPms(id)
       toast.success("Análisis PMS desactivado exitosamente")
-      await fetchPms(currentPage, filtroActivo)
+      await fetchPms(currentPage)
     } catch (error) {
       console.error("Error al desactivar PMS:", error)
       toast.error("Error al desactivar el análisis")
@@ -127,7 +144,7 @@ export default function ListadoPMSPage() {
     try {
       await activarPms(id)
       toast.success("Análisis PMS reactivado exitosamente")
-      await fetchPms(currentPage, filtroActivo)
+      await fetchPms(currentPage)
     } catch (error) {
       console.error("Error al reactivar PMS:", error)
       toast.error("Error al reactivar el análisis")

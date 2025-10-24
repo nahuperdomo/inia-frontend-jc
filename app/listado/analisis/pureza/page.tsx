@@ -45,8 +45,9 @@ const formatearFechaLocal = (fechaString: string): string => {
 
 export default function ListadoPurezaPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
-  const [filtroActivo, setFiltroActivo] = useState("todos") // nuevo filtro
+  const [filtroActivo, setFiltroActivo] = useState("todos")
   const [purezas, setPurezas] = useState<PurezaDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -57,6 +58,17 @@ export default function ListadoPurezaPage() {
   const [isFirst, setIsFirst] = useState(true)
   const [userRole, setUserRole] = useState<string | null>(null)
   const pageSize = 10
+
+  // Debounce searchTerm para evitar múltiples requests mientras el usuario escribe
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500) // 500ms de delay
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [searchTerm])
 
   // Fetch user profile to get role
   useEffect(() => {
@@ -73,10 +85,20 @@ export default function ListadoPurezaPage() {
     fetchUserRole()
   }, [])
 
-  const fetchPurezas = async (page: number = 0, filtro: string = filtroActivo) => {
+  const fetchPurezas = async (page: number = 0) => {
     try {
       setLoading(true);
-  const data = await obtenerPurezasPaginadas(page, pageSize, filtro);
+  // Convert filtroActivo string to boolean
+  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
+  
+  const data = await obtenerPurezasPaginadas(
+    page, 
+    pageSize, 
+    debouncedSearchTerm || undefined,
+    activoFilter,
+    selectedStatus !== "all" ? selectedStatus : undefined,
+    undefined
+  );
   console.log("DEBUG obtenerPurezasPaginadas response:", data);
 
   // Datos principales
@@ -105,8 +127,9 @@ export default function ListadoPurezaPage() {
   };
 
   useEffect(() => {
-    fetchPurezas(0, filtroActivo)
-  }, [filtroActivo])
+    setCurrentPage(0) // Reset to first page when filters change
+    fetchPurezas(0)
+  }, [filtroActivo, selectedStatus, debouncedSearchTerm])
 
   // Handlers para desactivar/reactivar
   const handleDesactivar = async (id: number) => {
@@ -114,7 +137,7 @@ export default function ListadoPurezaPage() {
     try {
       await desactivarPureza(id)
       toast.success("Análisis desactivado exitosamente")
-      await fetchPurezas(currentPage, filtroActivo)
+      await fetchPurezas(currentPage)
     } catch (error: any) {
       toast.error("Error al desactivar análisis", { description: error?.message })
     }
@@ -124,22 +147,14 @@ export default function ListadoPurezaPage() {
     try {
       await activarPureza(id)
       toast.success("Análisis reactivado exitosamente")
-      await fetchPurezas(currentPage, filtroActivo)
+      await fetchPurezas(currentPage)
     } catch (error: any) {
       toast.error("Error al reactivar análisis", { description: error?.message })
     }
   }
 
-  const filteredAnalysis = purezas.filter((analysis) => {
-    const searchLower = searchTerm.toLowerCase()
-    const matchesSearch =
-      analysis.analisisID.toString().includes(searchLower) ||
-      analysis.lote.toLowerCase().includes(searchLower) ||
-      (analysis.comentarios && analysis.comentarios.toLowerCase().includes(searchLower)) ||
-      `pf-${analysis.analisisID}`.includes(searchLower)
-    const matchesStatus = selectedStatus === "all" || analysis.estado === selectedStatus
-    return matchesSearch && matchesStatus
-  })
+  // No client-side filtering - all filtering done on backend
+  const filteredAnalysis = purezas
 
   // Calculate stats from current page data and total
   const totalAnalysis = totalElements

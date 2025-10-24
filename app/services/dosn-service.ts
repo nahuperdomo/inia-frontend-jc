@@ -52,8 +52,25 @@ export async function obtenerDosnPorIdLote(idLote: number): Promise<DosnDTO[]> {
   return apiFetch(`/api/dosn/lote/${idLote}`);
 }
 
-export async function obtenerDosnPaginadas(page: number = 0, size: number = 10, filtroActivo: string = "todos"): Promise<{ content: DosnDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
-  return apiFetch(`/api/dosn/listado?page=${page}&size=${size}&filtroActivo=${filtroActivo}`);
+export async function obtenerDosnPaginadas(
+  page: number = 0,
+  size: number = 10,
+  search?: string,
+  activo?: boolean,
+  estado?: string,
+  loteId?: number
+): Promise<{ content: DosnDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+  
+  if (search) params.append("search", search);
+  if (activo !== undefined) params.append("activo", activo.toString());
+  if (estado) params.append("estado", estado);
+  if (loteId !== undefined) params.append("loteId", loteId.toString());
+
+  return apiFetch(`/api/dosn/listado?${params.toString()}`);
 }
 
 export async function obtenerTodosCatalogos(): Promise<MalezasYCultivosCatalogoDTO[]> {

@@ -51,8 +51,25 @@ export async function obtenerPmsPorIdLote(idLote: number): Promise<PmsDTO[]> {
   return apiFetch(`/api/pms/lote/${idLote}`);
 }
 
-export async function obtenerPmsPaginadas(page: number = 0, size: number = 10, filtroActivo: string = "todos"): Promise<{ content: PmsDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
-  return apiFetch(`/api/pms/listado?page=${page}&size=${size}&filtroActivo=${filtroActivo}`);
+export async function obtenerPmsPaginadas(
+  page: number = 0,
+  size: number = 10,
+  search?: string,
+  activo?: boolean,
+  estado?: string,
+  loteId?: number
+): Promise<{ content: PmsDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+  
+  if (search) params.append("search", search);
+  if (activo !== undefined) params.append("activo", activo.toString());
+  if (estado) params.append("estado", estado);
+  if (loteId !== undefined) params.append("loteId", loteId.toString());
+
+  return apiFetch(`/api/pms/listado?${params.toString()}`);
 }
 
 export async function finalizarAnalisis(id: number): Promise<PmsDTO> {

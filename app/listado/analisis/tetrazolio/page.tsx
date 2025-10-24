@@ -34,6 +34,7 @@ interface AnalisisTetrazolio {
 
 export default function ListadoTetrazolioPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [filtroActivo, setFiltroActivo] = useState("todos")
   const [userRole, setUserRole] = useState<string | null>(null)
   const [filterEstado, setFilterEstado] = useState<string>("todos")
@@ -50,6 +51,14 @@ export default function ListadoTetrazolioPage() {
   const [lastResponse, setLastResponse] = useState<any>(null)
   const pageSize = 10
 
+  // Debounce searchTerm
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
+    return () => clearTimeout(handler)
+  }, [searchTerm])
+
   // Obtener rol del usuario
   useEffect(() => {
     const token = localStorage.getItem("token")
@@ -63,11 +72,21 @@ export default function ListadoTetrazolioPage() {
     }
   }, [])
   
-  const fetchTetrazolio = async (page: number = 0, filtro: string = "todos") => {
+  const fetchTetrazolio = async (page: number = 0) => {
     try {
       setLoading(true)
       setError("")
-      const data = await obtenerTetrazoliosPaginadas(page, pageSize, filtro)
+  // Convert filtroActivo string to boolean
+  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
+  
+      const data = await obtenerTetrazoliosPaginadas(
+        page,
+        pageSize,
+        debouncedSearchTerm || undefined,
+        activoFilter,
+        undefined,
+        undefined
+      )
       setLastResponse(data)
 
       const content = data.content || []
@@ -111,13 +130,9 @@ export default function ListadoTetrazolioPage() {
   }
 
   useEffect(() => {
+    setCurrentPage(0)
     fetchTetrazolio(0)
-  }, [])
-
-  // Actualizar cuando cambia el filtro de activo
-  useEffect(() => {
-    fetchTetrazolio(0, filtroActivo)
-  }, [filtroActivo])
+  }, [filtroActivo, debouncedSearchTerm])
 
   // Handlers para desactivar/reactivar
   const handleDesactivar = async (id: number) => {
@@ -125,7 +140,7 @@ export default function ListadoTetrazolioPage() {
     try {
       await desactivarTetrazolio(id)
       toast.success("Análisis Tetrazolio desactivado exitosamente")
-      await fetchTetrazolio(currentPage, filtroActivo)
+      await fetchTetrazolio(currentPage)
     } catch (error) {
       console.error("Error al desactivar Tetrazolio:", error)
       toast.error("Error al desactivar el análisis")
@@ -136,7 +151,7 @@ export default function ListadoTetrazolioPage() {
     try {
       await activarTetrazolio(id)
       toast.success("Análisis Tetrazolio reactivado exitosamente")
-      await fetchTetrazolio(currentPage, filtroActivo)
+      await fetchTetrazolio(currentPage)
     } catch (error) {
       console.error("Error al reactivar Tetrazolio:", error)
       toast.error("Error al reactivar el análisis")

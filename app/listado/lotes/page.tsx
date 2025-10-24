@@ -65,12 +65,29 @@ export default function ListadoLotesPage() {
 
   useEffect(() => {
     fetchLotes(0)
-  }, [])
+  }, [searchTerm, filterEstado, filterCultivo]) // Recargar cuando cambien los filtros
 
   const fetchLotes = async (page: number = 0) => {
     try {
       setIsLoading(true)
-      const data = await obtenerLotesPaginadas(page, pageSize)
+      
+      // Convertir filterEstado a boolean o null
+      let activoFilter: boolean | null = null
+      if (filterEstado === "Activo") {
+        activoFilter = true
+      } else if (filterEstado === "Inactivo") {
+        activoFilter = false
+      }
+      
+      // Enviar filtros al backend
+      const data = await obtenerLotesPaginadas(
+        page, 
+        pageSize, 
+        searchTerm, 
+        activoFilter, 
+        filterCultivo
+      )
+      
       console.log("DEBUG obtenerLotesPaginadas response:", data)
       
       // Manejar respuesta: puede venir con o sin el objeto 'page'
@@ -98,20 +115,8 @@ export default function ListadoLotesPage() {
     }
   }
 
-  const filteredLotes = lotes.filter((lote) => {
-    const matchesSearch =
-      (lote.ficha || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lote.nomLote || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lote.cultivarNombre || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lote.especieNombre || "").toLowerCase().includes(searchTerm.toLowerCase())
-
-    const estadoLote = lote.activo ? "Activo" : "Inactivo"
-    const matchesEstado = filterEstado === "todos" || estadoLote === filterEstado
-    const matchesCultivo = filterCultivo === "todos" || (lote.cultivarNombre || "") === filterCultivo
-
-    return matchesSearch && matchesEstado && matchesCultivo
-  })
-
+  // Los cultivos ahora deben venir de todos los lotes, no solo de la página actual
+  // Para esto, necesitaremos un endpoint separado o cargar todos los cultivares
   const cultivos = [...new Set(lotes.map((lote) => lote.cultivarNombre || "").filter(Boolean))]
 
   // Handler para desactivar lote
@@ -348,14 +353,14 @@ export default function ListadoLotesPage() {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ) : filteredLotes.length === 0 ? (
+                    ) : lotes.length === 0 ? (
                       <TableRow key="no-data-row">
                         <TableCell colSpan={6} className="text-center py-8">
                           <p className="text-muted-foreground">No se encontraron lotes que coincidan con los criterios de búsqueda.</p>
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredLotes.map((lote) => (
+                      lotes.map((lote) => (
                         <TableRow key={lote.loteID}>
                           <TableCell className="font-medium">{lote.ficha || "-"}</TableCell>
                           <TableCell className="font-medium">{lote.nomLote || "-"}</TableCell>

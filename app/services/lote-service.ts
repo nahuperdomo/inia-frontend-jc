@@ -102,7 +102,10 @@ export async function validarLoteElegible(loteID: number, tipoAnalisis: TipoAnal
 }
 export async function obtenerLotesPaginadas(
   page: number = 0, 
-  size: number = 10
+  size: number = 10,
+  searchTerm?: string,
+  activo?: boolean | null,
+  cultivar?: string
 ): Promise<{ 
   content: LoteSimpleDTO[]; 
   totalElements: number; 
@@ -111,7 +114,23 @@ export async function obtenerLotesPaginadas(
   last: boolean; 
   first: boolean;
 }> {
-  return apiFetch(`/api/lotes/listado?page=${page}&size=${size}`);
+  const params = new URLSearchParams();
+  params.append('page', page.toString());
+  params.append('size', size.toString());
+  
+  if (searchTerm && searchTerm.trim()) {
+    params.append('search', searchTerm.trim());
+  }
+  
+  if (activo !== null && activo !== undefined) {
+    params.append('activo', activo.toString());
+  }
+  
+  if (cultivar && cultivar !== 'todos') {
+    params.append('cultivar', cultivar);
+  }
+  
+  return apiFetch(`/api/lotes/listado?${params.toString()}`);
 }
 
 export async function obtenerEstadisticasLotes(): Promise<{
