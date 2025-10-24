@@ -544,32 +544,15 @@ export default function TetrazolioDetailPage() {
                     Cancelar edición
                   </Button>
                 ) : (
-                  <Button
-                    size="lg"
-                    className="gap-2 w-full sm:w-auto"
-                    onClick={() => {
-                      // Cargar valores actuales en el formulario de edición antes de abrir
-                      setTetrazolioEditado({
-                        idLote: tetrazolio.idLote || 0,
-                        comentarios: tetrazolio.comentarios || '',
-                        numSemillasPorRep: tetrazolio.numSemillasPorRep || 50,
-                        numRepeticionesEsperadas: tetrazolio.numRepeticionesEsperadas || 0,
-                        pretratamiento: tetrazolio.pretratamiento || '',
-                        pretratamientoOtro: '',
-                        concentracion: tetrazolio.concentracion || '',
-                        concentracionOtro: '',
-                        tincionHs: tetrazolio.tincionHs || 24,
-                        tincionHsOtro: '',
-                        tincionTemp: tetrazolio.tincionTemp || 30,
-                        tincionTempOtro: '',
-                        fecha: convertirFechaParaInput(tetrazolio.fecha || '')
-                      })
-                      setEditandoTetrazolio(true)
-                    }}
-                  >
-                    <Edit className="h-4 w-4" />
-                    Editar análisis
-                  </Button>
+                  <Link href={`/listado/analisis/tetrazolio/${tetrazolioId}/editar`}>
+                    <Button
+                      size="lg"
+                      className="gap-2 w-full sm:w-auto"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Editar análisis
+                    </Button>
+                  </Link>
                 )}
               </div>
             </div>
