@@ -39,7 +39,7 @@ export async function obtenerTodasPurezasActivas(): Promise<PurezaDTO[]> {
 
     console.log("📤 Headers:", headers);
 
-    const res = await fetch(`${API_BASE_URL}/api/purezas`, {
+    const res = await fetch(`${API_BASE_URL}/purezas`, {
       method: "GET",
       headers,
       credentials: "include"
