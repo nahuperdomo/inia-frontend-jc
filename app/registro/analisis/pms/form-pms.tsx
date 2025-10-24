@@ -27,7 +27,7 @@ type Props = {
 
 // Función para validar número de repeticiones
 const validarNumeroRepeticiones = (numero: number): boolean => {
-  return numero != null && numero > 0 && numero <= 20; // Límite razonable
+  return numero != null && numero >= 4 && numero <= 20; // Mínimo 4, máximo 20
 }
 
 // Función para validar semilla brozosa (opcional)
@@ -54,7 +54,7 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
   // Establecer valores por defecto
   React.useEffect(() => {
     if (data.numRepeticionesEsperadas === undefined) {
-      handleInputChange("numRepeticionesEsperadas", 8) // Valor típico para PMS
+      handleInputChange("numRepeticionesEsperadas", 8) // Valor típico para PMS (mínimo 4)
     }
     if (data.esSemillaBrozosa === undefined) {
       handleInputChange("esSemillaBrozosa", false)
@@ -96,12 +96,12 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
               <Input
                 id="numRepeticionesEsperadas"
                 type="number"
-                min="1"
+                min="4"
                 max="20"
                 value={data.numRepeticionesEsperadas || ""}
                 onChange={(e) => {
-                  const value = parseInt(e.target.value) || 1
-                  handleInputChange("numRepeticionesEsperadas", Math.min(20, Math.max(1, value)))
+                  const value = parseInt(e.target.value) || 4
+                  handleInputChange("numRepeticionesEsperadas", Math.min(20, Math.max(4, value)))
                 }}
                 className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-200 ${
                   !repeticionesValidas ? 'border-red-500 bg-red-50' : ''
@@ -110,7 +110,7 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
               />
               {!repeticionesValidas && (
                 <p className="text-xs text-red-600">
-                  Debe especificar un número válido de repeticiones (1-20)
+                  Debe especificar un número válido de repeticiones (4-20)
                 </p>
               )}
               <p className="text-xs text-muted-foreground">

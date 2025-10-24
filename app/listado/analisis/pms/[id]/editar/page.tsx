@@ -887,14 +887,16 @@ export default function EditarPMSPage() {
                   <div>
                     <Label className="text-xs">Peso (g) *</Label>
                     <Input
-                      type="number"
-                      step="0.001"
-                      min="0"
-                      value={newRepeticion.peso}
-                      onChange={(e) => setNewRepeticion(prev => ({ 
-                        ...prev, 
-                        peso: parseFloat(e.target.value) || 0 
-                      }))}
+                      type="text"
+                      value={newRepeticion.peso || ""}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(',', '.')
+                        const numValue = parseFloat(value)
+                        setNewRepeticion(prev => ({ 
+                          ...prev, 
+                          peso: isNaN(numValue) ? 0 : numValue 
+                        }))
+                      }}
                       onFocus={(e) => {
                         // Seleccionar todo el texto al hacer focus para facilitar reemplazo
                         e.target.select()
@@ -980,11 +982,13 @@ export default function EditarPMSPage() {
                       <TableCell className="whitespace-nowrap">
                         {rep.isEditing ? (
                           <Input
-                            type="number"
-                            step="0.001"
-                            min="0"
-                            value={rep.peso}
-                            onChange={(e) => handleRepeticionChange(index, "peso", parseFloat(e.target.value) || 0)}
+                            type="text"
+                            value={rep.peso || ""}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(',', '.')
+                              const numValue = parseFloat(value)
+                              handleRepeticionChange(index, "peso", isNaN(numValue) ? 0 : numValue)
+                            }}
                             onFocus={(e) => {
                               // Seleccionar todo el texto al hacer focus para facilitar reemplazo
                               e.target.select()
@@ -1167,11 +1171,12 @@ export default function EditarPMSPage() {
                           <div className="flex gap-2">
                             <div className="relative flex-1">
                               <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
+                                type="text"
                                 value={pmsConRedondeoTemp}
-                                onChange={(e) => setPmsConRedondeoTemp(e.target.value)}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(',', '.')
+                                  setPmsConRedondeoTemp(value)
+                                }}
                                 onFocus={(e) => e.target.select()}
                                 placeholder="Ej: 25.4"
                                 className="text-center text-lg font-bold pr-8"
