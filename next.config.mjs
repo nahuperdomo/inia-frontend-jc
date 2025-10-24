@@ -8,9 +8,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  output: 'standalone',
   images: {
     unoptimized: true,
   },
+
   async rewrites() {
     // Para desarrollo local (frontend local, backend en Docker) usamos localhost
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
