@@ -46,7 +46,12 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
   }
 
   const validarFecha = () => !!data.fecha
-  const validarConcentracion = () => !!data.concentracion && data.concentracion !== ""
+  
+  const validarConcentracion = () => {
+    if (!data.concentracion || data.concentracion === "") return false
+    if (data.concentracion === "Otro (especificar)" && !data.concentracionOtro) return false
+    return true
+  }
 
   const validarPretratamiento = () => {
     if (!data.pretratamiento || data.pretratamiento === "") return false
@@ -55,12 +60,41 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
   }
 
   const validarTemp = () => {
-    if (!data.tincionTemp && !data.tincionTempOtro) return false
-    const temp = data.tincionTemp === 0
-      ? parseFloat(data.tincionTempOtro)
-      : parseFloat(data.tincionTemp)
-    return !isNaN(temp) && temp >= 15 && temp <= 45
+    const usarOtro = data.tincionTemp === 0 || data.tincionTemp === "0"
+    
+    console.log("🔍 VALIDAR TEMP:", {
+      tincionTemp: data.tincionTemp,
+      tincionTempOtro: data.tincionTempOtro,
+      usarOtro: usarOtro,
+      tipo: typeof data.tincionTemp,
+      tipoOtro: typeof data.tincionTempOtro
+    })
+    
+    if (usarOtro) {
+      // Si usa "Otro", debe haber un valor en tincionTempOtro
+      const valorOtro = data.tincionTempOtro
+      if (valorOtro === "" || valorOtro === null || valorOtro === undefined) {
+        console.log("❌ tincionTempOtro vacío")
+        return false
+      }
+      const valor = Number(valorOtro)
+      const esValido = !isNaN(valor) && valor >= 15 && valor <= 45
+      console.log("✅ tincionTempOtro:", valor, "válido:", esValido)
+      return esValido
+    }
+    
+    // Si no usa "Otro", debe tener tincionTemp válido
+    if (!data.tincionTemp) {
+      console.log("❌ tincionTemp vacío")
+      return false
+    }
+    const valor = Number(data.tincionTemp)
+    const esValido = !isNaN(valor) && valor >= 15 && valor <= 45
+    console.log("✅ tincionTemp:", valor, "válido:", esValido)
+    return esValido
   }
+
+
 
   const validarTincionHs = () => {
     const hs = data.tincionHs === "Otra (especificar)"
@@ -308,64 +342,91 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
                   ))}
                 </SelectContent>
               </Select>
+              
+              {data.concentracion === "Otro (especificar)" && (
+                <Input
+                  value={data.concentracionOtro || ""}
+                  onChange={(e) => handleInputChange("concentracionOtro", e.target.value)}
+                  placeholder="Ingresar concentración manualmente"
+                  className="h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200"
+                />
+              )}
+              
               {showErrors && !validarConcentracion() && (
                 <p className="text-xs text-red-600 flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" />
-                  Seleccione una concentración
+                  {data.concentracion === "Otro (especificar)"
+                    ? "Debe especificar la concentración"
+                    : "Debe seleccionar una concentración"}
                 </p>
               )}
             </div>
 
             {/* Temperatura */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium flex items-center gap-2">
-                <Thermometer className="h-4 w-4 text-muted-foreground" />
-                Tinción (°C) *
-              </Label>
-              <Select
-                value={data.tincionTemp?.toString() || ""}
-                onValueChange={(value) => {
-                  if (value === "Otro (especificar)") {
-                    handleInputChange("tincionTemp", 0)
-                    handleInputChange("tincionTempOtro", "")
-                  } else {
-                    handleInputChange("tincionTemp", parseInt(value))
-                    handleInputChange("tincionTempOtro", "")
-                  }
-                }}
-              >
-                <SelectTrigger
-                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
-                    showErrors && !validarTemp() ? "border-red-300 bg-red-50" : ""
-                  }`}
-                >
-                  <SelectValue placeholder="Seleccionar temperatura" />
-                </SelectTrigger>
-                <SelectContent>
-                  {opcionesTemperatura.map(temp => (
-                    <SelectItem key={temp} value={temp.toString()}>{temp}°C</SelectItem>
-                  ))}
-                  <SelectItem value="Otro (especificar)">Otro (especificar)</SelectItem>
-                </SelectContent>
-              </Select>
-              {data.tincionTemp === 0 && (
-                <Input
-                  type="number"
-                  value={data.tincionTempOtro || ""}
-                  onChange={(e) => handleInputChange("tincionTempOtro", e.target.value)}
-                  placeholder="Ingresar temperatura"
-                  min="15"
-                  max="45"
-                  className="h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200"
-                />
-              )}
-              {showErrors && !validarTemp() && (
-                <p className="text-xs text-red-600 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  Debe seleccionar o ingresar una temperatura válida (15–45°C)
-                </p>
-              )}
-            </div>
+<div className="space-y-2">
+  <Label className="text-sm font-medium flex items-center gap-2">
+    <Thermometer className="h-4 w-4 text-muted-foreground" />
+    Tinción (°C) *
+  </Label>
+  <Select
+    value={
+      data.tincionTemp === 0 || data.tincionTemp === "0"
+        ? "Otro (especificar)"
+        : data.tincionTemp?.toString() || ""
+    }
+    onValueChange={(value) => {
+      if (value === "Otro (especificar)") {
+        handleInputChange("tincionTemp", 0)
+        handleInputChange("tincionTempOtro", "")
+      } else {
+        handleInputChange("tincionTemp", Number(value))
+        handleInputChange("tincionTempOtro", "")
+      }
+    }}
+  >
+    <SelectTrigger
+      className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
+        showErrors && !validarTemp() ? "border-red-300 bg-red-50" : ""
+      }`}
+    >
+      <SelectValue placeholder="Seleccionar temperatura" />
+    </SelectTrigger>
+    <SelectContent>
+      {opcionesTemperatura.map((temp) => (
+        <SelectItem key={temp} value={temp.toString()}>
+          {temp}°C
+        </SelectItem>
+      ))}
+      <SelectItem value="Otro (especificar)">Otro (especificar)</SelectItem>
+    </SelectContent>
+  </Select>
+
+  {(data.tincionTemp === 0 || data.tincionTemp === "0") && (
+    <Input
+      type="number"
+      inputMode="numeric"
+      step="any"
+      value={data.tincionTempOtro ?? ""}
+      onChange={(e) => {
+        const val = e.target.value
+        handleInputChange(
+          "tincionTempOtro",
+          val === "" ? "" : val
+        )
+      }}
+      placeholder="Ingresar temperatura (15–45°C)"
+      className="h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200"
+    />
+  )}
+
+  {showErrors && !validarTemp() && (
+    <p className="text-xs text-red-600 flex items-center gap-1">
+      <AlertTriangle className="h-3 w-3" />
+      Debe seleccionar o ingresar una temperatura válida (15–45°C)
+    </p>
+  )}
+</div>
+
 
             {/* Tiempo */}
             <div className="space-y-2">
@@ -405,9 +466,7 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
                   type="number"
                   value={data.tincionHsOtro || ""}
                   onChange={(e) => handleInputChange("tincionHsOtro", e.target.value)}
-                  placeholder="Ingresar horas manualmente"
-                  min="1"
-                  max="72"
+                  placeholder="Ingresar horas (1-72 hs)"
                   className="h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200"
                 />
               )}

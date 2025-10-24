@@ -37,7 +37,22 @@ export default function EditarTetrazolioPage() {
   const [error, setError] = useState<string | null>(null)
 
   // Form state
-  const [formData, setFormData] = useState({
+  type FormState = {
+    fecha: string
+    numSemillasPorRep: number
+    numRepeticionesEsperadas: number
+    pretratamiento: string
+    pretratamientoOtro: string
+    concentracion: string
+    concentracionOtro: string
+    tincionHs: number | string
+    tincionHsOtro: string
+    tincionTemp: number | string
+    tincionTempOtro: string
+    comentarios: string
+  }
+
+  const [formData, setFormData] = useState<FormState>({
     fecha: "",
     numSemillasPorRep: 50,
     numRepeticionesEsperadas: 4,
@@ -65,19 +80,47 @@ export default function EditarTetrazolioPage() {
         console.log("Tetrazolio cargado exitosamente:", tetrazolioData)
         setTetrazolio(tetrazolioData)
 
+        // Opciones predefinidas para validar
+        const opcionesPretratamiento = [
+          "EP 16 horas",
+          "EP 18 horas",
+          "S/Pretratamiento",
+          "Agua 7 horas",
+          "Agua 8 horas",
+        ]
+        const opcionesConcentracion = ["1%", "0%", "5%", "0,75%"]
+        const opcionesTincionHoras = ["2", "3", "16", "18"]
+        const opcionesTemperatura = [30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+
+        // Detectar si pretratamiento es personalizado
+        const pretratamientoActual = tetrazolioData.pretratamiento || ""
+        const isPretratamientoPersonalizado = pretratamientoActual && !opcionesPretratamiento.includes(pretratamientoActual)
+
+        // Detectar si concentración es personalizada
+        const concentracionActual = tetrazolioData.concentracion || ""
+        const isConcentracionPersonalizada = concentracionActual && !opcionesConcentracion.includes(concentracionActual)
+
+        // Detectar si tinción horas es personalizada
+        const tincionHsActual = tetrazolioData.tincionHs || 24
+        const isTincionHsPersonalizada = !opcionesTincionHoras.includes(tincionHsActual.toString())
+
+        // Detectar si temperatura es personalizada
+        const tincionTempActual = tetrazolioData.tincionTemp || 30
+        const isTincionTempPersonalizada = !opcionesTemperatura.includes(tincionTempActual)
+
         // Poblar formData con los datos existentes
         setFormData({
           fecha: convertirFechaParaInput(tetrazolioData.fecha || ""),
           numSemillasPorRep: tetrazolioData.numSemillasPorRep || 50,
           numRepeticionesEsperadas: tetrazolioData.numRepeticionesEsperadas || 4,
-          pretratamiento: tetrazolioData.pretratamiento || "",
-          pretratamientoOtro: "",
-          concentracion: tetrazolioData.concentracion || "",
-          concentracionOtro: "",
-          tincionHs: tetrazolioData.tincionHs || 24,
-          tincionHsOtro: "",
-          tincionTemp: tetrazolioData.tincionTemp || 30,
-          tincionTempOtro: "",
+          pretratamiento: isPretratamientoPersonalizado ? "Otro (especificar)" : pretratamientoActual,
+          pretratamientoOtro: isPretratamientoPersonalizado ? pretratamientoActual : "",
+          concentracion: isConcentracionPersonalizada ? "Otro (especificar)" : concentracionActual,
+          concentracionOtro: isConcentracionPersonalizada ? concentracionActual : "",
+          tincionHs: isTincionHsPersonalizada ? "Otra (especificar)" : tincionHsActual,
+          tincionHsOtro: isTincionHsPersonalizada ? tincionHsActual.toString() : "",
+          tincionTemp: isTincionTempPersonalizada ? 0 : tincionTempActual,
+          tincionTempOtro: isTincionTempPersonalizada ? tincionTempActual.toString() : "",
           comentarios: tetrazolioData.comentarios || "",
         })
 
@@ -145,16 +188,21 @@ export default function EditarTetrazolioPage() {
           : formData.concentracion
 
       const tincionHsFinal =
-        formData.tincionHs === "Otra (especificar)"
+        (typeof formData.tincionHs === "string" && formData.tincionHs === "Otra (especificar)")
           ? parseFloat(formData.tincionHsOtro) || 24
           : typeof formData.tincionHs === "string"
             ? parseFloat(formData.tincionHs) || 24
             : formData.tincionHs
 
-      const tincionTempFinal =
-        formData.tincionTemp === 0
-          ? parseFloat(formData.tincionTempOtro) || 30
-          : formData.tincionTemp
+      const tincionTempFinal: number | undefined =
+        formData.tincionTemp === 0 || formData.tincionTemp === "0"
+          ? (parseFloat(formData.tincionTempOtro) || 30)
+          : typeof formData.tincionTemp === "string"
+            ? ((): number | undefined => {
+                const parsed = parseFloat(formData.tincionTemp)
+                return isNaN(parsed) ? undefined : parsed
+              })()
+            : formData.tincionTemp
 
       const requestData: TetrazolioRequestDTO = {
         idLote: tetrazolio!.idLote!,
