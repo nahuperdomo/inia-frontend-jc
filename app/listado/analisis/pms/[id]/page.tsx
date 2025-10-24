@@ -261,7 +261,7 @@ export default function DetallePMSPage() {
                     <span className="text-xs sm:text-sm">Editar</span>
                   </Button>
                 </Link>
-                {analisis.estado === "PENDIENTE" && (
+                {analisis.estado === "PENDIENTE_APROBACION" && (
                   <Button 
                     onClick={handleFinalizarAnalisis}
                     disabled={actionLoading === "finalizar"}
@@ -271,7 +271,7 @@ export default function DetallePMSPage() {
                     <span className="text-xs sm:text-sm">{actionLoading === "finalizar" ? "Finalizando..." : "Finalizar"}</span>
                   </Button>
                 )}
-                {(analisis.estado === "EN_PROCESO" || analisis.estado === "FINALIZADO") && (
+                {(analisis.estado === "EN_PROCESO" || analisis.estado === "APROBADO") && (
                   <>
                     <Button 
                       variant="outline"

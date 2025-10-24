@@ -32,8 +32,12 @@ import {
   obtenerPmsPorId, 
   actualizarPms,
   actualizarPmsConRedondeo,
-  finalizarAnalisis
+  finalizarAnalisis,
+  aprobarAnalisis,
+  marcarParaRepetir
 } from "@/app/services/pms-service"
+import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
+import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
 import { 
   obtenerRepeticionesPorPms, 
   crearRepPms, 
@@ -80,9 +84,6 @@ export default function EditarPMSPage() {
   const [pmsConRedondeoTemp, setPmsConRedondeoTemp] = useState<string>("")
   const [savingRedondeo, setSavingRedondeo] = useState(false)
   const [editingRedondeo, setEditingRedondeo] = useState(false)
-
-  // Estados para finalizar análisis
-  const [finalizing, setFinalizing] = useState(false)
 
   // Función para recargar datos del análisis y repeticiones
   const recargarDatos = async () => {
@@ -354,12 +355,13 @@ export default function EditarPMSPage() {
       return
     }
 
-    setFinalizing(true)
     try {
       console.log("🏁 Finalizando análisis PMS:", analisis.analisisID)
       
       await finalizarAnalisis(analisis.analisisID)
       console.log("✅ Análisis PMS finalizado")
+      
+      toast.success("Análisis finalizado exitosamente")
       
       // Redirigir a la página de visualización (sin /editar)
       router.push(`/listado/analisis/pms/${analisis.analisisID}`)
@@ -368,8 +370,58 @@ export default function EditarPMSPage() {
       toast.error('Error al finalizar análisis', {
         description: err?.message || "No se pudo finalizar el análisis",
       })
-    } finally {
-      setFinalizing(false)
+    }
+  }
+
+  // Aprobar análisis
+  const handleAprobar = async () => {
+    if (!analisis) return
+    
+    try {
+      console.log("✅ Aprobando análisis PMS:", analisis.analisisID)
+      await aprobarAnalisis(analisis.analisisID)
+      toast.success("Análisis aprobado exitosamente")
+      await recargarDatos()
+    } catch (err: any) {
+      console.error("❌ Error aprobando análisis:", err)
+      toast.error('Error al aprobar análisis', {
+        description: err?.message || "No se pudo aprobar el análisis",
+      })
+    }
+  }
+
+  // Marcar para repetir
+  const handleMarcarParaRepetir = async () => {
+    if (!analisis) return
+    
+    try {
+      console.log("🔄 Marcando análisis PMS para repetir:", analisis.analisisID)
+      await marcarParaRepetir(analisis.analisisID)
+      toast.success("Análisis marcado para repetir")
+      await recargarDatos()
+    } catch (err: any) {
+      console.error("❌ Error marcando para repetir:", err)
+      toast.error('Error al marcar para repetir', {
+        description: err?.message || "No se pudo marcar el análisis",
+      })
+    }
+  }
+
+  // Finalizar y aprobar
+  const handleFinalizarYAprobar = async () => {
+    if (!analisis) return
+    
+    try {
+      console.log("🏁✅ Finalizando y aprobando análisis PMS:", analisis.analisisID)
+      // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
+      await finalizarAnalisis(analisis.analisisID)
+      toast.success("Análisis finalizado y aprobado exitosamente")
+      router.push(`/listado/analisis/pms/${analisis.analisisID}`)
+    } catch (err: any) {
+      console.error("❌ Error finalizando y aprobando:", err)
+      toast.error('Error al finalizar y aprobar', {
+        description: err?.message || "No se pudo completar la acción",
+      })
     }
   }
 
@@ -536,21 +588,6 @@ export default function EditarPMSPage() {
     return false
   }
 
-  const getEstadoBadgeVariant = (estado: string) => {
-    switch (estado) {
-      case "APROBADO":
-        return "default"
-      case "EN_PROCESO":
-      case "REGISTRADO":
-      case "PENDIENTE_APROBACION":
-        return "secondary"
-      case "A_REPETIR":
-        return "destructive"
-      default:
-        return "outline"
-    }
-  }
-
   if (loading) {
     return (
       <div className="p-6 space-y-6">
@@ -594,35 +631,29 @@ export default function EditarPMSPage() {
     <div className="min-h-screen bg-muted/30">
       <Toaster position="top-right" richColors closeButton />
       
-      {/* Header */}
-      <div className="bg-background border-b sticky top-0 z-40">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
-          <div className="flex flex-col gap-3">
-            <Link href={`/listado/analisis/pms/${pmsId}`}>
-              <Button variant="ghost" size="sm" className="gap-1 -ml-2 h-8">
-                <ArrowLeft className="h-3 w-3" />
-                <span className="text-xs sm:text-sm">Volver al Detalle</span>
-              </Button>
-            </Link>
-
-            <div className="space-y-1 text-center lg:text-left">
-              <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-start">
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Editar Análisis PMS #{analisis.analisisID}</h1>
-                <Badge variant={getEstadoBadgeVariant(analisis.estado || "")} className="text-xs px-2 py-0.5">
-                  {analisis.estado === "APROBADO" ? "Aprobado" :
-                   analisis.estado === "EN_PROCESO" ? "En Proceso" :
-                   analisis.estado === "REGISTRADO" ? "Registrado" :
-                   analisis.estado === "PENDIENTE_APROBACION" ? "Pendiente Aprobación" :
-                   analisis.estado === "A_REPETIR" ? "A Repetir" : analisis.estado}
-                </Badge>
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Modificar parámetros y repeticiones del análisis
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Header Universal */}
+      <AnalisisHeaderBar
+        tipoAnalisis="PMS"
+        analisisId={analisis.analisisID}
+        estado={analisis.estado || ""}
+        volverUrl={`/listado/analisis/pms/${pmsId}`}
+        modoEdicion={editingParams}
+        onToggleEdicion={() => {
+          if (editingParams) {
+            setEditingParams(false)
+            setFormData({
+              idLote: analisis?.idLote || 0,
+              comentarios: analisis?.comentarios || ""
+            })
+            setHasChanges(false)
+          } else {
+            setEditingParams(true)
+          }
+        }}
+        onGuardarCambios={handleSaveAnalisis}
+        guardando={saving}
+        tieneCambios={hasChanges}
+      />
 
       <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-6">
 
@@ -1233,42 +1264,30 @@ export default function EditarPMSPage() {
       )}
 
       {/* Acciones */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5" />
-            Acciones
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col sm:flex-row flex-wrap gap-4">
-          {puedeFinalizarAnalisis() && (
-            <Button 
-              onClick={handleFinalizarAnalisis}
-              disabled={finalizing}
-              variant="default"
-              size="lg"
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {finalizing ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Finalizando...
-                </>
-              ) : (
-                "Finalizar Análisis"
-              )}
-            </Button>
-          )}
-          
-          <Button 
-            onClick={() => router.push('/listado')}
-            variant="outline"
-            size="lg"
-          >
-            Volver al Listado
-          </Button>
-        </CardContent>
-      </Card>
+      <AnalisisAccionesCard
+        analisisId={analisis.analisisID}
+        tipoAnalisis="pms"
+        estado={analisis.estado || ""}
+        onAprobar={async () => {
+          const analisisActualizado = await aprobarAnalisis(analisis.analisisID)
+          setAnalisis(analisisActualizado)
+          toast.success("Análisis aprobado exitosamente")
+          router.push(`/listado/analisis/pms/${analisis.analisisID}`)
+        }}
+        onMarcarParaRepetir={async () => {
+          const analisisActualizado = await marcarParaRepetir(analisis.analisisID)
+          setAnalisis(analisisActualizado)
+          toast.success("Análisis marcado para repetir")
+          router.push(`/listado/analisis/pms/${analisis.analisisID}`)
+        }}
+        onFinalizarYAprobar={async () => {
+          const analisisActualizado = await aprobarAnalisis(analisis.analisisID)
+          setAnalisis(analisisActualizado)
+          toast.success("Análisis finalizado y aprobado")
+          router.push(`/listado/analisis/pms/${analisis.analisisID}`)
+        }}
+        onFinalizar={handleFinalizarAnalisis}
+      />
       </div>
     </div>
   )

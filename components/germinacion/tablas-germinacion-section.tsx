@@ -1988,25 +1988,6 @@ export function TablasGerminacionSection({
               <Plus className="h-4 w-4 mr-2" />
               Agregar Tabla
             </Button>
-            
-            {!isFinalized && (
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-green-600 hover:bg-green-700 text-white"
-                onClick={handleFinalizarGerminacion}
-                disabled={finalizandoGerminacion}
-              >
-                {finalizandoGerminacion ? (
-                  "Finalizando..."
-                ) : (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Finalizar Análisis
-                  </>
-                )}
-              </Button>
-            )}
           </div>
         </div>
       </div>

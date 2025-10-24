@@ -12,10 +12,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ArrowLeft, Save, Loader2, AlertTriangle, Search, Plus, Trash2, Leaf, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
-import { obtenerPurezaPorId, actualizarPureza } from "@/app/services/pureza-service"
+import { 
+  obtenerPurezaPorId, 
+  actualizarPureza,
+  finalizarAnalisis,
+  aprobarAnalisis,
+  marcarParaRepetir
+} from "@/app/services/pureza-service"
 import { obtenerTodosActivosMalezasCultivos } from "@/app/services/malezas-service"
 import type { PurezaDTO, PurezaRequestDTO, MalezasYCultivosCatalogoDTO, TipoListado, TipoMYCCatalogo } from "@/app/models"
 import { toast } from "sonner"
+import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
+import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
 
 // Función helper para mapear tipos de listado a tipos de catálogo
 const getCompatibleCatalogTypes = (listadoTipo: TipoListado): TipoMYCCatalogo[] => {
@@ -284,6 +292,79 @@ export default function EditarPurezaPage() {
     }
   }
 
+  // Finalizar análisis
+  const handleFinalizarAnalisis = async () => {
+    if (!pureza) return
+    
+    try {
+      console.log("🏁 Finalizando análisis Pureza:", pureza.analisisID)
+      await finalizarAnalisis(pureza.analisisID)
+      toast.success("Análisis finalizado exitosamente")
+      router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
+    } catch (err: any) {
+      console.error("❌ Error finalizando análisis:", err)
+      toast.error('Error al finalizar análisis', {
+        description: err?.message || "No se pudo finalizar el análisis",
+      })
+    }
+  }
+
+  // Aprobar análisis
+  const handleAprobar = async () => {
+    if (!pureza) return
+    
+    try {
+      console.log("✅ Aprobando análisis Pureza:", pureza.analisisID)
+      await aprobarAnalisis(pureza.analisisID)
+      toast.success("Análisis aprobado exitosamente")
+      // Recargar datos
+      const purezaData = await obtenerPurezaPorId(Number.parseInt(purezaId))
+      setPureza(purezaData)
+    } catch (err: any) {
+      console.error("❌ Error aprobando análisis:", err)
+      toast.error('Error al aprobar análisis', {
+        description: err?.message || "No se pudo aprobar el análisis",
+      })
+    }
+  }
+
+  // Marcar para repetir
+  const handleMarcarParaRepetir = async () => {
+    if (!pureza) return
+    
+    try {
+      console.log("🔄 Marcando análisis Pureza para repetir:", pureza.analisisID)
+      await marcarParaRepetir(pureza.analisisID)
+      toast.success("Análisis marcado para repetir")
+      // Recargar datos
+      const purezaData = await obtenerPurezaPorId(Number.parseInt(purezaId))
+      setPureza(purezaData)
+    } catch (err: any) {
+      console.error("❌ Error marcando para repetir:", err)
+      toast.error('Error al marcar para repetir', {
+        description: err?.message || "No se pudo marcar el análisis",
+      })
+    }
+  }
+
+  // Finalizar y aprobar
+  const handleFinalizarYAprobar = async () => {
+    if (!pureza) return
+    
+    try {
+      console.log("🏁✅ Finalizando y aprobando análisis Pureza:", pureza.analisisID)
+      // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
+      await finalizarAnalisis(pureza.analisisID)
+      toast.success("Análisis finalizado y aprobado exitosamente")
+      router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
+    } catch (err: any) {
+      console.error("❌ Error finalizando y aprobando:", err)
+      toast.error('Error al finalizar y aprobar', {
+        description: err?.message || "No se pudo completar la acción",
+      })
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-muted/30 p-4 md:p-8">
@@ -323,44 +404,18 @@ export default function EditarPurezaPage() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <div className="sticky top-0 z-10 bg-background border-b">
-        <div className="container max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
-              <Link href={`/listado/analisis/pureza/${purezaId}`}>
-                <Button variant="ghost" size="sm" className="mt-1">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Volver
-                </Button>
-              </Link>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-1">
-                  <h1 className="text-2xl md:text-3xl font-bold">Editar Análisis de Pureza</h1>
-                  <Badge variant="outline">#{pureza.analisisID}</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Lote: {pureza.lote}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button onClick={handleSave} disabled={saving}>
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Guardar cambios
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Header Universal */}
+      <AnalisisHeaderBar
+        tipoAnalisis="Pureza"
+        analisisId={pureza.analisisID}
+        estado={pureza.estado || ""}
+        volverUrl={`/listado/analisis/pureza/${purezaId}`}
+        modoEdicion={true}
+        onToggleEdicion={() => router.push(`/listado/analisis/pureza/${purezaId}`)}
+        onGuardarCambios={handleSave}
+        guardando={saving}
+        tieneCambios={true}
+      />
 
       <div className="container max-w-7xl mx-auto px-4 md:px-8 py-8">
         <div className="space-y-6">
@@ -837,10 +892,37 @@ export default function EditarPurezaPage() {
                     </TableBody>
                   </Table>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
         </div>
+
+        {/* Card de Acciones */}
+        <AnalisisAccionesCard
+          analisisId={pureza.analisisID}
+          tipoAnalisis="pureza"
+          estado={pureza.estado || ""}
+          onAprobar={async () => {
+            await aprobarAnalisis(pureza.analisisID)
+            toast.success("Análisis aprobado exitosamente")
+            router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
+          }}
+          onMarcarParaRepetir={async () => {
+            await marcarParaRepetir(pureza.analisisID)
+            toast.success("Análisis marcado para repetir")
+            router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
+          }}
+          onFinalizarYAprobar={async () => {
+            await aprobarAnalisis(pureza.analisisID)
+            toast.success("Análisis finalizado y aprobado")
+            router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
+          }}
+          onFinalizar={async () => {
+            await finalizarAnalisis(pureza.analisisID)
+            toast.success("Análisis finalizado exitosamente")
+            router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
+          }}
+        />
       </div>
     </div>
   )

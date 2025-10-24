@@ -11,7 +11,9 @@ import {
   obtenerTablasGerminacion,
   crearTablaGerminacion,
   finalizarGerminacion,
-  actualizarGerminacion
+  actualizarGerminacion,
+  aprobarAnalisis,
+  marcarParaRepetir
 } from '@/app/services/germinacion-service'
 import { obtenerLotesActivos } from '@/app/services/lote-service'
 import { GerminacionDTO, GerminacionRequestDTO, GerminacionEditRequestDTO } from '@/app/models/interfaces/germinacion'
@@ -21,6 +23,9 @@ import { TablasGerminacionSection } from '@/components/germinacion/tablas-germin
 import { CalendarDays, Beaker, CheckCircle, Edit } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
+import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
+import { toast } from "sonner"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -64,7 +69,6 @@ export default function GerminacionDetailPage() {
   const [lotes, setLotes] = useState<LoteSimpleDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [creatingTable, setCreatingTable] = useState(false)
-  const [finalizing, setFinalizing] = useState(false)
   const [error, setError] = useState<string>("")
   const [editandoGerminacion, setEditandoGerminacion] = useState(false)
   
@@ -148,37 +152,12 @@ export default function GerminacionDetailPage() {
     }
   }
 
-  const handleFinalizarAnalisis = async () => {
-    if (!window.confirm("¿Está seguro que desea finalizar este análisis? Esta acción no se puede deshacer.")) {
-      return
-    }
-
-    try {
-      setFinalizing(true)
-      setError("")
-      
-      console.log("🏁 Finalizando análisis:", germinacionId)
-      
-      await finalizarGerminacion(parseInt(germinacionId))
-      console.log("✅ Análisis finalizado")
-      
-      // Redirigir a la página de visualización (sin /editar)
-      router.push(`/listado/analisis/germinacion/${germinacionId}`)
-    } catch (err: any) {
-      console.error("❌ Error finalizando análisis:", err)
-      setError(err?.message || "Error al finalizar análisis")
-    } finally {
-      setFinalizing(false)
-    }
-  }
-
   const handleReabrirAnalisis = async () => {
     if (!window.confirm("¿Está seguro que desea editar este análisis? Podrá volver a modificarlo y sus tablas.")) {
       return
     }
 
     try {
-      setFinalizing(true)
       setError("")
       
       console.log("✏️ Editando análisis:", germinacionId)
@@ -196,8 +175,6 @@ export default function GerminacionDetailPage() {
     } catch (err: any) {
       console.error("❌ Error editando análisis:", err)
       setError(err?.message || "Error al editar análisis")
-    } finally {
-      setFinalizing(false)
     }
   }
 
@@ -261,6 +238,67 @@ export default function GerminacionDetailPage() {
     }
   }
 
+  // Finalizar análisis
+  const handleFinalizarAnalisis = async () => {
+    if (!germinacion) return
+    
+    try {
+      console.log("🏁 Finalizando análisis Germinación:", germinacion.analisisID)
+      await finalizarGerminacion(germinacion.analisisID)
+      alert("Análisis finalizado exitosamente")
+      await cargarDatos()
+    } catch (err: any) {
+      console.error("❌ Error finalizando análisis:", err)
+      alert(`Error al finalizar análisis: ${err?.message || "Error desconocido"}`)
+    }
+  }
+
+  // Aprobar análisis
+  const handleAprobar = async () => {
+    if (!germinacion) return
+    
+    try {
+      console.log("✅ Aprobando análisis Germinación:", germinacion.analisisID)
+      await aprobarAnalisis(germinacion.analisisID)
+      alert("Análisis aprobado exitosamente")
+      await cargarDatos()
+    } catch (err: any) {
+      console.error("❌ Error aprobando análisis:", err)
+      alert(`Error al aprobar análisis: ${err?.message || "Error desconocido"}`)
+    }
+  }
+
+  // Marcar para repetir
+  const handleMarcarParaRepetir = async () => {
+    if (!germinacion) return
+    
+    try {
+      console.log("🔄 Marcando análisis Germinación para repetir:", germinacion.analisisID)
+      await marcarParaRepetir(germinacion.analisisID)
+      alert("Análisis marcado para repetir")
+      await cargarDatos()
+    } catch (err: any) {
+      console.error("❌ Error marcando para repetir:", err)
+      alert(`Error al marcar para repetir: ${err?.message || "Error desconocido"}`)
+    }
+  }
+
+  // Finalizar y aprobar
+  const handleFinalizarYAprobar = async () => {
+    if (!germinacion) return
+    
+    try {
+      console.log("🏁✅ Finalizando y aprobando análisis Germinación:", germinacion.analisisID)
+      // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
+      await finalizarGerminacion(germinacion.analisisID)
+      alert("Análisis finalizado y aprobado exitosamente")
+      router.push(`/listado/analisis/germinacion/${germinacion.analisisID}`)
+    } catch (err: any) {
+      console.error("❌ Error finalizando y aprobando:", err)
+      alert(`Error al finalizar y aprobar: ${err?.message || "Error desconocido"}`)
+    }
+  }
+
   if (loading) {
     return (
       <div className="p-6">
@@ -292,27 +330,16 @@ export default function GerminacionDetailPage() {
     )
   }
 
-  const isFinalized = germinacion.estado === 'FINALIZADO' || germinacion.fechaFin !== null
-  const canCreateTable = !isFinalized && tablas.length < 4 // Máximo 4 tablas según especificaciones
-  const canFinalize = !isFinalized && tablas.length > 0 && tablas.every(tabla => 
-    tabla.finalizada === true
-  )
-
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Análisis de Germinación</h1>
-          <p className="text-muted-foreground">ID: {germinacion.analisisID}</p>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Badge variant={isFinalized ? "default" : "secondary"}>
-            {isFinalized ? "Finalizado" : "En Proceso"}
-          </Badge>
-        </div>
-      </div>
+      {/* Header Universal - Sin botón de edición */}
+      <AnalisisHeaderBar
+        tipoAnalisis="Germinación"
+        analisisId={germinacion.analisisID}
+        estado={germinacion.estado || ""}
+        volverUrl={`/listado/analisis/germinacion/${germinacionId}`}
+        ocultarBotonEdicion={true}
+      />
 
       {/* Error Display */}
       {error && (
@@ -527,40 +554,42 @@ export default function GerminacionDetailPage() {
       <TablasGerminacionSection 
         tablas={tablas}
         germinacionId={parseInt(germinacionId)}
-        isFinalized={isFinalized}
+        isFinalized={germinacion.estado === 'APROBADO' || germinacion.estado === 'PENDIENTE_APROBACION'}
         onTablaUpdated={cargarDatos}
         germinacion={germinacion}
         onAnalysisFinalized={() => router.push(`/listado/analisis/germinacion/${germinacionId}`)}
       />
 
       {/* Acciones */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Acciones</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col sm:flex-row flex-wrap gap-4">          
-          {canFinalize && (
-            <Button 
-              onClick={handleFinalizarAnalisis}
-              disabled={finalizing}
-              variant="default"
-              size="lg"
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {finalizing ? "Finalizando..." : "Finalizar Análisis"}
-            </Button>
-          )}
-
-          
-          <Button 
-            onClick={() => router.push('/listado')}
-            variant="outline"
-            size="lg"
-          >
-            Volver al Listado
-          </Button>
-        </CardContent>
-      </Card>
+      <AnalisisAccionesCard
+        analisisId={germinacion.analisisID}
+        tipoAnalisis="germinacion"
+        estado={germinacion.estado || ""}
+        onAprobar={async () => {
+          await aprobarAnalisis(germinacion.analisisID)
+          toast.success("Análisis aprobado exitosamente")
+          router.push(`/listado/analisis/germinacion/${germinacion.analisisID}`)
+        }}
+        onMarcarParaRepetir={async () => {
+          await marcarParaRepetir(germinacion.analisisID)
+          toast.success("Análisis marcado para repetir")
+          router.push(`/listado/analisis/germinacion/${germinacion.analisisID}`)
+        }}
+        onFinalizarYAprobar={async () => {
+          // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
+          await finalizarGerminacion(germinacion.analisisID)
+          toast.success("Análisis finalizado y aprobado")
+          router.push(`/listado/analisis/germinacion/${germinacion.analisisID}`)
+        }}
+        onFinalizar={async () => {
+          if (!window.confirm("¿Está seguro que desea finalizar este análisis? Esta acción no se puede deshacer.")) {
+            return
+          }
+          await finalizarGerminacion(parseInt(germinacionId))
+          toast.success("Análisis finalizado exitosamente")
+          router.push(`/listado/analisis/germinacion/${germinacionId}`)
+        }}
+      />
     </div>
   )
 }
