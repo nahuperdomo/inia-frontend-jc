@@ -68,9 +68,33 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
         ? formData.cultivos 
         : undefined;
     
-    // Calcular porcentajes automáticamente en tiempo real (4 decimales)
+    // Calcular peso total automáticamente (suma de todos los componentes)
+    const pesoTotalCalculado = useMemo(() => {
+        const semillaPura = parseFloat(formData.semillaPura_g as string) || 0;
+        const materiaInerte = parseFloat(formData.materiaInerte_g as string) || 0;
+        const otrosCultivos = parseFloat(formData.otrosCultivos_g as string) || 0;
+        const malezas = parseFloat(formData.malezas_g as string) || 0;
+        const malezasToleradas = parseFloat(formData.malezasToleradas_g as string) || 0;
+        const malezasTolCero = parseFloat(formData.malezasTolCero_g as string) || 0;
+
+        return semillaPura + materiaInerte + otrosCultivos + malezas + malezasToleradas + malezasTolCero;
+    }, [
+        formData.semillaPura_g,
+        formData.materiaInerte_g,
+        formData.otrosCultivos_g,
+        formData.malezas_g,
+        formData.malezasToleradas_g,
+        formData.malezasTolCero_g
+    ]);
+
+    // Sincronizar peso total calculado con formData
+    useEffect(() => {
+        handleInputChange("pesoTotal_g", pesoTotalCalculado.toFixed(3));
+    }, [pesoTotalCalculado]);
+
+    // Calcular porcentajes automáticamente en tiempo real (4 decimales) basados en PESO TOTAL
     const porcentajes = useMemo(() => {
-        const pesoInicial = parseFloat(formData.pesoInicial_g as string) || 0;
+        const pesoTotal = parseFloat(formData.pesoTotal_g as string) || 0;
         const semillaPura = parseFloat(formData.semillaPura_g as string) || 0;
         const materiaInerte = parseFloat(formData.materiaInerte_g as string) || 0;
         const otrosCultivos = parseFloat(formData.otrosCultivos_g as string) || 0;
@@ -79,13 +103,13 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
         const malezasTolCero = parseFloat(formData.malezasTolCero_g as string) || 0;
 
         console.log('=== DEBUG PORCENTAJES ===');
-        console.log('Peso inicial:', pesoInicial, 'tipo:', typeof formData.pesoInicial_g);
+        console.log('Peso total:', pesoTotal, 'tipo:', typeof formData.pesoTotal_g);
         console.log('Semilla pura gramos:', semillaPura);
         console.log('Materia inerte gramos:', materiaInerte);
         console.log('Malezas tolerancia cero gramos:', malezasTolCero);
         
-        if (pesoInicial === 0 || isNaN(pesoInicial)) {
-            console.log('Peso inicial es 0 o NaN, retornando 0s');
+        if (pesoTotal === 0 || isNaN(pesoTotal)) {
+            console.log('Peso total es 0 o NaN, retornando 0s');
             return {
                 semillaPura: 0,
                 materiaInerte: 0,
@@ -97,19 +121,19 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
         }
         
         const result = {
-            semillaPura: (semillaPura / pesoInicial) * 100,
-            materiaInerte: (materiaInerte / pesoInicial) * 100,
-            otrosCultivos: (otrosCultivos / pesoInicial) * 100,
-            malezas: (malezas / pesoInicial) * 100,
-            malezasToleradas: (malezasToleradas / pesoInicial) * 100,
-            malezasTolCero: (malezasTolCero / pesoInicial) * 100,
+            semillaPura: (semillaPura / pesoTotal) * 100,
+            materiaInerte: (materiaInerte / pesoTotal) * 100,
+            otrosCultivos: (otrosCultivos / pesoTotal) * 100,
+            malezas: (malezas / pesoTotal) * 100,
+            malezasToleradas: (malezasToleradas / pesoTotal) * 100,
+            malezasTolCero: (malezasTolCero / pesoTotal) * 100,
         };
         
         console.log('Resultado porcentajes:', result);
         
         return result;
     }, [
-        formData.pesoInicial_g,
+        formData.pesoTotal_g,
         formData.semillaPura_g,
         formData.materiaInerte_g,
         formData.otrosCultivos_g,
@@ -362,21 +386,18 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                                             />
                                         </div>
 
-                                        {/* Peso Total */}
+                                        {/* Peso Total - Auto calculado */}
                                         <div className="space-y-2">
                                             <Label className="text-sm font-medium flex items-center gap-2">
-                                                <Scale className="h-4 w-4 text-muted-foreground" />
-                                                Peso total (g) *
+                                                <Scale className="h-4 w-4 text-blue-600" />
+                                                Peso total (g) - Auto *
                                             </Label>
                                             <Input
-                                                type="number"
-                                                step="0.001"
-                                                value={formData.pesoTotal_g || ""}
-                                                onChange={(e) => handleInputChange("pesoTotal_g", e.target.value)}
+                                                type="text"
+                                                value={pesoTotalCalculado.toFixed(3)}
+                                                readOnly
                                                 placeholder="0.000"
-                                                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
-                                                    pesoTotalMayorQueInicial ? "border-red-500 focus:ring-red-500/20" : ""
-                                                }`}
+                                                className="h-11 bg-blue-50 border-blue-300 font-semibold text-blue-700"
                                             />
                                             {pesoTotalMayorQueInicial && (
                                                 <p className="text-xs text-red-600 flex items-center gap-1">
