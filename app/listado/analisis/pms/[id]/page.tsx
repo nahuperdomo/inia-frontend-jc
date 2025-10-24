@@ -228,62 +228,77 @@ export default function DetallePMSPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="min-h-screen bg-muted/30">
       <Toaster position="top-right" richColors closeButton />
       
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link href="/listado/analisis/pms">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver al Listado
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">Análisis PMS #{analisis.analisisID}</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">
-              Detalle del análisis de peso de mil semillas
-            </p>
+      <div className="bg-background border-b sticky top-0 z-10">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+          <div className="flex flex-col gap-3">
+            <Link href="/listado/analisis/pms">
+              <Button variant="ghost" size="sm" className="gap-1 -ml-2 h-8">
+                <ArrowLeft className="h-3 w-3" />
+                <span className="text-xs sm:text-sm">Volver al Listado</span>
+              </Button>
+            </Link>
+
+            <div className="flex flex-col gap-2">
+              <div className="space-y-1 text-center lg:text-left">
+                <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-start">
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Análisis PMS #{analisis.analisisID}</h1>
+                  <Badge variant={getEstadoBadgeVariant(analisis.estado)} className="text-xs px-2 py-0.5">
+                    {getEstadoDisplay(analisis.estado)}
+                  </Badge>
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Detalle del análisis de peso de mil semillas • Lote {analisis.lote || 'N/A'}
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2 justify-center lg:justify-end flex-wrap">
+                <Link href={`/listado/analisis/pms/${id}/editar`} className="w-full sm:w-auto">
+                  <Button variant="outline" size="sm" className="w-full h-9">
+                    <Edit className="h-3.5 w-3.5 mr-1.5" />
+                    <span className="text-xs sm:text-sm">Editar</span>
+                  </Button>
+                </Link>
+                {analisis.estado === "PENDIENTE_APROBACION" && (
+                  <Button 
+                    onClick={handleFinalizarAnalisis}
+                    disabled={actionLoading === "finalizar"}
+                    size="sm"
+                    className="h-9"
+                  >
+                    <span className="text-xs sm:text-sm">{actionLoading === "finalizar" ? "Finalizando..." : "Finalizar"}</span>
+                  </Button>
+                )}
+                {(analisis.estado === "EN_PROCESO" || analisis.estado === "APROBADO") && (
+                  <>
+                    <Button 
+                      variant="outline"
+                      onClick={handleMarcarParaRepetir}
+                      disabled={actionLoading === "repetir"}
+                      size="sm"
+                      className="h-9"
+                    >
+                      <span className="text-xs sm:text-sm">{actionLoading === "repetir" ? "Marcando..." : "Marcar para Repetir"}</span>
+                    </Button>
+                    <Button 
+                      onClick={handleAprobarAnalisis}
+                      disabled={actionLoading === "aprobar"}
+                      size="sm"
+                      className="h-9"
+                    >
+                      <span className="text-xs sm:text-sm">{actionLoading === "aprobar" ? "Aprobando..." : "Aprobar"}</span>
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href={`/listado/analisis/pms/${id}/editar`}>
-            <Button variant="outline" size="sm">
-              <Edit className="h-4 w-4 mr-2" />
-              Editar
-            </Button>
-          </Link>
-          {analisis.estado === "PENDIENTE" && (
-            <Button 
-              onClick={handleFinalizarAnalisis}
-              disabled={actionLoading === "finalizar"}
-              size="sm"
-            >
-              {actionLoading === "finalizar" ? "Finalizando..." : "Finalizar"}
-            </Button>
-          )}
-          {(analisis.estado === "EN_PROCESO" || analisis.estado === "FINALIZADO") && (
-            <>
-              <Button 
-                variant="outline"
-                onClick={handleMarcarParaRepetir}
-                disabled={actionLoading === "repetir"}
-                size="sm"
-              >
-                {actionLoading === "repetir" ? "Marcando..." : "Marcar para Repetir"}
-              </Button>
-              <Button 
-                onClick={handleAprobarAnalisis}
-                disabled={actionLoading === "aprobar"}
-                size="sm"
-              >
-                {actionLoading === "aprobar" ? "Aprobando..." : "Aprobar"}
-              </Button>
-            </>
-          )}
-        </div>
       </div>
+
+      <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
 
       {/* Información General */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -516,6 +531,7 @@ export default function DetallePMSPage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

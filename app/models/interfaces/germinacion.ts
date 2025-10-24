@@ -44,4 +44,5 @@ export interface GerminacionListadoDTO {
   usuarioCreador?: string;
   usuarioModificador?: string;
   cumpleNorma: boolean; // true si NO está "A REPETIR"
+  activo?: boolean; // Campo para soft delete
 }

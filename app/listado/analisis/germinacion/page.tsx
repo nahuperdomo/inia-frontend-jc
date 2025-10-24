@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Activity, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react"
+import { Activity, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, AlertTriangle, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { obtenerGerminacionesPaginadas } from "@/app/services/germinacion-service"
+import { obtenerGerminacionesPaginadas, desactivarGerminacion, activarGerminacion } from "@/app/services/germinacion-service"
 import { GerminacionListadoDTO } from "@/app/models/interfaces/germinacion"
 import { EstadoAnalisis } from "@/app/models/types/enums"
 import Pagination from "@/components/pagination"
+import { toast } from "sonner"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -62,7 +63,10 @@ const formatearFechaHora = (fechaString: string): string => {
 
 export default function ListadoGerminacionPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
+  const [filtroActivo, setFiltroActivo] = useState("todos")
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [germinaciones, setGerminaciones] = useState<GerminacionListadoDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -73,18 +77,55 @@ export default function ListadoGerminacionPage() {
   const [isFirst, setIsFirst] = useState(true)
   const pageSize = 10
 
+  // Debounce searchTerm
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
+    return () => clearTimeout(handler)
+  }, [searchTerm])
+
+  // Obtener rol del usuario
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]))
+        setUserRole(payload.rol)
+      } catch (error) {
+        console.error("Error al decodificar el token:", error)
+      }
+    }
+  }, [])
+
   const fetchGerminaciones = async (page: number = 0) => {
     try {
       setLoading(true)
-      const data = await obtenerGerminacionesPaginadas(page, pageSize)
-      // data may contain 'content' and a nested 'page' meta like the DOSN endpoint
-      setGerminaciones((data as any).content || [])
-      const meta = (data as any).page || {}
-      setTotalPages(meta.totalPages ?? 1)
-      setTotalElements(meta.totalElements ?? ((data as any).content?.length ?? 0))
-      setCurrentPage(meta.number ?? page)
-      setIsFirst((meta.number ?? 0) === 0)
-      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1)
+  // Convert filtroActivo string to boolean
+  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
+  
+  const data = await obtenerGerminacionesPaginadas(
+    page,
+    pageSize,
+    debouncedSearchTerm || undefined,
+    activoFilter,
+    selectedStatus !== "all" ? selectedStatus : undefined,
+    undefined
+  )
+  const content = (data as any).content || []
+  setGerminaciones(content)
+
+  // support two response shapes: { content, page: { ... } } or Spring page directly { content, totalPages, number, ... }
+  const pageMeta = (data as any).page ? (data as any).page : (data as any)
+  const totalPagesFrom = pageMeta.totalPages ?? 1
+  const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0)
+  const numberFrom = pageMeta.number ?? page
+
+  setTotalPages(totalPagesFrom)
+  setTotalElements(totalElementsFrom)
+  setCurrentPage(numberFrom)
+  setIsFirst(numberFrom === 0)
+  setIsLast(numberFrom >= totalPagesFrom - 1)
     } catch (err) {
       setError("Error al cargar los análisis de germinación")
       console.error("Error fetching germinaciones:", err)
@@ -94,30 +135,46 @@ export default function ListadoGerminacionPage() {
   }
 
   useEffect(() => {
+    setCurrentPage(0)
     fetchGerminaciones(0)
-  }, [])
+  }, [filtroActivo, selectedStatus, debouncedSearchTerm])
 
-  const filteredAnalysis = germinaciones.filter((analysis) => {
-    const searchLower = searchTerm.toLowerCase()
-    const matchesSearch =
-      analysis.analisisID.toString().includes(searchLower) ||
-      (analysis.lote && analysis.lote.toLowerCase().includes(searchLower)) ||
-      (analysis.usuarioCreador && analysis.usuarioCreador.toLowerCase().includes(searchLower)) ||
-      `germ-${analysis.analisisID}`.includes(searchLower)
-    const matchesStatus = selectedStatus === "all" || analysis.estado === selectedStatus
-    return matchesSearch && matchesStatus
-  })
+  // Handlers para desactivar/reactivar
+  const handleDesactivar = async (id: number) => {
+    if (!confirm("¿Está seguro de desactivar este análisis de Germinación?")) return
+    try {
+      await desactivarGerminacion(id)
+      toast.success("Análisis de Germinación desactivado exitosamente")
+      await fetchGerminaciones(currentPage)
+    } catch (error) {
+      console.error("Error al desactivar Germinación:", error)
+      toast.error("Error al desactivar el análisis")
+    }
+  }
+
+  const handleReactivar = async (id: number) => {
+    try {
+      await activarGerminacion(id)
+      toast.success("Análisis de Germinación reactivado exitosamente")
+      await fetchGerminaciones(currentPage)
+    } catch (error) {
+      console.error("Error al reactivar Germinación:", error)
+      toast.error("Error al reactivar el análisis")
+    }
+  }
+
+  // No client-side filtering - all filtering done on backend
+  const filteredAnalysis = germinaciones
 
   // Calculate stats from current page data
   const totalAnalysis = totalElements
-  const completedAnalysis = germinaciones.filter(g => g.estado === "FINALIZADO" || g.estado === "APROBADO").length
+  const completedAnalysis = germinaciones.filter(g => g.estado === "APROBADO").length
   const inProgressAnalysis = germinaciones.filter(g => g.estado === "EN_PROCESO" || g.estado === "REGISTRADO").length
   const pendingAnalysis = germinaciones.filter(g => g.estado === "PENDIENTE_APROBACION").length
   const complianceRate = germinaciones.length > 0 ? Math.round((germinaciones.filter(g => g.cumpleNorma === true).length / germinaciones.length) * 100) : 0
 
   const getEstadoBadgeVariant = (estado: string) => {
     switch (estado) {
-      case "FINALIZADO":
       case "APROBADO":
         return "default"
       case "EN_PROCESO":
@@ -134,12 +191,10 @@ export default function ListadoGerminacionPage() {
 
   const formatEstado = (estado: string) => {
     switch (estado) {
-      case "FINALIZADO":
-        return "Finalizado"
-      case "EN_PROCESO":
-        return "En Proceso"
       case "REGISTRADO":
         return "Registrado"
+      case "EN_PROCESO":
+        return "En Proceso"
       case "APROBADO":
         return "Aprobado"
       case "PENDIENTE_APROBACION":
@@ -159,7 +214,7 @@ export default function ListadoGerminacionPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 space-y-6 p-6">
+      <div className="space-y-6 p-3 sm:p-4 md:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -172,7 +227,7 @@ export default function ListadoGerminacionPage() {
 
   if (error) {
     return (
-      <div className="flex-1 space-y-6 p-6">
+      <div className="space-y-6 p-3 sm:p-4 md:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
@@ -186,27 +241,31 @@ export default function ListadoGerminacionPage() {
   }
 
   return (
-    <div className="flex-1 space-y-6 p-6">
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/listado">
-            <Button variant="ghost" size="sm">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          <Link href="/listado" className="sm:self-start">
+            <Button variant="ghost" size="sm" className="w-fit">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Listados
+              <span className="hidden sm:inline">Volver a Listados</span>
+              <span className="sm:hidden">Volver</span>
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Análisis de Germinación</h1>
-            <p className="text-muted-foreground">Consulta los análisis de germinación de semillas</p>
+          <div className="text-center sm:text-left flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Análisis de Germinación</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Consulta los análisis de germinación de semillas</p>
           </div>
         </div>
-        <Link href="/registro/analisis/germinacion">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Análisis
-          </Button>
-        </Link>
+        <div className="flex justify-center sm:justify-end">
+          <Link href="/registro/analisis?tipo=GERMINACION">
+            <Button className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Nuevo Análisis
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}
@@ -281,10 +340,18 @@ export default function ListadoGerminacionPage() {
                 <option value="all">Todos los estados</option>
                 <option value="REGISTRADO">Registrado</option>
                 <option value="EN_PROCESO">En Proceso</option>
-                <option value="FINALIZADO">Finalizado</option>
-                <option value="APROBADO">Aprobado</option>
                 <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
+                <option value="APROBADO">Aprobado</option>
                 <option value="A_REPETIR">A Repetir</option>
+              </select>
+              <select
+                value={filtroActivo}
+                onChange={(e) => setFiltroActivo(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+              >
+                <option value="todos">Todos</option>
+                <option value="activos">Activos</option>
+                <option value="inactivos">Inactivos</option>
               </select>
               <Button variant="outline" size="sm">
                 <Filter className="h-4 w-4 mr-2" />
@@ -299,8 +366,8 @@ export default function ListadoGerminacionPage() {
         <CardHeader>
           <CardTitle>Lista de Análisis de Germinación</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto max-w-full">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -377,9 +444,29 @@ export default function ListadoGerminacionPage() {
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <Button variant="ghost" size="sm" title="Eliminar">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {userRole === "ADMIN" && (
+                            analysis.activo ? (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                title="Desactivar"
+                                onClick={() => handleDesactivar(analysis.analisisID)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                title="Reactivar"
+                                onClick={() => handleReactivar(analysis.analisisID)}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <RefreshCw className="h-4 w-4" />
+                              </Button>
+                            )
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -408,6 +495,7 @@ export default function ListadoGerminacionPage() {
        </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

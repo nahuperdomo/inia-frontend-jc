@@ -22,6 +22,7 @@ import {
  */
 export interface LoteFormData {
     ficha: string;
+    nomLote: string;
     cultivarID: number | "";
     tipo: string;
     empresaID: number | "";
@@ -56,6 +57,11 @@ export const loteValidationSchema: ValidationSchema<LoteFormData> = {
         required,
         minLength(2),
         maxLength(50)
+    ]),
+    nomLote: compose([
+        required,
+        minLength(2),
+        maxLength(100)
     ]),
     cultivarID: compose([
         required,

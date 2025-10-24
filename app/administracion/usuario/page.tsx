@@ -48,18 +48,19 @@ import {
 
 // Interfaces basadas en el backend se importan desde el servicio
 
-// Mapeo de roles
-const ROLES = {
-    1: "ADMIN",
-    2: "ANALISTA",
-    3: "OBSERVADOR"
-} as const;
-
+// Mapeo de roles - coincide con el enum Rol del backend
 const ROLES_OPCIONES = [
-    { value: 1, label: "Administrador" },
-    { value: 2, label: "Analista" },
-    { value: 3, label: "Observador" }
+    { value: "ADMIN", label: "Administrador" },
+    { value: "ANALISTA", label: "Analista" },
+    { value: "OBSERVADOR", label: "Observador" }
 ] as const;
+
+// Para mostrar el rol en español
+const ROLES_LABELS: Record<string, string> = {
+    "ADMIN": "Administrador",
+    "ANALISTA": "Analista",
+    "OBSERVADOR": "Observador"
+};
 
 export default function UsuarioValidacionPage() {
     const router = useRouter()
@@ -117,10 +118,11 @@ export default function UsuarioValidacionPage() {
 
         setIsSubmitting(true)
         try {
-            await aprobarUsuario(selectedUser.usuarioID, { rolID: parseInt(selectedRole) } as AprobarUsuarioRequest)
+            // Enviar el rol como string que coincide con el enum del backend
+            await aprobarUsuario(selectedUser.usuarioID, { rol: selectedRole } as AprobarUsuarioRequest)
 
             toast.success("Usuario aprobado exitosamente", {
-                description: `${selectedUser.nombres} ${selectedUser.apellidos} ha sido aprobado como ${ROLES[parseInt(selectedRole) as keyof typeof ROLES]}`
+                description: `${selectedUser.nombres} ${selectedUser.apellidos} ha sido aprobado como ${ROLES_LABELS[selectedRole]}`
             })
 
             // Actualizar la lista removiendo el usuario aprobado
@@ -184,9 +186,9 @@ export default function UsuarioValidacionPage() {
     // Funciones para usuarios registrados
     const handleEditClick = (usuario: AuthUsuarioDTO) => {
         setSelectedRegisteredUser(usuario)
-        // Extraer el rolID del primer rol
-        const roleNumber = getRoleNumber((usuario.roles && usuario.roles[0]) || "")
-        setSelectedRole(roleNumber.toString())
+        // Extraer el rol (ya viene en el formato correcto del backend)
+        const currentRole = (usuario.roles && usuario.roles[0]) || "ANALISTA"
+        setSelectedRole(currentRole)
         setShowEditDialog(true)
     }
 
@@ -195,31 +197,18 @@ export default function UsuarioValidacionPage() {
         setShowDeleteDialog(true)
     }
 
-    const getRoleNumber = (roleName: string): number => {
-        switch (roleName.toUpperCase()) {
-            case "ADMIN":
-            case "ADMINISTRADOR":
-                return 1
-            case "ANALISTA":
-                return 2
-            case "OBSERVADOR":
-                return 3
-            default:
-                return 2
-        }
-    }
-
     const actualizarRol = async () => {
         if (!selectedRegisteredUser || !selectedRole) return
 
         setIsSubmitting(true)
         try {
+            // Enviar el rol como string que coincide con el enum del backend
             await gestionarUsuario(selectedRegisteredUser.usuarioID, {
-                rolID: parseInt(selectedRole)
+                rol: selectedRole
             } as GestionarUsuarioRequest)
 
             toast.success("Rol actualizado exitosamente", {
-                description: `El rol de ${selectedRegisteredUser.nombres} ${selectedRegisteredUser.apellidos} ha sido actualizado`
+                description: `El rol de ${selectedRegisteredUser.nombres} ${selectedRegisteredUser.apellidos} ha sido actualizado a ${ROLES_LABELS[selectedRole]}`
             })
 
             // Recargar datos para reflejar cambios
@@ -298,8 +287,8 @@ export default function UsuarioValidacionPage() {
             usuario.email.toLowerCase().includes(searchTerm.toLowerCase())
         )
 
-        const userRoleNumber = getRoleNumber((usuario.roles && usuario.roles[0]) || "")
-        const matchesRole = roleFilter === "all" || userRoleNumber.toString() === roleFilter
+        const userRole = (usuario.roles && usuario.roles[0]) || ""
+        const matchesRole = roleFilter === "all" || userRole === roleFilter
 
         return matchesSearch && matchesRole
     })
@@ -524,9 +513,9 @@ export default function UsuarioValidacionPage() {
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">Todos los roles</SelectItem>
-                                            <SelectItem value="1">Administrador</SelectItem>
-                                            <SelectItem value="2">Analista</SelectItem>
-                                            <SelectItem value="3">Observador</SelectItem>
+                                            <SelectItem value="ADMIN">Administrador</SelectItem>
+                                            <SelectItem value="ANALISTA">Analista</SelectItem>
+                                            <SelectItem value="OBSERVADOR">Observador</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -652,9 +641,9 @@ export default function UsuarioValidacionPage() {
                                     <SelectValue placeholder="Selecciona un rol" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="1">Administrador</SelectItem>
-                                    <SelectItem value="2">Analista</SelectItem>
-                                    <SelectItem value="3">Observador</SelectItem>
+                                    <SelectItem value="ADMIN">Administrador</SelectItem>
+                                    <SelectItem value="ANALISTA">Analista</SelectItem>
+                                    <SelectItem value="OBSERVADOR">Observador</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

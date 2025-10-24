@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -33,6 +33,7 @@ export type AnalysisFormData = {
   responsable: string
   prioridad: string
   observaciones: string
+  observacionesPureza: string
 
   // Pureza - Datos en gramos
   pesoInicial: string
@@ -67,6 +68,14 @@ export type AnalysisFormData = {
   iniaMalezasPorcentaje: string
   iniaMalezasTolerididasPorcentaje: string
   iniaMalezasToleranciasCeroPorcentaje: string
+
+  // Pureza - Datos INASE manuales
+  inaseSemillaPuraPorcentaje: string
+  inaseMateriaInertePorcentaje: string
+  inaseOtrosCultivosPorcentaje: string
+  inaseMalezasPorcentaje: string
+  inaseMalezasTolerididasPorcentaje: string
+  inaseMalezasToleranciasCeroPorcentaje: string
 
   // Pureza - Alerta diferencia
   alertaDiferenciaPeso: string
@@ -140,14 +149,20 @@ const analysisTypes = [
 export default function RegistroAnalisisPage() {
   const [selectedAnalysisType, setSelectedAnalysisType] = useState<TipoAnalisis | "">("");
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [selectedLote, setSelectedLote] = useState("");
   // Estados para listados de malezas, cultivos y brassicas
   const [malezasList, setMalezasList] = useState<any[]>([]);
   const [cultivosList, setCultivosList] = useState<any[]>([]);
   const [brassicasList, setBrassicasList] = useState<any[]>([]);
 
-  // Estado específico para malezas de pureza
+  // Estado específico para Pureza (3 listas separadas)
   const [purezaMalezasList, setPurezaMalezasList] = useState<any[]>([]);
+  const [purezaCultivosList, setPurezaCultivosList] = useState<any[]>([]);
+  const [purezaBrassicasList, setPurezaBrassicasList] = useState<any[]>([]);
+  
+  // Key para forzar reset del componente PurezaFields después de un registro exitoso
+  const [purezaFormKey, setPurezaFormKey] = useState(0);
 
   // Funciones de callback con logs para debugging - memoizadas para evitar re-renders infinitos
   const handleMalezasChange = useCallback((list: any[]) => {
@@ -165,10 +180,20 @@ export default function RegistroAnalisisPage() {
     setBrassicasList(list);
   }, []);
 
-  // Callback específico para malezas de pureza
+  // Callbacks específicos para Pureza (3 listas separadas)
   const handlePurezaMalezasChange = useCallback((list: any[]) => {
     console.log("🐛 DEBUG - handlePurezaMalezasChange llamado con:", list);
     setPurezaMalezasList(list);
+  }, []);
+
+  const handlePurezaCultivosChange = useCallback((list: any[]) => {
+    console.log("🐛 DEBUG - handlePurezaCultivosChange llamado con:", list);
+    setPurezaCultivosList(list);
+  }, []);
+
+  const handlePurezaBrassicasChange = useCallback((list: any[]) => {
+    console.log("🐛 DEBUG - handlePurezaBrassicasChange llamado con:", list);
+    setPurezaBrassicasList(list);
   }, []);
 
   const [mostrarValidacionDosn, setMostrarValidacionDosn] = useState(false)
@@ -180,6 +205,7 @@ export default function RegistroAnalisisPage() {
     responsable: "",
     prioridad: "",
     observaciones: "",
+    observacionesPureza: "",
 
     // Pureza - Datos en gramos
     pesoInicial: "",
@@ -214,6 +240,14 @@ export default function RegistroAnalisisPage() {
     iniaMalezasPorcentaje: "",
     iniaMalezasTolerididasPorcentaje: "",
     iniaMalezasToleranciasCeroPorcentaje: "",
+
+    // Pureza - Datos INASE manuales
+    inaseSemillaPuraPorcentaje: "",
+    inaseMateriaInertePorcentaje: "",
+    inaseOtrosCultivosPorcentaje: "",
+    inaseMalezasPorcentaje: "",
+    inaseMalezasTolerididasPorcentaje: "",
+    inaseMalezasToleranciasCeroPorcentaje: "",
 
     // Pureza - Alerta diferencia
     alertaDiferenciaPeso: "",
@@ -277,34 +311,39 @@ export default function RegistroAnalisisPage() {
     setFormData((prev) => ({ ...prev, [field]: value as any }))
   }, [])
 
+  // Wrapper para PurezaFields que acepta string como field
+  const handlePurezaInputChange = useCallback((field: string, value: any) => {
+    handleInputChange(field as keyof AnalysisFormData, value)
+  }, [handleInputChange])
+
   const toNum = (v: string) => (v === "" ? undefined : Number(v))
 
   const validarDosn = (data: AnalysisFormData) => {
-  const tieneAnalisisINIA =
-    data.iniaCompleto || data.iniaReducido || data.iniaLimitado || data.iniaReducidoLimitado
-  const tieneAnalisisINASE =
-    data.inaseCompleto || data.inaseReducido || data.inaseLimitado || data.inaseReducidoLimitado
+    const tieneAnalisisINIA =
+      data.iniaCompleto || data.iniaReducido || data.iniaLimitado || data.iniaReducidoLimitado
+    const tieneAnalisisINASE =
+      data.inaseCompleto || data.inaseReducido || data.inaseLimitado || data.inaseReducidoLimitado
 
-  const fechaINIAValida = data.iniaFecha && new Date(data.iniaFecha) <= new Date()
-  const fechaINASEValida = data.inaseFecha && new Date(data.inaseFecha) <= new Date()
+    const fechaINIAValida = data.iniaFecha && new Date(data.iniaFecha) <= new Date()
+    const fechaINASEValida = data.inaseFecha && new Date(data.inaseFecha) <= new Date()
 
-  const gramosINIAValido = data.iniaGramos && Number(data.iniaGramos) > 0
-  const gramosINASEValido = data.inaseGramos && Number(data.inaseGramos) > 0
+    const gramosINIAValido = data.iniaGramos && Number(data.iniaGramos) > 0
+    const gramosINASEValido = data.inaseGramos && Number(data.inaseGramos) > 0
 
-  const errores: string[] = []
+    const errores: string[] = []
 
-  if (!tieneAnalisisINIA) errores.push("Debe seleccionar al menos un tipo de análisis para INIA")
-  if (!tieneAnalisisINASE) errores.push("Debe seleccionar al menos un tipo de análisis para INASE")
-  if (!fechaINIAValida) errores.push("Fecha de análisis INIA inválida")
-  if (!fechaINASEValida) errores.push("Fecha de análisis INASE inválida")
-  if (!gramosINIAValido) errores.push("Debe ingresar gramos válidos para INIA")
-  if (!gramosINASEValido) errores.push("Debe ingresar gramos válidos para INASE")
+    if (!tieneAnalisisINIA) errores.push("Debe seleccionar al menos un tipo de análisis para INIA")
+    if (!tieneAnalisisINASE) errores.push("Debe seleccionar al menos un tipo de análisis para INASE")
+    if (!fechaINIAValida) errores.push("Fecha de análisis INIA inválida")
+    if (!fechaINASEValida) errores.push("Fecha de análisis INASE inválida")
+    if (!gramosINIAValido) errores.push("Debe ingresar gramos válidos para INIA")
+    if (!gramosINASEValido) errores.push("Debe ingresar gramos válidos para INASE")
 
-  return {
-    valido: errores.length === 0,
-    errores,
+    return {
+      valido: errores.length === 0,
+      errores,
+    }
   }
-}
 
 
   const handleSubmit = async () => {
@@ -332,150 +371,135 @@ export default function RegistroAnalisisPage() {
       estado: "REGISTRADO",
     };
 
-  if (selectedAnalysisType === "DOSN") {
-setMostrarValidacionDosn(true)
+    if (selectedAnalysisType === "DOSN") {
+      setMostrarValidacionDosn(true)
 
-const { valido, errores } = validarDosn(formData)
-if (!valido) {
-  setLoading(false)
-  toast.error("Hay errores en el formulario DOSN", {
-    description: errores.join(" • "),
-  })
-  return // 🔥 DETIENE el envío al backend
-}
-
-    const mapTipoDosn = (obj: any, prefix: string) => [
-      obj[`${prefix}Completo`] ? "COMPLETO" : null,
-      obj[`${prefix}Reducido`] ? "REDUCIDO" : null,
-      obj[`${prefix}Limitado`] ? "LIMITADO" : null,
-      obj[`${prefix}ReducidoLimitado`] ? "REDUCIDO_LIMITADO" : null,
-    ].filter(Boolean);
-
-    // Debug: Verificar estados de los arrays antes de procesar
-    console.log("🔍 DEBUG - Estados de arrays antes de procesar:");
-    console.log("  - malezasList.length:", malezasList.length);
-    console.log("  - cultivosList.length:", cultivosList.length);
-    console.log("  - brassicasList.length:", brassicasList.length);
-
-    // Agregar otrosCultivos
-    let cultivosListWithOtros = [...cultivosList];
-    if (formData.otrosCultivos && formData.otrosCultivos !== "") {
-      cultivosListWithOtros.push({
-        listadoTipo: "OTROS",
-        listadoInsti: formData.otrosCultivosInsti || "INIA",
-        listadoNum: Number(formData.otrosCultivosNum) || 1,
-        idCatalogo: formData.otrosCultivosIdCatalogo || null
-      });
-    }
-
-    // mapeo de malezas - ya no es necesario mapear porque el componente envía los valores correctos
-    const listados = [
-      ...malezasList.map((m) => ({
-        ...m,
-        listadoNum: m.listadoNum !== null && m.listadoNum !== undefined ? m.listadoNum : null, // mantener null si no hay valor
-      })),
-      ...cultivosListWithOtros.map((c) => ({ ...c, listadoTipo: "OTROS" })),
-      ...brassicasList.map((b) => ({ ...b, listadoTipo: "BRASSICA" })),
-    ];
-
-    payload = {
-      idLote: formData.loteid,
-      comentarios: formData.observaciones,
-      // Cumple estándar
-      cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : null,
-      // INIA
-      fechaINIA: formData.iniaFecha || null,
-      gramosAnalizadosINIA: toNum(formData.iniaGramos),
-      tipoINIA: mapTipoDosn(formData, "inia"),
-      // INASE
-      fechaINASE: formData.inaseFecha || null,
-      gramosAnalizadosINASE: toNum(formData.inaseGramos),
-      tipoINASE: mapTipoDosn(formData, "inase"),
-      // Cuscuta - usar fecha actual si hay datos de cuscuta y no se especificó fecha
-      cuscuta_g: toNum(formData.cuscutaGramos),
-      cuscutaNum: toNum(formData.cuscutaNumero),
-      fechaCuscuta: ((toNum(formData.cuscutaGramos) || 0) > 0 || (toNum(formData.cuscutaNumero) || 0) > 0)
-        ? new Date().toISOString().split('T')[0] // Fecha actual en formato YYYY-MM-DD
-        : null,
-      // Listados
-      listados,
-    };
-
-    // Debug logs para verificar datos antes de enviar
-    console.log("🔍 DEBUG - Datos de DOSN antes de enviar:");
-    console.log("  - listados finales:", listados);
-    console.log("  - payload.listados:", payload.listados);
-
-    // Validación adicional para asegurar que hay datos para enviar
-    if (listados.length === 0) {
-      console.warn("⚠️ WARNING: No hay listados para enviar. Esto podría ser normal si el análisis no requiere listados.");
-    } else {
-      console.log(`✅ Se enviarán ${listados.length} listados al backend`);
-    }
-  } else if (selectedAnalysisType === "PUREZA") {
-      // Debug: Verificar estado de la lista de malezas de pureza
-      console.log("🔍 DEBUG - Malezas de pureza antes de procesar:", purezaMalezasList);
-
-      // Procesar malezas de pureza similar a como se hace en DOSN
-      const malezasDetalladas = purezaMalezasList
-        .filter((m) => {
-          // Verificar que tenga los campos requeridos y no sea "NO_CONTIENE"
-          const hasRequiredFields = m.listadoTipo && m.listadoTipo !== "NO_CONTIENE" &&
-            m.listadoInsti && m.idCatalogo;
-          return hasRequiredFields;
+      const { valido, errores } = validarDosn(formData)
+      if (!valido) {
+        setLoading(false)
+        toast.error("Hay errores en el formulario DOSN", {
+          description: errores.join(" • "),
         })
-        .map((m) => ({
-          listadoTipo: m.listadoTipo,
-          listadoInsti: m.listadoInsti,
-          listadoNum: m.listadoNum !== null && m.listadoNum !== undefined ? m.listadoNum : null,
-          idCatalogo: m.idCatalogo,
-        }));
+        return // 🔥 DETIENE el envío al backend
+      }
 
-      console.log("🔍 DEBUG - Malezas procesadas para envío:", malezasDetalladas);
+      const mapTipoDosn = (obj: any, prefix: string) => [
+        obj[`${prefix}Completo`] ? "COMPLETO" : null,
+        obj[`${prefix}Reducido`] ? "REDUCIDO" : null,
+        obj[`${prefix}Limitado`] ? "LIMITADO" : null,
+        obj[`${prefix}ReducidoLimitado`] ? "REDUCIDO_LIMITADO" : null,
+      ].filter(Boolean);
+
+      // Debug: Verificar estados de los arrays antes de procesar
+      console.log("🔍 DEBUG - Estados de arrays antes de procesar:");
+      console.log("  - malezasList.length:", malezasList.length);
+      console.log("  - cultivosList.length:", cultivosList.length);
+      console.log("  - brassicasList.length:", brassicasList.length);
+
+      // Agregar otrosCultivos
+      let cultivosListWithOtros = [...cultivosList];
+      if (formData.otrosCultivos && formData.otrosCultivos !== "") {
+        cultivosListWithOtros.push({
+          listadoTipo: "OTROS",
+          listadoInsti: formData.otrosCultivosInsti || "INIA",
+          listadoNum: Number(formData.otrosCultivosNum) || 1,
+          idCatalogo: formData.otrosCultivosIdCatalogo || null
+        });
+      }
+
+      // mapeo de malezas - ya no es necesario mapear porque el componente envía los valores correctos
+      const listados = [
+        ...malezasList.map((m) => ({
+          ...m,
+          listadoNum: m.listadoNum !== null && m.listadoNum !== undefined ? m.listadoNum : null, // mantener null si no hay valor
+        })),
+        ...cultivosListWithOtros.map((c) => ({ ...c, listadoTipo: "OTROS" })),
+        ...brassicasList.map((b) => ({ ...b, listadoTipo: "BRASSICA" })),
+      ];
 
       payload = {
-        ...payload,
+        idLote: formData.loteid,
+        comentarios: formData.observaciones,
+        // Cumple estándar
+        cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : null,
+        // INIA
+        fechaINIA: formData.iniaFecha || null,
+        gramosAnalizadosINIA: toNum(formData.iniaGramos),
+        tipoINIA: mapTipoDosn(formData, "inia"),
+        // INASE
+        fechaINASE: formData.inaseFecha || null,
+        gramosAnalizadosINASE: toNum(formData.inaseGramos),
+        tipoINASE: mapTipoDosn(formData, "inase"),
+        // Cuscuta - usar fecha actual si hay datos de cuscuta y no se especificó fecha
+        cuscuta_g: toNum(formData.cuscutaGramos),
+        cuscutaNum: toNum(formData.cuscutaNumero),
+        fechaCuscuta: ((toNum(formData.cuscutaGramos) || 0) > 0 || (toNum(formData.cuscutaNumero) || 0) > 0)
+          ? new Date().toISOString().split('T')[0] // Fecha actual en formato YYYY-MM-DD
+          : null,
+        // Listados
+        listados,
+      };
+
+      // Debug logs para verificar datos antes de enviar
+      console.log("🔍 DEBUG - Datos de DOSN antes de enviar:");
+      console.log("  - listados finales:", listados);
+      console.log("  - payload.listados:", payload.listados);
+
+      // Validación adicional para asegurar que hay datos para enviar
+      if (listados.length === 0) {
+        console.warn("⚠️ WARNING: No hay listados para enviar. Esto podría ser normal si el análisis no requiere listados.");
+      } else {
+        console.log(`✅ Se enviarán ${listados.length} listados al backend`);
+      }
+    } else if (selectedAnalysisType === "PUREZA") {
+      // Combinar las 3 listas igual que DOSN (simple y directo)
+      const otrasSemillas = [
+        ...purezaMalezasList.map((m) => ({
+          ...m,
+          listadoNum: m.listadoNum !== null && m.listadoNum !== undefined ? m.listadoNum : null,
+        })),
+        ...purezaCultivosList.map((c) => ({ ...c, listadoTipo: "OTROS" })),
+        ...purezaBrassicasList.map((b) => ({ ...b, listadoTipo: "BRASSICA" })),
+      ];
+
+      // ✅ Construir payload limpio solo con campos requeridos por el backend
+      payload = {
+        idLote: formData.loteid,
+        comentarios: formData.observacionesPureza || "",
+        estado: "REGISTRADO",
+        cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : null,
+        
         // Datos en gramos
-        pesoInicial_g: toNum(formData.pesoInicial),
-        semillaPura_g: toNum(formData.semillaPura),
-        materiaInerte_g: toNum(formData.materiaInerte),
-        otrosCultivos_g: toNum(formData.otrosCultivos),
-        malezas_g: toNum(formData.malezas),
-        malezasToleridas_g: toNum(formData.malezasToleridas),
-        malezasToleranciasCero_g: toNum(formData.malezasToleranciasCero),
-        pesoTotal_g: formData.pesoTotal ? parseFloat(formData.pesoTotal) : null,
+        fecha: formData.fecha,
+        pesoInicial_g: parseFloat((formData as any).pesoInicial_g) || 0,
+        semillaPura_g: parseFloat((formData as any).semillaPura_g) || 0,
+        materiaInerte_g: parseFloat((formData as any).materiaInerte_g) || 0,
+        otrosCultivos_g: parseFloat((formData as any).otrosCultivos_g) || 0,
+        malezas_g: parseFloat((formData as any).malezas_g) || 0,
+        malezasToleradas_g: parseFloat((formData as any).malezasToleradas_g) || 0,
+        malezasTolCero_g: parseFloat((formData as any).malezasTolCero_g) || 0,
+        pesoTotal_g: parseFloat((formData as any).pesoTotal_g) || 0,
 
-        // Porcentajes manuales
-        semillaPuraPorcentaje: toNum(formData.semillaPuraPorcentaje),
-        materiaInertePorcentaje: toNum(formData.materiaInertePorcentaje),
-        otrosCultivosPorcentaje: toNum(formData.otrosCultivosPorcentaje),
-        malezasPorcentaje: toNum(formData.malezasPorcentaje),
-        malezasTolerididasPorcentaje: toNum(formData.malezasTolerididasPorcentaje),
-        malezasToleranciasCeroPorcentaje: toNum(formData.malezasToleranciasCeroPorcentaje),
+        // Porcentajes con redondeo
+        redonSemillaPura: (formData as any).redonSemillaPura ? parseFloat((formData as any).redonSemillaPura) : undefined,
+        redonMateriaInerte: (formData as any).redonMateriaInerte ? parseFloat((formData as any).redonMateriaInerte) : undefined,
+        redonOtrosCultivos: (formData as any).redonOtrosCultivos ? parseFloat((formData as any).redonOtrosCultivos) : undefined,
+        redonMalezas: (formData as any).redonMalezas ? parseFloat((formData as any).redonMalezas) : undefined,
+        redonMalezasToleradas: (formData as any).redonMalezasToleradas ? parseFloat((formData as any).redonMalezasToleradas) : undefined,
+        redonMalezasTolCero: (formData as any).redonMalezasTolCero ? parseFloat((formData as any).redonMalezasTolCero) : undefined,
+        redonPesoTotal: (formData as any).redonPesoTotal ? parseFloat((formData as any).redonPesoTotal) : undefined,
 
-        // Porcentajes redondeados manuales
-        semillaPuraRedondeado: formData.semillaPuraRedondeado || null,
-        materiaInerteRedondeado: formData.materiaInerteRedondeado || null,
-        otrosCultivosRedondeado: formData.otrosCultivosRedondeado || null,
-        malezasRedondeado: formData.malezasRedondeado || null,
-        malezasTolerididasRedondeado: formData.malezasTolerididasRedondeado || null,
-        malezasToleranciasCeroRedondeado: formData.malezasToleranciasCeroRedondeado || null,
+        // Datos INASE
+        inasePura: (formData as any).inasePura ? parseFloat((formData as any).inasePura) : undefined,
+        inaseMateriaInerte: (formData as any).inaseMateriaInerte ? parseFloat((formData as any).inaseMateriaInerte) : undefined,
+        inaseOtrosCultivos: (formData as any).inaseOtrosCultivos ? parseFloat((formData as any).inaseOtrosCultivos) : undefined,
+        inaseMalezas: (formData as any).inaseMalezas ? parseFloat((formData as any).inaseMalezas) : undefined,
+        inaseMalezasToleradas: (formData as any).inaseMalezasToleradas ? parseFloat((formData as any).inaseMalezasToleradas) : undefined,
+        inaseMalezasTolCero: (formData as any).inaseMalezasTolCero ? parseFloat((formData as any).inaseMalezasTolCero) : undefined,
+        inaseFecha: (formData as any).inaseFecha || undefined,
 
-        // Datos INIA manuales
-        iniaSemillaPuraPorcentaje: toNum(formData.iniaSemillaPuraPorcentaje),
-        iniaMateriaInertePorcentaje: toNum(formData.iniaMateriaInertePorcentaje),
-        iniaOtrosCultivosPorcentaje: toNum(formData.iniaOtrosCultivosPorcentaje),
-        iniaMalezasPorcentaje: toNum(formData.iniaMalezasPorcentaje),
-        iniaMalezasTolerididasPorcentaje: toNum(formData.iniaMalezasTolerididasPorcentaje),
-        iniaMalezasToleranciasCeroPorcentaje: toNum(formData.iniaMalezasToleranciasCeroPorcentaje),
-
-        // Alerta diferencia
-        alertaDiferenciaPeso: formData.alertaDiferenciaPeso || null,
-
-        fecha: new Date().toISOString().split('T')[0], // Fecha actual en formato ISO (YYYY-MM-DD)
-        observaciones: formData.observaciones,
-        malezasDetalladas: malezasDetalladas, // Incluir las malezas detalladas
-        otrasSemillas: [] // Array vacío de otras semillas o añadir lógica para incluirlas
+        // Malezas/cultivos listados (combinados de las 3 listas)
+        otrasSemillas,
       };
     } else if (selectedAnalysisType === "GERMINACION") {
       // Validaciones específicas para germinación
@@ -615,7 +639,7 @@ if (!valido) {
         setLoading(false);
         return;
       }
-      
+
       // Validar tiempo de tinción considerando que puede ser string o número
       const tincionHsValue = formData.tincionHs === "Otra (especificar)"
         ? parseFloat(formData.tincionHsOtro)
@@ -664,11 +688,11 @@ if (!valido) {
     }
 
     try {
-      // Verificar cookies
+      // Verificar cookies (debug)
       const cookies = document.cookie;
       console.log("Cookies disponibles:", cookies);
-      const tokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
-      console.log("Token en cookies:", tokenCookie ? "✅ Existe" : "❌ No existe");
+      const accessTokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('accessToken='));
+      console.log("accessToken en cookies:", accessTokenCookie ? "✅ Existe" : "❌ No existe");
 
       console.log("Enviando payload:", payload);
 
@@ -732,6 +756,9 @@ if (!valido) {
         }, 1500);
       } else {
         // Registrar otros tipos (DOSN, Pureza, etc.)
+        console.log("📤 PAYLOAD COMPLETO A ENVIAR:", JSON.stringify(payload, null, 2));
+        console.log("📤 Tipo de análisis:", selectedAnalysisType);
+        
         const result = await registrarAnalisis(payload, selectedAnalysisType);
 
         toast.success('Análisis registrado exitosamente', {
@@ -741,8 +768,20 @@ if (!valido) {
         // ✅ Limpiar storage según el tipo de análisis
         if (selectedAnalysisType === "DOSN") {
           clearDosnStorage()
+          setMalezasList([])
+          setCultivosList([])
+          setBrassicasList([])
         } else if (selectedAnalysisType === "PUREZA") {
           clearPurezaStorage()
+          setPurezaMalezasList([])
+          setPurezaCultivosList([])
+          setPurezaBrassicasList([])
+          // Incrementar el key para forzar el reset completo del componente
+          setPurezaFormKey(prev => prev + 1)
+        } else if (selectedAnalysisType === "GERMINACION") {
+          clearGerminacionStorage()
+        } else if (selectedAnalysisType === "TETRAZOLIO") {
+          clearTetrazolioStorage()
         }
 
         // Redirigir según el tipo de análisis
@@ -776,6 +815,54 @@ if (!valido) {
   const [lotesError, setLotesError] = useState<string | null>(null)
 
   // Cargar lotes cuando cambia el tipo de análisis
+  // Preseleccionar tipo de análisis y lote desde URL
+  useEffect(() => {
+    const tipoParam = searchParams.get('tipo')
+    const loteIdParam = searchParams.get('loteId')
+    
+    if (tipoParam) {
+      const tipoValido = analysisTypes.find(type => type.id === tipoParam)
+      if (tipoValido) {
+        setSelectedAnalysisType(tipoParam as TipoAnalisis)
+        
+        // Guardar loteId para preselección posterior
+        if (loteIdParam) {
+          sessionStorage.setItem('preselectedLoteId', loteIdParam)
+        }
+      }
+    }
+    
+    // Limpiar la URL sin parámetros
+    if (tipoParam || loteIdParam) {
+      router.replace('/registro/analisis', { scroll: false })
+    }
+  }, [searchParams, router])
+
+  // ✅ Limpiar storage del tipo de análisis anterior cuando se cambia
+  useEffect(() => {
+    if (!selectedAnalysisType) return
+
+    // Limpiar storage del otro tipo de análisis para evitar contaminación de datos
+    if (selectedAnalysisType === "PUREZA") {
+      clearDosnStorage()
+      setMalezasList([])
+      setCultivosList([])
+      setBrassicasList([])
+    } else if (selectedAnalysisType === "DOSN") {
+      clearPurezaStorage()
+      setPurezaMalezasList([])
+      setPurezaCultivosList([])
+      setPurezaBrassicasList([])
+      setPurezaFormKey(prev => prev + 1)
+    } else if (selectedAnalysisType === "GERMINACION") {
+      clearDosnStorage()
+      clearPurezaStorage()
+    } else if (selectedAnalysisType === "TETRAZOLIO") {
+      clearDosnStorage()
+      clearPurezaStorage()
+    }
+  }, [selectedAnalysisType])
+
   useEffect(() => {
     const fetchLotes = async () => {
       if (!selectedAnalysisType) {
@@ -790,7 +877,19 @@ if (!valido) {
       try {
         const data = await obtenerLotesElegibles(selectedAnalysisType as TipoAnalisis);
         setLotes(data)
-        
+
+        // Preseleccionar lote si viene desde URL
+        const preselectedLoteId = sessionStorage.getItem('preselectedLoteId')
+        if (preselectedLoteId) {
+          const loteExiste = data.find(lote => lote.loteID.toString() === preselectedLoteId)
+          if (loteExiste) {
+            setSelectedLote(preselectedLoteId)
+            setFormData(prev => ({ ...prev, loteid: preselectedLoteId }))
+          }
+          // Limpiar el sessionStorage después de usarlo
+          sessionStorage.removeItem('preselectedLoteId')
+        }
+
         if (data.length === 0) {
           toast.info('Sin lotes elegibles', {
             description: `No hay lotes elegibles para análisis de ${getAnalysisTypeName(selectedAnalysisType)}. Esto puede ocurrir si no hay lotes con este tipo de análisis asignado o si todos ya tienen análisis completados.`,
@@ -817,48 +916,49 @@ if (!valido) {
   const selectedLoteInfo = selectedLote ? lotes.find((l) => l.loteID.toString() === selectedLote) : null
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
       <Toaster position="top-right" richColors closeButton />
-      <div className="flex items-center gap-4">
-        <Link href="/registro">
-          <Button variant="ghost" size="sm">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <Link href="/registro" className="sm:self-start">
+          <Button variant="ghost" size="sm" className="w-fit">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver a Registro
+            <span className="hidden sm:inline">Volver a Registro</span>
+            <span className="sm:hidden">Volver</span>
           </Button>
         </Link>
-        <div>
-          <h1 className="text-3xl font-bold">Registro de Análisis</h1>
-          <p className="text-muted-foreground">Registra nuevos análisis para lotes existentes en el sistema</p>
+        <div className="text-center sm:text-left flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold">Registro de Análisis</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Registra nuevos análisis para lotes existentes en el sistema</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Seleccionar Tipo de Análisis</CardTitle>
-          <p className="text-sm text-muted-foreground">Elige el tipo de análisis que deseas registrar</p>
+          <CardTitle className="text-lg sm:text-xl">Seleccionar Tipo de Análisis</CardTitle>
+          <p className="text-xs sm:text-sm text-muted-foreground">Elige el tipo de análisis que deseas registrar</p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {analysisTypes.map((type) => {
               const IconComponent = type.icon
               const isSelected = selectedAnalysisType === type.id
               return (
                 <div
                   key={type.id}
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${isSelected ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                  className={`border-2 rounded-lg p-3 sm:p-4 cursor-pointer transition-all hover:shadow-md ${isSelected ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:border-gray-300"
                     }`}
                   onClick={() => {
                     setSelectedAnalysisType(type.id);
                   }}
                 >
-                  <div className="flex items-center gap-3 mb-2">
-                    <IconComponent className={`h-5 w-5 ${isSelected ? "text-blue-600" : "text-gray-500"}`} />
-                    <h3 className="font-semibold">{type.name}</h3>
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                    <IconComponent className={`h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 ${isSelected ? "text-blue-600" : "text-gray-500"}`} />
+                    <h3 className="font-semibold text-sm sm:text-base">{type.name}</h3>
                     {isSelected && (
-                      <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">Seleccionado</span>
+                      <span className="text-xs px-2 py-0.5 sm:py-1 rounded-full bg-blue-100 text-blue-700 whitespace-nowrap ml-auto">Seleccionado</span>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{type.description}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{type.description}</p>
                 </div>
               )
             })}
@@ -868,14 +968,14 @@ if (!valido) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Detalles del Análisis</CardTitle>
-          <p className="text-sm text-muted-foreground">Completa la información para registrar el análisis</p>
+          <CardTitle className="text-lg sm:text-xl">Detalles del Análisis</CardTitle>
+          <p className="text-xs sm:text-sm text-muted-foreground">Completa la información para registrar el análisis</p>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CardContent className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="lote">Lote a Analizar</Label>
+                <Label htmlFor="lote" className="text-sm sm:text-base">Lote a Analizar</Label>
                 <Select
                   value={selectedLote}
                   onValueChange={(value) => {
@@ -892,13 +992,13 @@ if (!valido) {
                   }}
                   disabled={!selectedAnalysisType}
                 >
-                  <SelectTrigger>
-                    <SelectValue 
+                  <SelectTrigger className="text-sm sm:text-base">
+                    <SelectValue
                       placeholder={
-                        !selectedAnalysisType 
+                        !selectedAnalysisType
                           ? "Primero selecciona un tipo de análisis"
                           : "Seleccionar lote elegible"
-                      } 
+                      }
                     />
                   </SelectTrigger>
                   <SelectContent>
@@ -918,55 +1018,54 @@ if (!valido) {
                 </Select>
               </div>
 
-              {selectedAnalysisType !== "PUREZA" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="observaciones">Observaciones</Label>
-                    <Textarea
-                      id="observaciones"
-                      placeholder="Observaciones adicionales sobre el análisis..."
-                      value={formData.observaciones}
-                      onChange={(e) => handleInputChange("observaciones", e.target.value)}
-                      rows={4}
-                    />
-                  </div>
+              <div className="w-full">
+                <div>
+                  <Label htmlFor="observaciones" className="text-sm sm:text-base">Observaciones</Label>
+                  <Textarea
+                    id="observaciones"
+                    placeholder="Observaciones adicionales sobre el análisis..."
+                    value={formData.observaciones}
+                    onChange={(e) => handleInputChange("observaciones", e.target.value)}
+                    rows={4}
+                    className="text-sm sm:text-base"
+                  />
                 </div>
-              )}
+              </div>
             </div>
 
             <div className="space-y-4">
               {selectedLoteInfo && (
                 <Card className="bg-gray-50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm">Información del Lote</CardTitle>
+                  <CardHeader className="pb-2 sm:pb-3">
+                    <CardTitle className="text-sm sm:text-base">Información del Lote</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span className="text-muted-foreground">Ficha:</span>
                       <span className="font-medium">{selectedLoteInfo.ficha}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span className="text-muted-foreground">ID:</span>
                       <span>{selectedLoteInfo.loteID}</span>
                     </div>
                     {selectedLoteInfo.cultivarNombre && (
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-xs sm:text-sm">
                         <span className="text-muted-foreground">Cultivar:</span>
-                        <span>{selectedLoteInfo.cultivarNombre}</span>
+                        <span className="break-words text-right">{selectedLoteInfo.cultivarNombre}</span>
                       </div>
                     )}
                     {selectedLoteInfo.especieNombre && (
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-xs sm:text-sm">
                         <span className="text-muted-foreground">Especie:</span>
-                        <span>{selectedLoteInfo.especieNombre}</span>
+                        <span className="break-words text-right">{selectedLoteInfo.especieNombre}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span className="text-muted-foreground">Activo:</span>
                       <span>{selectedLoteInfo.activo ? "Sí" : "No"}</span>
                     </div>
                     {selectedAnalysisType && (
-                      <div className="mt-3 pt-3 border-t">
+                      <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t">
                         <div className="text-xs text-green-600 font-medium mb-1">
                           ✅ Este lote es elegible para {getAnalysisTypeName(selectedAnalysisType)}
                         </div>
@@ -982,20 +1081,20 @@ if (!valido) {
               {/* Información sobre filtrado de lotes */}
               {selectedAnalysisType && (
                 <Card className="bg-blue-50 border-blue-200">
-                  <CardContent className="pt-4">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-200">
-                        <TestTube className="h-4 w-4 text-blue-700" />
+                  <CardContent className="pt-3 sm:pt-4">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="flex h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-200">
+                        <TestTube className="h-3 w-3 sm:h-4 sm:w-4 text-blue-700" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-medium text-blue-900 mb-2">Filtrado de Lotes Elegibles</h4>
-                        <div className="space-y-1 text-sm text-blue-800">
+                        <h4 className="font-medium text-blue-900 mb-1 sm:mb-2 text-sm sm:text-base">Filtrado de Lotes Elegibles</h4>
+                        <div className="space-y-1 text-xs sm:text-sm text-blue-800">
                           <div>• Solo se muestran lotes que tienen {getAnalysisTypeName(selectedAnalysisType)} asignado</div>
                           <div>• Excluye lotes con análisis completados de este tipo</div>
                           <div>• Incluye lotes con análisis "A repetir" del mismo tipo</div>
                           {lotes.length === 0 && !lotesLoading && (
                             <div className="text-amber-700 font-medium mt-2">
-                              ⚠️ No hay lotes elegibles disponibles
+                              No hay lotes elegibles disponibles
                             </div>
                           )}
                         </div>
@@ -1009,9 +1108,11 @@ if (!valido) {
 
           {selectedAnalysisType === "PUREZA" && (
             <PurezaFields
+              key={purezaFormKey}
               formData={formData}
-              handleInputChange={(field, value) => handleInputChange(field as keyof AnalysisFormData, value)}
+              handleInputChange={handlePurezaInputChange}
               onChangeMalezas={handlePurezaMalezasChange}
+              onChangeCultivos={handlePurezaCultivosChange}
             />
           )}
           {selectedAnalysisType === "DOSN" && (
@@ -1044,17 +1145,17 @@ if (!valido) {
             />
           )}
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 pt-4">
             <Button
               variant="outline"
-              className="w-full sm:flex-1 bg-transparent"
+              className="w-full sm:flex-1 bg-transparent text-sm sm:text-base"
               disabled={loading}
               onClick={() => window.history.back()}
             >
               Cancelar
             </Button>
             <Button
-              className="w-full sm:flex-1 bg-green-700 hover:bg-green-700"
+              className="w-full sm:flex-1 bg-green-700 hover:bg-green-700 text-sm sm:text-base"
               onClick={handleSubmit}
               disabled={loading}
             >

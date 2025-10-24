@@ -43,6 +43,12 @@ export async function eliminarLote(id: number): Promise<void> {
   });
 }
 
+export async function activarLote(id: number): Promise<LoteDTO> {
+  return apiFetch(`/lotes/${id}/reactivar`, {
+    method: "PUT",
+  });
+}
+
 export async function obtenerLotesElegiblesParaTipoAnalisis(tipoAnalisis: TipoAnalisis): Promise<LoteSimpleDTO[]> {
   const res = await apiFetch(`/lotes/elegibles/${tipoAnalisis}`) as ResponseListadoLoteSimple;
   return res.lotes || [];
@@ -95,12 +101,43 @@ export async function validarLoteElegible(loteID: number, tipoAnalisis: TipoAnal
   }
 }
 
-export async function obtenerLotesPaginadas(page: number = 0, size: number = 10): Promise<{
+export async function obtenerLotesPaginadas(
+  page: number = 0,
+  size: number = 10,
+  searchTerm?: string,
+  activo?: boolean | null,
+  cultivar?: string
+): Promise<{
   content: LoteSimpleDTO[];
-  totalPages: number;
   totalElements: number;
+  totalPages: number;
   number: number;
-  size: number;
+  last: boolean;
+  first: boolean;
 }> {
-  return apiFetch(`/lotes/listado?page=${page}&size=${size}`);
+  const params = new URLSearchParams();
+  params.append('page', page.toString());
+  params.append('size', size.toString());
+
+  if (searchTerm && searchTerm.trim()) {
+    params.append('search', searchTerm.trim());
+  }
+
+  if (activo !== null && activo !== undefined) {
+    params.append('activo', activo.toString());
+  }
+
+  if (cultivar && cultivar !== 'todos') {
+    params.append('cultivar', cultivar);
+  }
+
+  return apiFetch(`/lotes/listado?${params.toString()}`);
+}
+
+export async function obtenerEstadisticasLotes(): Promise<{
+  total: number;
+  activos: number;
+  inactivos: number;
+}> {
+  return apiFetch('/lotes/estadisticas');
 }

@@ -8,11 +8,11 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-import { Scale, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle } from "lucide-react"
+import { Scale, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { Toaster, toast } from "sonner"
 import Pagination from "@/components/pagination"
-import { obtenerPmsPaginadas, eliminarPms } from "@/app/services/pms-service"
+import { obtenerPmsPaginadas, eliminarPms, desactivarPms, activarPms } from "@/app/services/pms-service"
 import { PmsDTO } from "@/app/models"
 
 interface AnalisisPMS {
@@ -31,12 +31,16 @@ interface AnalisisPMS {
   desviacionEstandar: number
   coeficienteVariacion: number
   pesoCorregido: number
+  activo?: boolean
 }
 
 export default function ListadoPMSPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState<string>("todos")
   const [filterPrioridad, setFilterPrioridad] = useState<string>("todos")
+  const [filtroActivo, setFiltroActivo] = useState("todos")
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [analisis, setAnalisis] = useState<AnalisisPMS[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -45,13 +49,45 @@ export default function ListadoPMSPage() {
   const [totalElements, setTotalElements] = useState(0)
   const pageSize = 10
 
+  // Debounce searchTerm
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
+    return () => clearTimeout(handler)
+  }, [searchTerm])
+
+  // Obtener rol del usuario
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]))
+        setUserRole(payload.rol)
+      } catch (error) {
+        console.error("Error al decodificar el token:", error)
+      }
+    }
+  }, [])
+
   // Fetch paginated PMS
   const fetchPms = async (page: number = 0) => {
     try {
       setLoading(true)
-      const data = await obtenerPmsPaginadas(page, pageSize)
+  // Convert filtroActivo string to boolean
+  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
+  
+      const data = await obtenerPmsPaginadas(
+        page,
+        pageSize,
+        debouncedSearchTerm || undefined,
+        activoFilter,
+        undefined,
+        undefined
+      )
       // data.content expected
-      setAnalisis((data.content || []).map((p: any) => ({
+      const content = (data.content || [])
+      setAnalisis(content.map((p: any) => ({
         id: `PMS${p.analisisID}`,
         loteId: p.lote || `#${p.analisisID}`,
         loteName: p.lote || "No especificado",
@@ -67,12 +103,17 @@ export default function ListadoPMSPage() {
         desviacionEstandar: p.desviacionEstandar || 0,
         coeficienteVariacion: p.coeficienteVariacion || 0,
         pesoCorregido: p.pesoCorregido || 0,
+        activo: p.activo ?? true,
       })))
 
-      const meta = (data as any).page || {}
-      setTotalPages(meta.totalPages ?? 1)
-      setTotalElements(meta.totalElements ?? (data.content?.length || 0))
-      setCurrentPage(meta.number ?? page)
+      const pageMeta = (data as any).page ? (data as any).page : (data as any)
+      const totalPagesFrom = pageMeta.totalPages ?? 1
+      const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0)
+      const numberFrom = pageMeta.number ?? page
+
+      setTotalPages(totalPagesFrom)
+      setTotalElements(totalElementsFrom)
+      setCurrentPage(numberFrom)
     } catch (err) {
       console.error("Error fetching PMS paginadas:", err)
       setError("Error al cargar los análisis PMS")
@@ -81,7 +122,34 @@ export default function ListadoPMSPage() {
     }
   }
 
-  useEffect(() => { fetchPms(0) }, [])
+  useEffect(() => {
+    setCurrentPage(0)
+    fetchPms(0)
+  }, [filtroActivo, debouncedSearchTerm])
+
+  // Handlers para desactivar/reactivar
+  const handleDesactivar = async (id: number) => {
+    if (!confirm("¿Está seguro de desactivar este análisis PMS?")) return
+    try {
+      await desactivarPms(id)
+      toast.success("Análisis PMS desactivado exitosamente")
+      await fetchPms(currentPage)
+    } catch (error) {
+      console.error("Error al desactivar PMS:", error)
+      toast.error("Error al desactivar el análisis")
+    }
+  }
+
+  const handleReactivar = async (id: number) => {
+    try {
+      await activarPms(id)
+      toast.success("Análisis PMS reactivado exitosamente")
+      await fetchPms(currentPage)
+    } catch (error) {
+      console.error("Error al reactivar PMS:", error)
+      toast.error("Error al reactivar el análisis")
+    }
+  }
 
   const filteredAnalisis = analisis.filter((item) => {
     const matchesSearch =
@@ -99,11 +167,11 @@ export default function ListadoPMSPage() {
       case "APROBADO":
         return "default"
       case "EN_PROCESO":
-      case "FINALIZADO":
-      case "PENDIENTE_APROBACION":
+      case "REGISTRADO":
         return "secondary"
-      case "PENDIENTE":
-      case "PARA_REPETIR":
+      case "PENDIENTE_APROBACION":
+        return "outline"
+      case "A_REPETIR":
         return "destructive"
       default:
         return "outline"
@@ -116,14 +184,12 @@ export default function ListadoPMSPage() {
         return "Aprobado"
       case "EN_PROCESO":
         return "En Proceso"
-      case "FINALIZADO":
-        return "Finalizado"
+      case "REGISTRADO":
+        return "Registrado"
       case "PENDIENTE_APROBACION":
         return "Pendiente Aprobación"
-      case "PENDIENTE":
-        return "Pendiente"
-      case "PARA_REPETIR":
-        return "Para Repetir"
+      case "A_REPETIR":
+        return "A Repetir"
       default:
         return estado
     }
@@ -167,32 +233,30 @@ export default function ListadoPMSPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <Toaster position="top-right" richColors closeButton />
-      
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/listado">
-            <Button variant="ghost" size="sm">
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+        <Toaster position="top-right" richColors closeButton />
+        
+        {/* Header */}
+        <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          <Link href="/listado" className="sm:self-start">
+            <Button variant="ghost" size="sm" className="w-fit">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Listados
+              <span className="hidden sm:inline">Volver a Listados</span>
+              <span className="sm:hidden">Volver</span>
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-balance">Peso de Mil Semillas</h1>
-            <p className="text-muted-foreground text-pretty">
+          <div className="text-center sm:text-left flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-balance">Peso de Mil Semillas</h1>
+            <p className="text-sm sm:text-base text-muted-foreground text-pretty">
               Consulta y administra todas las determinaciones del peso de mil semillas
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
-          <Link href="/registro/analisis">
-            <Button>
+        <div className="flex flex-col-reverse sm:flex-row justify-center sm:justify-end gap-2 sm:gap-2">
+          <Link href="/registro/analisis?tipo=PMS" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Nuevo Análisis
             </Button>
@@ -299,14 +363,22 @@ export default function ListadoPMSPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos los estados</SelectItem>
-                <SelectItem value="APROBADO">Aprobado</SelectItem>
+                <SelectItem value="REGISTRADO">Registrado</SelectItem>
                 <SelectItem value="EN_PROCESO">En Proceso</SelectItem>
-                <SelectItem value="FINALIZADO">Finalizado</SelectItem>
                 <SelectItem value="PENDIENTE_APROBACION">Pendiente Aprobación</SelectItem>
-                <SelectItem value="PENDIENTE">Pendiente</SelectItem>
-                <SelectItem value="PARA_REPETIR">Para Repetir</SelectItem>
+                <SelectItem value="APROBADO">Aprobado</SelectItem>
+                <SelectItem value="A_REPETIR">A Repetir</SelectItem>
               </SelectContent>
             </Select>
+            <select
+              value={filtroActivo}
+              onChange={(e) => setFiltroActivo(e.target.value)}
+              className="px-3 py-2 border border-input bg-background rounded-md text-sm w-full md:w-48"
+            >
+              <option value="todos">Todos</option>
+              <option value="activos">Activos</option>
+              <option value="inactivos">Inactivos</option>
+            </select>
           </div>
         </CardContent>
       </Card>
@@ -319,8 +391,8 @@ export default function ListadoPMSPage() {
             {totalElements} análisis
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border overflow-x-auto">
+        <CardContent className="p-0 sm:p-6">
+          <div className="rounded-md border overflow-x-auto max-w-full">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -387,15 +459,29 @@ export default function ListadoPMSPage() {
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-destructive hover:text-destructive"
-                            title="Eliminar"
-                            onClick={() => handleEliminar(parseInt(item.id.replace('PMS', '')))}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {userRole === "ADMIN" && (
+                            item.activo ? (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                title="Desactivar"
+                                onClick={() => handleDesactivar(parseInt(item.id.replace('PMS', '')))}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                title="Reactivar"
+                                onClick={() => handleReactivar(parseInt(item.id.replace('PMS', '')))}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <RefreshCw className="h-4 w-4" />
+                              </Button>
+                            )
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -423,6 +509,7 @@ export default function ListadoPMSPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

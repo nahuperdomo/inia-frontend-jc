@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Microscope, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle } from "lucide-react"
+import { Microscope, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
-import { obtenerTodosTetrazolio, obtenerTetrazoliosPaginadas } from '@/app/services/tetrazolio-service'
+import { obtenerTodosTetrazolio, obtenerTetrazoliosPaginadas, desactivarTetrazolio, activarTetrazolio } from '@/app/services/tetrazolio-service'
 import Pagination from "@/components/pagination"
+import { toast } from "sonner"
 
 interface AnalisisTetrazolio {
   id: string
@@ -28,10 +29,14 @@ interface AnalisisTetrazolio {
   vigor: string
   semillasViables: number
   semillasNoViables: number
+  activo?: boolean
 }
 
 export default function ListadoTetrazolioPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
+  const [filtroActivo, setFiltroActivo] = useState("todos")
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [filterEstado, setFilterEstado] = useState<string>("todos")
   const [filterPrioridad, setFilterPrioridad] = useState<string>("todos")
 
@@ -45,12 +50,43 @@ export default function ListadoTetrazolioPage() {
   const [isFirst, setIsFirst] = useState(true)
   const [lastResponse, setLastResponse] = useState<any>(null)
   const pageSize = 10
+
+  // Debounce searchTerm
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
+    return () => clearTimeout(handler)
+  }, [searchTerm])
+
+  // Obtener rol del usuario
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]))
+        setUserRole(payload.rol)
+      } catch (error) {
+        console.error("Error al decodificar el token:", error)
+      }
+    }
+  }, [])
   
   const fetchTetrazolio = async (page: number = 0) => {
     try {
       setLoading(true)
       setError("")
-      const data = await obtenerTetrazoliosPaginadas(page, pageSize)
+  // Convert filtroActivo string to boolean
+  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
+  
+      const data = await obtenerTetrazoliosPaginadas(
+        page,
+        pageSize,
+        debouncedSearchTerm || undefined,
+        activoFilter,
+        undefined,
+        undefined
+      )
       setLastResponse(data)
 
       const content = data.content || []
@@ -70,16 +106,21 @@ export default function ListadoTetrazolioPage() {
         vigor: t.vigor || "",
         semillasViables: t.semillasViables || 0,
         semillasNoViables: t.semillasNoViables || 0,
+        activo: t.activo ?? true,
       })) as AnalisisTetrazolio[]
 
       setAnalisis(mapped)
 
-      const meta = (data as any).page || {}
-      setTotalPages(meta.totalPages ?? 1)
-      setTotalElements(meta.totalElements ?? (content.length || 0))
-      setCurrentPage(meta.number ?? page)
-      setIsFirst((meta.number ?? 0) === 0)
-      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1)
+      const pageMeta = (data as any).page ? (data as any).page : (data as any);
+      const totalPagesFrom = pageMeta.totalPages ?? 1;
+      const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0);
+      const numberFrom = pageMeta.number ?? page;
+
+      setTotalPages(totalPagesFrom);
+      setTotalElements(totalElementsFrom);
+      setCurrentPage(numberFrom);
+      setIsFirst(numberFrom === 0);
+      setIsLast(numberFrom >= totalPagesFrom - 1);
     } catch (err: any) {
       console.error("Error fetching Tetrazolio paginadas:", err)
       setError("Error al cargar los análisis Tetrazolio")
@@ -89,8 +130,33 @@ export default function ListadoTetrazolioPage() {
   }
 
   useEffect(() => {
+    setCurrentPage(0)
     fetchTetrazolio(0)
-  }, [])
+  }, [filtroActivo, debouncedSearchTerm])
+
+  // Handlers para desactivar/reactivar
+  const handleDesactivar = async (id: number) => {
+    if (!confirm("¿Está seguro de desactivar este análisis Tetrazolio?")) return
+    try {
+      await desactivarTetrazolio(id)
+      toast.success("Análisis Tetrazolio desactivado exitosamente")
+      await fetchTetrazolio(currentPage)
+    } catch (error) {
+      console.error("Error al desactivar Tetrazolio:", error)
+      toast.error("Error al desactivar el análisis")
+    }
+  }
+
+  const handleReactivar = async (id: number) => {
+    try {
+      await activarTetrazolio(id)
+      toast.success("Análisis Tetrazolio reactivado exitosamente")
+      await fetchTetrazolio(currentPage)
+    } catch (error) {
+      console.error("Error al reactivar Tetrazolio:", error)
+      toast.error("Error al reactivar el análisis")
+    }
+  }
 
   const filteredAnalisis = analisis.filter((item) => {
     const matchesSearch =
@@ -108,10 +174,12 @@ export default function ListadoTetrazolioPage() {
   const getEstadoBadgeVariant = (estado: string) => {
     switch (estado) {
       case "Completado":
+      case "Aprobado":
         return "default"
       case "En Proceso":
         return "secondary"
       case "Pendiente":
+      case "A Repetir":
         return "destructive"
       default:
         return "outline"
@@ -133,7 +201,7 @@ export default function ListadoTetrazolioPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 space-y-6 p-6">
+      <div className="space-y-6 p-3 sm:p-4 md:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -146,7 +214,7 @@ export default function ListadoTetrazolioPage() {
 
   if (error) {
     return (
-      <div className="flex-1 space-y-6 p-6">
+      <div className="space-y-6 p-3 sm:p-4 md:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
@@ -161,30 +229,28 @@ export default function ListadoTetrazolioPage() {
   
 
   return (
-    <div className="flex-1 space-y-6 p-6">
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/listado">
-            <Button variant="ghost" size="sm">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          <Link href="/listado" className="sm:self-start">
+            <Button variant="ghost" size="sm" className="w-fit">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Listados
+              <span className="hidden sm:inline">Volver a Listados</span>
+              <span className="sm:hidden">Volver</span>
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-balance">Análisis de Tetrazolio</h1>
-            <p className="text-muted-foreground text-pretty">
+          <div className="text-center sm:text-left flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-balance">Análisis de Tetrazolio</h1>
+            <p className="text-sm sm:text-base text-muted-foreground text-pretty">
               Consulta y administra todos los ensayos de viabilidad y vigor
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
-          <Link href="/registro/analisis">
-            <Button>
+        <div className="flex flex-col-reverse sm:flex-row justify-center sm:justify-end gap-2 sm:gap-2">
+          <Link href="/registro/analisis?tipo=TETRAZOLIO" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Nuevo Análisis
             </Button>
@@ -281,9 +347,11 @@ export default function ListadoTetrazolioPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos los estados</SelectItem>
-                <SelectItem value="Completado">Completado</SelectItem>
+                <SelectItem value="Registrado">Registrado</SelectItem>
                 <SelectItem value="En Proceso">En Proceso</SelectItem>
-                <SelectItem value="Pendiente">Pendiente</SelectItem>
+                <SelectItem value="Aprobado">Aprobado</SelectItem>
+                <SelectItem value="Completado">Completado</SelectItem>
+                <SelectItem value="A Repetir">A Repetir</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterPrioridad} onValueChange={setFilterPrioridad}>
@@ -297,6 +365,15 @@ export default function ListadoTetrazolioPage() {
                 <SelectItem value="Baja">Baja</SelectItem>
               </SelectContent>
             </Select>
+            <select
+              value={filtroActivo}
+              onChange={(e) => setFiltroActivo(e.target.value)}
+              className="px-3 py-2 border border-input bg-background rounded-md text-sm w-full md:w-48"
+            >
+              <option value="todos">Todos</option>
+              <option value="activos">Activos</option>
+              <option value="inactivos">Inactivos</option>
+            </select>
           </div>
         </CardContent>
       </Card>
@@ -306,11 +383,11 @@ export default function ListadoTetrazolioPage() {
         <CardHeader>
           <CardTitle>Lista de Análisis de Tetrazolio</CardTitle>
           <CardDescription>
-            {filteredAnalisis.length} análisis encontrado{filteredAnalisis.length !== 1 ? "s" : ""}
+           {filteredAnalisis.length} análisis encontrado{filteredAnalisis.length !== 1 ? "s" : ""}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto max-w-full">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -359,9 +436,29 @@ export default function ListadoTetrazolioPage() {
                             <Edit className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {userRole === "ADMIN" && (
+                          item.activo ? (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              title="Desactivar"
+                              onClick={() => handleDesactivar(parseInt(item.id))}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              title="Reactivar"
+                              onClick={() => handleReactivar(parseInt(item.id))}
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                            </Button>
+                          )
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -388,6 +485,7 @@ export default function ListadoTetrazolioPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

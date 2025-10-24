@@ -13,8 +13,15 @@ export async function obtenerTodosLosContactos(): Promise<ContactoDTO[]> {
   return [];
 }
 
-export async function obtenerClientes(): Promise<ContactoDTO[]> {
-  const response = await apiFetch("/contactos/clientes");
+export async function obtenerClientes(activo?: boolean | null): Promise<ContactoDTO[]> {
+  const params = new URLSearchParams();
+  if (activo !== undefined && activo !== null) {
+    params.append('activo', activo.toString());
+  }
+  const queryString = params.toString();
+  const url = queryString ? `/contactos/clientes?${queryString}` : '/contactos/clientes';
+  const response = await apiFetch(url);
+
   if (response && Array.isArray(response)) {
     return response;
   } else if (response && response.clientes && Array.isArray(response.clientes)) {
@@ -24,8 +31,15 @@ export async function obtenerClientes(): Promise<ContactoDTO[]> {
   return [];
 }
 
-export async function obtenerEmpresas(): Promise<ContactoDTO[]> {
-  const response = await apiFetch("/contactos/empresas");
+export async function obtenerEmpresas(activo?: boolean | null): Promise<ContactoDTO[]> {
+  const params = new URLSearchParams();
+  if (activo !== undefined && activo !== null) {
+    params.append('activo', activo.toString());
+  }
+  const queryString = params.toString();
+  const url = queryString ? `/contactos/empresas?${queryString}` : '/contactos/empresas';
+  const response = await apiFetch(url);
+
   if (response && Array.isArray(response)) {
     return response;
   } else if (response && response.empresas && Array.isArray(response.empresas)) {
@@ -61,7 +75,7 @@ export async function eliminarContacto(contactoID: number): Promise<void> {
 
 export async function reactivarContacto(contactoID: number): Promise<ContactoDTO> {
   return apiFetch(`/contactos/${contactoID}/reactivar`, {
-    method: "PATCH",
+    method: "PUT",
   });
 }
 

@@ -23,9 +23,10 @@ type Cultivo = {
 type Props = {
   registros?: any[]
   onChangeListados?: (listados: any[]) => void
+  contexto?: string // 'pureza' | 'dosn' para diferenciar persistencia
 }
 
-export default function OtrosCultivosFields({ registros, onChangeListados }: Props) {
+export default function OtrosCultivosFields({ registros, onChangeListados, contexto = 'dosn' }: Props) {
   const initialCultivos = registros && registros.length > 0
     ? registros.map((r) => ({
         contiene: "si" as const,
@@ -38,7 +39,7 @@ export default function OtrosCultivosFields({ registros, onChangeListados }: Pro
 
   // ✅ Usar persistencia solo si no hay registros precargados
   const persistence = usePersistentArray<Cultivo>(
-    "dosn-otros-cultivos",
+    `${contexto}-otros-cultivos`,
     initialCultivos
   )
 
@@ -122,6 +123,9 @@ export default function OtrosCultivosFields({ registros, onChangeListados }: Pro
     updated[i] = { ...updated[i], listado: especie, idCatalogo }
     setCultivos(updated)
   }
+
+  // ✅ Verificar si algún cultivo tiene "no" (No contiene) seleccionado
+  const tieneNoContiene = cultivos.some((c) => c.contiene === "no")
 
   return (
     <Card className="border-border/50 bg-background shadow-sm">
@@ -244,11 +248,18 @@ export default function OtrosCultivosFields({ registros, onChangeListados }: Pro
           <Button
             onClick={addCultivo}
             variant="outline"
-            className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent text-sm px-2 py-1"
+            disabled={tieneNoContiene}
+            className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent text-sm px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="h-3 w-3 mr-1" />
             Agregar registro
           </Button>
+          {tieneNoContiene && (
+            <p className="text-xs text-muted-foreground ml-3 flex items-center">
+              <XCircle className="h-3 w-3 mr-1" />
+              No se pueden agregar más registros cuando hay "No contiene" seleccionado
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>

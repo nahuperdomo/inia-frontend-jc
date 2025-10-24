@@ -27,8 +27,25 @@ export async function obtenerTodasGerminaciones(): Promise<GerminacionDTO[]> {
   return res.germinaciones || [];
 }
 
-export async function obtenerGerminacionesPaginadas(page: number = 0, size: number = 10): Promise<{ content: GerminacionListadoDTO[], totalElements: number, totalPages: number, last: boolean, first: boolean }> {
-  return apiFetch(`/germinaciones/listado?page=${page}&size=${size}`);
+export async function obtenerGerminacionesPaginadas(
+  page: number = 0,
+  size: number = 10,
+  search?: string,
+  activo?: boolean,
+  estado?: string,
+  loteId?: number
+): Promise<{ content: GerminacionListadoDTO[], totalElements: number, totalPages: number, last: boolean, first: boolean }> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+
+  if (search) params.append("search", search);
+  if (activo !== undefined) params.append("activo", activo.toString());
+  if (estado) params.append("estado", estado);
+  if (loteId !== undefined) params.append("loteId", loteId.toString());
+
+  return apiFetch(`/germinaciones/listado?${params.toString()}`);
 }
 
 export async function obtenerGerminacionPorId(id: number): Promise<GerminacionDTO> {
@@ -45,6 +62,18 @@ export async function actualizarGerminacion(id: number, solicitud: GerminacionEd
 export async function eliminarGerminacion(id: number): Promise<void> {
   return apiFetch(`/germinaciones/${id}`, {
     method: "DELETE",
+  });
+}
+
+export async function desactivarGerminacion(id: number): Promise<void> {
+  return apiFetch(`/germinaciones/${id}/desactivar`, {
+    method: "PUT",
+  });
+}
+
+export async function activarGerminacion(id: number): Promise<GerminacionDTO> {
+  return apiFetch(`/germinaciones/${id}/reactivar`, {
+    method: "PUT",
   });
 }
 

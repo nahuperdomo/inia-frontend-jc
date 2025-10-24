@@ -325,9 +325,9 @@ export default function DosnFields({
           </TabsContent>
 
           <TabsContent value="registros" className="space-y-6 mt-6">
-            <MalezaFields titulo="Malezas" registros={malezas} onChangeListados={onChangeListadosMalezas} />
-            <OtrosCultivosFields registros={cultivos} onChangeListados={onChangeListadosCultivos} />
-            <BrassicaFields registros={brassicas} onChangeListados={onChangeListadosBrassicas} />
+            <MalezaFields titulo="Malezas" contexto="dosn" registros={malezas} onChangeListados={onChangeListadosMalezas} />
+            <OtrosCultivosFields contexto="dosn" registros={cultivos} onChangeListados={onChangeListadosCultivos} />
+            <BrassicaFields contexto="dosn" registros={brassicas} onChangeListados={onChangeListadosBrassicas} />
             <CuscutaFields formData={formData} handleInputChange={handleInputChange ?? (() => {})} />
             <Separator />
             <CumplimientoEstandarFields formData={formData} handleInputChange={handleInputChange ?? (() => {})} />

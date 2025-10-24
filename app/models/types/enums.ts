@@ -1,5 +1,5 @@
 //Enums centralizados para todo el sistema
-export type EstadoAnalisis = 'PENDIENTE' | 'EN_PROCESO' | 'FINALIZADO' | 'PENDIENTE_APROBACION' | 'APROBADO' | 'PARA_REPETIR';
+export type EstadoAnalisis = 'REGISTRADO' | 'EN_PROCESO' | 'PENDIENTE_APROBACION' | 'APROBADO' | 'A_REPETIR';
 
 export type TipoMYCCatalogo = 'MALEZA' | 'CULTIVO';
 
@@ -12,8 +12,6 @@ export type TipoDOSN = 'COMPLETO' | 'REDUCIDO' | 'LIMITADO' | 'REDUCIDO_LIMITADO
 export type RolUsuario = 'ADMIN' | 'ANALISTA' | 'OBSERVADOR';
 
 export type TipoEspecie = 'CULTIVADA' | 'MALEZA' | 'OTRA';
-
-export type EstadoLote = 'ACTIVO' | 'INACTIVO' | 'COMPLETADO';
 
 export type TipoAnalisis = 'PUREZA' | 'GERMINACION' | 'PMS' | 'TETRAZOLIO' | 'DOSN';
 

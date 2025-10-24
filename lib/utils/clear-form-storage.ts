@@ -71,8 +71,9 @@ export function clearPurezaStorage() {
 
   const purezaKeys = [
     "pureza-datos-generales",
-    "pureza-malezas",
-    // Agregar más claves según sea necesario
+    "pureza-brassicas",
+    "pureza-otros-cultivos",
+    "pureza-malezas-Malezas", // Clave con contexto pureza
   ]
 
   purezaKeys.forEach((key) => {

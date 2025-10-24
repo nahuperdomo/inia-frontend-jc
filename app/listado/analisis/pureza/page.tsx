@@ -6,310 +6,254 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { FlaskConical, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, MessageCircle, Loader2 } from "lucide-react"
+import { FlaskConical, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
-import { obtenerTodasPurezasActivas, obtenerPurezaPorId, actualizarPureza, obtenerPurezasPaginadas } from "@/app/services/pureza-service"
+import { obtenerPurezasPaginadas, desactivarPureza, activarPureza } from "@/app/services/pureza-service"
+import { obtenerPerfil } from "@/app/services/auth-service"
 import Pagination from "@/components/pagination"
 import { PurezaDTO, EstadoAnalisis } from "@/app/models"
+import { toast } from "sonner"
 
-interface AnalisisPureza {
-  id: string
-  loteId: string
-  loteName: string
-  analyst: string
-  fechaInicio: string
-  fechaFin: string | null
-  estado: "Completado" | "En Proceso" | "Pendiente"
-  prioridad: "Alta" | "Media" | "Baja"
-  pesoInicial: number
-  semillaPura: number
-  materiaInerte: number
-  otrosCultivos: number
-  malezas: number
-  pureza: number
-  comentarios: string
+// Función utilitaria para formatear fechas correctamente
+const formatearFechaLocal = (fechaString: string): string => {
+  if (!fechaString) return ''
+
+  try {
+    // Si la fecha ya está en formato YYYY-MM-DD, usarla directamente
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
+      const [year, month, day] = fechaString.split('-').map(Number)
+      const fecha = new Date(year, month - 1, day) // month - 1 porque los meses son 0-indexed
+      return fecha.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+    }
+
+    // Si viene en otro formato, parsearlo de manera segura
+    const fecha = new Date(fechaString)
+    return fecha.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+  } catch (error) {
+    console.warn("Error al formatear fecha:", fechaString, error)
+    return fechaString
+  }
 }
 
 export default function ListadoPurezaPage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [filterEstado, setFilterEstado] = useState<string>("todos")
-  const [filterPrioridad, setFilterPrioridad] = useState<string>("todos")
-  const [comentariosDialogOpen, setComentariosDialogOpen] = useState(false)
-  const [selectedAnalisis, setSelectedAnalisis] = useState<AnalisisPureza | null>(null)
-  const [editingComentarios, setEditingComentarios] = useState("")
-  const [isEditing, setIsEditing] = useState(false)
-  const [analisis, setAnalisis] = useState<AnalisisPureza[]>([])
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
+  const [selectedStatus, setSelectedStatus] = useState("all")
+  const [filtroActivo, setFiltroActivo] = useState("todos")
+  const [purezas, setPurezas] = useState<PurezaDTO[]>([])
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
   const [isLast, setIsLast] = useState(false)
   const [isFirst, setIsFirst] = useState(true)
-  const [lastResponse, setLastResponse] = useState<any>(null)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const pageSize = 10
-  const fetchPurezas = async (page: number = 0) => {
-    try {
-      setIsLoading(true)
-      console.log("🔍 Iniciando petición para obtener purezas...")
-      const res = await obtenerPurezasPaginadas(page, pageSize)
-      setLastResponse(res)
-      const purezasData = res.content || []
-      console.log("📊 Datos de purezas recibidos:", purezasData)
 
-      const purezasTransformed = purezasData.map((pureza: PurezaDTO) => {
-        const purezaPercent = pureza.semillaPura_g > 0 && pureza.pesoInicial_g > 0
-          ? Math.round((pureza.semillaPura_g / pureza.pesoInicial_g) * 100 * 10) / 10
-          : 0
+  // Debounce searchTerm para evitar múltiples requests mientras el usuario escribe
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500) // 500ms de delay
 
-        let estadoMapped: "Completado" | "En Proceso" | "Pendiente" = "Pendiente"
-        switch (pureza.estado) {
-          case 'FINALIZADO':
-          case 'APROBADO':
-            estadoMapped = "Completado"
-            break
-          case 'EN_PROCESO':
-            estadoMapped = "En Proceso"
-            break
-          default:
-            estadoMapped = "Pendiente"
-        }
-
-        const prioridad: "Alta" | "Media" | "Baja" =
-          pureza.estado === 'EN_PROCESO' ? "Alta" :
-            pureza.estado === 'PENDIENTE' ? "Media" : "Baja"
-
-        return {
-          id: `PF${pureza.analisisID}`,
-          loteId: pureza.lote || `#${pureza.analisisID}`,
-          loteName: pureza.lote || "No especificado",
-          analyst: "No especificado",
-          fechaInicio: pureza.fechaInicio,
-          fechaFin: pureza.fechaFin || null,
-          estado: estadoMapped,
-          prioridad,
-          pesoInicial: pureza.pesoInicial_g,
-          semillaPura: pureza.semillaPura_g,
-          materiaInerte: pureza.materiaInerte_g,
-          otrosCultivos: pureza.otrosCultivos_g,
-          malezas: pureza.malezas_g,
-          pureza: purezaPercent,
-          comentarios: pureza.comentarios || "Sin comentarios registrados",
-        }
-      })
-
-      setAnalisis(purezasTransformed)
-
-      const meta = (res as any).page || {}
-      setTotalPages(meta.totalPages ?? 1)
-      setTotalElements(meta.totalElements ?? (purezasData.length || 0))
-      setCurrentPage(meta.number ?? page)
-      setIsFirst((meta.number ?? 0) === 0)
-      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1)
-    } catch (err) {
-      console.error("❌ Error al obtener purezas:", err)
-      console.error("⚠️ Detalles completos:", err instanceof Error ? err.message : JSON.stringify(err))
-      setError(`Error al cargar los análisis de pureza: ${err instanceof Error ? err.message : 'Error desconocido'}. Intente nuevamente más tarde.`)
-    } finally {
-      setIsLoading(false)
+    return () => {
+      clearTimeout(handler)
     }
-  }
+  }, [searchTerm])
 
-  useEffect(() => { fetchPurezas(0) }, [])
-
-  const filteredAnalisis = analisis.filter((item) => {
-    const matchesSearch =
-      item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.loteId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.loteName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.analyst.toLowerCase().includes(searchTerm.toLowerCase())
-
-    const matchesEstado = filterEstado === "todos" || item.estado === filterEstado
-    const matchesPrioridad = filterPrioridad === "todos" || item.prioridad === filterPrioridad
-
-    return matchesSearch && matchesEstado && matchesPrioridad
-  })
-
-  const getEstadoBadgeVariant = (estado: string) => {
-    switch (estado) {
-      case "Completado":
-        return "default"
-      case "En Proceso":
-        return "secondary"
-      case "Pendiente":
-        return "destructive"
-      default:
-        return "outline"
-    }
-  }
-
-  const getPrioridadBadgeVariant = (prioridad: string) => {
-    switch (prioridad) {
-      case "Alta":
-        return "destructive"
-      case "Media":
-        return "default"
-      case "Baja":
-        return "secondary"
-      default:
-        return "outline"
-    }
-  }
-
-  const handleOpenComentarios = (item: AnalisisPureza) => {
-    setSelectedAnalisis(item)
-    setEditingComentarios(item.comentarios)
-    setIsEditing(false)
-    setComentariosDialogOpen(true)
-  }
-
-  const handleCloseComentarios = () => {
-    setComentariosDialogOpen(false)
-    setSelectedAnalisis(null)
-    setEditingComentarios("")
-    setIsEditing(false)
-  }
-
-  const handleEditComentarios = () => {
-    setIsEditing(true)
-  }
-
-  const handleSaveComentarios = async () => {
-    if (selectedAnalisis) {
+  // Fetch user profile to get role
+  useEffect(() => {
+    const fetchUserRole = async () => {
       try {
-        // Extract the numeric ID from the PF### format
-        const purezaId = parseInt(selectedAnalisis.id.replace('PF', ''), 10)
-
-        // In a real implementation, we would need to fetch the full pureza data first
-        // to avoid losing other fields when updating
-        const pureza = await obtenerPurezaPorId(purezaId)
-
-        // Create the update request DTO
-        const updateRequest = {
-          idLote: parseInt(pureza.lote.split('-').pop() || '0', 10), // Extract number from lote ID
-          comentarios: editingComentarios,
-          // We need to include all other required fields from the pureza object
-          fecha: pureza.fecha,
-          pesoInicial_g: pureza.pesoInicial_g,
-          semillaPura_g: pureza.semillaPura_g,
-          materiaInerte_g: pureza.materiaInerte_g,
-          otrosCultivos_g: pureza.otrosCultivos_g,
-          malezas_g: pureza.malezas_g,
-          malezasToleradas_g: pureza.malezasToleradas_g,
-          pesoTotal_g: pureza.pesoTotal_g,
-          // Transform otrasSemillas to match ListadoRequestDTO
-          otrasSemillas: pureza.otrasSemillas.map(item => ({
-            listadoTipo: item.listadoTipo,
-            listadoInsti: item.listadoInsti,
-            listadoNum: item.listadoNum,
-            idCatalogo: item.catalogo.catalogoID
-          }))
-        }
-
-        // Update pureza in the backend
-        await actualizarPureza(purezaId, updateRequest)
-
-        // Update local state
-        setAnalisis(prevAnalisis =>
-          prevAnalisis.map(item =>
-            item.id === selectedAnalisis.id
-              ? { ...item, comentarios: editingComentarios }
-              : item
-          )
-        )
-
-        setIsEditing(false)
-
-        // Update the selectedAnalisis to reflect changes
-        setSelectedAnalisis({
-          ...selectedAnalisis,
-          comentarios: editingComentarios
-        })
-
-        // Show success message
-        const successMessage = document.createElement('div')
-        successMessage.className = 'bg-green-50 text-green-700 p-2 rounded-md text-sm mt-2'
-        successMessage.innerText = 'Comentarios guardados exitosamente'
-
-        // Add to DOM temporarily
-        const notificationContainer = document.getElementById('notification-container')
-        if (notificationContainer) {
-          // Clear any existing notifications
-          notificationContainer.innerHTML = ''
-
-          // Add new notification
-          notificationContainer.appendChild(successMessage)
-
-          // Remove after 3 seconds
-          setTimeout(() => {
-            if (successMessage.parentNode) {
-              successMessage.remove()
-            }
-          }, 3000)
-        }
-      } catch (err) {
-        console.error("Error updating pureza comments:", err)
-
-        // Show error message
-        const errorMessage = document.createElement('div')
-        errorMessage.className = 'bg-red-50 text-red-700 p-2 rounded-md text-sm mt-2'
-        errorMessage.innerText = 'Error al guardar los comentarios. Intente nuevamente.'
-
-        // Add to DOM temporarily
-        const notificationContainer = document.getElementById('notification-container')
-        if (notificationContainer) {
-          // Clear any existing notifications
-          notificationContainer.innerHTML = ''
-
-          // Add new notification
-          notificationContainer.appendChild(errorMessage)
-
-          // Remove after 5 seconds
-          setTimeout(() => {
-            if (errorMessage.parentNode) {
-              errorMessage.remove()
-            }
-          }, 5000)
-        }
+        const perfil = await obtenerPerfil()
+        const role = perfil?.roles?.[0] || ''
+        const cleanRole = role.replace('ROLE_', '')
+        setUserRole(cleanRole)
+      } catch (error) {
+        console.error("Error obteniendo rol de usuario:", error)
       }
     }
+    fetchUserRole()
+  }, [])
+
+  const fetchPurezas = async (page: number = 0) => {
+    try {
+      setLoading(true);
+  // Convert filtroActivo string to boolean
+  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
+  
+  const data = await obtenerPurezasPaginadas(
+    page, 
+    pageSize, 
+    debouncedSearchTerm || undefined,
+    activoFilter,
+    selectedStatus !== "all" ? selectedStatus : undefined,
+    undefined
+  );
+  console.log("DEBUG obtenerPurezasPaginadas response:", data);
+
+  // Datos principales
+  const content = data.content || [];
+  setPurezas(content);
+
+  // Metadata: soportar dos formas que puede devolver el backend
+  // 1) { content: [...], page: { totalPages, totalElements, number, ... } }
+  // 2) Página Spring Data directamente: { content: [...], totalPages, totalElements, number, ... }
+  const pageMeta = (data as any).page ? (data as any).page : (data as any);
+  const totalPagesFrom = pageMeta.totalPages ?? 1;
+  const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0);
+  const numberFrom = pageMeta.number ?? page;
+
+  setTotalPages(totalPagesFrom);
+  setTotalElements(totalElementsFrom);
+  setCurrentPage(numberFrom);
+  setIsFirst(numberFrom === 0);
+  setIsLast(numberFrom >= totalPagesFrom - 1);
+    } catch (err) {
+      setError("Error al cargar los análisis de pureza");
+      console.error("Error fetching purezas:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setCurrentPage(0) // Reset to first page when filters change
+    fetchPurezas(0)
+  }, [filtroActivo, selectedStatus, debouncedSearchTerm])
+
+  // Handlers para desactivar/reactivar
+  const handleDesactivar = async (id: number) => {
+    if (!confirm("¿Está seguro de que desea desactivar este análisis?")) return
+    try {
+      await desactivarPureza(id)
+      toast.success("Análisis desactivado exitosamente")
+      await fetchPurezas(currentPage)
+    } catch (error: any) {
+      toast.error("Error al desactivar análisis", { description: error?.message })
+    }
+  }
+
+  const handleReactivar = async (id: number) => {
+    try {
+      await activarPureza(id)
+      toast.success("Análisis reactivado exitosamente")
+      await fetchPurezas(currentPage)
+    } catch (error: any) {
+      toast.error("Error al reactivar análisis", { description: error?.message })
+    }
+  }
+
+  // No client-side filtering - all filtering done on backend
+  const filteredAnalysis = purezas
+
+  // Calculate stats from current page data and total
+  const totalAnalysis = totalElements
+  const completedAnalysis = purezas.filter(p => p.estado === "APROBADO").length
+  const inProgressAnalysis = purezas.filter(p => p.estado === "EN_PROCESO").length
+  const pendingAnalysis = purezas.filter(p => p.estado === "REGISTRADO" || p.estado === "PENDIENTE_APROBACION").length
+  
+  // Calcular promedio de pureza
+  const purezasConDatos = purezas.filter(p => p.semillaPura_g > 0 && p.pesoInicial_g > 0)
+  const promedioPureza = purezasConDatos.length > 0
+    ? purezasConDatos.reduce((sum, p) => {
+        const pureza = (p.semillaPura_g / p.pesoInicial_g) * 100
+        return sum + pureza
+      }, 0) / purezasConDatos.length
+    : 0
+
+  const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
+    switch (estado) {
+      case "APROBADO":
+        return "default"
+      case "EN_PROCESO":
+        return "secondary"
+      case "REGISTRADO":
+        return "outline"
+      case "PENDIENTE_APROBACION":
+        return "destructive"
+      case "A_REPETIR":
+        return "destructive"
+      default:
+        return "outline"
+    }
+  }
+
+  const formatEstado = (estado: EstadoAnalisis) => {
+    switch (estado) {
+      case "REGISTRADO":
+        return "Registrado"
+      case "EN_PROCESO":
+        return "En Proceso"
+      case "APROBADO":
+        return "Aprobado"
+      case "PENDIENTE_APROBACION":
+        return "Pend. Aprobación"
+      case "A_REPETIR":
+        return "A Repetir"
+      default:
+        return estado
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6 p-3 sm:p-4 md:p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Cargando análisis de pureza...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 p-3 sm:p-4 md:p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-lg font-semibold mb-2">Error al cargar</p>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>Reintentar</Button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/listado">
-            <Button variant="ghost" size="sm">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          <Link href="/listado" className="sm:self-start">
+            <Button variant="ghost" size="sm" className="w-fit">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Listados
+              <span className="hidden sm:inline">Volver a Listados</span>
+              <span className="sm:hidden">Volver</span>
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-balance">Análisis de Pureza Física</h1>
-            <p className="text-muted-foreground text-pretty">
-              Consulta y administra todos los análisis de pureza física realizados
-            </p>
+          <div className="text-center sm:text-left flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Análisis de Pureza Física</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Consulta la pureza física de las semillas</p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
-          <Link href="/registro/analisis">
-            <Button>
+        <div className="flex justify-center sm:justify-end">
+          <Link href="/registro/analisis?tipo=PUREZA">
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Nuevo Análisis
             </Button>
@@ -317,246 +261,225 @@ export default function ListadoPurezaPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Análisis</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold">{analisis.length}</p>
-                )}
+                <p className="text-2xl font-bold">{totalAnalysis}</p>
               </div>
-              <FlaskConical className="h-8 w-8 text-primary" />
+              <FlaskConical className="h-8 w-8 text-purple-600" />
             </div>
           </CardContent>
-          <div className="flex items-center justify-between mt-4 px-4">
-            <div className="text-sm text-muted-foreground">
-              {totalElements === 0 ? (
-                <>Mostrando 0 de 0 resultados</>
-              ) : (
-                <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
-              )}
-            </div>
-            <div className="flex items-center gap-2">&nbsp;</div>
-          </div>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Completados</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold">{analisis.filter((a) => a.estado === "Completado").length}</p>
-                )}
+                <p className="text-2xl font-bold">{completedAnalysis}</p>
               </div>
-              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-green-500"></div>
-              </div>
+              <FlaskConical className="h-8 w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">En Proceso</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold">{analisis.filter((a) => a.estado === "En Proceso").length}</p>
-                )}
+                <p className="text-2xl font-bold">{inProgressAnalysis}</p>
               </div>
-              <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-yellow-500"></div>
-              </div>
+              <FlaskConical className="h-8 w-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Promedio Pureza</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold">
-                    {analisis.filter((a) => a.pureza > 0).length > 0
-                      ? (
-                        analisis.filter((a) => a.pureza > 0).reduce((sum, a) => sum + a.pureza, 0) /
-                        analisis.filter((a) => a.pureza > 0).length
-                      ).toFixed(1)
-                      : "0"}
-                    %
-                  </p>
-                )}
+                <p className="text-sm font-medium text-muted-foreground">Pureza Promedio</p>
+                <p className="text-2xl font-bold">{promedioPureza.toFixed(1)}%</p>
               </div>
-              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-blue-500"></div>
-              </div>
+              <FlaskConical className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters and Search */}
+      {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filtros y Búsqueda
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Buscar por ID, lote, nombre o analista..."
+                  placeholder="Buscar por ID, lote o comentarios..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            <Select value={filterEstado} onValueChange={setFilterEstado}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los estados</SelectItem>
-                <SelectItem value="Completado">Completado</SelectItem>
-                <SelectItem value="En Proceso">En Proceso</SelectItem>
-                <SelectItem value="Pendiente">Pendiente</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterPrioridad} onValueChange={setFilterPrioridad}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por prioridad" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todas las prioridades</SelectItem>
-                <SelectItem value="Alta">Alta</SelectItem>
-                <SelectItem value="Media">Media</SelectItem>
-                <SelectItem value="Baja">Baja</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+              >
+                <option value="all">Todos los estados</option>
+                <option value="REGISTRADO">Registrado</option>
+                <option value="EN_PROCESO">En Proceso</option>
+                <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
+                <option value="APROBADO">Aprobado</option>
+                <option value="A_REPETIR">A Repetir</option>
+              </select>
+              <select
+                value={filtroActivo}
+                onChange={(e) => setFiltroActivo(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+              >
+                <option value="todos">Todos</option>
+                <option value="activos">Activos</option>
+                <option value="inactivos">Inactivos</option>
+              </select>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Filtros
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Analysis Table */}
       <Card>
         <CardHeader>
           <CardTitle>Lista de Análisis de Pureza Física</CardTitle>
-          <CardDescription>
-            {isLoading
-              ? "Cargando análisis..."
-              : `${filteredAnalisis.length} análisis encontrado${filteredAnalisis.length !== 1 ? "s" : ""}`
-            }
-          </CardDescription>
         </CardHeader>
-        <CardContent>
-          {error ? (
-            <div className="text-center p-6 text-destructive">
-              <p>{error}</p>
-              <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-                Reintentar
-              </Button>
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto max-w-full">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[100px]">ID Análisis</TableHead>
+                  <TableHead className="min-w-[150px]">Lote</TableHead>
+                  <TableHead className="min-w-[120px]">Fecha Inicio</TableHead>
+                  <TableHead className="min-w-[120px]">Fecha Fin</TableHead>
+                  <TableHead className="min-w-[100px]">Estado</TableHead>
+                  <TableHead className="min-w-[100px]">Pureza (%)</TableHead>
+                  <TableHead className="min-w-[120px]">Cumple Estándar</TableHead>
+                  <TableHead className="min-w-[150px]">Comentarios</TableHead>
+                  <TableHead className="min-w-[120px]">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAnalysis.length === 0 ? (
                   <TableRow>
-                    <TableHead>ID Análisis</TableHead>
-                    <TableHead>Lote</TableHead>
-                    <TableHead>Nombre Lote</TableHead>
-                    <TableHead>Analista</TableHead>
-                    <TableHead>Fecha Inicio</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Prioridad</TableHead>
-                    <TableHead>Pureza (%)</TableHead>
-                    <TableHead>Acciones</TableHead>
+                    <TableCell colSpan={9} className="text-center py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <AlertTriangle className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-muted-foreground">No se encontraron análisis de pureza</p>
+                      </div>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8">
-                        <div className="flex flex-col items-center justify-center">
-                          <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-                          <p className="text-muted-foreground">Cargando datos de análisis de pureza...</p>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : filteredAnalisis.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8">
-                        <p className="text-muted-foreground">No se encontraron análisis de pureza que coincidan con los criterios de búsqueda.</p>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredAnalisis.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.id}</TableCell>
-                        <TableCell>{item.loteId}</TableCell>
-                        <TableCell>{item.loteName}</TableCell>
-                        <TableCell>{item.analyst}</TableCell>
-                        <TableCell>{new Date(item.fechaInicio).toLocaleDateString("es-ES")}</TableCell>
+                ) : (
+                  filteredAnalysis.map((analysis) => {
+                    const purezaPercent = analysis.pesoInicial_g > 0
+                      ? ((analysis.semillaPura_g / analysis.pesoInicial_g) * 100).toFixed(1)
+                      : "0.0"
+                    
+                    return (
+                      <TableRow key={analysis.analisisID}>
+                        <TableCell className="font-medium">PF-{analysis.analisisID}</TableCell>
                         <TableCell>
-                          <Badge variant={getEstadoBadgeVariant(item.estado)}>{item.estado}</Badge>
+                          <div>
+                            <div className="font-medium">{analysis.lote}</div>
+                            {analysis.idLote && (
+                              <div className="text-sm text-muted-foreground">ID: {analysis.idLote}</div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatearFechaLocal(analysis.fechaInicio)}</TableCell>
+                        <TableCell>
+                          {analysis.fechaFin ? formatearFechaLocal(analysis.fechaFin) : "-"}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={getPrioridadBadgeVariant(item.prioridad)}>{item.prioridad}</Badge>
+                          <Badge variant={getEstadoBadgeVariant(analysis.estado)}>
+                            {formatEstado(analysis.estado)}
+                          </Badge>
                         </TableCell>
-                        <TableCell>{item.pureza > 0 ? `${item.pureza}%` : "-"}</TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" onClick={() => handleOpenComentarios(item)}>
-                              <MessageCircle className="h-4 w-4" />
-                            </Button>
-                            <Link href={`/analisis/pureza/${item.id}`}>
-                              <Button variant="ghost" size="sm">
+                          <span className="font-medium">{purezaPercent}%</span>
+                        </TableCell>
+                        <TableCell>
+                          {analysis.cumpleEstandar !== undefined ? (
+                            <Badge
+                              variant={analysis.cumpleEstandar ? "default" : "destructive"}
+                              className="text-xs"
+                            >
+                              {analysis.cumpleEstandar ? "Sí" : "No"}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">No evaluado</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="max-w-xs">
+                          {analysis.comentarios ? (
+                            <div className="truncate" title={analysis.comentarios}>
+                              {analysis.comentarios}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Link href={`/listado/analisis/pureza/${analysis.analisisID}`}>
+                              <Button variant="ghost" size="sm" title="Ver detalles">
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </Link>
-                            <Link href={`/analisis/pureza/${item.id}/edit`}>
-                              <Button variant="ghost" size="sm">
+                            <Link href={`/listado/analisis/pureza/${analysis.analisisID}/editar`}>
+                              <Button variant="ghost" size="sm" title="Editar">
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </Link>
-                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {userRole === "ADMIN" && (
+                              analysis.activo ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDesactivar(analysis.analisisID)}
+                                  className="text-red-600 hover:text-red-700"
+                                  title="Desactivar"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleReactivar(analysis.analisisID)}
+                                  className="text-green-600 hover:text-green-700"
+                                  title="Reactivar"
+                                >
+                                  <RefreshCw className="h-4 w-4" />
+                                </Button>
+                              )
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          {/* Paginación: centrada en el listado */}
           <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
             <div className="text-sm text-muted-foreground">
               {totalElements === 0 ? (
@@ -574,70 +497,9 @@ export default function ListadoPurezaPage() {
               alwaysShow={true}
             />
           </div>
-
         </CardContent>
       </Card>
-
-      {/* Diálogo de Comentarios */}
-      <Dialog open={comentariosDialogOpen} onOpenChange={setComentariosDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] DialogContent">
-          <DialogHeader>
-            <DialogTitle>Comentarios del Análisis {selectedAnalisis?.id}</DialogTitle>
-            <DialogDescription>
-              {isEditing
-                ? "Edita los comentarios para este análisis de pureza física"
-                : "Visualiza los comentarios registrados para este análisis"}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedAnalisis && (
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Lote</p>
-                  <p className="font-medium">{selectedAnalisis.loteId} - {selectedAnalisis.loteName}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Estado</p>
-                  <Badge variant={getEstadoBadgeVariant(selectedAnalisis.estado)}>{selectedAnalisis.estado}</Badge>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Comentarios</p>
-                {isEditing ? (
-                  <Textarea
-                    value={editingComentarios}
-                    onChange={(e) => setEditingComentarios(e.target.value)}
-                    placeholder="Ingrese comentarios sobre este análisis..."
-                    className="min-h-[120px]"
-                  />
-                ) : (
-                  <div className="rounded-md border p-4 text-sm">
-                    {selectedAnalisis.comentarios || "No hay comentarios registrados."}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          <div id="notification-container" className="mt-2"></div>
-
-          <DialogFooter className="DialogFooter">
-            {isEditing ? (
-              <>
-                <Button variant="outline" onClick={() => setIsEditing(false)}>Cancelar</Button>
-                <Button onClick={handleSaveComentarios}>Guardar Comentarios</Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outline" onClick={handleCloseComentarios}>Cerrar</Button>
-                <Button onClick={handleEditComentarios}>Editar Comentarios</Button>
-              </>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </div>
     </div>
   )
 }

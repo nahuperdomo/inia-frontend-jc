@@ -35,6 +35,18 @@ export async function eliminarTetrazolio(id: number): Promise<void> {
   });
 }
 
+export async function desactivarTetrazolio(id: number): Promise<void> {
+  return apiFetch(`/tetrazolios/${id}/desactivar`, {
+    method: "PUT",
+  });
+}
+
+export async function activarTetrazolio(id: number): Promise<TetrazolioDTO> {
+  return apiFetch(`/tetrazolios/${id}/reactivar`, {
+    method: "PUT",
+  });
+}
+
 export async function obtenerTetrazoliosPorIdLote(idLote: number): Promise<TetrazolioDTO[]> {
   return apiFetch(`/tetrazolios/lote/${idLote}`);
 }
@@ -71,6 +83,23 @@ export async function actualizarPorcentajesRedondeados(
   });
 }
 
-export async function obtenerTetrazoliosPaginadas(page: number = 0, size: number = 10): Promise<{ content: TetrazolioDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
-  return apiFetch(`/tetrazolios/listado?page=${page}&size=${size}`);
+export async function obtenerTetrazoliosPaginadas(
+  page: number = 0,
+  size: number = 10,
+  search?: string,
+  activo?: boolean,
+  estado?: string,
+  loteId?: number
+): Promise<{ content: TetrazolioDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+
+  if (search) params.append("search", search);
+  if (activo !== undefined) params.append("activo", activo.toString());
+  if (estado) params.append("estado", estado);
+  if (loteId !== undefined) params.append("loteId", loteId.toString());
+
+  return apiFetch(`/tetrazolios/listado?${params.toString()}`);
 }

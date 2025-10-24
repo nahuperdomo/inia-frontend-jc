@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { apiFetch } from "./api";
 import {
   AnalisisGenerico,
   ResumenAnalisis,
@@ -8,7 +8,10 @@ import {
 // Funciones genéricas para análisis
 export async function registrarAnalisis(payload: any, tipo: string) {
   let endpoint = "";
-  switch (tipo) {
+  // Convertir a minúsculas para asegurar compatibilidad
+  const tipoNormalizado = tipo.toLowerCase();
+
+  switch (tipoNormalizado) {
     case "pureza":
       endpoint = "/purezas";
       break;
@@ -25,7 +28,7 @@ export async function registrarAnalisis(payload: any, tipo: string) {
       endpoint = "/tetrazolios";
       break;
     default:
-      throw new Error("Tipo de análisis no soportado");
+      throw new Error(`Tipo de análisis no soportado: ${tipo}`);
   }
 
   // Debug log para verificar datos antes de enviar al backend
@@ -37,23 +40,20 @@ export async function registrarAnalisis(payload: any, tipo: string) {
     console.log("  - Tipo de análisis:", tipo);
   }
 
-  const res = await fetch(`${API_URL}${endpoint}`, {
+  return apiFetch(endpoint, {
     method: "POST",
     body: JSON.stringify(payload),
-    credentials: "include",
-    headers: { "Content-Type": "application/json" }
   });
-  return await res.json();
 }
 
 // Obtener todos los análisis de un lote
 export async function obtenerAnalisisPorLote(loteID: number): Promise<AnalisisPorLoteResponse> {
   const [purezas, germinaciones, tetrazolios, pms, dosns] = await Promise.all([
-    fetch(`${API_URL}/purezas/lote/${loteID}`, { credentials: "include", headers: { "Content-Type": "application/json" } }).then(r => r.json()).catch(() => []),
-    fetch(`${API_URL}/germinaciones/lote/${loteID}`, { credentials: "include", headers: { "Content-Type": "application/json" } }).then(r => r.json()).catch(() => []),
-    fetch(`${API_URL}/tetrazolios/lote/${loteID}`, { credentials: "include", headers: { "Content-Type": "application/json" } }).then(r => r.json()).catch(() => []),
-    fetch(`${API_URL}/pms/lote/${loteID}`, { credentials: "include", headers: { "Content-Type": "application/json" } }).then(r => r.json()).catch(() => []),
-    fetch(`${API_URL}/dosn/lote/${loteID}`, { credentials: "include", headers: { "Content-Type": "application/json" } }).then(r => r.json()).catch(() => []),
+    apiFetch(`/purezas/lote/${loteID}`).catch(() => []),
+    apiFetch(`/germinaciones/lote/${loteID}`).catch(() => []),
+    apiFetch(`/tetrazolios/lote/${loteID}`).catch(() => []),
+    apiFetch(`/pms/lote/${loteID}`).catch(() => []),
+    apiFetch(`/dosn/lote/${loteID}`).catch(() => []),
   ]);
 
   return {
@@ -67,19 +67,11 @@ export async function obtenerAnalisisPorLote(loteID: number): Promise<AnalisisPo
 
 // Funciones específicas para DOSN
 export async function obtenerDosnPorId(id: string) {
-  const res = await fetch(`${API_URL}/dosn/${id}`, {
-    credentials: "include",
-    headers: { "Content-Type": "application/json" }
-  });
-  return await res.json();
+  return apiFetch(`/dosn/${id}`);
 }
 
 export async function obtenerDosnPorLote(loteID: string) {
-  const res = await fetch(`${API_URL}/dosn/lote/${loteID}`, {
-    credentials: "include",
-    headers: { "Content-Type": "application/json" }
-  });
-  return await res.json();
+  return apiFetch(`/dosn/lote/${loteID}`);
 }
 
 // Cambiar estado de un análisis
@@ -89,7 +81,10 @@ export async function cambiarEstadoAnalisis(
   accion: 'finalizar' | 'aprobar' | 'repetir'
 ): Promise<any> {
   let endpoint = "";
-  switch (tipo) {
+  // Convertir a minúsculas para asegurar compatibilidad
+  const tipoNormalizado = tipo.toLowerCase();
+
+  switch (tipoNormalizado) {
     case "pureza":
       endpoint = `/purezas/${id}/${accion}`;
       break;
@@ -106,15 +101,12 @@ export async function cambiarEstadoAnalisis(
       endpoint = `/dosn/${id}/${accion}`;
       break;
     default:
-      throw new Error("Tipo de análisis no soportado");
+      throw new Error(`Tipo de análisis no soportado: ${tipo}`);
   }
 
-  const res = await fetch(`${API_URL}${endpoint}`, {
+  return apiFetch(endpoint, {
     method: "PUT",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" }
   });
-  return await res.json();
 }
 
 // Obtener resumen de análisis por estado

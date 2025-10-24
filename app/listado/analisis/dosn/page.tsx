@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Activity, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, AlertTriangle } from "lucide-react"
+import { Activity, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { obtenerTodasDosnActivas, obtenerDosnPaginadas } from "@/app/services/dosn-service"
+import { obtenerTodasDosnActivas, obtenerDosnPaginadas, desactivarDosn, activarDosn } from "@/app/services/dosn-service"
 import Pagination from "@/components/pagination"
 import { DosnDTO } from "@/app/models"
 import { EstadoAnalisis, TipoListado } from "@/app/models/types/enums"
+import { toast } from "sonner"
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -80,7 +81,10 @@ const formatearFechaLocal = (fechaString: string): string => {
 
 export default function ListadoDOSNPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
+  const [filtroActivo, setFiltroActivo] = useState("todos")
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [dosns, setDosns] = useState<DosnDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -92,23 +96,59 @@ export default function ListadoDOSNPage() {
   const pageSize = 10
   const [lastResponse, setLastResponse] = useState<any>(null)
 
+  // Debounce searchTerm
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
+    return () => clearTimeout(handler)
+  }, [searchTerm])
+
+  // Obtener rol del usuario
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]))
+        setUserRole(payload.rol)
+      } catch (error) {
+        console.error("Error al decodificar el token:", error)
+      }
+    }
+  }, [])
+
+
   const fetchDosns = async (page: number = 0) => {
     try {
       setLoading(true);
-      const data = await obtenerDosnPaginadas(page, pageSize);
-      console.log("DEBUG obtenerDosnPaginadas response:", data);
+  // Convert filtroActivo string to boolean
+  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
+  
+  const data = await obtenerDosnPaginadas(
+    page,
+    pageSize,
+    debouncedSearchTerm || undefined,
+    activoFilter,
+    selectedStatus !== "all" ? selectedStatus : undefined,
+    undefined
+  );
+  console.log("DEBUG obtenerDosnPaginadas response:", data);
 
-      // Datos principales
-      setDosns(data.content || []);
+  // Datos principales
+  const content = data.content || [];
+  setDosns(content);
 
-      // Extraer metadatos del objeto "page" (nuevo formato del backend)
-      const meta = (data as any).page || {};
+  // Extract pagination metadata supporting both shapes
+  const pageMeta = (data as any).page ? (data as any).page : (data as any);
+  const totalPagesFrom = pageMeta.totalPages ?? 1;
+  const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0);
+  const numberFrom = pageMeta.number ?? page;
 
-      setTotalPages(meta.totalPages ?? 1);
-      setTotalElements(meta.totalElements ?? (data.content?.length || 0));
-      setCurrentPage(meta.number ?? page);
-      setIsFirst((meta.number ?? 0) === 0);
-      setIsLast((meta.number ?? 0) >= (meta.totalPages ?? 1) - 1);
+  setTotalPages(totalPagesFrom);
+  setTotalElements(totalElementsFrom);
+  setCurrentPage(numberFrom);
+  setIsFirst(numberFrom === 0);
+  setIsLast(numberFrom >= totalPagesFrom - 1);
     } catch (err) {
       setError("Error al cargar los análisis DOSN");
       console.error("Error fetching DOSNs:", err);
@@ -118,38 +158,56 @@ export default function ListadoDOSNPage() {
   };
 
   useEffect(() => {
+    setCurrentPage(0)
     fetchDosns(0)
-  }, [])
+  }, [filtroActivo, selectedStatus, debouncedSearchTerm])
 
-  const filteredAnalysis = dosns.filter((analysis) => {
-    const searchLower = searchTerm.toLowerCase()
-    const matchesSearch =
-      analysis.analisisID.toString().includes(searchLower) ||
-      analysis.lote.toLowerCase().includes(searchLower) ||
-      (analysis.comentarios && analysis.comentarios.toLowerCase().includes(searchLower)) ||
-      `dosn-${analysis.analisisID}`.includes(searchLower)
-    const matchesStatus = selectedStatus === "all" || analysis.estado === selectedStatus
-    return matchesSearch && matchesStatus
-  })
+  // Handlers para desactivar/reactivar
+  const handleDesactivar = async (id: number) => {
+    if (!confirm("¿Está seguro de desactivar este análisis DOSN?")) return
+    try {
+      await desactivarDosn(id)
+      toast.success("Análisis DOSN desactivado exitosamente")
+      await fetchDosns(currentPage)
+    } catch (error) {
+      console.error("Error al desactivar DOSN:", error)
+      toast.error("Error al desactivar el análisis")
+    }
+  }
+
+  const handleReactivar = async (id: number) => {
+    try {
+      await activarDosn(id)
+      toast.success("Análisis DOSN reactivado exitosamente")
+      await fetchDosns(currentPage)
+    } catch (error) {
+      console.error("Error al reactivar DOSN:", error)
+      toast.error("Error al reactivar el análisis")
+    }
+  }
+
+  // No client-side filtering - all filtering done on backend
+  const filteredAnalysis = dosns
 
   // Calculate stats from current page data and total
   const totalAnalysis = totalElements
-  const completedAnalysis = dosns.filter(d => d.estado === "FINALIZADO" || d.estado === "APROBADO").length
+  const completedAnalysis = dosns.filter(d => d.estado === "APROBADO").length
   const inProgressAnalysis = dosns.filter(d => d.estado === "EN_PROCESO").length
-  const pendingAnalysis = dosns.filter(d => d.estado === "PENDIENTE").length
+  const pendingAnalysis = dosns.filter(d => d.estado === "REGISTRADO" || d.estado === "PENDIENTE_APROBACION").length
   const complianceRate = dosns.length > 0 ? Math.round((dosns.filter(d => d.cumpleEstandar === true).length / dosns.length) * 100) : 0
 
   const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
     switch (estado) {
-      case "FINALIZADO":
       case "APROBADO":
         return "default"
       case "EN_PROCESO":
         return "secondary"
-      case "PENDIENTE":
-        return "destructive"
-      case "PENDIENTE_APROBACION":
+      case "REGISTRADO":
         return "outline"
+      case "PENDIENTE_APROBACION":
+        return "destructive"
+      case "A_REPETIR":
+        return "destructive"
       default:
         return "outline"
     }
@@ -157,18 +215,16 @@ export default function ListadoDOSNPage() {
 
   const formatEstado = (estado: EstadoAnalisis) => {
     switch (estado) {
-      case "FINALIZADO":
-        return "Finalizado"
+      case "REGISTRADO":
+        return "Registrado"
       case "EN_PROCESO":
         return "En Proceso"
-      case "PENDIENTE":
-        return "Pendiente"
       case "APROBADO":
         return "Aprobado"
       case "PENDIENTE_APROBACION":
         return "Pend. Aprobación"
-      case "PARA_REPETIR":
-        return "Para Repetir"
+      case "A_REPETIR":
+        return "A Repetir"
       default:
         return estado
     }
@@ -176,7 +232,7 @@ export default function ListadoDOSNPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 space-y-6 p-6">
+      <div className="space-y-6 p-3 sm:p-4 md:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -189,7 +245,7 @@ export default function ListadoDOSNPage() {
 
   if (error) {
     return (
-      <div className="flex-1 space-y-6 p-6">
+      <div className="space-y-6 p-3 sm:p-4 md:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
@@ -203,28 +259,32 @@ export default function ListadoDOSNPage() {
   }
 
   return (
-    <div className="flex-1 space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/listado">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Listados
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Análisis DOSN</h1>
-            <p className="text-muted-foreground">Consulta la determinación de otras semillas nocivas</p>
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <Link href="/listado" className="sm:self-start">
+              <Button variant="ghost" size="sm" className="w-fit">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Volver a Listados</span>
+                <span className="sm:hidden">Volver</span>
+              </Button>
+            </Link>
+            <div className="text-center sm:text-left flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Análisis DOSN</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">Consulta la determinación de otras semillas nocivas</p>
+            </div>
+          </div>
+          <div className="flex justify-center sm:justify-end">
+            <Link href="/registro/analisis?tipo=DOSN">
+              <Button className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                Nuevo Análisis
+              </Button>
+            </Link>
           </div>
         </div>
-        <Link href="/registro/analisis/dosn">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Análisis
-          </Button>
-        </Link>
-      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -296,11 +356,20 @@ export default function ListadoDOSNPage() {
                 className="px-3 py-2 border border-input bg-background rounded-md text-sm"
               >
                 <option value="all">Todos los estados</option>
-                <option value="FINALIZADO">Finalizado</option>
+                <option value="REGISTRADO">Registrado</option>
                 <option value="EN_PROCESO">En Proceso</option>
-                <option value="PENDIENTE">Pendiente</option>
-                <option value="APROBADO">Aprobado</option>
                 <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
+                <option value="APROBADO">Aprobado</option>
+                <option value="A_REPETIR">A Repetir</option>
+              </select>
+              <select
+                value={filtroActivo}
+                onChange={(e) => setFiltroActivo(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+              >
+                <option value="todos">Todos</option>
+                <option value="activos">Activos</option>
+                <option value="inactivos">Inactivos</option>
               </select>
               <Button variant="outline" size="sm">
                 <Filter className="h-4 w-4 mr-2" />
@@ -317,8 +386,8 @@ export default function ListadoDOSNPage() {
         <CardHeader>
           <CardTitle>Lista de Análisis DOSN</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto max-w-full">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -414,9 +483,29 @@ export default function ListadoDOSNPage() {
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <Button variant="ghost" size="sm" title="Eliminar">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {userRole === "ADMIN" && (
+                            analysis.activo ? (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                title="Desactivar"
+                                onClick={() => handleDesactivar(analysis.analisisID)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                title="Reactivar"
+                                onClick={() => handleReactivar(analysis.analisisID)}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <RefreshCw className="h-4 w-4" />
+                              </Button>
+                            )
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -447,6 +536,7 @@ export default function ListadoDOSNPage() {
         </CardContent>
       </Card>
 
+      </div>
     </div>
   )
 }

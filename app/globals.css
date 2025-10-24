@@ -122,5 +122,20 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+  }
+  html {
+    overflow-x: hidden;
+  }
+}
+
+/* Prevent horizontal scroll and ensure proper table responsiveness */
+@layer utilities {
+  .table-container {
+    @apply overflow-x-auto max-w-full;
+  }
+  
+  .prevent-horizontal-scroll {
+    @apply overflow-x-hidden max-w-full;
   }
 }

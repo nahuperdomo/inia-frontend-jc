@@ -18,6 +18,7 @@ export interface AnalisisDTO {
   fechaFin?: string; // LocalDateTime as string
   comentarios?: string;
   historial: AnalisisHistorialDTO[];
+  activo?: boolean; // Campo para soft delete
 }
 
 // Base DTO for all analysis requests

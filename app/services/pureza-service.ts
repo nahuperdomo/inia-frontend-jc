@@ -54,6 +54,18 @@ export async function eliminarPureza(id: number): Promise<void> {
   });
 }
 
+export async function desactivarPureza(id: number): Promise<void> {
+  return apiFetch(`/purezas/${id}/desactivar`, {
+    method: "PUT",
+  });
+}
+
+export async function activarPureza(id: number): Promise<PurezaDTO> {
+  return apiFetch(`/purezas/${id}/reactivar`, {
+    method: "PUT",
+  });
+}
+
 export async function obtenerPurezasPorIdLote(idLote: number): Promise<PurezaDTO[]> {
   return apiFetch(`/purezas/lote/${idLote}`);
 }
@@ -62,8 +74,25 @@ export async function obtenerTodosCatalogos(): Promise<MalezasYCultivosCatalogoD
   return apiFetch("/purezas/catalogos");
 }
 
-export async function obtenerPurezasPaginadas(page: number = 0, size: number = 10): Promise<{ content: PurezaDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
-  return apiFetch(`/purezas/listado?page=${page}&size=${size}`);
+export async function obtenerPurezasPaginadas(
+  page: number = 0,
+  size: number = 10,
+  search?: string,
+  activo?: boolean,
+  estado?: string,
+  loteId?: number
+): Promise<{ content: PurezaDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+  
+  if (search) params.append("search", search);
+  if (activo !== undefined) params.append("activo", activo.toString());
+  if (estado) params.append("estado", estado);
+  if (loteId !== undefined) params.append("loteId", loteId.toString());
+
+  return apiFetch(`/purezas/listado?${params.toString()}`);
 }
 
 export async function finalizarAnalisis(id: number): Promise<PurezaDTO> {

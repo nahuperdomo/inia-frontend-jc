@@ -1,15 +1,11 @@
 export interface CatalogoDTO {
-  catalogoID: number;
+  id: number;
   tipo: string;
-  codigo: string;
-  descripcion: string;
+  valor: string;
   activo: boolean;
-  fechaCreacion: string;
-  fechaModificacion?: string;
 }
 
 export interface CatalogoRequestDTO {
   tipo: string;
-  codigo: string;
-  descripcion: string;
+  valor: string;
 }

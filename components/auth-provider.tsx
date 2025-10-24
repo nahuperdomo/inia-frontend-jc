@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { obtenerPerfil } from "@/app/services/auth-service"
 
 interface User {
   id: string
@@ -48,9 +49,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Check for existing session
     if (typeof window !== "undefined") {
-      const savedUser = localStorage.getItem("inia-user")
-      if (savedUser) {
-        setUser(JSON.parse(savedUser))
+      // Intentar con ambas keys: "usuario" (del login real) o "inia-user" (del mock)
+      const savedUserData = localStorage.getItem("usuario") || localStorage.getItem("inia-user")
+      if (savedUserData) {
+        const parsedUser = JSON.parse(savedUserData)
+        
+        // Si viene del login real (tiene roles array)
+        if (parsedUser.roles && Array.isArray(parsedUser.roles)) {
+          let userRole: "analista" | "administrador" | "observador" = "analista"
+          if (parsedUser.roles.length > 0) {
+            const rolBackend = parsedUser.roles[0].toLowerCase()
+            if (rolBackend === "admin" || rolBackend === "administrador") {
+              userRole = "administrador"
+            } else if (rolBackend === "observador") {
+              userRole = "observador"
+            }
+          }
+          
+          const mappedUser: User = {
+            id: parsedUser.id?.toString() || "1",
+            email: parsedUser.email || "",
+            name: parsedUser.nombre || `${parsedUser.nombres || ""} ${parsedUser.apellidos || ""}`.trim() || "Usuario",
+            role: userRole,
+            department: "Laboratorio",
+            permissions: ROLE_PERMISSIONS[userRole],
+          }
+          setUser(mappedUser)
+          console.log("✅ Usuario cargado desde localStorage (login real):", mappedUser)
+        } else {
+          // Si ya viene en formato User (del mock)
+          setUser(parsedUser)
+          console.log("✅ Usuario cargado desde localStorage (mock):", parsedUser)
+        }
       }
     }
     setIsLoading(false)

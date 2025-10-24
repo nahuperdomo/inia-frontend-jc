@@ -1,4 +1,4 @@
-import { TipoMYCCatalogo, EstadoLote, TipoAnalisis } from '../types/enums';
+import { TipoMYCCatalogo, TipoAnalisis } from '../types/enums';
 import { DatosHumedadDTO } from './common';
 
 /**
@@ -7,6 +7,7 @@ import { DatosHumedadDTO } from './common';
 export interface LoteDTO {
   loteID: number;
   ficha: string;
+  nomLote?: string;
   cultivarID: number;
   cultivarNombre?: string;
   tipo?: string;
@@ -47,6 +48,7 @@ export interface LoteDTO {
 
 export interface LoteRequestDTO {
   ficha: string;
+  nomLote: string;
   cultivarID: number;
   tipo: string;
   empresaID: number;

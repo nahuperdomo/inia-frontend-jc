@@ -36,12 +36,41 @@ export async function eliminarDosn(id: number): Promise<void> {
   });
 }
 
+export async function desactivarDosn(id: number): Promise<void> {
+  return apiFetch(`/dosn/${id}/desactivar`, {
+    method: "PUT",
+  });
+}
+
+export async function activarDosn(id: number): Promise<DosnDTO> {
+  return apiFetch(`/dosn/${id}/reactivar`, {
+    method: "PUT",
+  });
+}
+
 export async function obtenerDosnPorIdLote(idLote: number): Promise<DosnDTO[]> {
   return apiFetch(`/dosn/lote/${idLote}`);
 }
 
-export async function obtenerDosnPaginadas(page: number = 0, size: number = 10): Promise<{ content: DosnDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
-  return apiFetch(`/dosn/listado?page=${page}&size=${size}`);
+export async function obtenerDosnPaginadas(
+  page: number = 0,
+  size: number = 10,
+  search?: string,
+  activo?: boolean,
+  estado?: string,
+  loteId?: number
+): Promise<{ content: DosnDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+
+  if (search) params.append("search", search);
+  if (activo !== undefined) params.append("activo", activo.toString());
+  if (estado) params.append("estado", estado);
+  if (loteId !== undefined) params.append("loteId", loteId.toString());
+
+  return apiFetch(`/dosn/listado?${params.toString()}`);
 }
 
 export async function obtenerTodosCatalogos(): Promise<MalezasYCultivosCatalogoDTO[]> {

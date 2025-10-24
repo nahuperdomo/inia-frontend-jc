@@ -13,10 +13,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ArrowLeft, Save, Loader2, AlertTriangle, FileText, Building2, Plus, Trash2, Leaf } from "lucide-react"
 import Link from "next/link"
-import { obtenerDosnPorId, actualizarDosn, obtenerTodasDosnActivas } from "@/app/services/dosn-service"
+import { 
+  obtenerDosnPorId, 
+  actualizarDosn, 
+  obtenerTodasDosnActivas,
+  finalizarAnalisis,
+  aprobarAnalisis,
+  marcarParaRepetir
+} from "@/app/services/dosn-service"
 import { obtenerTodosActivosMalezasCultivos } from "@/app/services/malezas-service"
 import type { DosnDTO, DosnRequestDTO, MalezasYCultivosCatalogoDTO, TipoListado, TipoMYCCatalogo } from "@/app/models"
 import { toast } from "sonner"
+import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
+import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
 
 // Función helper para mapear tipos de listado a tipos de catálogo
 const getCompatibleCatalogTypes = (listadoTipo: TipoListado): TipoMYCCatalogo[] => {
@@ -420,6 +429,79 @@ export default function EditarDosnPage() {
     }
   }
 
+  // Finalizar análisis
+  const handleFinalizarAnalisis = async () => {
+    if (!dosn) return
+    
+    try {
+      console.log("🏁 Finalizando análisis DOSN:", dosn.analisisID)
+      await finalizarAnalisis(dosn.analisisID)
+      toast.success("Análisis finalizado exitosamente")
+      router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
+    } catch (err: any) {
+      console.error("❌ Error finalizando análisis:", err)
+      toast.error('Error al finalizar análisis', {
+        description: err?.message || "No se pudo finalizar el análisis",
+      })
+    }
+  }
+
+  // Aprobar análisis
+  const handleAprobar = async () => {
+    if (!dosn) return
+    
+    try {
+      console.log("✅ Aprobando análisis DOSN:", dosn.analisisID)
+      await aprobarAnalisis(dosn.analisisID)
+      toast.success("Análisis aprobado exitosamente")
+      // Recargar datos
+      const dosnData = await obtenerDosnPorId(Number.parseInt(dosnId))
+      setDosn(dosnData)
+    } catch (err: any) {
+      console.error("❌ Error aprobando análisis:", err)
+      toast.error('Error al aprobar análisis', {
+        description: err?.message || "No se pudo aprobar el análisis",
+      })
+    }
+  }
+
+  // Marcar para repetir
+  const handleMarcarParaRepetir = async () => {
+    if (!dosn) return
+    
+    try {
+      console.log("🔄 Marcando análisis DOSN para repetir:", dosn.analisisID)
+      await marcarParaRepetir(dosn.analisisID)
+      toast.success("Análisis marcado para repetir")
+      // Recargar datos
+      const dosnData = await obtenerDosnPorId(Number.parseInt(dosnId))
+      setDosn(dosnData)
+    } catch (err: any) {
+      console.error("❌ Error marcando para repetir:", err)
+      toast.error('Error al marcar para repetir', {
+        description: err?.message || "No se pudo marcar el análisis",
+      })
+    }
+  }
+
+  // Finalizar y aprobar
+  const handleFinalizarYAprobar = async () => {
+    if (!dosn) return
+    
+    try {
+      console.log("🏁✅ Finalizando y aprobando análisis DOSN:", dosn.analisisID)
+      // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
+      await finalizarAnalisis(dosn.analisisID)
+      toast.success("Análisis finalizado y aprobado exitosamente")
+      router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
+    } catch (err: any) {
+      console.error("❌ Error finalizando y aprobando:", err)
+      toast.error('Error al finalizar y aprobar', {
+        description: err?.message || "No se pudo completar la acción",
+      })
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-muted/30 p-4 md:p-8">
@@ -469,51 +551,18 @@ export default function EditarDosnPage() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <div className="sticky top-0 z-10 bg-background border-b">
-        <div className="container max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
-              <Link href={`/listado/analisis/dosn/${dosnId}`}>
-                <Button variant="ghost" size="sm" className="mt-1">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Volver
-                </Button>
-              </Link>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-1">
-                  <h1 className="text-2xl md:text-3xl font-bold text-balance">Editar Análisis DOSN</h1>
-                  <Badge variant="outline" className="text-sm">
-                    #{dosn.analisisID}
-                  </Badge>
-                </div>
-                <p className="text-sm md:text-base text-muted-foreground text-pretty">
-                  Modifica los datos del análisis de determinación de otras semillas nocivas
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3 w-full lg:w-auto">
-              <Link href={`/listado/analisis/dosn/${dosnId}`} className="flex-1 lg:flex-none">
-                <Button variant="outline" className="w-full bg-transparent">
-                  Cancelar
-                </Button>
-              </Link>
-              <Button onClick={handleSave} disabled={saving} className="flex-1 lg:flex-none">
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Guardar Cambios
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Header Universal */}
+      <AnalisisHeaderBar
+        tipoAnalisis="DOSN"
+        analisisId={dosn.analisisID}
+        estado={dosn.estado || ""}
+        volverUrl={`/listado/analisis/dosn/${dosnId}`}
+        modoEdicion={true}
+        onToggleEdicion={() => router.push(`/listado/analisis/dosn/${dosnId}`)}
+        onGuardarCambios={handleSave}
+        guardando={saving}
+        tieneCambios={true}
+      />
 
       <div className="container max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8 space-y-6">
         <Card className="border-2">
@@ -1082,31 +1131,32 @@ export default function EditarDosnPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-primary/20">
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href={`/listado/analisis/dosn/${dosnId}`} className="flex-1">
-                <Button variant="outline" size="lg" className="w-full bg-transparent">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Cancelar
-                </Button>
-              </Link>
-              <Button onClick={handleSave} disabled={saving} size="lg" className="flex-1">
-                {saving ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Guardando cambios...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-5 w-5 mr-2" />
-                    Guardar Cambios
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Card de Acciones */}
+        <AnalisisAccionesCard
+          analisisId={dosn.analisisID}
+          tipoAnalisis="dosn"
+          estado={dosn.estado || ""}
+          onAprobar={async () => {
+            const analisisActualizado = await aprobarAnalisis(dosn.analisisID)
+            toast.success("Análisis aprobado exitosamente")
+            router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
+          }}
+          onMarcarParaRepetir={async () => {
+            const analisisActualizado = await marcarParaRepetir(dosn.analisisID)
+            toast.success("Análisis marcado para repetir")
+            router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
+          }}
+          onFinalizarYAprobar={async () => {
+            const analisisActualizado = await aprobarAnalisis(dosn.analisisID)
+            toast.success("Análisis finalizado y aprobado")
+            router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
+          }}
+          onFinalizar={async () => {
+            await finalizarAnalisis(dosn.analisisID)
+            toast.success("Análisis finalizado exitosamente")
+            router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
+          }}
+        />
       </div>
     </div>
   )

@@ -77,11 +77,16 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
             setCurrentPage(response.number);
             setTotalPages(response.totalPages);
             setTotalElements(response.totalElements);
-        } catch (err) {
-            const errorMessage = 'Error al cargar notificaciones';
-            setError(errorMessage);
-            if (showToasts) {
-                toast.error(errorMessage);
+        } catch (err: any) {
+            // Si el error es 403 (no autenticado), no mostrar toast ni setear error visible
+            const is403 = err?.message?.includes('403') || err?.message?.includes('Forbidden');
+            
+            if (!is403) {
+                const errorMessage = 'Error al cargar notificaciones';
+                setError(errorMessage);
+                if (showToasts) {
+                    toast.error(errorMessage);
+                }
             }
             console.error('Error loading notifications:', err);
         } finally {
@@ -99,11 +104,14 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
 
             setUnreadNotifications(unreadData);
             setUnreadCount(countData);
-        } catch (err) {
-            console.error('Error loading unread notifications:', err);
-            if (showToasts) {
+        } catch (err: any) {
+            // Si el error es 403 (no autenticado), no mostrar toast
+            const is403 = err?.message?.includes('403') || err?.message?.includes('Forbidden');
+            
+            if (!is403 && showToasts) {
                 toast.error('Error al cargar notificaciones no leídas');
             }
+            console.error('Error loading unread notifications:', err);
         }
     }, [showToasts]);
 

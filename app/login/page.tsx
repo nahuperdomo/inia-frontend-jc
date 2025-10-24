@@ -20,13 +20,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  // Función helper para manejar cookies
-  function setCookie(name: string, value: string, days: number = 1) {
-    const maxAge = days * 24 * 60 * 60;
-    // Usamos SameSite=Lax para compatibilidad con dispositivos móviles
-    document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
-  }
-
   // Servicio de login
   async function login(usuario: string, password: string) {
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -39,15 +32,30 @@ export default function LoginPage() {
         "Accept": "application/json"
       },
       body: JSON.stringify({ usuario, password }),
-      credentials: "include"
+      credentials: "include" // CRÍTICO: permite recibir cookies HttpOnly del backend
     })
 
     console.log("📥 Status de respuesta:", response.status);
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("❌ Error:", errorText);
-      throw new Error(errorText);
+      let errorMessage = "Error de autenticación";
+      
+      try {
+        const errorData = await response.json();
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        }
+      } catch {
+        // Si no es JSON, intentar leerlo como texto
+        try {
+          errorMessage = await response.text();
+        } catch {
+          // Usar mensaje por defecto
+        }
+      }
+      
+      console.error("❌ Error:", errorMessage);
+      throw new Error(errorMessage);
     }
 
     return response.json();
@@ -60,17 +68,76 @@ export default function LoginPage() {
     try {
       const data = await login(credentials.usuario, credentials.password)
 
-      // Guardar en localStorage (para uso en el cliente)
-      localStorage.setItem("token", data.token)
+      console.log("✅ Login exitoso. Backend envió cookies HttpOnly.");
+      console.log("📦 Datos de usuario:", data.usuario);
 
-      // Guardar en cookies (para que funcione con el middleware)
-      setCookie("token", data.token, 1) // Cookie válida por 1 día
+      // SOLUCIÓN SEGURA: NO guardar token en localStorage ni cookies client-side
+      // El token está en cookies HttpOnly (accessToken, refreshToken) manejadas automáticamente por el navegador
+      
+      // Opcionalmente, guardar datos de usuario para UX (no sensibles)
+      if (data.usuario) {
+        localStorage.setItem("usuario", JSON.stringify({
+          id: data.usuario.id,
+          nombre: data.usuario.nombre,
+          nombres: data.usuario.nombres,
+          apellidos: data.usuario.apellidos,
+          email: data.usuario.email,
+          roles: data.usuario.roles
+        }));
+      }
 
-      router.push("/dashboard")
-    } catch (error) {
-      // Toast de error en lugar de alert
-      toast.error('Credenciales incorrectas', {
-        description: 'Por favor verifica tu usuario y contraseña'
+      console.log("🚀 Redirigiendo a /dashboard...");
+      
+      // Usar setTimeout para asegurar que las cookies se establezcan antes de redirigir
+      setTimeout(() => {
+        console.log("⏰ Ejecutando redirección después de timeout...");
+        router.push("/dashboard");
+        
+        // Fallback: si router.push no funciona en 1 segundo, usar window.location
+        setTimeout(() => {
+          if (window.location.pathname === "/login") {
+            console.warn("⚠️ router.push no redirigió, usando window.location.href");
+            window.location.href = "/dashboard";
+          }
+        }, 1000);
+      }, 100);
+      
+      console.log("✅ router.push ejecutado");
+    } catch (error: any) {
+      console.error("❌ Error en handleSubmit:", error);
+      
+      // Intentar extraer el mensaje de error del backend
+      let errorMessage = 'Credenciales incorrectas';
+      let errorDescription = 'Por favor verifica tu usuario y contraseña';
+      
+      try {
+        // El error puede venir como string o en error.message
+        const errorText = error.message || error.toString();
+        
+        // Mensajes específicos del backend
+        if (errorText.includes('Usuario sin rol asignado')) {
+          errorMessage = 'Usuario sin rol';
+          errorDescription = 'El administrador debe asignarte un rol antes de que puedas iniciar sesión. Contacta al administrador.';
+        } else if (errorText.includes('pendiente de aprobación')) {
+          errorMessage = 'Usuario pendiente de aprobación';
+          errorDescription = 'Tu cuenta está pendiente de aprobación por el administrador.';
+        } else if (errorText.includes('Usuario inactivo')) {
+          errorMessage = 'Usuario inactivo';
+          errorDescription = 'Tu cuenta ha sido desactivada. Contacta al administrador.';
+        } else if (errorText.includes('Usuario no encontrado')) {
+          errorMessage = 'Usuario no encontrado';
+          errorDescription = 'El usuario ingresado no existe.';
+        } else if (errorText.includes('Contraseña incorrecta')) {
+          errorMessage = 'Contraseña incorrecta';
+          errorDescription = 'La contraseña ingresada no es correcta.';
+        }
+      } catch (parseError) {
+        console.error("Error parsing error message:", parseError);
+      }
+      
+      toast.error(errorMessage, {
+        description: errorDescription,
+        duration: 5000
       })
     } finally {
       setIsLoading(false)

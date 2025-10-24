@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2, AlertTriangle } from "lucide-react"
+import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
-import { obtenerLotesPaginadas } from "@/app/services/lote-service"
+import { obtenerLotesPaginadas, eliminarLote, activarLote, obtenerEstadisticasLotes } from "@/app/services/lote-service"
+import { obtenerPerfil } from "@/app/services/auth-service"
 import Pagination from "@/components/pagination"
 import { LoteSimpleDTO } from "@/app/models"
+import { toast } from "sonner"
 
 export default function ListadoLotesPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -23,51 +25,137 @@ export default function ListadoLotesPage() {
   const [currentPage, setCurrentPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const pageSize = 10
-
-  useEffect(() => {
-    const fetchLotes = async (page: number = 0) => {
-      try {
-        setIsLoading(true)
-        const loteResp = await obtenerLotesPaginadas(page, pageSize)
-        const lotesData = loteResp.content || []
-
-        // No necesitamos transformar los datos, ya vienen como LoteSimpleDTO
-        setLotes(lotesData)
-
-        setTotalPages(loteResp.totalPages ?? 1)
-        setTotalElements(loteResp.totalElements ?? (lotesData.length || 0))
-        setCurrentPage(loteResp.number ?? page)
-      } catch (err) {
-        console.error("Error fetching lotes:", err)
-        setError("Error al cargar los lotes. Intente nuevamente más tarde.")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchLotes(0)
-  }, [])
-
-  const filteredLotes = lotes.filter((lote) => {
-    const matchesSearch =
-      (lote.ficha || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lote.cultivarNombre || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lote.especieNombre || "").toLowerCase().includes(searchTerm.toLowerCase())
-
-    const estadoLote = lote.activo ? "Activo" : "Inactivo"
-    const matchesEstado = filterEstado === "todos" || estadoLote === filterEstado
-    const matchesCultivo = filterCultivo === "todos" || (lote.cultivarNombre || "") === filterCultivo
-
-    return matchesSearch && matchesEstado && matchesCultivo
+  
+  // Statistics state
+  const [stats, setStats] = useState({
+    total: 0,
+    activos: 0,
+    inactivos: 0
   })
 
+  // Fetch user profile to get role
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        const perfil = await obtenerPerfil()
+        const role = perfil?.roles?.[0] || ''
+        const cleanRole = role.replace('ROLE_', '')
+        setUserRole(cleanRole)
+      } catch (error) {
+        console.error("Error obteniendo rol de usuario:", error)
+      }
+    }
+    fetchUserRole()
+  }, [])
+
+  // Fetch statistics
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const estadisticas = await obtenerEstadisticasLotes()
+        setStats(estadisticas)
+      } catch (error) {
+        console.error("Error obteniendo estadísticas:", error)
+      }
+    }
+    fetchStats()
+  }, [])
+
+  useEffect(() => {
+    fetchLotes(0)
+  }, [searchTerm, filterEstado, filterCultivo]) // Recargar cuando cambien los filtros
+
+  const fetchLotes = async (page: number = 0) => {
+    try {
+      setIsLoading(true)
+      
+      // Convertir filterEstado a boolean o null
+      let activoFilter: boolean | null = null
+      if (filterEstado === "Activo") {
+        activoFilter = true
+      } else if (filterEstado === "Inactivo") {
+        activoFilter = false
+      }
+      
+      // Enviar filtros al backend
+      const data = await obtenerLotesPaginadas(
+        page, 
+        pageSize, 
+        searchTerm, 
+        activoFilter, 
+        filterCultivo
+      )
+      
+      console.log("DEBUG obtenerLotesPaginadas response:", data)
+      
+      // Manejar respuesta: puede venir con o sin el objeto 'page'
+      const content = data.content || []
+      setLotes(content)
+      
+      // Verificar si la metadata viene en data.page o directamente en data
+      const pageInfo = (data as any).page || data
+      const totalPagesFrom = pageInfo.totalPages ?? 1
+      const totalElementsFrom = pageInfo.totalElements ?? 0
+      const numberFrom = pageInfo.number ?? page
+      
+      setTotalPages(totalPagesFrom)
+      setTotalElements(totalElementsFrom)
+      setCurrentPage(numberFrom)
+
+      // Obtener estadísticas para las cards
+      const estadisticas = await obtenerEstadisticasLotes()
+      setStats(estadisticas)
+    } catch (err) {
+      console.error("Error fetching lotes:", err)
+      setError("Error al cargar los lotes. Intente nuevamente más tarde.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Los cultivos ahora deben venir de todos los lotes, no solo de la página actual
+  // Para esto, necesitaremos un endpoint separado o cargar todos los cultivares
   const cultivos = [...new Set(lotes.map((lote) => lote.cultivarNombre || "").filter(Boolean))]
 
+  // Handler para desactivar lote
+  const handleDesactivarLote = async (id: number) => {
+    if (!confirm("¿Está seguro de que desea desactivar este lote?")) {
+      return
+    }
+
+    try {
+      await eliminarLote(id)
+      toast.success("Lote desactivado exitosamente")
+      // Recargar lotes
+      await fetchLotes(currentPage)
+    } catch (error: any) {
+      toast.error("Error al desactivar lote", {
+        description: error?.message
+      })
+    }
+  }
+
+  // Handler para reactivar lote
+  const handleReactivarLote = async (id: number) => {
+    try {
+      await activarLote(id)
+      toast.success("Lote reactivado exitosamente")
+      // Recargar lotes
+      await fetchLotes(currentPage)
+    } catch (error: any) {
+      toast.error("Error al reactivar lote", {
+        description: error?.message
+      })
+    }
+  }
+
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/listado">
             <Button variant="ghost" size="sm">
@@ -83,10 +171,6 @@ export default function ListadoLotesPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
           <Link href="/registro/lotes">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -109,7 +193,7 @@ export default function ListadoLotesPage() {
                     <span>Cargando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl font-bold">{lotes.length}</p>
+                  <p className="text-2xl font-bold">{stats.total}</p>
                 )}
               </div>
               <Package className="h-8 w-8 text-primary" />
@@ -127,7 +211,7 @@ export default function ListadoLotesPage() {
                     <span>Cargando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl font-bold">{lotes.filter((l) => l.activo).length}</p>
+                  <p className="text-2xl font-bold">{stats.activos}</p>
                 )}
               </div>
               <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
@@ -147,7 +231,7 @@ export default function ListadoLotesPage() {
                     <span>Cargando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl font-bold">{lotes.filter((l) => !l.activo).length}</p>
+                  <p className="text-2xl font-bold">{stats.inactivos}</p>
                 )}
               </div>
               <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
@@ -192,7 +276,7 @@ export default function ListadoLotesPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por ficha, cultivar o especie..."
+                  placeholder="Buscar por ficha, nombre de lote, cultivar o especie..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -233,7 +317,7 @@ export default function ListadoLotesPage() {
           <CardDescription>
             {isLoading
               ? "Cargando lotes..."
-              : `${filteredLotes.length} lote${filteredLotes.length !== 1 ? "s" : ""} encontrado${filteredLotes.length !== 1 ? "s" : ""}`
+              : `${totalElements} lote${totalElements !== 1 ? "s" : ""} encontrado${totalElements !== 1 ? "s" : ""}`
             }
           </CardDescription>
         </CardHeader>
@@ -246,73 +330,92 @@ export default function ListadoLotesPage() {
               </Button>
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Ficha</TableHead>
-                    <TableHead>Cultivar</TableHead>
-                    <TableHead>Especie</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    <TableRow key="loading-row">
-                      <TableCell colSpan={5} className="text-center py-8">
-                        <div className="flex flex-col items-center justify-center">
-                          <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-                          <p className="text-muted-foreground">Cargando datos de lotes...</p>
-                        </div>
-                      </TableCell>
+            <>
+              <div className="rounded-md border overflow-x-auto max-w-full">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Ficha</TableHead>
+                      <TableHead>Nombre Lote</TableHead>
+                      <TableHead>Cultivar</TableHead>
+                      <TableHead>Especie</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Acciones</TableHead>
                     </TableRow>
-                  ) : filteredLotes.length === 0 ? (
-                    <TableRow key="no-data-row">
-                      <TableCell colSpan={5} className="text-center py-8">
-                        <p className="text-muted-foreground">No se encontraron lotes que coincidan con los criterios de búsqueda.</p>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredLotes.map((lote) => (
-                      <TableRow key={lote.loteID}>
-                        <TableCell className="font-medium">{lote.ficha || "-"}</TableCell>
-                        <TableCell>{lote.cultivarNombre || "-"}</TableCell>
-                        <TableCell>{lote.especieNombre || "-"}</TableCell>
-                        <TableCell>
-                          <Badge variant={lote.activo ? "default" : "destructive"}>
-                            {lote.activo ? "Activo" : "Inactivo"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Link href={`/listado/lotes/${lote.loteID}`}>
-                              <Button variant="ghost" size="sm" title="Ver detalles">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                            <Link href={`/listado/lotes/${lote.loteID}/editar`}>
-                              <Button variant="ghost" size="sm" title="Editar">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="text-destructive hover:text-destructive"
-                              title="Eliminar"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      <TableRow key="loading-row">
+                        <TableCell colSpan={6} className="text-center py-8">
+                          <div className="flex flex-col items-center justify-center">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+                            <p className="text-muted-foreground">Cargando datos de lotes...</p>
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-              {/* Paginación */}
-              <div className="flex items-center justify-between mt-4 px-4">
+                    ) : lotes.length === 0 ? (
+                      <TableRow key="no-data-row">
+                        <TableCell colSpan={6} className="text-center py-8">
+                          <p className="text-muted-foreground">No se encontraron lotes que coincidan con los criterios de búsqueda.</p>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      lotes.map((lote) => (
+                        <TableRow key={lote.loteID}>
+                          <TableCell className="font-medium">{lote.ficha || "-"}</TableCell>
+                          <TableCell className="font-medium">{lote.nomLote || "-"}</TableCell>
+                          <TableCell>{lote.cultivarNombre || "-"}</TableCell>
+                          <TableCell>{lote.especieNombre || "-"}</TableCell>
+                          <TableCell>
+                            <Badge variant={lote.activo ? "default" : "destructive"}>
+                              {lote.activo ? "Activo" : "Inactivo"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Link href={`/listado/lotes/${lote.loteID}`}>
+                                <Button variant="ghost" size="sm" title="Ver detalles">
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                              <Link href={`/listado/lotes/${lote.loteID}/editar`}>
+                                <Button variant="ghost" size="sm" title="Editar">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                              {userRole === "ADMIN" && (
+                                lote.activo ? (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDesactivarLote(lote.loteID)}
+                                    className="text-red-600 hover:text-red-700"
+                                    title="Desactivar"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleReactivarLote(lote.loteID)}
+                                    className="text-green-600 hover:text-green-700"
+                                    title="Reactivar"
+                                  >
+                                    <RefreshCw className="h-4 w-4" />
+                                  </Button>
+                                )
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              {/* Paginación: centrada en el listado (como pureza) */}
+              <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
                 <div className="text-sm text-muted-foreground">
                   {totalElements === 0 ? (
                     <>Mostrando 0 de 0 resultados</>
@@ -320,33 +423,20 @@ export default function ListadoLotesPage() {
                     <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Pagination currentPage={currentPage} totalPages={Math.max(totalPages, 1)} onPageChange={(p) => void (async () => {
-                    setIsLoading(true)
-                    try {
-                      const resp = await obtenerLotesPaginadas(p, pageSize)
-                      const data = resp.content || []
 
-                      // Usar directamente los objetos LoteSimpleDTO devueltos por el backend
-                      setLotes(data)
-
-                      // Actualizar metadatos de paginación desde la respuesta
-                      setTotalPages(resp.totalPages ?? 1)
-                      setTotalElements(resp.totalElements ?? (data.length || 0))
-                      setCurrentPage(resp.number ?? p)
-                    } catch (err) {
-                      console.error('Error recargando lotes paginados', err)
-                      setError('Error al cargar los lote')
-                    } finally {
-                      setIsLoading(false)
-                    }
-                  })()} showRange={1} alwaysShow={true} />
-                </div>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={Math.max(totalPages, 1)}
+                  onPageChange={(p) => fetchLotes(p)}
+                  showRange={1}
+                  alwaysShow={true}
+                />
               </div>
-            </div>
+            </>
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

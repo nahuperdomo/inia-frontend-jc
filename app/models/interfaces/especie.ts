@@ -3,8 +3,7 @@ export interface EspecieDTO {
   nombreComun: string;
   nombreCientifico: string;
   activo: boolean;
-  fechaCreacion: string;
-  fechaModificacion?: string;
+  cultivares?: string[];
 }
 
 export interface EspecieRequestDTO {
