@@ -64,18 +64,28 @@ export default function ListadoLotesPage() {
   }, [])
 
   useEffect(() => {
-    fetchLotes(currentPage)
-  }, [currentPage])
+    fetchLotes(0)
+  }, [])
 
   const fetchLotes = async (page: number = 0) => {
     try {
       setIsLoading(true)
-      const loteResp = await obtenerLotesPaginadas(page, pageSize)
+      const data = await obtenerLotesPaginadas(page, pageSize)
+      console.log("DEBUG obtenerLotesPaginadas response:", data)
       
-      setLotes(loteResp.content || [])
-      setTotalPages(loteResp.totalPages || 1)
-      setTotalElements(loteResp.totalElements || 0)
-      setCurrentPage(loteResp.currentPage ?? page)
+      // Manejar respuesta: puede venir con o sin el objeto 'page'
+      const content = data.content || []
+      setLotes(content)
+      
+      // Verificar si la metadata viene en data.page o directamente en data
+      const pageInfo = (data as any).page || data
+      const totalPagesFrom = pageInfo.totalPages ?? 1
+      const totalElementsFrom = pageInfo.totalElements ?? 0
+      const numberFrom = pageInfo.number ?? page
+      
+      setTotalPages(totalPagesFrom)
+      setTotalElements(totalElementsFrom)
+      setCurrentPage(numberFrom)
 
       // Obtener estadísticas para las cards
       const estadisticas = await obtenerEstadisticasLotes()
@@ -302,7 +312,7 @@ export default function ListadoLotesPage() {
           <CardDescription>
             {isLoading
               ? "Cargando lotes..."
-              : `${filteredLotes.length} lote${filteredLotes.length !== 1 ? "s" : ""} encontrado${filteredLotes.length !== 1 ? "s" : ""}`
+              : `${totalElements} lote${totalElements !== 1 ? "s" : ""} encontrado${totalElements !== 1 ? "s" : ""}`
             }
           </CardDescription>
         </CardHeader>
@@ -315,90 +325,92 @@ export default function ListadoLotesPage() {
               </Button>
             </div>
           ) : (
-            <div className="rounded-md border overflow-x-auto max-w-full">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Ficha</TableHead>
-                    <TableHead>Nombre Lote</TableHead>
-                    <TableHead>Cultivar</TableHead>
-                    <TableHead>Especie</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    <TableRow key="loading-row">
-                      <TableCell colSpan={6} className="text-center py-8">
-                        <div className="flex flex-col items-center justify-center">
-                          <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-                          <p className="text-muted-foreground">Cargando datos de lotes...</p>
-                        </div>
-                      </TableCell>
+            <>
+              <div className="rounded-md border overflow-x-auto max-w-full">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Ficha</TableHead>
+                      <TableHead>Nombre Lote</TableHead>
+                      <TableHead>Cultivar</TableHead>
+                      <TableHead>Especie</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Acciones</TableHead>
                     </TableRow>
-                  ) : filteredLotes.length === 0 ? (
-                    <TableRow key="no-data-row">
-                      <TableCell colSpan={6} className="text-center py-8">
-                        <p className="text-muted-foreground">No se encontraron lotes que coincidan con los criterios de búsqueda.</p>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredLotes.map((lote) => (
-                      <TableRow key={lote.loteID}>
-                        <TableCell className="font-medium">{lote.ficha || "-"}</TableCell>
-                        <TableCell className="font-medium">{lote.nomLote || "-"}</TableCell>
-                        <TableCell>{lote.cultivarNombre || "-"}</TableCell>
-                        <TableCell>{lote.especieNombre || "-"}</TableCell>
-                        <TableCell>
-                          <Badge variant={lote.activo ? "default" : "destructive"}>
-                            {lote.activo ? "Activo" : "Inactivo"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Link href={`/listado/lotes/${lote.loteID}`}>
-                              <Button variant="ghost" size="sm" title="Ver detalles">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                            <Link href={`/listado/lotes/${lote.loteID}/editar`}>
-                              <Button variant="ghost" size="sm" title="Editar">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                            {userRole === "ADMIN" && (
-                              lote.activo ? (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDesactivarLote(lote.loteID)}
-                                  className="text-red-600 hover:text-red-700"
-                                  title="Desactivar"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleReactivarLote(lote.loteID)}
-                                  className="text-green-600 hover:text-green-700"
-                                  title="Reactivar"
-                                >
-                                  <RefreshCw className="h-4 w-4" />
-                                </Button>
-                              )
-                            )}
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      <TableRow key="loading-row">
+                        <TableCell colSpan={6} className="text-center py-8">
+                          <div className="flex flex-col items-center justify-center">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+                            <p className="text-muted-foreground">Cargando datos de lotes...</p>
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-              {/* Paginación */}
-              <div className="flex items-center justify-between mt-4 px-4">
+                    ) : filteredLotes.length === 0 ? (
+                      <TableRow key="no-data-row">
+                        <TableCell colSpan={6} className="text-center py-8">
+                          <p className="text-muted-foreground">No se encontraron lotes que coincidan con los criterios de búsqueda.</p>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredLotes.map((lote) => (
+                        <TableRow key={lote.loteID}>
+                          <TableCell className="font-medium">{lote.ficha || "-"}</TableCell>
+                          <TableCell className="font-medium">{lote.nomLote || "-"}</TableCell>
+                          <TableCell>{lote.cultivarNombre || "-"}</TableCell>
+                          <TableCell>{lote.especieNombre || "-"}</TableCell>
+                          <TableCell>
+                            <Badge variant={lote.activo ? "default" : "destructive"}>
+                              {lote.activo ? "Activo" : "Inactivo"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Link href={`/listado/lotes/${lote.loteID}`}>
+                                <Button variant="ghost" size="sm" title="Ver detalles">
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                              <Link href={`/listado/lotes/${lote.loteID}/editar`}>
+                                <Button variant="ghost" size="sm" title="Editar">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                              {userRole === "ADMIN" && (
+                                lote.activo ? (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDesactivarLote(lote.loteID)}
+                                    className="text-red-600 hover:text-red-700"
+                                    title="Desactivar"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleReactivarLote(lote.loteID)}
+                                    className="text-green-600 hover:text-green-700"
+                                    title="Reactivar"
+                                  >
+                                    <RefreshCw className="h-4 w-4" />
+                                  </Button>
+                                )
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              {/* Paginación: centrada en el listado (como pureza) */}
+              <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
                 <div className="text-sm text-muted-foreground">
                   {totalElements === 0 ? (
                     <>Mostrando 0 de 0 resultados</>
@@ -406,17 +418,16 @@ export default function ListadoLotesPage() {
                     <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Pagination 
-                    currentPage={currentPage} 
-                    totalPages={Math.max(totalPages, 1)} 
-                    onPageChange={(p) => setCurrentPage(p)} 
-                    showRange={1} 
-                    alwaysShow={true} 
-                  />
-                </div>
+
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={Math.max(totalPages, 1)}
+                  onPageChange={(p) => fetchLotes(p)}
+                  showRange={1}
+                  alwaysShow={true}
+                />
               </div>
-            </div>
+            </>
           )}
         </CardContent>
       </Card>

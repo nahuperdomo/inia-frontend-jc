@@ -100,15 +100,16 @@ export async function validarLoteElegible(loteID: number, tipoAnalisis: TipoAnal
     return false;
   }
 }
-export async function obtenerLotesPaginadas(page: number = 0, size: number = 10): Promise<{
-  content: LoteSimpleDTO[];
-  totalPages: number;
-  totalElements: number;
-  currentPage: number;
-  pageSize: number;
+export async function obtenerLotesPaginadas(
+  page: number = 0, 
+  size: number = 10
+): Promise<{ 
+  content: LoteSimpleDTO[]; 
+  totalElements: number; 
+  totalPages: number; 
+  number: number;
+  last: boolean; 
   first: boolean;
-  last: boolean;
-  empty: boolean;
 }> {
   return apiFetch(`/api/lotes/listado?page=${page}&size=${size}`);
 }
