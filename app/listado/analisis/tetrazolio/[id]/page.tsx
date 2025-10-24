@@ -44,8 +44,6 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
-import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
-import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
 
 // Función utilitaria para formatear fechas
 const formatearFechaLocal = (fechaString: string): string => {
@@ -437,43 +435,6 @@ export default function TetrazolioDetailPage() {
     }
   }
 
-  const handleAprobar = async () => {
-    try {
-      const tetrazolioAprobado = await aprobarAnalisis(parseInt(tetrazolioId))
-      setTetrazolio(tetrazolioAprobado)
-      console.log("✅ Análisis aprobado")
-    } catch (err: any) {
-      console.error("❌ Error al aprobar:", err)
-      setError(err.message || 'Error al aprobar análisis')
-    }
-  }
-
-  const handleMarcarParaRepetir = async () => {
-    try {
-      const tetrazolioParaRepetir = await marcarParaRepetir(parseInt(tetrazolioId))
-      setTetrazolio(tetrazolioParaRepetir)
-      console.log("✅ Análisis marcado para repetir")
-    } catch (err: any) {
-      console.error("❌ Error al marcar para repetir:", err)
-      setError(err.message || 'Error al marcar para repetir')
-    }
-  }
-
-  const handleFinalizarYAprobar = async () => {
-    try {
-      setFinalizing(true)
-      // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
-      const tetrazolioFinalizado = await finalizarAnalisis(parseInt(tetrazolioId))
-      setTetrazolio(tetrazolioFinalizado)
-      console.log("✅ Análisis finalizado y aprobado")
-    } catch (err: any) {
-      console.error("❌ Error al finalizar y aprobar:", err)
-      setError(err.message || 'Error al finalizar y aprobar análisis')
-    } finally {
-      setFinalizing(false)
-    }
-  }
-
   const getEstadoBadge = (estado: string) => {
     const variants = {
       "PENDIENTE": { variant: "outline" as const, color: "blue" },
@@ -547,40 +508,57 @@ export default function TetrazolioDetailPage() {
         </div>
       )}
 
-      {/* Header Universal */}
-      <AnalisisHeaderBar
-        tipoAnalisis="Tetrazolio"
-        analisisId={tetrazolio.analisisID}
-        estado={tetrazolio.estado || 'REGISTRADO'}
-        volverUrl="/listado/analisis/tetrazolio"
-        modoEdicion={editandoTetrazolio}
-        onToggleEdicion={() => {
-          if (editandoTetrazolio) {
-            handleRequestCancelEdit()
-          } else {
-            // Cargar valores actuales en el formulario de edición antes de abrir
-            setTetrazolioEditado({
-              idLote: tetrazolio.idLote || 0,
-              comentarios: tetrazolio.comentarios || '',
-              numSemillasPorRep: tetrazolio.numSemillasPorRep || 50,
-              numRepeticionesEsperadas: tetrazolio.numRepeticionesEsperadas || 0,
-              pretratamiento: tetrazolio.pretratamiento || '',
-              pretratamientoOtro: '',
-              concentracion: tetrazolio.concentracion || '',
-              concentracionOtro: '',
-              tincionHs: tetrazolio.tincionHs || 24,
-              tincionHsOtro: '',
-              tincionTemp: tetrazolio.tincionTemp || 30,
-              tincionTempOtro: '',
-              fecha: convertirFechaParaInput(tetrazolio.fecha || '')
-            })
-            setEditandoTetrazolio(true)
-          }
-        }}
-        onGuardarCambios={handleGuardarEdicion}
-        guardando={false}
-        tieneCambios={tieneCambios()}
-      />
+      {/* Header sticky solo dentro del área con scroll */}
+      <div className="bg-background border-b sticky top-0 z-40">
+        <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col gap-6">
+            <Link href="/listado/analisis/tetrazolio">
+              <Button variant="ghost" size="sm" className="gap-2 -ml-2">
+                <ArrowLeft className="h-4 w-4" />
+                Volver
+              </Button>
+            </Link>
+
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="text-3xl lg:text-4xl font-bold text-balance">
+                    Análisis de Tetrazolio #{tetrazolio.analisisID}
+                  </h1>
+                  {getEstadoBadge(tetrazolio.estado || 'REGISTRADO')}
+                </div>
+                <p className="text-base text-muted-foreground text-pretty">
+                  Viabilidad con tetrazolio • Lote {tetrazolio.lote}
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                {editandoTetrazolio ? (
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="gap-2 w-full sm:w-auto"
+                    onClick={handleRequestCancelEdit}
+                  >
+                    <X className="h-4 w-4" />
+                    Cancelar edición
+                  </Button>
+                ) : (
+                  <Link href={`/listado/analisis/tetrazolio/${tetrazolioId}/editar`}>
+                    <Button
+                      size="lg"
+                      className="gap-2 w-full sm:w-auto"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Editar análisis
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Compensar altura del header sticky */}
       <div className="pt-4">
@@ -1188,17 +1166,6 @@ export default function TetrazolioDetailPage() {
               </CardContent>
             </Card>
           )}
-
-          {/* Card de Acciones Universal - Al final */}
-          <AnalisisAccionesCard
-            analisisId={tetrazolio.analisisID}
-            tipoAnalisis="tetrazolio"
-            estado={tetrazolio.estado || 'REGISTRADO'}
-            onAprobar={handleAprobar}
-            onMarcarParaRepetir={handleMarcarParaRepetir}
-            onFinalizarYAprobar={handleFinalizarYAprobar}
-            onFinalizar={handleFinalizarAnalisis}
-          />
         </div>
       </div>
       <CancelEditDialog open={showCancelConfirm} onClose={() => setShowCancelConfirm(false)} onDiscard={confirmarDescartarCambios} />

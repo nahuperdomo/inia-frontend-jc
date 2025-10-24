@@ -895,6 +895,7 @@ export default function EditarDosnPage() {
                   Nuevo Listado
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                  {/* 1. Tipo de Listado */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Tipo de Listado</Label>
                     <Select
@@ -920,39 +921,7 @@ export default function EditarDosnPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Instituto</Label>
-                    <Select
-                      value={newListado.listadoInsti}
-                      onValueChange={(value) => setNewListado((prev) => ({ ...prev, listadoInsti: value }))}
-                    >
-                      <SelectTrigger className="text-base">
-                        <SelectValue placeholder="Seleccionar instituto" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="INIA">INIA</SelectItem>
-                        <SelectItem value="INASE">INASE</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Número</Label>
-                    <Input
-                      type="number"
-                      value={newListado.listadoNum === 0 ? "" : newListado.listadoNum}
-                      onChange={(e) =>
-                        setNewListado((prev) => ({
-                          ...prev,
-                          listadoNum: e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0
-                        }))
-                      }
-                      min="0"
-                      placeholder="Ingrese número"
-                      className="text-base"
-                    />
-                  </div>
-
+                  {/* 2. Especie */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">
                       Especie {newListado.listadoTipo === "BRASSICA" && <span className="text-xs text-muted-foreground">(No requerido para Brassica)</span>}
@@ -1012,6 +981,41 @@ export default function EditarDosnPage() {
                         </p>
                       )
                     })()}
+                  </div>
+
+                  {/* 3. Instituto */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Instituto</Label>
+                    <Select
+                      value={newListado.listadoInsti}
+                      onValueChange={(value) => setNewListado((prev) => ({ ...prev, listadoInsti: value }))}
+                    >
+                      <SelectTrigger className="text-base">
+                        <SelectValue placeholder="Seleccionar instituto" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="INIA">INIA</SelectItem>
+                        <SelectItem value="INASE">INASE</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* 4. Número */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Número</Label>
+                    <Input
+                      type="number"
+                      value={newListado.listadoNum === 0 ? "" : newListado.listadoNum}
+                      onChange={(e) =>
+                        setNewListado((prev) => ({
+                          ...prev,
+                          listadoNum: e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0
+                        }))
+                      }
+                      min="0"
+                      placeholder="Ingrese número"
+                      className="text-base"
+                    />
                   </div>
                 </div>
 

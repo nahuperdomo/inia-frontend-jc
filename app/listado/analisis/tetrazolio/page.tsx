@@ -431,7 +431,7 @@ export default function ListadoTetrazolioPage() {
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Link href={`/listado/analisis/tetrazolio/${item.id}`}>
+                        <Link href={`/listado/analisis/tetrazolio/${item.id}/editar`}>
                           <Button variant="ghost" size="sm" title="Editar análisis">
                             <Edit className="h-4 w-4" />
                           </Button>
