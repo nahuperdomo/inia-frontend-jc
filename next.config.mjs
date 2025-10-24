@@ -14,19 +14,12 @@ const nextConfig = {
   },
 
   async rewrites() {
-    // Para desarrollo local (frontend local, backend en Docker) usamos localhost
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-    // Aseguramos que las rutas API se redirijan correctamente al backend
     return [
       {
         source: '/api/:path*',
-        destination: `${apiBaseUrl}/api/:path*`,
-      },
-      // Añadimos una redirección específica para la API de autenticación
-      {
-        source: '/api/v1/auth/:path*',
-        destination: `${apiBaseUrl}/api/v1/auth/:path*`,
+        destination: `${apiBaseUrl}/:path*`,
       },
     ]
   },
@@ -36,7 +29,7 @@ const pwaConfig = withPWA({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development', // Deshabilitar en desarrollo para mejor DX
+  disable: process.env.NODE_ENV === 'development',
   runtimeCaching: [
     {
       urlPattern: /^https?.*/,
@@ -45,7 +38,7 @@ const pwaConfig = withPWA({
         cacheName: 'offlineCache',
         expiration: {
           maxEntries: 200,
-          maxAgeSeconds: 86400, // 24 horas
+          maxAgeSeconds: 86400,
         },
       },
     },
@@ -56,7 +49,7 @@ const pwaConfig = withPWA({
         cacheName: 'static-cache',
         expiration: {
           maxEntries: 100,
-          maxAgeSeconds: 604800, // 7 días
+          maxAgeSeconds: 604800,
         },
       },
     },
@@ -67,22 +60,7 @@ const pwaConfig = withPWA({
         cacheName: 'image-cache',
         expiration: {
           maxEntries: 100,
-          maxAgeSeconds: 2592000, // 30 días
-        },
-      },
-    },
-    {
-      urlPattern: /^http:\/\/localhost:8080\/api\/.*/,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'api-cache',
-        networkTimeoutSeconds: 10,
-        expiration: {
-          maxEntries: 50,
-          maxAgeSeconds: 300, // 5 minutos
-        },
-        cacheableResponse: {
-          statuses: [0, 200],
+          maxAgeSeconds: 2592000,
         },
       },
     },
