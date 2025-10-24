@@ -5,12 +5,16 @@ import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Save, Loader2, AlertTriangle, TestTube } from "lucide-react"
+import { ArrowLeft, Save, Loader2, AlertTriangle, TestTube, Target } from "lucide-react"
 import Link from "next/link"
-import { obtenerTetrazolioPorId, actualizarTetrazolio } from "@/app/services/tetrazolio-service"
+import { obtenerTetrazolioPorId, actualizarTetrazolio, actualizarPorcentajesRedondeados } from "@/app/services/tetrazolio-service"
+import { obtenerRepeticionesPorTetrazolio } from "@/app/services/repeticiones-service"
 import type { TetrazolioDTO, TetrazolioRequestDTO } from "@/app/models/interfaces/tetrazolio"
+import type { RepTetrazolioViabilidadDTO } from "@/app/models/interfaces/repeticiones"
 import { toast } from "sonner"
 import TetrazolioFields from "@/app/registro/analisis/tetrazolio/form-tetrazolio"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 
 // Función utilitaria para convertir fecha para input
 const convertirFechaParaInput = (fechaString: string): string => {
@@ -32,6 +36,7 @@ export default function EditarTetrazolioPage() {
   const tetrazolioId = params.id as string
 
   const [tetrazolio, setTetrazolio] = useState<TetrazolioDTO | null>(null)
+  const [repeticiones, setRepeticiones] = useState<RepTetrazolioViabilidadDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -67,6 +72,17 @@ export default function EditarTetrazolioPage() {
     comentarios: "",
   })
 
+  // Estado para porcentajes redondeados
+  const [porcentajesEditados, setPorcentajesEditados] = useState<{
+    porcViablesRedondeo: number | string
+    porcNoViablesRedondeo: number | string
+    porcDurasRedondeo: number | string
+  }>({
+    porcViablesRedondeo: '',
+    porcNoViablesRedondeo: '',
+    porcDurasRedondeo: ''
+  })
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -79,6 +95,23 @@ export default function EditarTetrazolioPage() {
         const tetrazolioData = await obtenerTetrazolioPorId(targetId)
         console.log("Tetrazolio cargado exitosamente:", tetrazolioData)
         setTetrazolio(tetrazolioData)
+
+        // Cargar repeticiones
+        try {
+          const repeticionesData = await obtenerRepeticionesPorTetrazolio(targetId)
+          console.log("Repeticiones cargadas:", repeticionesData)
+          setRepeticiones(repeticionesData)
+        } catch (repError) {
+          console.warn("Error al cargar repeticiones:", repError)
+          setRepeticiones([])
+        }
+
+        // Configurar porcentajes
+        setPorcentajesEditados({
+          porcViablesRedondeo: tetrazolioData.porcViablesRedondeo || 0,
+          porcNoViablesRedondeo: tetrazolioData.porcNoViablesRedondeo || 0,
+          porcDurasRedondeo: tetrazolioData.porcDurasRedondeo || 0
+        })
 
         // Opciones predefinidas para validar
         const opcionesPretratamiento = [
@@ -143,6 +176,30 @@ export default function EditarTetrazolioPage() {
       [field]: value
     }))
   }, [])
+
+  const handleGuardarPorcentajes = async () => {
+    try {
+      const payload = {
+        porcViablesRedondeo: parseFloat(String(porcentajesEditados.porcViablesRedondeo) || '0') || 0,
+        porcNoViablesRedondeo: parseFloat(String(porcentajesEditados.porcNoViablesRedondeo) || '0') || 0,
+        porcDurasRedondeo: parseFloat(String(porcentajesEditados.porcDurasRedondeo) || '0') || 0,
+      }
+
+      console.log("💾 Guardando porcentajes redondeados:", payload)
+      const tetrazolioActualizado = await actualizarPorcentajesRedondeados(parseInt(tetrazolioId), payload)
+
+      setTetrazolio(tetrazolioActualizado)
+      setPorcentajesEditados({
+        porcViablesRedondeo: tetrazolioActualizado.porcViablesRedondeo || 0,
+        porcNoViablesRedondeo: tetrazolioActualizado.porcNoViablesRedondeo || 0,
+        porcDurasRedondeo: tetrazolioActualizado.porcDurasRedondeo || 0
+      })
+      toast.success("Porcentajes actualizados exitosamente")
+    } catch (err: any) {
+      console.error("❌ Error al actualizar porcentajes:", err)
+      toast.error(err.message || 'Error al actualizar porcentajes')
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -267,6 +324,24 @@ export default function EditarTetrazolioPage() {
     )
   }
 
+  // Calcular si puede mostrarse la sección de porcentajes
+  const calcularTotales = () => {
+    if (repeticiones.length === 0) return { total: 0, viables: 0, noViables: 0, duras: 0 }
+
+    const totales = repeticiones.reduce((acc, rep) => ({
+      viables: acc.viables + (rep.viablesNum || 0),
+      noViables: acc.noViables + (rep.noViablesNum || 0),
+      duras: acc.duras + (rep.duras || 0)
+    }), { viables: 0, noViables: 0, duras: 0 })
+
+    const total = totales.viables + totales.noViables + totales.duras
+
+    return { ...totales, total }
+  }
+
+  const totales = calcularTotales()
+  const puedeEditarPorcentajes = tetrazolio && repeticiones.length >= (tetrazolio.numRepeticionesEsperadas || 0)
+
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="bg-background border-b sticky top-0 z-40">
@@ -320,7 +395,7 @@ export default function EditarTetrazolioPage() {
       </div>
 
       <div className="pt-4">
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
           <form onSubmit={handleSubmit}>
             <Card className="border-0 shadow-sm">
               <CardHeader className="border-b bg-muted/50">
@@ -339,6 +414,115 @@ export default function EditarTetrazolioPage() {
               </CardContent>
             </Card>
           </form>
+
+          {/* Sección de Porcentajes Redondeados */}
+          {puedeEditarPorcentajes && (
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="border-b bg-muted/50">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <div className="p-2 rounded-lg bg-orange-500/10">
+                    <Target className="h-5 w-5 text-orange-600" />
+                  </div>
+                  Porcentajes Finales con Redondeo
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-6">
+                  {/* Resumen de totales calculados */}
+                  {totales.total > 0 && (
+                    <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                      <h4 className="font-medium text-orange-800 mb-3">Porcentajes Calculados (Automáticos)</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold">{totales.total}</div>
+                          <div className="text-sm text-muted-foreground">Total Semillas</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-600">{totales.viables}</div>
+                          <div className="text-sm text-muted-foreground">Viables</div>
+                          <div className="text-xs">({((totales.viables / totales.total) * 100).toFixed(1)}%)</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-red-600">{totales.noViables}</div>
+                          <div className="text-sm text-muted-foreground">No Viables</div>
+                          <div className="text-xs">({((totales.noViables / totales.total) * 100).toFixed(1)}%)</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-yellow-600">{totales.duras}</div>
+                          <div className="text-sm text-muted-foreground">Duras</div>
+                          <div className="text-xs">({((totales.duras / totales.total) * 100).toFixed(1)}%)</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Inputs para porcentajes redondeados */}
+                  <div>
+                    <h4 className="font-medium mb-4">Porcentajes Redondeados (Editables)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label>% Viables (Redondeo)</Label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="100"
+                          value={porcentajesEditados.porcViablesRedondeo}
+                          onChange={(e) => setPorcentajesEditados(prev => ({
+                            ...prev,
+                            porcViablesRedondeo: e.target.value === '' ? '' : e.target.value
+                          }))}
+                          className="h-11"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>% No Viables (Redondeo)</Label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="100"
+                          value={porcentajesEditados.porcNoViablesRedondeo}
+                          onChange={(e) => setPorcentajesEditados(prev => ({
+                            ...prev,
+                            porcNoViablesRedondeo: e.target.value === '' ? '' : e.target.value
+                          }))}
+                          className="h-11"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>% Duras (Redondeo)</Label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="100"
+                          value={porcentajesEditados.porcDurasRedondeo}
+                          onChange={(e) => setPorcentajesEditados(prev => ({
+                            ...prev,
+                            porcDurasRedondeo: e.target.value === '' ? '' : e.target.value
+                          }))}
+                          className="h-11"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Botón para guardar porcentajes */}
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      onClick={handleGuardarPorcentajes}
+                      className="gap-2"
+                    >
+                      <Save className="h-4 w-4" />
+                      Guardar Porcentajes
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
