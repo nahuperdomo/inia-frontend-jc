@@ -1,4 +1,4 @@
-import { apiFetch } from "./api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 import {
   LoginRequest,
   LoginResponse,
@@ -11,76 +11,115 @@ import {
 
 // Autenticación y validación de token
 export async function login(usuario: string, password: string): Promise<LoginResponse> {
-  // Usamos apiFetch para asegurar que use la URL base correcta con la IP
-  return apiFetch(`/api/v1/auth/login`, {
+  const res = await fetch(`${API_URL}/v1/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Accept": "application/json"
     },
     body: JSON.stringify({ usuario, password }),
+    credentials: "include"
   });
+  return await res.json();
 }
 
 export async function validateToken(): Promise<{ valido: boolean; usuario?: string; error?: string }> {
-  return apiFetch("/api/v1/auth/validate");
+  const res = await fetch(`${API_URL}/v1/auth/validate`, {
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
+  });
+  return await res.json();
 }
 
 // Registro y gestión de usuarios
 export async function registrarUsuario(solicitud: RegistroUsuarioRequest): Promise<{ mensaje: string; usuario: AuthUsuarioDTO }> {
-  return apiFetch("/api/v1/auth/register", {
+  const res = await fetch(`${API_URL}/v1/auth/register`, {
     method: "POST",
     body: JSON.stringify(solicitud),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
   });
+  return await res.json();
 }
 
 export async function listarSolicitudesPendientes(): Promise<AuthUsuarioDTO[]> {
-  return apiFetch("/api/v1/auth/pending");
+  const res = await fetch(`${API_URL}/v1/auth/pending`, {
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
+  });
+  return await res.json();
 }
 
 export async function aprobarUsuario(id: number, solicitud: AprobarUsuarioRequest): Promise<{ mensaje: string; usuario: AuthUsuarioDTO }> {
-  return apiFetch(`/api/v1/auth/approve/${id}`, {
+  const res = await fetch(`${API_URL}/v1/auth/approve/${id}`, {
     method: "POST",
     body: JSON.stringify(solicitud),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
   });
+  return await res.json();
 }
 
 export async function rechazarSolicitud(id: number): Promise<{ mensaje: string }> {
-  return apiFetch(`/api/v1/auth/reject/${id}`, {
+  const res = await fetch(`${API_URL}/v1/auth/reject/${id}`, {
     method: "DELETE",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
   });
+  return await res.json();
 }
 
 export async function listarUsuarios(): Promise<AuthUsuarioDTO[]> {
-  return apiFetch("/api/v1/auth/users");
+  const res = await fetch(`${API_URL}/v1/auth/users`, {
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
+  });
+  return await res.json();
 }
 
 export async function listarUsuariosActivos(): Promise<AuthUsuarioDTO[]> {
-  return apiFetch("/api/v1/auth/users/active");
+  const res = await fetch(`${API_URL}/v1/auth/users/active`, {
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
+  });
+  return await res.json();
 }
 
 export async function gestionarUsuario(id: number, solicitud: GestionarUsuarioRequest): Promise<{ mensaje: string; usuario: AuthUsuarioDTO }> {
-  return apiFetch(`/api/v1/auth/users/${id}`, {
+  const res = await fetch(`${API_URL}/v1/auth/users/${id}`, {
     method: "PUT",
     body: JSON.stringify(solicitud),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
   });
+  return await res.json();
 }
 
 // Administración del perfil
 export async function obtenerPerfil(): Promise<AuthUsuarioDTO> {
-  return apiFetch("/api/v1/auth/profile");
+  const res = await fetch(`${API_URL}/v1/auth/profile`, {
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
+  });
+  return await res.json();
 }
 
 export async function actualizarPerfil(solicitud: ActualizarPerfilRequest): Promise<{ mensaje: string; usuario: AuthUsuarioDTO }> {
-  return apiFetch("/api/v1/auth/profile", {
+  const res = await fetch(`${API_URL}/v1/auth/profile`, {
     method: "PUT",
     body: JSON.stringify(solicitud),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
   });
+  return await res.json();
 }
 
 // Inicializar usuario admin predeterminado
 export async function crearAdminPredeterminado(): Promise<{ mensaje: string; usuario: AuthUsuarioDTO }> {
-  return apiFetch("/api/v1/auth/init-admin", {
+  const res = await fetch(`${API_URL}/v1/auth/init-admin`, {
     method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
   });
+  return await res.json();
 }

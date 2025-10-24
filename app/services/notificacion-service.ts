@@ -1,13 +1,13 @@
 import { apiFetch } from "./api";
-import type { 
-  NotificacionDTO, 
-  NotificacionRequestDTO, 
-  PaginatedNotificaciones 
+import type {
+  NotificacionDTO,
+  NotificacionRequestDTO,
+  PaginatedNotificaciones
 } from "@/app/models/interfaces/notificacion";
 
 // Crear notificación manual (solo administradores)
 export async function crearNotificacion(request: NotificacionRequestDTO): Promise<NotificacionDTO> {
-  return apiFetch("/api/notificaciones", {
+  return apiFetch("/notificaciones", {
     method: "POST",
     body: JSON.stringify(request),
   });
@@ -17,25 +17,25 @@ export async function crearNotificacion(request: NotificacionRequestDTO): Promis
 
 // Obtener MIS notificaciones con paginación
 export async function obtenerMisNotificaciones(
-  page: number = 0, 
+  page: number = 0,
   size: number = 10
 ): Promise<PaginatedNotificaciones> {
-  return apiFetch(`/api/notificaciones/mis-notificaciones?page=${page}&size=${size}`);
+  return apiFetch(`/notificaciones/mis-notificaciones?page=${page}&size=${size}`);
 }
 
 // Obtener MIS notificaciones no leídas
 export async function obtenerMisNotificacionesNoLeidas(): Promise<NotificacionDTO[]> {
-  return apiFetch(`/api/notificaciones/mis-notificaciones/no-leidas`);
+  return apiFetch("/notificaciones/mis-notificaciones/no-leidas");
 }
 
 // Contar MIS notificaciones no leídas
 export async function contarMisNotificacionesNoLeidas(): Promise<number> {
-  return apiFetch(`/api/notificaciones/mis-notificaciones/contar-no-leidas`);
+  return apiFetch("/notificaciones/mis-notificaciones/contar-no-leidas");
 }
 
 // Marcar todas MIS notificaciones como leídas
 export async function marcarTodasMisNotificacionesComoLeidas(): Promise<void> {
-  return apiFetch(`/api/notificaciones/mis-notificaciones/marcar-todas-leidas`, {
+  return apiFetch("/notificaciones/mis-notificaciones/marcar-todas-leidas", {
     method: "PUT",
   });
 }
@@ -44,26 +44,26 @@ export async function marcarTodasMisNotificacionesComoLeidas(): Promise<void> {
 
 // Obtener notificaciones de un usuario específico (solo admin o el mismo usuario)
 export async function obtenerNotificacionesPorUsuario(
-  usuarioId: number, 
-  page: number = 0, 
+  usuarioId: number,
+  page: number = 0,
   size: number = 10
 ): Promise<PaginatedNotificaciones> {
-  return apiFetch(`/api/notificaciones/usuario/${usuarioId}?page=${page}&size=${size}`);
+  return apiFetch(`/notificaciones/usuario/${usuarioId}?page=${page}&size=${size}`);
 }
 
 // Obtener notificaciones no leídas de un usuario específico (solo admin o el mismo usuario)
 export async function obtenerNotificacionesNoLeidas(usuarioId: number): Promise<NotificacionDTO[]> {
-  return apiFetch(`/api/notificaciones/usuario/${usuarioId}/no-leidas`);
+  return apiFetch(`/notificaciones/usuario/${usuarioId}/no-leidas`);
 }
 
 // Contar notificaciones no leídas de un usuario específico (solo admin o el mismo usuario)
 export async function contarNotificacionesNoLeidas(usuarioId: number): Promise<number> {
-  return apiFetch(`/api/notificaciones/usuario/${usuarioId}/contar-no-leidas`);
+  return apiFetch(`/notificaciones/usuario/${usuarioId}/contar-no-leidas`);
 }
 
 // Marcar todas las notificaciones de un usuario específico como leídas (solo admin o el mismo usuario)
 export async function marcarTodasComoLeidas(usuarioId: number): Promise<void> {
-  return apiFetch(`/api/notificaciones/usuario/${usuarioId}/marcar-todas-leidas`, {
+  return apiFetch(`/notificaciones/usuario/${usuarioId}/marcar-todas-leidas`, {
     method: "PUT",
   });
 }
@@ -72,14 +72,14 @@ export async function marcarTodasComoLeidas(usuarioId: number): Promise<void> {
 
 // Marcar notificación como leída (solo el propietario o admin)
 export async function marcarComoLeida(notificacionId: number): Promise<NotificacionDTO> {
-  return apiFetch(`/api/notificaciones/${notificacionId}/marcar-leida`, {
+  return apiFetch(`/notificaciones/${notificacionId}/marcar-leida`, {
     method: "PUT",
   });
 }
 
 // Eliminar notificación (solo el propietario o admin)
 export async function eliminarNotificacion(notificacionId: number): Promise<void> {
-  return apiFetch(`/api/notificaciones/${notificacionId}`, {
+  return apiFetch(`/notificaciones/${notificacionId}`, {
     method: "DELETE",
   });
 }
@@ -89,25 +89,25 @@ export async function eliminarNotificacion(notificacionId: number): Promise<void
 
 // DEPRECATED: Funciones para notificaciones automáticas (uso interno del sistema - REMOVER EN PRODUCCIÓN)
 export async function notificarNuevoUsuario(usuarioId: number): Promise<void> {
-  return apiFetch(`/api/notificaciones/interno/nuevo-usuario/${usuarioId}`, {
+  return apiFetch(`/notificaciones/interno/nuevo-usuario/${usuarioId}`, {
     method: "POST",
   });
 }
 
 export async function notificarAnalisisFinalizado(analisisId: number): Promise<void> {
-  return apiFetch(`/api/notificaciones/interno/analisis-finalizado/${analisisId}`, {
+  return apiFetch(`/notificaciones/interno/analisis-finalizado/${analisisId}`, {
     method: "POST",
   });
 }
 
 export async function notificarAnalisisAprobado(analisisId: number): Promise<void> {
-  return apiFetch(`/api/notificaciones/interno/analisis-aprobado/${analisisId}`, {
+  return apiFetch(`/notificaciones/interno/analisis-aprobado/${analisisId}`, {
     method: "POST",
   });
 }
 
 export async function notificarAnalisisRepetir(analisisId: number): Promise<void> {
-  return apiFetch(`/api/notificaciones/interno/analisis-repetir/${analisisId}`, {
+  return apiFetch(`/notificaciones/interno/analisis-repetir/${analisisId}`, {
     method: "POST",
   });
 }

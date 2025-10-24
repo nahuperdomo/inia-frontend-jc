@@ -2,7 +2,10 @@
 
 import { handleApiError } from "@/lib/error-handling/error-handler"
 
-// Para desarrollo local usar localhost, para Docker usar backend
+// Configuración de la URL base de la API:
+// - En LOCAL: NEXT_PUBLIC_API_URL debe ser "" (cadena vacía) o la URL base real (ej: http://localhost:8080)
+// - En AWS:   NEXT_PUBLIC_API_URL debe ser "/api"
+// Así, los endpoints en el código NO deben incluir "/api" manualmente.
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
 /**

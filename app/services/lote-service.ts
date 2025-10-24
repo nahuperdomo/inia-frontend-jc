@@ -1,7 +1,7 @@
 import { apiFetch } from "./api";
-import { 
-  LoteDTO, 
-  LoteRequestDTO, 
+import {
+  LoteDTO,
+  LoteRequestDTO,
   ResponseListadoLote,
   LoteSimpleDTO,
   ResponseListadoLoteSimple
@@ -10,41 +10,41 @@ import { TipoAnalisis } from "../models/types/enums";
 
 // Lote functions
 export async function obtenerLotesActivos(): Promise<LoteSimpleDTO[]> {
-  const res = await apiFetch("/api/lotes/activos") as ResponseListadoLoteSimple;
+  const res = await apiFetch("/lotes/activos") as ResponseListadoLoteSimple;
   return res.lotes || [];
 }
 
 export async function obtenerLotesInactivos(): Promise<LoteSimpleDTO[]> {
-  const res = await apiFetch("/api/lotes/inactivos") as ResponseListadoLoteSimple;
+  const res = await apiFetch("/lotes/inactivos") as ResponseListadoLoteSimple;
   return res.lotes || [];
 }
 
 export async function obtenerLotePorId(id: number): Promise<LoteDTO> {
-  return apiFetch(`/api/lotes/${id}`);
+  return apiFetch(`/lotes/${id}`);
 }
 
 export async function crearLote(solicitud: LoteRequestDTO): Promise<LoteDTO> {
-  return apiFetch("/api/lotes", {
+  return apiFetch("/lotes", {
     method: "POST",
     body: JSON.stringify(solicitud),
   });
 }
 
 export async function actualizarLote(id: number, solicitud: LoteRequestDTO): Promise<LoteDTO> {
-  return apiFetch(`/api/lotes/${id}`, {
+  return apiFetch(`/lotes/${id}`, {
     method: "PUT",
     body: JSON.stringify(solicitud),
   });
 }
 
 export async function eliminarLote(id: number): Promise<void> {
-  return apiFetch(`/api/lotes/${id}`, {
+  return apiFetch(`/lotes/${id}`, {
     method: "DELETE",
   });
 }
 
 export async function obtenerLotesElegiblesParaTipoAnalisis(tipoAnalisis: TipoAnalisis): Promise<LoteSimpleDTO[]> {
-  const res = await apiFetch(`/api/lotes/elegibles/${tipoAnalisis}`) as ResponseListadoLoteSimple;
+  const res = await apiFetch(`/lotes/elegibles/${tipoAnalisis}`) as ResponseListadoLoteSimple;
   return res.lotes || [];
 }
 
@@ -56,13 +56,13 @@ export async function obtenerLotesElegiblesParaTipoAnalisis(tipoAnalisis: TipoAn
  */
 export async function puedeRemoverTipoAnalisis(loteID: number, tipoAnalisis: TipoAnalisis): Promise<{ puedeRemover: boolean; razon?: string }> {
   try {
-    const response = await apiFetch(`/api/lotes/${loteID}/puede-remover-tipo/${tipoAnalisis}`);
+    const response = await apiFetch(`/lotes/${loteID}/puede-remover-tipo/${tipoAnalisis}`);
     return response;
   } catch (error) {
     console.error('Error al verificar si puede remover tipo de análisis:', error);
-    return { 
-      puedeRemover: false, 
-      razon: 'Error al verificar el estado del análisis' 
+    return {
+      puedeRemover: false,
+      razon: 'Error al verificar el estado del análisis'
     };
   }
 }
@@ -94,6 +94,7 @@ export async function validarLoteElegible(loteID: number, tipoAnalisis: TipoAnal
     return false;
   }
 }
+
 export async function obtenerLotesPaginadas(page: number = 0, size: number = 10): Promise<{
   content: LoteSimpleDTO[];
   totalPages: number;
@@ -101,5 +102,5 @@ export async function obtenerLotesPaginadas(page: number = 0, size: number = 10)
   number: number;
   size: number;
 }> {
-  return apiFetch(`/api/lotes/listado?page=${page}&size=${size}`);
+  return apiFetch(`/lotes/listado?page=${page}&size=${size}`);
 }

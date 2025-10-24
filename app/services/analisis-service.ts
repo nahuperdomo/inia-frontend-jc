@@ -1,8 +1,8 @@
-import { apiFetch } from "./api";
-import { 
-  AnalisisGenerico, 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import {
+  AnalisisGenerico,
   ResumenAnalisis,
-  AnalisisPorLoteResponse 
+  AnalisisPorLoteResponse
 } from "../models";
 
 // Funciones genéricas para análisis
@@ -10,19 +10,19 @@ export async function registrarAnalisis(payload: any, tipo: string) {
   let endpoint = "";
   switch (tipo) {
     case "pureza":
-      endpoint = "/api/purezas";
+      endpoint = "/purezas";
       break;
     case "dosn":
-      endpoint = "/api/dosn";
+      endpoint = "/dosn";
       break;
     case "germinacion":
-      endpoint = "/api/germinaciones";
+      endpoint = "/germinaciones";
       break;
     case "pms":
-      endpoint = "/api/pms";
+      endpoint = "/pms";
       break;
     case "tetrazolio":
-      endpoint = "/api/tetrazolios";
+      endpoint = "/tetrazolios";
       break;
     default:
       throw new Error("Tipo de análisis no soportado");
@@ -37,20 +37,23 @@ export async function registrarAnalisis(payload: any, tipo: string) {
     console.log("  - Tipo de análisis:", tipo);
   }
 
-  return apiFetch(endpoint, {
+  const res = await fetch(`${API_URL}${endpoint}`, {
     method: "POST",
     body: JSON.stringify(payload),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
   });
+  return await res.json();
 }
 
 // Obtener todos los análisis de un lote
 export async function obtenerAnalisisPorLote(loteID: number): Promise<AnalisisPorLoteResponse> {
   const [purezas, germinaciones, tetrazolios, pms, dosns] = await Promise.all([
-    apiFetch(`/api/purezas/lote/${loteID}`).catch(() => []),
-    apiFetch(`/api/germinaciones/lote/${loteID}`).catch(() => []),
-    apiFetch(`/api/tetrazolios/lote/${loteID}`).catch(() => []),
-    apiFetch(`/api/pms/lote/${loteID}`).catch(() => []),
-    apiFetch(`/api/dosn/lote/${loteID}`).catch(() => []),
+    fetch(`${API_URL}/purezas/lote/${loteID}`, { credentials: "include", headers: { "Content-Type": "application/json" } }).then(r => r.json()).catch(() => []),
+    fetch(`${API_URL}/germinaciones/lote/${loteID}`, { credentials: "include", headers: { "Content-Type": "application/json" } }).then(r => r.json()).catch(() => []),
+    fetch(`${API_URL}/tetrazolios/lote/${loteID}`, { credentials: "include", headers: { "Content-Type": "application/json" } }).then(r => r.json()).catch(() => []),
+    fetch(`${API_URL}/pms/lote/${loteID}`, { credentials: "include", headers: { "Content-Type": "application/json" } }).then(r => r.json()).catch(() => []),
+    fetch(`${API_URL}/dosn/lote/${loteID}`, { credentials: "include", headers: { "Content-Type": "application/json" } }).then(r => r.json()).catch(() => []),
   ]);
 
   return {
@@ -64,49 +67,60 @@ export async function obtenerAnalisisPorLote(loteID: number): Promise<AnalisisPo
 
 // Funciones específicas para DOSN
 export async function obtenerDosnPorId(id: string) {
-  return apiFetch(`/api/dosn/${id}`);
+  const res = await fetch(`${API_URL}/dosn/${id}`, {
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
+  });
+  return await res.json();
 }
 
 export async function obtenerDosnPorLote(loteID: string) {
-  return apiFetch(`/api/dosn/lote/${loteID}`);
+  const res = await fetch(`${API_URL}/dosn/lote/${loteID}`, {
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
+  });
+  return await res.json();
 }
 
 // Cambiar estado de un análisis
 export async function cambiarEstadoAnalisis(
-  tipo: string, 
-  id: number, 
+  tipo: string,
+  id: number,
   accion: 'finalizar' | 'aprobar' | 'repetir'
 ): Promise<any> {
   let endpoint = "";
   switch (tipo) {
     case "pureza":
-      endpoint = `/api/purezas/${id}/${accion}`;
+      endpoint = `/purezas/${id}/${accion}`;
       break;
     case "germinacion":
-      endpoint = `/api/germinaciones/${id}/${accion}`;
+      endpoint = `/germinaciones/${id}/${accion}`;
       break;
     case "tetrazolio":
-      endpoint = `/api/tetrazolios/${id}/${accion}`;
+      endpoint = `/tetrazolios/${id}/${accion}`;
       break;
     case "pms":
-      endpoint = `/api/pms/${id}/${accion}`;
+      endpoint = `/pms/${id}/${accion}`;
       break;
     case "dosn":
-      endpoint = `/api/dosn/${id}/${accion}`;
+      endpoint = `/dosn/${id}/${accion}`;
       break;
     default:
       throw new Error("Tipo de análisis no soportado");
   }
-  
-  return apiFetch(endpoint, {
+
+  const res = await fetch(`${API_URL}${endpoint}`, {
     method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
   });
+  return await res.json();
 }
 
 // Obtener resumen de análisis por estado
 export async function obtenerResumenAnalisis(loteID: number): Promise<ResumenAnalisis> {
   const analises = await obtenerAnalisisPorLote(loteID);
-  
+
   const todosList = [
     ...analises.purezas,
     ...analises.germinaciones,
