@@ -588,9 +588,9 @@ export default function RegistroAnalisisPage() {
       };
     } else if (selectedAnalysisType === "PMS") {
       // Validaciones específicas para PMS
-      if (!formData.numRepeticionesEsperadasPms || formData.numRepeticionesEsperadasPms < 1) {
+      if (!formData.numRepeticionesEsperadasPms || formData.numRepeticionesEsperadasPms < 4 || formData.numRepeticionesEsperadasPms > 20) {
         toast.error('Número de repeticiones inválido', {
-          description: 'El número de repeticiones esperadas debe ser mayor a 0.'
+          description: 'El número de repeticiones esperadas debe estar entre 4 y 20.'
         });
         setLoading(false);
         return;
@@ -599,7 +599,7 @@ export default function RegistroAnalisisPage() {
       payload = {
         idLote: parseInt(formData.loteid), // Convertir a número
         comentarios: formData.observaciones || "",
-        numRepeticionesEsperadas: formData.numRepeticionesEsperadasPms || 8,
+        numRepeticionesEsperadas: formData.numRepeticionesEsperadasPms,
         esSemillaBrozosa: formData.esSemillaBrozosa || false,
       };
     } else if (selectedAnalysisType === "TETRAZOLIO") {
