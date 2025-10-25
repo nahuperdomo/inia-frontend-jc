@@ -439,7 +439,7 @@ export default function GerminacionDetailPage() {
                                 <span className="font-medium">{selectedLoteInfo.ficha}</span>
                               </div>
                               <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Nombre Lote:</span>
+                                <span className="text-muted-foreground">Lote:</span>
                                 <span>{selectedLoteInfo.nomLote}</span>
                               </div>
                               <div className="flex justify-between text-sm">

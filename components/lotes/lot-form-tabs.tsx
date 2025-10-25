@@ -173,7 +173,7 @@ export function LotFormTabs({
 
               <FormField
                 id="nomLote"
-                label="Nombre del Lote"
+                label="Lote"
                 value={formData.nomLote}
                 onChange={(e) => handleInputChange("nomLote", e.target.value)}
                 onBlur={() => handleBlur("nomLote")}

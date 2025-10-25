@@ -151,7 +151,7 @@ export default function AnalisisPendientesPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>ID Lote</TableHead>
-                      <TableHead>Nombre Lote</TableHead>
+                      <TableHead>Lote</TableHead>
                       <TableHead>Ficha</TableHead>
                       <TableHead>Especie</TableHead>
                       <TableHead>Cultivar</TableHead>

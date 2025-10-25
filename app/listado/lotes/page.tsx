@@ -353,7 +353,7 @@ export default function ListadoLotesPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Ficha</TableHead>
-                      <TableHead>Nombre Lote</TableHead>
+                      <TableHead>Lote</TableHead>
                       <TableHead>Cultivar</TableHead>
                       <TableHead>Especie</TableHead>
                       <TableHead>Estado</TableHead>

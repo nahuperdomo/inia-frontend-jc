@@ -156,7 +156,7 @@ export default function DetalleLotePage() {
                   <p className="text-sm font-mono">{lote.ficha}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Nombre del Lote</label>
+                  <label className="text-sm font-medium text-muted-foreground">Lote</label>
                   <p className="text-sm font-medium">{lote.nomLote || "-"}</p>
                 </div>
                 <div>

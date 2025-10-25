@@ -182,7 +182,7 @@ export default function ListadoLegadoPage() {
                 <TableRow>
                   <TableHead className="min-w-[80px]">ID</TableHead>
                   <TableHead className="min-w-[120px]">Ficha</TableHead>
-                  <TableHead className="min-w-[150px]">Nombre Lote</TableHead>
+                  <TableHead className="min-w-[150px]">Lote</TableHead>
                   <TableHead className="min-w-[120px]">Cód. Documento</TableHead>
                   <TableHead className="min-w-[150px]">Nombre Documento</TableHead>
                   <TableHead className="min-w-[120px]">Familia</TableHead>
