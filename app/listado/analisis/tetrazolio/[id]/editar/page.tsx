@@ -15,7 +15,7 @@ import {
   marcarParaRepetir,
   actualizarPorcentajesRedondeados
 } from "@/app/services/tetrazolio-service"
-import { obtenerRepeticionesPorTetrazolio, crearRepTetrazolioViabilidad } from "@/app/services/repeticiones-service"
+import { obtenerRepeticionesPorTetrazolio, crearRepTetrazolioViabilidad, actualizarRepTetrazolioViabilidad } from "@/app/services/repeticiones-service"
 import type { TetrazolioDTO, TetrazolioRequestDTO } from "@/app/models/interfaces/tetrazolio"
 import type { RepTetrazolioViabilidadDTO } from "@/app/models/interfaces/repeticiones"
 import { toast } from "sonner"
@@ -83,7 +83,7 @@ export default function EditarTetrazolioPage() {
   const [formData, setFormData] = useState<FormState>({
     fecha: "",
     numSemillasPorRep: 50,
-    numRepeticionesEsperadas: 4,
+    numRepeticionesEsperadas: 0,
     pretratamiento: "",
     pretratamientoOtro: "",
     concentracion: "",
@@ -205,12 +205,50 @@ export default function EditarTetrazolioPage() {
     }
   }, [tetrazolioId])
 
+
+  // Control especial para numRepeticionesEsperadas: no permitir bajar de repeticiones.length
   const handleInputChange = useCallback((field: string, value: any) => {
+    if (field === "numRepeticionesEsperadas") {
+      const numValue = typeof value === 'string' ? parseInt(value) : value
+      
+      // Validar que sea un número válido
+      if (isNaN(numValue)) {
+        return
+      }
+      
+      // Si intenta bajar por debajo de las repeticiones ya creadas, mostrar advertencia y no permitir
+      if (numValue < repeticiones.length) {
+        toast.error(`No se puede establecer un número de repeticiones menor al número de repeticiones ya creadas (actual: ${repeticiones.length}).`, {
+          description: `El valor mínimo permitido es ${repeticiones.length} repeticiones.`,
+          duration: 4000
+        })
+        return // No actualizar el estado
+      }
+      
+      // Limitar a rango 2-8
+      if (numValue < 2) {
+        toast.warning('El número mínimo de repeticiones es 2', {
+          duration: 3000
+        })
+        setFormData(prev => ({ ...prev, [field]: 2 }))
+        return
+      }
+      
+      if (numValue > 8) {
+        toast.warning('El número máximo de repeticiones es 8', {
+          duration: 3000
+        })
+        setFormData(prev => ({ ...prev, [field]: 8 }))
+        return
+      }
+    }
+    
+    // Actualizar el estado para cualquier campo
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
-  }, [])
+  }, [repeticiones.length])
 
   const handleGuardarPorcentajes = async () => {
     try {
@@ -250,10 +288,11 @@ export default function EditarTetrazolioPage() {
 
     const esperado = tetrazolio?.numSemillasPorRep || 50
     const diferencia = Math.abs(total - esperado)
+    const porcentajeDiferencia = (diferencia / esperado) * 100
 
-    if (diferencia > 1) {
+    if (porcentajeDiferencia > 5) {
       toast.error(
-        `El total (${total}) difiere más de ±1 del esperado (${esperado}). No se puede crear la repetición.`
+        `El total (${total}) difiere en más del ±5% del esperado (${esperado}). Diferencia: ${porcentajeDiferencia.toFixed(1)}%. No se puede crear la repetición.`
       )
       return
     }
@@ -283,6 +322,7 @@ export default function EditarTetrazolioPage() {
     await saveChanges()
   }
 
+
   const saveChanges = async () => {
     // Validaciones
     const hoy = new Date().toISOString().split('T')[0]
@@ -302,6 +342,11 @@ export default function EditarTetrazolioPage() {
       formData.numRepeticionesEsperadas > 8
     ) {
       toast.error("El número de repeticiones debe estar entre 2 y 8")
+      return
+    }
+
+    if (formData.numRepeticionesEsperadas < repeticiones.length) {
+      toast.error(`No puede ser menor a las repeticiones ya creadas (${repeticiones.length})`)
       return
     }
 
@@ -353,7 +398,19 @@ export default function EditarTetrazolioPage() {
         fecha: formData.fecha,
       }
 
-      console.log("Enviando actualización:", requestData)
+      // Guardar cambios de repeticiones editadas
+      for (const rep of repeticiones) {
+        await actualizarRepTetrazolioViabilidad(
+          Number.parseInt(tetrazolioId),
+          rep.repTetrazolioViabID,
+          {
+            fecha: rep.fecha,
+            viablesNum: Number(rep.viablesNum),
+            noViablesNum: Number(rep.noViablesNum),
+            duras: Number(rep.duras)
+          }
+        )
+      }
 
       await actualizarTetrazolio(Number.parseInt(tetrazolioId), requestData)
 
@@ -523,7 +580,14 @@ export default function EditarTetrazolioPage() {
                 <TetrazolioFields
                   formData={formData}
                   handleInputChange={handleInputChange}
+                  repeticionesExistentes={repeticiones.length}
                 />
+                {formData.numRepeticionesEsperadas < repeticiones.length && (
+                  <div className="mt-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded flex items-center gap-1 px-2 py-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    No puede ser menor a las repeticiones ya creadas ({repeticiones.length})
+                  </div>
+                )}
               </CardContent>
             </Card>
           </form>
@@ -617,25 +681,26 @@ export default function EditarTetrazolioPage() {
                         (parseInt(String(nuevaRepeticion.noViablesNum) || '0') || 0)
                       const esperado = tetrazolio?.numSemillasPorRep || 50
                       const diferencia = Math.abs(total - esperado)
+                      const porcentajeDiferencia = (diferencia / esperado) * 100
 
-                      if (diferencia > 1) {
+                      if (porcentajeDiferencia > 5) {
                         return (
                           <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                             <div className="flex items-center gap-2 text-red-700">
                               <AlertTriangle className="h-4 w-4" />
                               <span className="text-sm font-medium">
-                                El total ({total}) difiere en más de ±1 del esperado ({esperado})
+                                El total ({total}) difiere en más del ±5% del esperado ({esperado}). Diferencia: {porcentajeDiferencia.toFixed(1)}%
                               </span>
                             </div>
                           </div>
                         )
-                      } else if (diferencia === 1) {
+                      } else if (diferencia > 0) {
                         return (
                           <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                             <div className="flex items-center gap-2 text-yellow-700">
                               <AlertTriangle className="h-4 w-4" />
                               <span className="text-sm">
-                                Ajuste permitido de ±1. Total: {total}, Esperado: {esperado}
+                                Ajuste permitido dentro del ±5%. Total: {total}, Esperado: {esperado}, Diferencia: {porcentajeDiferencia.toFixed(1)}%
                               </span>
                             </div>
                           </div>
@@ -650,7 +715,7 @@ export default function EditarTetrazolioPage() {
                         <strong>Orden de registro:</strong> Viables → Duras → No viables
                       </div>
                       <div className="text-xs text-blue-600 mt-1">
-                        Si la suma no coincide exactamente, se permite ajuste de ±1 en Viables.
+                        Si la suma no coincide exactamente, se permite un ajuste de hasta ±5% del total esperado.
                       </div>
                     </div>
 
@@ -667,7 +732,7 @@ export default function EditarTetrazolioPage() {
                 </Card>
               )}
 
-              {/* Lista de repeticiones */}
+              {/* Lista de repeticiones editables */}
               {repeticiones.length > 0 ? (
                 <div className="space-y-4">
                   <div className="grid gap-4">
@@ -681,21 +746,95 @@ export default function EditarTetrazolioPage() {
                             </div>
                             <div>
                               <Label className="text-xs text-muted-foreground">Fecha</Label>
-                              <div>{formatearFechaLocal(repeticion.fecha)}</div>
+                              <Input
+                                type="date"
+                                value={repeticion.fecha}
+                                max={hoy}
+                                onChange={e => {
+                                  const nuevas = [...repeticiones]
+                                  nuevas[index] = { ...nuevas[index], fecha: e.target.value }
+                                  setRepeticiones(nuevas)
+                                }}
+                              />
                             </div>
                             <div>
                               <Label className="text-xs text-muted-foreground">Viables</Label>
-                              <div className="text-green-600 font-medium">{repeticion.viablesNum}</div>
+                              <Input
+                                type="number"
+                                min="0"
+                                max={tetrazolio?.numSemillasPorRep || 100}
+                                value={repeticion.viablesNum}
+                                onChange={e => {
+                                  const nuevas = [...repeticiones]
+                                  nuevas[index] = { ...nuevas[index], viablesNum: e.target.value === '' ? 0 : Number(e.target.value) }
+                                  setRepeticiones(nuevas)
+                                }}
+                                className="text-green-600 font-medium"
+                              />
                             </div>
                             <div>
                               <Label className="text-xs text-muted-foreground">No Viables</Label>
-                              <div className="text-red-600 font-medium">{repeticion.noViablesNum}</div>
+                              <Input
+                                type="number"
+                                min="0"
+                                max={tetrazolio?.numSemillasPorRep || 100}
+                                value={repeticion.noViablesNum}
+                                onChange={e => {
+                                  const nuevas = [...repeticiones]
+                                  nuevas[index] = { ...nuevas[index], noViablesNum: e.target.value === '' ? 0 : Number(e.target.value) }
+                                  setRepeticiones(nuevas)
+                                }}
+                                className="text-red-600 font-medium"
+                              />
                             </div>
                             <div>
                               <Label className="text-xs text-muted-foreground">Duras</Label>
-                              <div className="text-yellow-600 font-medium">{repeticion.duras}</div>
+                              <Input
+                                type="number"
+                                min="0"
+                                max={tetrazolio?.numSemillasPorRep || 100}
+                                value={repeticion.duras}
+                                onChange={e => {
+                                  const nuevas = [...repeticiones]
+                                  nuevas[index] = { ...nuevas[index], duras: e.target.value === '' ? 0 : Number(e.target.value) }
+                                  setRepeticiones(nuevas)
+                                }}
+                                className="text-yellow-600 font-medium"
+                              />
                             </div>
                           </div>
+
+                          {/* Advertencia de suma fuera de ±5% */}
+                          {(() => {
+                            const total = (repeticion.viablesNum || 0) + (repeticion.noViablesNum || 0) + (repeticion.duras || 0)
+                            const esperado = tetrazolio?.numSemillasPorRep || 50
+                            const diferencia = Math.abs(total - esperado)
+                            const porcentajeDiferencia = (diferencia / esperado) * 100
+                            if (porcentajeDiferencia > 5) {
+                              return (
+                                <div className="p-3 bg-red-50 border border-red-200 rounded-md mt-4">
+                                  <div className="flex items-center gap-2 text-red-700">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <span className="text-sm font-medium">
+                                      El total ({total}) difiere en más del ±5% del esperado ({esperado}). Diferencia: {porcentajeDiferencia.toFixed(1)}%
+                                    </span>
+                                  </div>
+                                </div>
+                              )
+                            } else if (diferencia > 0) {
+                              return (
+                                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md mt-4">
+                                  <div className="flex items-center gap-2 text-yellow-700">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <span className="text-sm">
+                                      Ajuste permitido dentro del ±5%. Total: {total}, Esperado: {esperado}, Diferencia: {porcentajeDiferencia.toFixed(1)}%
+                                    </span>
+                                  </div>
+                                </div>
+                              )
+                            }
+                            return null
+                          })()}
                         </CardContent>
                       </Card>
                     ))}
