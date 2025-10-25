@@ -79,6 +79,11 @@ export default function EditarPMSPage() {
     peso: 0,
     valido: true
   })
+  const [newRepeticionPesoInput, setNewRepeticionPesoInput] = useState<string>("")
+  
+  // Estado para mantener los inputs de texto durante la edición de repeticiones
+  // Usamos un Map con el ID de repetición como clave
+  const [editRepeticionPesoInputs, setEditRepeticionPesoInputs] = useState<Map<number, string>>(new Map())
 
   // Estados para PMS con redondeo
   const [pmsConRedondeoTemp, setPmsConRedondeoTemp] = useState<string>("")
@@ -90,10 +95,14 @@ export default function EditarPMSPage() {
     if (!pmsId) return
 
     try {
+      console.log("🔄 Recargando datos del análisis PMS:", pmsId)
       const [analisisActualizado, repeticionesActualizadas] = await Promise.all([
         obtenerPmsPorId(parseInt(pmsId)),
         obtenerRepeticionesPorPms(parseInt(pmsId))
       ])
+      
+      console.log("📊 Análisis actualizado:", analisisActualizado)
+      console.log("📋 Repeticiones actualizadas:", repeticionesActualizadas)
       
       setAnalisis(analisisActualizado)
       
@@ -113,6 +122,10 @@ export default function EditarPMSPage() {
       setPmsConRedondeoTemp(analisisActualizado.pmsconRedon?.toString() || "")
       
       console.log("✅ Datos recargados exitosamente")
+      console.log("📊 Estado de validez de repeticiones:")
+      repeticionesOrdenadas.forEach(rep => {
+        console.log(`  Rep #${rep.numRep} (Tanda ${rep.numTanda}): ${rep.peso}g - Válido: ${rep.valido}`)
+      })
     } catch (err) {
       console.warn("⚠️ No se pudieron recargar los datos automáticamente:", err)
     }
@@ -209,12 +222,16 @@ export default function EditarPMSPage() {
       const nextRepNumber = getNextRepeticionNumber()
       const currentTanda = getCurrentTanda()
       
+      console.log("➕ Agregando nueva repetición #", nextRepNumber, "Tanda", currentTanda)
+      
       const nuevaRep = await crearRepPms(analisis.analisisID, {
         numRep: nextRepNumber,
         numTanda: currentTanda,
         peso: newRepeticion.peso,
         valido: true // Siempre inicia como válido, el backend determinará la validez final
       })
+      
+      console.log("✅ Repetición creada:", nuevaRep)
       
       setRepeticiones(prev => [...prev, { ...nuevaRep, isEditing: false }])
       
@@ -225,13 +242,19 @@ export default function EditarPMSPage() {
         peso: 0,
         valido: true
       })
+      setNewRepeticionPesoInput("")
       setShowAddRepeticion(false)
       
       toast.success('Repetición agregada exitosamente')
       
       // Recargar todos los datos para obtener estadísticas y validez actualizadas
+      console.log("🔄 Recargando datos después de agregar repetición...")
       await recargarDatos()
+      
+      console.log("🔍 Verificando si aún se puede agregar más repeticiones...")
+      // La función puedeAgregarRepeticiones() se re-evaluará automáticamente con los datos actualizados
     } catch (err: any) {
+      console.error("❌ Error al agregar repetición:", err)
       toast.error('Error al agregar repetición', {
         description: err?.message || "No se pudo agregar la repetición",
       })
@@ -240,6 +263,14 @@ export default function EditarPMSPage() {
 
   // Editar repetición existente
   const handleEditRepeticion = (index: number) => {
+    const rep = repeticiones[index]
+    // Inicializar el input de texto con el valor actual del peso
+    setEditRepeticionPesoInputs(prev => {
+      const newMap = new Map(prev)
+      newMap.set(rep.repPMSID, rep.peso?.toString() || "")
+      return newMap
+    })
+    
     setRepeticiones(prev => prev.map((rep, i) => 
       i === index ? { ...rep, isEditing: true } : rep
     ))
@@ -248,6 +279,14 @@ export default function EditarPMSPage() {
   // Cancelar edición de repetición
   const handleCancelEditRepeticion = async (index: number) => {
     const repId = repeticiones[index].repPMSID
+    
+    // Limpiar el input de texto de edición
+    setEditRepeticionPesoInputs(prev => {
+      const newMap = new Map(prev)
+      newMap.delete(repId)
+      return newMap
+    })
+    
     try {
       // Recargar datos originales
       const repeticionOriginal = await obtenerRepeticionesPorPms(parseInt(pmsId))
@@ -268,13 +307,23 @@ export default function EditarPMSPage() {
     const rep = repeticiones[index]
     if (!analisis) return
 
+    // Limpiar el input de texto de edición
+    setEditRepeticionPesoInputs(prev => {
+      const newMap = new Map(prev)
+      newMap.delete(rep.repPMSID)
+      return newMap
+    })
+
     try {
+      console.log("💾 Guardando repetición:", rep)
       const updatedRep = await actualizarRepPms(analisis.analisisID, rep.repPMSID, {
         numRep: rep.numRep,
         numTanda: rep.numTanda,
         peso: rep.peso,
         valido: rep.valido
       })
+      
+      console.log("✅ Repetición guardada:", updatedRep)
       
       setRepeticiones(prev => prev.map((r, i) => 
         i === index ? { ...updatedRep, isEditing: false } : r
@@ -283,8 +332,10 @@ export default function EditarPMSPage() {
       toast.success('Repetición actualizada exitosamente')
       
       // Recargar todos los datos para obtener estadísticas y validez actualizadas
+      console.log("🔄 Iniciando recarga de datos después de actualizar repetición...")
       await recargarDatos()
     } catch (err: any) {
+      console.error("❌ Error al actualizar repetición:", err)
       toast.error('Error al actualizar repetición', {
         description: err?.message || "No se pudo actualizar la repetición",
       })
@@ -301,14 +352,18 @@ export default function EditarPMSPage() {
     }
 
     try {
+      console.log("🗑️ Eliminando repetición:", rep)
       await eliminarRepPms(analisis.analisisID, rep.repPMSID)
       setRepeticiones(prev => prev.filter((_, i) => i !== index))
       
       toast.success('Repetición eliminada exitosamente')
       
       // Recargar todos los datos para obtener estadísticas y validez actualizadas
+      console.log("🔄 Recargando datos después de eliminar repetición...")
       await recargarDatos()
+      console.log("✅ Recarga completada")
     } catch (err: any) {
+      console.error("❌ Error al eliminar repetición:", err)
       toast.error('Error al eliminar repetición', {
         description: err?.message || "No se pudo eliminar la repetición",
       })
@@ -436,16 +491,18 @@ export default function EditarPMSPage() {
   const getCurrentTanda = (): number => {
     if (!analisis) return 1
     
-    // Contar repeticiones por tanda
+    // Contar repeticiones válidas por tanda
     const tandas = new Map<number, number>()
     repeticiones.forEach(rep => {
-      tandas.set(rep.numTanda, (tandas.get(rep.numTanda) || 0) + 1)
+      if (rep.valido === true) {
+        tandas.set(rep.numTanda, (tandas.get(rep.numTanda) || 0) + 1)
+      }
     })
     
-    // Buscar la primera tanda que no esté completa
+    // Buscar la primera tanda que no esté completa (no tenga suficientes repeticiones válidas)
     for (let tanda = 1; tanda <= (analisis.numTandas || 1); tanda++) {
-      const repeticionesTanda = tandas.get(tanda) || 0
-      if (repeticionesTanda < (analisis.numRepeticionesEsperadas || 0)) {
+      const repeticionesValidasTanda = tandas.get(tanda) || 0
+      if (repeticionesValidasTanda < (analisis.numRepeticionesEsperadas || 0)) {
         return tanda
       }
     }
@@ -472,7 +529,9 @@ export default function EditarPMSPage() {
     const resultado = []
     for (let tanda = 1; tanda <= (analisis.numTandas || 1); tanda++) {
       const repsEnTanda = grupos.get(tanda) || []
-      const completa = repsEnTanda.length >= (analisis.numRepeticionesEsperadas || 0)
+      // Una tanda está completa si tiene el número esperado de repeticiones VÁLIDAS
+      const repeticionesValidasEnTanda = repsEnTanda.filter(rep => rep.valido === true).length
+      const completa = repeticionesValidasEnTanda >= (analisis.numRepeticionesEsperadas || 0)
       
       resultado.push({
         tanda,
@@ -490,26 +549,70 @@ export default function EditarPMSPage() {
     
     // Límite máximo de 16 repeticiones totales
     const totalRepeticiones = repeticiones.length
-    if (totalRepeticiones >= 16) return false
+    if (totalRepeticiones >= 16) {
+      console.log("❌ No se pueden agregar más: límite de 16 alcanzado")
+      return false
+    }
     
-    // Obtener solo repeticiones válidas
+    // Contar repeticiones por estado de validez
     const repeticionesValidas = repeticiones.filter(rep => rep.valido === true)
+    const repeticionesInvalidas = repeticiones.filter(rep => rep.valido === false)
+    const repeticionesIndeterminadas = repeticiones.filter(rep => rep.valido === null || rep.valido === undefined)
     
-    // Si no hay repeticiones válidas suficientes, permitir agregar
-    if (repeticionesValidas.length === 0) return true
+    console.log("📊 Estado de repeticiones:")
+    console.log("  Total:", totalRepeticiones)
+    console.log("  Válidas:", repeticionesValidas.length)
+    console.log("  Inválidas:", repeticionesInvalidas.length)
+    console.log("  Indeterminadas:", repeticionesIndeterminadas.length)
+    console.log("  Esperadas:", analisis.numRepeticionesEsperadas)
     
-    // Calcular CV de todas las repeticiones válidas
-    const pesos = repeticionesValidas.map(rep => rep.peso)
-    const promedio = pesos.reduce((sum, peso) => sum + peso, 0) / pesos.length
-    const varianza = pesos.reduce((sum, peso) => sum + Math.pow(peso - promedio, 2), 0) / pesos.length
-    const desviacion = Math.sqrt(varianza)
-    const cv = (desviacion / promedio) * 100
+    // CASO 1: Si hay repeticiones indeterminadas, siempre permitir agregar
+    // (significa que la tanda aún no está completa o no se procesaron los cálculos)
+    if (repeticionesIndeterminadas.length > 0) {
+      console.log("✅ Permitir agregar: hay repeticiones indeterminadas")
+      return true
+    }
     
-    // Determinar umbral según tipo de semilla
-    const umbralCV = analisis.esSemillaBrozosa ? 6.0 : 4.0
+    // CASO 2: Si YA tengo suficientes repeticiones válidas, NO permitir agregar más
+    // (ya se cumplió el objetivo, incluso si hay inválidas extras)
+    if (repeticionesValidas.length >= (analisis.numRepeticionesEsperadas || 0)) {
+      // Calcular CV para verificar si es aceptable
+      const pesos = repeticionesValidas.map(rep => rep.peso)
+      const promedio = pesos.reduce((sum, peso) => sum + peso, 0) / pesos.length
+      const varianza = pesos.reduce((sum, peso) => sum + Math.pow(peso - promedio, 2), 0) / pesos.length
+      const desviacion = Math.sqrt(varianza)
+      const cv = (desviacion / promedio) * 100
+      
+      const umbralCV = analisis.esSemillaBrozosa ? 6.0 : 4.0
+      
+      console.log("📈 CV calculado:", cv.toFixed(2), "% (umbral:", umbralCV, "%)")
+      
+      // Si el CV es aceptable, NO permitir agregar más
+      if (cv <= umbralCV) {
+        console.log("❌ No permitir agregar: ya tiene", repeticionesValidas.length, "válidas con CV aceptable")
+        return false
+      }
+      
+      // Si el CV NO es aceptable, permitir agregar más para mejorar
+      console.log("✅ Permitir agregar: CV mayor al umbral, necesita mejorar")
+      return true
+    }
     
-    // Si el CV es mayor al umbral, permitir agregar más repeticiones
-    return cv > umbralCV
+    // CASO 3: Si hay repeticiones inválidas pero AÚN no alcanza las válidas esperadas,
+    // permitir agregar para reemplazarlas
+    if (repeticionesInvalidas.length > 0 && repeticionesValidas.length < (analisis.numRepeticionesEsperadas || 0)) {
+      console.log("✅ Permitir agregar: hay inválidas y faltan válidas")
+      return true
+    }
+    
+    // CASO 4: Si no hay repeticiones válidas suficientes, permitir agregar
+    if (repeticionesValidas.length < (analisis.numRepeticionesEsperadas || 0)) {
+      console.log("✅ Permitir agregar: faltan repeticiones válidas")
+      return true
+    }
+    
+    console.log("❌ No permitir agregar: condiciones no cumplidas")
+    return false
   }
 
   // Verificar si se puede finalizar el análisis
@@ -569,22 +672,33 @@ export default function EditarPMSPage() {
     
     const totalRepeticiones = repeticiones.length
     const repeticionesValidas = repeticiones.filter(rep => rep.valido === true)
-    const hayRepeticionesInvalidas = repeticiones.some(rep => rep.valido === false)
+    const repeticionesInvalidas = repeticiones.filter(rep => rep.valido === false)
+    const repeticionesIndeterminadas = repeticiones.filter(rep => rep.valido === null || rep.valido === undefined)
+    
+    console.log("🎯 Verificando si puede editar PMS con redondeo:")
+    console.log("  Total repeticiones:", totalRepeticiones)
+    console.log("  Válidas:", repeticionesValidas.length)
+    console.log("  Inválidas:", repeticionesInvalidas.length)
+    console.log("  Indeterminadas:", repeticionesIndeterminadas.length)
+    console.log("  Esperadas:", analisis.numRepeticionesEsperadas)
     
     // Se puede editar el PMS con redondeo si:
-    // 1. Hay suficientes repeticiones válidas Y no hay inválidas (CV válido)
+    // 1. Hay suficientes repeticiones válidas (sin contar indeterminadas ni inválidas)
     // 2. O si se alcanzó el límite de 16 repeticiones
     
-    // Caso 1: CV válido - suficientes repeticiones válidas y ninguna inválida
-    if (repeticionesValidas.length >= (analisis.numRepeticionesEsperadas || 0) && !hayRepeticionesInvalidas) {
+    // Caso 1: Tiene suficientes repeticiones VÁLIDAS
+    if (repeticionesValidas.length >= (analisis.numRepeticionesEsperadas || 0)) {
+      console.log("✅ Puede editar: tiene suficientes repeticiones válidas")
       return true
     }
     
     // Caso 2: Límite alcanzado - 16 repeticiones máximo
     if (totalRepeticiones >= 16) {
+      console.log("✅ Puede editar: alcanzó límite de 16 repeticiones")
       return true
     }
     
+    console.log("❌ No puede editar: faltan repeticiones válidas")
     return false
   }
 
@@ -888,14 +1002,18 @@ export default function EditarPMSPage() {
                     <Label className="text-xs">Peso (g) *</Label>
                     <Input
                       type="text"
-                      value={newRepeticion.peso || ""}
+                      value={newRepeticionPesoInput}
                       onChange={(e) => {
                         const value = e.target.value.replace(',', '.')
-                        const numValue = parseFloat(value)
-                        setNewRepeticion(prev => ({ 
-                          ...prev, 
-                          peso: isNaN(numValue) ? 0 : numValue 
-                        }))
+                        // Permitir cualquier input válido para números decimales
+                        if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+                          setNewRepeticionPesoInput(value)
+                          const numValue = parseFloat(value)
+                          setNewRepeticion(prev => ({ 
+                            ...prev, 
+                            peso: isNaN(numValue) ? 0 : numValue 
+                          }))
+                        }
                       }}
                       onFocus={(e) => {
                         // Seleccionar todo el texto al hacer focus para facilitar reemplazo
@@ -983,11 +1101,22 @@ export default function EditarPMSPage() {
                         {rep.isEditing ? (
                           <Input
                             type="text"
-                            value={rep.peso || ""}
+                            value={editRepeticionPesoInputs.get(rep.repPMSID) ?? ""}
                             onChange={(e) => {
                               const value = e.target.value.replace(',', '.')
-                              const numValue = parseFloat(value)
-                              handleRepeticionChange(index, "peso", isNaN(numValue) ? 0 : numValue)
+                              // Permitir cualquier input válido para números decimales
+                              if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+                                // Actualizar el input de texto
+                                setEditRepeticionPesoInputs(prev => {
+                                  const newMap = new Map(prev)
+                                  newMap.set(rep.repPMSID, value)
+                                  return newMap
+                                })
+                                
+                                // Actualizar el valor numérico en la repetición
+                                const numValue = parseFloat(value)
+                                handleRepeticionChange(index, "peso", isNaN(numValue) ? 0 : numValue)
+                              }
                             }}
                             onFocus={(e) => {
                               // Seleccionar todo el texto al hacer focus para facilitar reemplazo
@@ -1001,20 +1130,23 @@ export default function EditarPMSPage() {
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         {(() => {
-                          // Verificar si la tanda de esta repetición está completa
-                          const tandaCompleta = getRepeticionesPorTandas()
-                            .find(t => t.tanda === rep.numTanda)?.completa || false
-                          
-                          if (tandaCompleta) {
+                          // Mostrar estado de validación basado en el valor del backend
+                          if (rep.valido === null || rep.valido === undefined) {
                             return (
-                              <Badge variant={rep.valido ? "default" : "destructive"}>
-                                {rep.valido ? "Válido" : "Inválido"}
+                              <Badge variant="outline" className="text-muted-foreground">
+                                Indeterminado
+                              </Badge>
+                            )
+                          } else if (rep.valido === true) {
+                            return (
+                              <Badge variant="default" className="bg-green-600">
+                                Válido
                               </Badge>
                             )
                           } else {
                             return (
-                              <Badge variant="outline" className="text-muted-foreground">
-                                Indeterminado
+                              <Badge variant="destructive">
+                                Inválido
                               </Badge>
                             )
                           }
@@ -1071,6 +1203,51 @@ export default function EditarPMSPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Advertencia de CV superado */}
+      {analisis.coefVariacion && analisis.coefVariacion > (analisis.esSemillaBrozosa ? 6 : 4) && (
+        <Card className="border-yellow-500 bg-yellow-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-yellow-800">
+              <AlertTriangle className="h-5 w-5" />
+              Coeficiente de Variación Superado
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p className="text-sm text-yellow-900">
+                El coeficiente de variación actual (<strong>{analisis.coefVariacion.toFixed(4)}%</strong>) 
+                supera el umbral permitido de <strong>{analisis.esSemillaBrozosa ? "6.0%" : "4.0%"}</strong> 
+                para semillas {analisis.esSemillaBrozosa ? "brozosas" : "normales"}.
+              </p>
+              <p className="text-sm text-yellow-900">
+                {repeticiones.length < 16 ? (
+                  <>
+                    Se recomienda agregar más tandas de repeticiones hasta alcanzar un CV aceptable 
+                    o el límite máximo de 16 repeticiones.
+                  </>
+                ) : (
+                  <>
+                    Se ha alcanzado el límite máximo de 16 repeticiones. 
+                    Puede finalizar el análisis aunque el CV no sea óptimo.
+                  </>
+                )}
+              </p>
+              <div className="flex items-center gap-2 mt-4">
+                <div className="text-xs text-yellow-800">
+                  <strong>Tandas actuales:</strong> {analisis.numTandas || 1}
+                </div>
+                <div className="text-xs text-yellow-800">
+                  <strong>Repeticiones totales:</strong> {repeticiones.length}/16
+                </div>
+                <div className="text-xs text-yellow-800">
+                  <strong>Repeticiones válidas:</strong> {repeticiones.filter(r => r.valido === true).length}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Resultados Calculados */}
       {analisis.promedio100g && (
@@ -1175,7 +1352,10 @@ export default function EditarPMSPage() {
                                 value={pmsConRedondeoTemp}
                                 onChange={(e) => {
                                   const value = e.target.value.replace(',', '.')
-                                  setPmsConRedondeoTemp(value)
+                                  // Permitir cualquier input válido para números decimales
+                                  if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+                                    setPmsConRedondeoTemp(value)
+                                  }
                                 }}
                                 onFocus={(e) => e.target.select()}
                                 placeholder="Ej: 25.4"
@@ -1247,11 +1427,11 @@ export default function EditarPMSPage() {
                                 <>
                                   <p className="text-muted-foreground font-medium mb-2">Valor no disponible</p>
                                   <p className="text-sm text-muted-foreground">
-                                    Complete todas las repeticiones necesarias ({analisis.numRepeticionesEsperadas || 0}) 
+                                    Necesita {analisis.numRepeticionesEsperadas || 0} repeticiones válidas 
                                     para poder establecer el valor final.
                                   </p>
                                   <div className="mt-2 text-xs text-red-600">
-                                    Repeticiones actuales: {repeticiones.length} / {analisis.numRepeticionesEsperadas || 0}
+                                    Repeticiones válidas: {repeticiones.filter(rep => rep.valido === true).length} / {analisis.numRepeticionesEsperadas || 0}
                                   </div>
                                 </>
                               )}

@@ -39,27 +39,22 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
   const data = formData || {}
   
   // Validaciones
-  const repeticionesValidas = validarNumeroRepeticiones(data.numRepeticionesEsperadas)
+  // Usar el mismo nombre de campo que el formulario padre (`numRepeticionesEsperadasPms`)
+  const repeticionesValidas = validarNumeroRepeticiones(data.numRepeticionesEsperadasPms)
   const semillaBrozosaValida = validarSemillaBrozosa()
   
   const esFormularioValido = repeticionesValidas && semillaBrozosaValida
 
-  // Calcular el número de tandas - siempre inicia con 1 tanda
+  // Establecer valores por defecto SOLO UNA VEZ al montar el componente
   React.useEffect(() => {
     if (data.numTandas !== 1) {
       handleInputChange("numTandas", 1)
     }
-  }, [data.numRepeticionesEsperadas, data.esSemillaBrozosa])
-
-  // Establecer valores por defecto
-  React.useEffect(() => {
-    if (data.numRepeticionesEsperadas === undefined) {
-      handleInputChange("numRepeticionesEsperadas", 8) // Valor típico para PMS (mínimo 4)
-    }
-    if (data.esSemillaBrozosa === undefined) {
+    if (data.esSemillaBrozosa === undefined || data.esSemillaBrozosa === null) {
       handleInputChange("esSemillaBrozosa", false)
     }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Array vacío = solo se ejecuta una vez al montar
 
   return (
     <Card className="border-0 shadow-sm bg-card">
@@ -94,14 +89,22 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
                 Número de Repeticiones Esperadas *
               </Label>
               <Input
-                id="numRepeticionesEsperadas"
+                id="numRepeticionesEsperadasPms"
                 type="number"
                 min="4"
                 max="20"
-                value={data.numRepeticionesEsperadas || ""}
+                value={data.numRepeticionesEsperadasPms || ""}
                 onChange={(e) => {
-                  const value = parseInt(e.target.value) || 4
-                  handleInputChange("numRepeticionesEsperadas", Math.min(20, Math.max(4, value)))
+                  // parseInt puede devolver NaN cuando el campo está vacío; en ese caso no sobrescribimos con 4 aquí
+                  const raw = e.target.value
+                  const parsed = parseInt(raw, 10)
+                  const value = Number.isNaN(parsed) ? raw === "" ? "" : 4 : parsed
+                  // Solo enviar números válidos al estado padre; el padre mantiene el estado completo
+                  if (value === "") {
+                    handleInputChange("numRepeticionesEsperadasPms", undefined)
+                  } else {
+                    handleInputChange("numRepeticionesEsperadasPms", Math.min(20, Math.max(4, Number(value))))
+                  }
                 }}
                 className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-200 ${
                   !repeticionesValidas ? 'border-red-500 bg-red-50' : ''
@@ -190,7 +193,7 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
                 <div className={`space-y-1 text-sm ${
                   esFormularioValido ? 'text-blue-700' : 'text-red-700'
                 }`}>
-                  <p>• Se crearán <strong>{data.numRepeticionesEsperadas || 0} repeticiones</strong></p>
+                  <p>• Se crearán <strong>{data.numRepeticionesEsperadasPms || 0} repeticiones</strong></p>
                   <p>• Iniciará con <strong>1 tanda</strong></p>
                   <p>• Tipo de semilla: <strong>{data.esSemillaBrozosa ? 'Brozosa' : 'Normal'}</strong></p>
                   <p>• Umbral CV: <strong>{data.esSemillaBrozosa ? '≤ 6%' : '≤ 4%'}</strong></p>
