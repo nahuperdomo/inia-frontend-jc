@@ -11,6 +11,21 @@ import Link from "next/link"
 import { obtenerPurezasPaginadas, desactivarPureza, activarPureza } from "@/app/services/pureza-service"
 import Pagination from "@/components/pagination"
 import { PurezaDTO, EstadoAnalisis } from "@/app/models"
+
+interface PurezaListadoDTO {
+  analisisID: number
+  estado: EstadoAnalisis
+  fechaInicio: string
+  fechaFin?: string
+  lote: string
+  idLote?: number
+  especie?: string
+  activo?: boolean
+  redonSemillaPura?: number
+  inasePura?: number
+  usuarioCreador?: string
+  usuarioModificador?: string
+}
 import { toast } from "sonner"
 import { useAuth } from "@/components/auth-provider"
 
@@ -48,7 +63,7 @@ export default function ListadoPurezaPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [filtroActivo, setFiltroActivo] = useState("todos")
-  const [purezas, setPurezas] = useState<PurezaDTO[]>([])
+  const [purezas, setPurezas] = useState<PurezaListadoDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
@@ -149,13 +164,10 @@ export default function ListadoPurezaPage() {
   const inProgressAnalysis = purezas.filter(p => p.estado === "EN_PROCESO").length
   const pendingAnalysis = purezas.filter(p => p.estado === "REGISTRADO" || p.estado === "PENDIENTE_APROBACION").length
   
-  // Calcular promedio de pureza
-  const purezasConDatos = purezas.filter(p => p.semillaPura_g > 0 && p.pesoInicial_g > 0)
+  // Calcular promedio de pureza INIA (con redondeo)
+  const purezasConDatos = purezas.filter(p => p.redonSemillaPura !== undefined && p.redonSemillaPura !== null)
   const promedioPureza = purezasConDatos.length > 0
-    ? purezasConDatos.reduce((sum, p) => {
-        const pureza = (p.semillaPura_g / p.pesoInicial_g) * 100
-        return sum + pureza
-      }, 0) / purezasConDatos.length
+    ? purezasConDatos.reduce((sum, p) => sum + (p.redonSemillaPura || 0), 0) / purezasConDatos.length
     : 0
 
   const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
@@ -333,14 +345,14 @@ export default function ListadoPurezaPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[100px]">ID Análisis</TableHead>
+                  <TableHead className="min-w-[80px]">ID</TableHead>
                   <TableHead className="min-w-[150px]">Lote</TableHead>
+                  <TableHead className="min-w-[150px]">Especie</TableHead>
+                  <TableHead className="min-w-[120px]">Estado</TableHead>
+                  <TableHead className="min-w-[120px]">Pureza INIA (%)</TableHead>
+                  <TableHead className="min-w-[120px]">Pureza INASE (%)</TableHead>
                   <TableHead className="min-w-[120px]">Fecha Inicio</TableHead>
                   <TableHead className="min-w-[120px]">Fecha Fin</TableHead>
-                  <TableHead className="min-w-[100px]">Estado</TableHead>
-                  <TableHead className="min-w-[100px]">Pureza (%)</TableHead>
-                  <TableHead className="min-w-[120px]">Cumple Estándar</TableHead>
-                  <TableHead className="min-w-[150px]">Comentarios</TableHead>
                   <TableHead className="min-w-[120px]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -356,24 +368,24 @@ export default function ListadoPurezaPage() {
                   </TableRow>
                 ) : (
                   filteredAnalysis.map((analysis) => {
-                    const purezaPercent = analysis.pesoInicial_g > 0
-                      ? ((analysis.semillaPura_g / analysis.pesoInicial_g) * 100).toFixed(1)
-                      : "0.0"
+                    // Pureza INIA (con redondeo)
+                    const purezaINIA = analysis.redonSemillaPura !== undefined && analysis.redonSemillaPura !== null
+                      ? analysis.redonSemillaPura.toFixed(1)
+                      : "N/A"
+                    
+                    // Pureza INASE
+                    const purezaINASE = analysis.inasePura !== undefined && analysis.inasePura !== null
+                      ? analysis.inasePura.toFixed(1)
+                      : "N/A"
                     
                     return (
                       <TableRow key={analysis.analisisID}>
-                        <TableCell className="font-medium">PF-{analysis.analisisID}</TableCell>
+                        <TableCell className="font-medium">{analysis.analisisID}</TableCell>
                         <TableCell>
-                          <div>
-                            <div className="font-medium">{analysis.lote}</div>
-                            {analysis.idLote && (
-                              <div className="text-sm text-muted-foreground">ID: {analysis.idLote}</div>
-                            )}
-                          </div>
+                          <div className="font-medium">{analysis.lote}</div>
                         </TableCell>
-                        <TableCell>{formatearFechaLocal(analysis.fechaInicio)}</TableCell>
                         <TableCell>
-                          {analysis.fechaFin ? formatearFechaLocal(analysis.fechaFin) : "-"}
+                          <div className="text-sm">{analysis.especie || "N/A"}</div>
                         </TableCell>
                         <TableCell>
                           <Badge variant={getEstadoBadgeVariant(analysis.estado)}>
@@ -381,28 +393,14 @@ export default function ListadoPurezaPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <span className="font-medium">{purezaPercent}%</span>
+                          <span className="font-medium">{purezaINIA}%</span>
                         </TableCell>
                         <TableCell>
-                          {analysis.cumpleEstandar !== undefined ? (
-                            <Badge
-                              variant={analysis.cumpleEstandar ? "default" : "destructive"}
-                              className="text-xs"
-                            >
-                              {analysis.cumpleEstandar ? "Sí" : "No"}
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">No evaluado</span>
-                          )}
+                          <span className="font-medium">{purezaINASE}%</span>
                         </TableCell>
-                        <TableCell className="max-w-xs">
-                          {analysis.comentarios ? (
-                            <div className="truncate" title={analysis.comentarios}>
-                              {analysis.comentarios}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
+                        <TableCell>{formatearFechaLocal(analysis.fechaInicio)}</TableCell>
+                        <TableCell>
+                          {analysis.fechaFin ? formatearFechaLocal(analysis.fechaFin) : "-"}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">

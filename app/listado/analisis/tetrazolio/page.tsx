@@ -13,34 +13,30 @@ import { obtenerTodosTetrazolio, obtenerTetrazoliosPaginadas, desactivarTetrazol
 import Pagination from "@/components/pagination"
 import { toast } from "sonner"
 import { useAuth } from "@/components/auth-provider"
+import { EstadoAnalisis } from "@/app/models"
 
-interface AnalisisTetrazolio {
-  id: string
-  loteId: string
-  loteName: string
-  analyst: string
+interface TetrazolioListadoDTO {
+  analisisID: number
+  estado: EstadoAnalisis
   fechaInicio: string
-  fechaFin: string | null
-  estado: "Completado" | "En Proceso" | "Pendiente"
-  prioridad: "Alta" | "Media" | "Baja"
-  concentracion: string
-  temperatura: string
-  duracion: string
-  viabilidad: number
-  vigor: string
-  semillasViables: number
-  semillasNoViables: number
+  fechaFin?: string
+  lote: string
+  idLote?: number
+  especie?: string
   activo?: boolean
+  fecha?: string
+  viabilidadConRedondeo?: number
+  usuarioCreador?: string
+  usuarioModificador?: string
 }
 
 export default function ListadoTetrazolioPage() {
   const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
   const [filtroActivo, setFiltroActivo] = useState("todos")
-  const [filterEstado, setFilterEstado] = useState<string>("todos")
-  const [filterPrioridad, setFilterPrioridad] = useState<string>("todos")
+  const [selectedStatus, setSelectedStatus] = useState("all")
 
-  const [analisis, setAnalisis] = useState<AnalisisTetrazolio[]>([])
+  const [tetrazolios, setTetrazolios] = useState<TetrazolioListadoDTO[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string>("")
   const [currentPage, setCurrentPage] = useState(0)
@@ -48,14 +44,13 @@ export default function ListadoTetrazolioPage() {
   const [totalElements, setTotalElements] = useState(0)
   const [isLast, setIsLast] = useState(false)
   const [isFirst, setIsFirst] = useState(true)
-  const [, setLastResponse] = useState<any>(null)
   const pageSize = 10
 
   useEffect(() => {
     setCurrentPage(0)
     fetchTetrazolio(0)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtroActivo]) // Recargar cuando cambien los filtros (sin searchTerm)
+  }, [filtroActivo, selectedStatus]) // Recargar cuando cambien los filtros (sin searchTerm)
 
   // Handler para búsqueda con Enter
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -84,32 +79,12 @@ export default function ListadoTetrazolioPage() {
         pageSize,
         searchTerm,
         activoFilter,
-        undefined,
+        selectedStatus !== "all" ? selectedStatus : undefined,
         undefined
       )
-      setLastResponse(data)
 
       const content = data.content || []
-      const mapped = (content || []).map((t: any) => ({
-        id: t.analisisID?.toString() || t.id?.toString() || "-",
-        loteId: t.loteID?.toString() || "-",
-        loteName: t.lote || t.ficha || "-",
-        analyst: t.analista || t.usuario || "-",
-        fechaInicio: t.fecha || new Date().toISOString(),
-        fechaFin: t.fechaFin || null,
-        estado: t.estado || "Pendiente",
-        prioridad: t.prioridad || "Media",
-        concentracion: t.concentracion || "-",
-        temperatura: t.tincionTemp ? `${t.tincionTemp}°C` : "-",
-        duracion: t.tincionHs ? `${t.tincionHs} horas` : "-",
-        viabilidad: t.porcViablesRedondeo || t.porcViables || 0,
-        vigor: t.vigor || "",
-        semillasViables: t.semillasViables || 0,
-        semillasNoViables: t.semillasNoViables || 0,
-        activo: t.activo ?? true,
-      })) as AnalisisTetrazolio[]
-
-      setAnalisis(mapped)
+      setTetrazolios(content)
 
       const pageMeta = (data as any).page ? (data as any).page : (data as any)
       const totalPagesFrom = pageMeta.totalPages ?? 1
@@ -153,25 +128,81 @@ export default function ListadoTetrazolioPage() {
     }
   }
 
-  const filteredAnalisis = analisis.filter((item) => {
-    const matchesEstado = filterEstado === "todos" || item.estado === filterEstado
-    const matchesPrioridad = filterPrioridad === "todos" || item.prioridad === filterPrioridad
+  // No client-side filtering - all filtering done on backend
+  const filteredAnalysis = tetrazolios
 
-    return matchesEstado && matchesPrioridad
-  })
+  // Calculate stats from current page data
+  const totalAnalysis = totalElements
+  const completedAnalysis = tetrazolios.filter(t => t.estado === "APROBADO").length
+  const inProgressAnalysis = tetrazolios.filter(t => t.estado === "EN_PROCESO" || t.estado === "REGISTRADO").length
+  const pendingAnalysis = tetrazolios.filter(t => t.estado === "PENDIENTE_APROBACION").length
+  
+  // Promedio de viabilidad
+  const tetrazoliosConDatos = tetrazolios.filter(t => t.viabilidadConRedondeo !== undefined && t.viabilidadConRedondeo !== null)
+  const promedioViabilidad = tetrazoliosConDatos.length > 0
+    ? tetrazoliosConDatos.reduce((sum, t) => sum + (t.viabilidadConRedondeo || 0), 0) / tetrazoliosConDatos.length
+    : 0
 
-  const getEstadoBadgeVariant = (estado: string) => {
+  const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
     switch (estado) {
-      case "Completado":
-      case "Aprobado":
+      case "APROBADO":
         return "default"
-      case "En Proceso":
+      case "EN_PROCESO":
         return "secondary"
-      case "Pendiente":
-      case "A Repetir":
+      case "REGISTRADO":
+        return "outline"
+      case "PENDIENTE_APROBACION":
+        return "destructive"
+      case "A_REPETIR":
         return "destructive"
       default:
         return "outline"
+    }
+  }
+
+  const formatEstado = (estado: EstadoAnalisis) => {
+    switch (estado) {
+      case "REGISTRADO":
+        return "Registrado"
+      case "EN_PROCESO":
+        return "En Proceso"
+      case "APROBADO":
+        return "Aprobado"
+      case "PENDIENTE_APROBACION":
+        return "Pend. Aprobación"
+      case "A_REPETIR":
+        return "A Repetir"
+      default:
+        return estado
+    }
+  }
+
+  const formatearFechaLocal = (fechaString: string | undefined): string => {
+    if (!fechaString) return '-'
+    try {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
+        const [year, month, day] = fechaString.split('-').map(Number)
+        const fecha = new Date(year, month - 1, day)
+        return fecha.toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        })
+      }
+      const fecha = new Date(fechaString)
+      return fecha.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+    } catch (error) {
+      return fechaString
+    }
+  }
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      fetchTetrazolio(newPage)
     }
   }
 
@@ -225,7 +256,7 @@ export default function ListadoTetrazolioPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Análisis</p>
-                <p className="text-2xl font-bold">{analisis.length}</p>
+                <p className="text-2xl font-bold">{totalAnalysis}</p>
               </div>
               <Microscope className="h-8 w-8 text-primary" />
             </div>
@@ -236,9 +267,9 @@ export default function ListadoTetrazolioPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Completados</p>
-                <p className="text-2xl font-bold">{analisis.filter((a) => a.estado === "Completado").length}</p>
+                <p className="text-2xl font-bold">{completedAnalysis}</p>
               </div>
-              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-between">
                 <div className="h-4 w-4 rounded-full bg-green-500"></div>
               </div>
             </div>
@@ -249,7 +280,7 @@ export default function ListadoTetrazolioPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">En Proceso</p>
-                <p className="text-2xl font-bold">{analisis.filter((a) => a.estado === "En Proceso").length}</p>
+                <p className="text-2xl font-bold">{inProgressAnalysis}</p>
               </div>
               <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
                 <div className="h-4 w-4 rounded-full bg-yellow-500"></div>
@@ -262,15 +293,7 @@ export default function ListadoTetrazolioPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Promedio Viabilidad</p>
-                <p className="text-2xl font-bold">
-                  {analisis.filter((a) => a.viabilidad > 0).length > 0
-                    ? (
-                      analisis.filter((a) => a.viabilidad > 0).reduce((sum, a) => sum + a.viabilidad, 0) /
-                      analisis.filter((a) => a.viabilidad > 0).length
-                    ).toFixed(1)
-                    : "0"}
-                  %
-                </p>
+                <p className="text-2xl font-bold">{promedioViabilidad.toFixed(1)}%</p>
               </div>
               <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
                 <div className="h-4 w-4 rounded-full bg-blue-500"></div>
@@ -311,39 +334,29 @@ export default function ListadoTetrazolioPage() {
                 <Search className="h-4 w-4" />
               </Button>
             </form>
-            <Select value={filterEstado} onValueChange={setFilterEstado}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los estados</SelectItem>
-                <SelectItem value="Registrado">Registrado</SelectItem>
-                <SelectItem value="En Proceso">En Proceso</SelectItem>
-                <SelectItem value="Aprobado">Aprobado</SelectItem>
-                <SelectItem value="Completado">Completado</SelectItem>
-                <SelectItem value="A Repetir">A Repetir</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterPrioridad} onValueChange={setFilterPrioridad}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por prioridad" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todas las prioridades</SelectItem>
-                <SelectItem value="Alta">Alta</SelectItem>
-                <SelectItem value="Media">Media</SelectItem>
-                <SelectItem value="Baja">Baja</SelectItem>
-              </SelectContent>
-            </Select>
-            <select
-              value={filtroActivo}
-              onChange={(e) => setFiltroActivo(e.target.value)}
-              className="px-3 py-2 border border-input bg-background rounded-md text-sm w-full md:w-48"
-            >
-              <option value="todos">Todos</option>
-              <option value="activos">Activos</option>
-              <option value="inactivos">Inactivos</option>
-            </select>
+            <div className="flex gap-2">
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+              >
+                <option value="all">Todos los estados</option>
+                <option value="REGISTRADO">Registrado</option>
+                <option value="EN_PROCESO">En Proceso</option>
+                <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
+                <option value="APROBADO">Aprobado</option>
+                <option value="A_REPETIR">A Repetir</option>
+              </select>
+              <select
+                value={filtroActivo}
+                onChange={(e) => setFiltroActivo(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+              >
+                <option value="todos">Todos</option>
+                <option value="activos">Activos</option>
+                <option value="inactivos">Inactivos</option>
+              </select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -353,7 +366,7 @@ export default function ListadoTetrazolioPage() {
         <CardHeader>
           <CardTitle>Lista de Análisis de Tetrazolio</CardTitle>
           <CardDescription>
-           {filteredAnalisis.length} análisis encontrado{filteredAnalisis.length !== 1 ? "s" : ""}
+           {filteredAnalysis.length} análisis encontrado{filteredAnalysis.length !== 1 ? "s" : ""}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0 sm:p-6">
@@ -361,78 +374,96 @@ export default function ListadoTetrazolioPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[100px]">ID Análisis</TableHead>
-                  <TableHead className="min-w-[150px]">Lote</TableHead>
-                  <TableHead className="min-w-[120px]">Nombre Lote</TableHead>
-                  <TableHead className="min-w-[120px]">Analista</TableHead>
-                  <TableHead className="min-w-[120px]">Fecha Inicio</TableHead>
-                  <TableHead className="min-w-[100px]">Estado</TableHead>
-                  <TableHead className="min-w-[120px]">Prioridad</TableHead>
-                  <TableHead className="min-w-[120px]">Viabilidad (%)</TableHead>
-                  <TableHead className="min-w-[120px]">Acciones</TableHead>
+                  <TableHead className="whitespace-nowrap">ID</TableHead>
+                  <TableHead className="whitespace-nowrap">Lote</TableHead>
+                  <TableHead className="whitespace-nowrap">Especie</TableHead>
+                  <TableHead className="whitespace-nowrap">Estado</TableHead>
+                  <TableHead className="whitespace-nowrap">Viabilidad INIA (%)</TableHead>
+                  <TableHead className="whitespace-nowrap">Fecha Inicio</TableHead>
+                  <TableHead className="whitespace-nowrap">Fecha Fin</TableHead>
+                  <TableHead className="whitespace-nowrap">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAnalisis.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">TETRA-{item.id}</TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{item.loteName}</div>
-                        {item.loteId && (
-                          <div className="text-sm text-muted-foreground">ID: {item.loteId}</div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{item.loteName}</TableCell>
-                    <TableCell>{item.analyst}</TableCell>
-                    <TableCell>{new Date(item.fechaInicio).toLocaleDateString("es-ES")}</TableCell>
-                    <TableCell>
-                      <Badge variant={getEstadoBadgeVariant(item.estado)}>{item.estado}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getPrioridadBadgeVariant(item.prioridad)}>{item.prioridad}</Badge>
-                    </TableCell>
-                    <TableCell>{item.viabilidad > 0 ? `${item.viabilidad}%` : "-"}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Link href={`/listado/analisis/tetrazolio/${item.id}`}>
-                          <Button variant="ghost" size="sm" title="Ver detalles">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Link href={`/listado/analisis/tetrazolio/${item.id}/editar`}>
-                          <Button variant="ghost" size="sm" title="Editar análisis">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        {user?.role === "administrador" && (
-                          item.activo ? (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              title="Desactivar"
-                              onClick={() => handleDesactivar(parseInt(item.id))}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          ) : (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              title="Reactivar"
-                              onClick={() => handleReactivar(parseInt(item.id))}
-                              className="text-green-600 hover:text-green-700"
-                            >
-                              <RefreshCw className="h-4 w-4" />
-                            </Button>
-                          )
-                        )}
+                {filteredAnalysis.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <AlertTriangle className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-muted-foreground">No se encontraron análisis de tetrazolio</p>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredAnalysis.map((analysis) => {
+                    const viabilidadINIA = analysis.viabilidadConRedondeo !== undefined && analysis.viabilidadConRedondeo !== null
+                      ? analysis.viabilidadConRedondeo.toFixed(1)
+                      : "N/A"
+                    
+                    return (
+                      <TableRow key={analysis.analisisID}>
+                        <TableCell className="font-medium whitespace-nowrap">{analysis.analisisID}</TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {analysis.lote || "-"}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {analysis.especie || "-"}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          <Badge variant={getEstadoBadgeVariant(analysis.estado)}>
+                            {formatEstado(analysis.estado)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-right">
+                          {viabilidadINIA}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {formatearFechaLocal(analysis.fechaInicio)}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {formatearFechaLocal(analysis.fechaFin)}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <Link href={`/listado/analisis/tetrazolio/${analysis.analisisID}`}>
+                              <Button variant="ghost" size="sm" title="Ver detalles">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            <Link href={`/listado/analisis/tetrazolio/${analysis.analisisID}/editar`}>
+                              <Button variant="ghost" size="sm" title="Editar">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            {user?.role === "administrador" && (
+                              analysis.activo ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  title="Desactivar"
+                                  onClick={() => handleDesactivar(analysis.analisisID)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  title="Reactivar"
+                                  onClick={() => handleReactivar(analysis.analisisID)}
+                                  className="text-green-600 hover:text-green-700"
+                                >
+                                  <RefreshCw className="h-4 w-4" />
+                                </Button>
+                              )
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
               </TableBody>
             </Table>
             <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
