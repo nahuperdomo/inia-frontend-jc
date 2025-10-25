@@ -27,21 +27,23 @@ import {
   Repeat,
   FlaskConical,
   AlertTriangle,
+  Info,
 } from "lucide-react"
 
 type Props = {
   formData: any
   handleInputChange: (field: string, value: any) => void
   mostrarValidacion?: boolean
+  modoEdicion?: boolean
 }
 
-export default function TetrazolioFields({ formData, handleInputChange, mostrarValidacion }: Props) {
+export default function TetrazolioFields({ formData, handleInputChange, mostrarValidacion, modoEdicion = false }: Props) {
   const data = formData || {}
   const showErrors = !!mostrarValidacion
 
   // ✅ Validaciones
   const validarNumRepeticiones = (): boolean => {
-    const num = parseInt(data.numRepeticionesEsperadas)
+    const num = parseInt(data.numRepeticionesEsperadas || data.numRepeticionesEsperadasTetrazolio)
     return !isNaN(num) && num >= 2 && num <= 8
   }
 
@@ -189,6 +191,7 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
               <Select
                 value={data.numSemillasPorRep?.toString() || ""}
                 onValueChange={(value) => handleInputChange("numSemillasPorRep", parseInt(value))}
+                disabled={modoEdicion}
               >
                 <SelectTrigger
                   className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
@@ -196,7 +199,7 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
                     ![25, 50, 100].includes(Number(data.numSemillasPorRep))
                       ? "border-red-300 bg-red-50"
                       : ""
-                  }`}
+                  } ${modoEdicion ? "bg-gray-50 cursor-not-allowed" : ""}`}
                 >
                   <SelectValue placeholder="Seleccionar cantidad" />
                 </SelectTrigger>
@@ -206,6 +209,12 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
                   <SelectItem value="100">100</SelectItem>
                 </SelectContent>
               </Select>
+              {modoEdicion && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  No se puede modificar una vez creado el análisis
+                </p>
+              )}
               {showErrors &&
                 ![25, 50, 100].includes(Number(data.numSemillasPorRep)) && (
                   <p className="text-xs text-red-600 flex items-center gap-1">
@@ -232,17 +241,40 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
               type="number"
               min="2"
               max="8"
-              value={data.numRepeticionesEsperadas || ""}
-              onChange={(e) =>
-                handleInputChange("numRepeticionesEsperadas", parseInt(e.target.value) || "")
-              }
+              value={data.numRepeticionesEsperadas ?? data.numRepeticionesEsperadasTetrazolio ?? ""}
+              onChange={(e) => {
+                const fieldName = data.hasOwnProperty('numRepeticionesEsperadasTetrazolio') 
+                  ? 'numRepeticionesEsperadasTetrazolio' 
+                  : 'numRepeticionesEsperadas'
+                
+                const raw = e.target.value
+                const parsed = parseInt(raw, 10)
+                const value = Number.isNaN(parsed) ? raw === "" ? "" : 2 : parsed
+                
+                // Solo enviar números válidos al estado padre
+                if (value === "") {
+                  handleInputChange(fieldName, undefined)
+                } else {
+                  handleInputChange(fieldName, Math.min(8, Math.max(2, Number(value))))
+                }
+              }}
               className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
                 showErrors && !validarNumRepeticiones() ? "border-red-300 bg-red-50" : ""
-              }`}
+              } ${modoEdicion ? "bg-gray-50 cursor-not-allowed" : ""}`}
+              disabled={modoEdicion}
+              readOnly={modoEdicion}
             />
-            <p className="text-xs text-muted-foreground">
-              Se esperan entre <strong>2 y 8 repeticiones</strong> para un resultado confiable.
-            </p>
+            {modoEdicion && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Info className="h-3 w-3" />
+                No se puede modificar una vez creado el análisis
+              </p>
+            )}
+            {!modoEdicion && (
+              <p className="text-xs text-muted-foreground">
+                Se esperan entre <strong>2 y 8 repeticiones</strong> para un resultado confiable.
+              </p>
+            )}
             {showErrors && !validarNumRepeticiones() && (
               <p className="text-xs text-red-600 flex items-center gap-1">
                 <AlertTriangle className="h-3 w-3" />

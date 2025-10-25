@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Save, Loader2, AlertTriangle, TestTube, Target, Plus, Hash } from "lucide-react"
+import { ArrowLeft, Save, Loader2, AlertTriangle, TestTube, Target, Plus, Hash, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { 
   obtenerTetrazolioPorId, 
@@ -68,7 +68,7 @@ export default function EditarTetrazolioPage() {
   type FormState = {
     fecha: string
     numSemillasPorRep: number
-    numRepeticionesEsperadas: number
+    numRepeticionesEsperadas: number | string
     pretratamiento: string
     pretratamientoOtro: string
     concentracion: string
@@ -108,12 +108,16 @@ export default function EditarTetrazolioPage() {
 
   // Estado para nueva repetición
   const [creatingRepeticion, setCreatingRepeticion] = useState(false)
+  const [showAddRepeticion, setShowAddRepeticion] = useState(false)
   const [nuevaRepeticion, setNuevaRepeticion] = useState<any>({
     fecha: new Date().toISOString().split('T')[0],
     viablesNum: '',
     noViablesNum: '',
     duras: ''
   } as any)
+
+  // Estados para edición de repeticiones
+  const [editingRepeticionIndex, setEditingRepeticionIndex] = useState<number | null>(null)
 
   // Fecha de hoy en formato ISO
   const hoy = new Date().toISOString().split('T')[0]
@@ -180,7 +184,7 @@ export default function EditarTetrazolioPage() {
         setFormData({
           fecha: convertirFechaParaInput(tetrazolioData.fecha || ""),
           numSemillasPorRep: tetrazolioData.numSemillasPorRep || 50,
-          numRepeticionesEsperadas: tetrazolioData.numRepeticionesEsperadas || 4,
+          numRepeticionesEsperadas: tetrazolioData.numRepeticionesEsperadas ?? 2,
           pretratamiento: isPretratamientoPersonalizado ? "Otro (especificar)" : pretratamientoActual,
           pretratamientoOtro: isPretratamientoPersonalizado ? pretratamientoActual : "",
           concentracion: isConcentracionPersonalizada ? "Otro (especificar)" : concentracionActual,
@@ -209,46 +213,55 @@ export default function EditarTetrazolioPage() {
   // Control especial para numRepeticionesEsperadas: no permitir bajar de repeticiones.length
   const handleInputChange = useCallback((field: string, value: any) => {
     if (field === "numRepeticionesEsperadas") {
-      const numValue = typeof value === 'string' ? parseInt(value) : value
-      
-      // Validar que sea un número válido
+      // Si el valor está vacío, permitirlo temporalmente (usuario está escribiendo)
+      if (value === "" || value === null || value === undefined) {
+        setFormData(prev => ({ ...prev, [field]: "" }));
+        return;
+      }
+
+      const numValue = Number(value);
+
+      // Si no es un número válido, no actualizar
       if (isNaN(numValue)) {
-        return
+        return;
       }
+
+      // Solo validar cuando hay un número válido
+      let nuevoValor = numValue;
+
+      // Validar límite inferior basado en repeticiones ya creadas
+      const minimo = Math.max(repeticiones.length, 2);
       
-      // Si intenta bajar por debajo de las repeticiones ya creadas, mostrar advertencia y no permitir
-      if (numValue < repeticiones.length) {
-        toast.error(`No se puede establecer un número de repeticiones menor al número de repeticiones ya creadas (actual: ${repeticiones.length}).`, {
-          description: `El valor mínimo permitido es ${repeticiones.length} repeticiones.`,
-          duration: 4000
-        })
-        return // No actualizar el estado
+      if (numValue < minimo) {
+        toast.error(
+          repeticiones.length > 0
+            ? `No se puede establecer un número de repeticiones menor al número de repeticiones ya creadas (${repeticiones.length}).`
+            : `El número mínimo de repeticiones es 2.`,
+          {
+            description: `El valor mínimo permitido es ${minimo} repeticiones.`,
+            duration: 4000,
+          }
+        );
+        nuevoValor = minimo;
+      } else if (numValue > 8) {
+        toast.warning("El número máximo de repeticiones es 8", { duration: 3000 });
+        nuevoValor = 8;
       }
-      
-      // Limitar a rango 2-8
-      if (numValue < 2) {
-        toast.warning('El número mínimo de repeticiones es 2', {
-          duration: 3000
-        })
-        setFormData(prev => ({ ...prev, [field]: 2 }))
-        return
-      }
-      
-      if (numValue > 8) {
-        toast.warning('El número máximo de repeticiones es 8', {
-          duration: 3000
-        })
-        setFormData(prev => ({ ...prev, [field]: 8 }))
-        return
-      }
+
+      setFormData((prev) => ({
+        ...prev,
+        [field]: nuevoValor,
+      }));
+
+      return;
     }
     
-    // Actualizar el estado para cualquier campo
-    setFormData(prev => ({
+    // Cualquier otro campo
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
-    }))
-  }, [repeticiones.length])
+      [field]: value,
+    }));
+  }, [repeticiones.length]);
 
   const handleGuardarPorcentajes = async () => {
     try {
@@ -275,6 +288,14 @@ export default function EditarTetrazolioPage() {
   }
 
   const handleCrearRepeticion = async () => {
+    if (!tetrazolio) return
+    
+    // Validación de límite de repeticiones
+    if (repeticiones.length >= (tetrazolio.numRepeticionesEsperadas || 8)) {
+      toast.error(`Ya se han creado todas las repeticiones esperadas (${tetrazolio.numRepeticionesEsperadas})`)
+      return
+    }
+    
     // Validación de fecha nueva repetición: no puede ser futura
     if (nuevaRepeticion.fecha > hoy) {
       toast.error("La fecha de la repetición no puede ser posterior a hoy")
@@ -299,21 +320,81 @@ export default function EditarTetrazolioPage() {
 
     try {
       setCreatingRepeticion(true)
+      console.log("➕ Creando nueva repetición para tetrazolio:", tetrazolio.analisisID)
+      
       await crearRepTetrazolioViabilidad(parseInt(tetrazolioId), nuevaRepeticion)
+      
+      // Recargar repeticiones
       const repeticionesActualizadas = await obtenerRepeticionesPorTetrazolio(parseInt(tetrazolioId))
       setRepeticiones(repeticionesActualizadas)
+      
+      // Limpiar formulario
       setNuevaRepeticion({
         fecha: new Date().toISOString().split("T")[0],
         viablesNum: '',
         noViablesNum: '',
         duras: '',
       })
+      setShowAddRepeticion(false)
+      
       toast.success("Repetición creada exitosamente")
+      
+      console.log(`✅ Repetición creada. Total: ${repeticionesActualizadas.length}/${tetrazolio.numRepeticionesEsperadas}`)
     } catch (err: any) {
       console.error("❌ Error al crear repetición:", err)
       toast.error(err.message || "Error al crear repetición")
     } finally {
       setCreatingRepeticion(false)
+    }
+  }
+
+  // Función para verificar si se pueden agregar más repeticiones
+  const puedeAgregarRepeticiones = () => {
+    if (!tetrazolio) return false
+    
+    const repeticionesEsperadas = tetrazolio.numRepeticionesEsperadas || 0
+    const totalRepeticiones = repeticiones.length
+    
+    // Verificar que no se exceda el número esperado
+    if (totalRepeticiones >= repeticionesEsperadas) {
+      console.log("❌ No se pueden agregar más: límite alcanzado")
+      return false
+    }
+    
+    return true
+  }
+
+  // Función para eliminar repetición
+  const handleEliminarRepeticion = async (repId: number, index: number) => {
+    if (!tetrazolio) return
+    
+    if (!confirm(`¿Estás seguro de que deseas eliminar la repetición #${index + 1}?`)) {
+      return
+    }
+
+    try {
+      console.log("🗑️ Eliminando repetición:", repId)
+      
+      // Llamar al servicio para eliminar
+      await fetch(`/api/tetrazolio/${tetrazolio.analisisID}/repeticiones/${repId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      // Recargar repeticiones
+      const repeticionesActualizadas = await obtenerRepeticionesPorTetrazolio(parseInt(tetrazolioId))
+      setRepeticiones(repeticionesActualizadas)
+      
+      toast.success('Repetición eliminada exitosamente')
+      
+      console.log(`✅ Repetición eliminada. Total restante: ${repeticionesActualizadas.length}`)
+    } catch (err: any) {
+      console.error("❌ Error al eliminar repetición:", err)
+      toast.error('Error al eliminar repetición', {
+        description: err?.message || "No se pudo eliminar la repetición",
+      })
     }
   }
 
@@ -338,14 +419,14 @@ export default function EditarTetrazolioPage() {
 
     if (
       !formData.numRepeticionesEsperadas ||
-      formData.numRepeticionesEsperadas < 2 ||
-      formData.numRepeticionesEsperadas > 8
+      Number(formData.numRepeticionesEsperadas) < 2 ||
+      Number(formData.numRepeticionesEsperadas) > 8
     ) {
       toast.error("El número de repeticiones debe estar entre 2 y 8")
       return
     }
 
-    if (formData.numRepeticionesEsperadas < repeticiones.length) {
+    if (Number(formData.numRepeticionesEsperadas) < repeticiones.length) {
       toast.error(`No puede ser menor a las repeticiones ya creadas (${repeticiones.length})`)
       return
     }
@@ -390,7 +471,7 @@ export default function EditarTetrazolioPage() {
         idLote: tetrazolio!.idLote!,
         comentarios: formData.comentarios || undefined,
         numSemillasPorRep: formData.numSemillasPorRep,
-        numRepeticionesEsperadas: formData.numRepeticionesEsperadas,
+        numRepeticionesEsperadas: Number(formData.numRepeticionesEsperadas),
         pretratamiento: pretratamientoFinal,
         concentracion: concentracionFinal,
         tincionHs: tincionHsFinal,
@@ -580,35 +661,115 @@ export default function EditarTetrazolioPage() {
                 <TetrazolioFields
                   formData={formData}
                   handleInputChange={handleInputChange}
-                  repeticionesExistentes={repeticiones.length}
+                  modoEdicion={true}
                 />
-                {formData.numRepeticionesEsperadas < repeticiones.length && (
-                  <div className="mt-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded flex items-center gap-1 px-2 py-1">
-                    <AlertTriangle className="h-3 w-3" />
-                    No puede ser menor a las repeticiones ya creadas ({repeticiones.length})
-                  </div>
-                )}
               </CardContent>
             </Card>
           </form>
 
+          {/* Resumen estadístico */}
+          {repeticiones.length > 0 && (
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-orange-50 to-amber-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Target className="h-5 w-5 text-orange-600" />
+                  Resumen Estadístico
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Total Semillas</p>
+                    <p className="text-2xl font-bold text-orange-600">
+                      {totales.total}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Viables</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {totales.viables}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      ({totales.total > 0 ? ((totales.viables / totales.total) * 100).toFixed(1) : 0}%)
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">No Viables</p>
+                    <p className="text-2xl font-bold text-red-600">
+                      {totales.noViables}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      ({totales.total > 0 ? ((totales.noViables / totales.total) * 100).toFixed(1) : 0}%)
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Duras</p>
+                    <p className="text-2xl font-bold text-yellow-600">
+                      {totales.duras}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      ({totales.total > 0 ? ((totales.duras / totales.total) * 100).toFixed(1) : 0}%)
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-white/60 rounded-lg border border-orange-200">
+                  <p className="text-sm text-center text-muted-foreground">
+                    <strong>Repeticiones:</strong> {repeticiones.length} de {tetrazolio?.numRepeticionesEsperadas || 0} completadas
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Sección de Repeticiones */}
           <Card className="border-0 shadow-sm">
             <CardHeader className="border-b bg-muted/50">
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <div className="p-2 rounded-lg bg-orange-500/10">
-                  <Hash className="h-5 w-5 text-orange-600" />
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <div className="p-2 rounded-lg bg-orange-500/10">
+                      <Hash className="h-5 w-5 text-orange-600" />
+                    </div>
+                    Repeticiones ({repeticiones.length}/{tetrazolio?.numRepeticionesEsperadas || 0})
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Gestionar las repeticiones del análisis de Tetrazolio
+                  </p>
                 </div>
-                Repeticiones ({repeticiones.length}/{tetrazolio?.numRepeticionesEsperadas || 0})
-              </CardTitle>
+                {tetrazolio.estado !== "APROBADO" && puedeAgregarRepeticiones() && (
+                  <Button 
+                    onClick={() => {
+                      setNuevaRepeticion({
+                        fecha: new Date().toISOString().split('T')[0],
+                        viablesNum: '',
+                        noViablesNum: '',
+                        duras: ''
+                      })
+                      setShowAddRepeticion(true)
+                    }}
+                    size="sm"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Agregar Repetición
+                  </Button>
+                )}
+                {!puedeAgregarRepeticiones() && (
+                  <div className="text-sm text-muted-foreground">
+                    {repeticiones.length >= (tetrazolio.numRepeticionesEsperadas || 0)
+                      ? "Todas las repeticiones esperadas completadas"
+                      : "No se pueden agregar más repeticiones"
+                    }
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               {/* Crear nueva repetición */}
-              {repeticiones.length < (tetrazolio?.numRepeticionesEsperadas || 0) && (
-                <Card className="border-dashed">
-                  <CardHeader>
+              {showAddRepeticion && (
+                <Card className="border-dashed border-2 border-blue-300 bg-blue-50">
+                  <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Plus className="h-5 w-5" />
+                      <Plus className="h-5 w-5 text-blue-600" />
                       Nueva Repetición
                     </CardTitle>
                   </CardHeader>
@@ -728,6 +889,23 @@ export default function EditarTetrazolioPage() {
                       <Plus className="h-4 w-4 mr-2" />
                       {creatingRepeticion ? 'Creando...' : 'Crear Repetición'}
                     </Button>
+                    
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setShowAddRepeticion(false)
+                        setNuevaRepeticion({
+                          fecha: new Date().toISOString().split('T')[0],
+                          viablesNum: '',
+                          noViablesNum: '',
+                          duras: ''
+                        })
+                      }}
+                      className="w-full"
+                    >
+                      Cancelar
+                    </Button>
                   </CardContent>
                 </Card>
               )}
@@ -739,6 +917,26 @@ export default function EditarTetrazolioPage() {
                     {repeticiones.map((repeticion, index) => (
                       <Card key={repeticion.repTetrazolioViabID} className="border-l-4 border-l-orange-500">
                         <CardContent className="pt-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="font-mono">
+                                Repetición #{index + 1}
+                              </Badge>
+                            </div>
+                            {tetrazolio.estado !== "APROBADO" && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEliminarRepeticion(repeticion.repTetrazolioViabID, index)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <AlertTriangle className="h-4 w-4 mr-1" />
+                                Eliminar
+                              </Button>
+                            )}
+                          </div>
+                          
                           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                             <div>
                               <Label className="text-xs text-muted-foreground">Repetición</Label>
