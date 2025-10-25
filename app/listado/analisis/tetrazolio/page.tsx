@@ -12,6 +12,7 @@ import Link from "next/link"
 import { obtenerTodosTetrazolio, obtenerTetrazoliosPaginadas, desactivarTetrazolio, activarTetrazolio } from '@/app/services/tetrazolio-service'
 import Pagination from "@/components/pagination"
 import { toast } from "sonner"
+import { useAuth } from "@/components/auth-provider"
 
 interface AnalisisTetrazolio {
   id: string
@@ -33,10 +34,9 @@ interface AnalisisTetrazolio {
 }
 
 export default function ListadoTetrazolioPage() {
+  const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [filtroActivo, setFiltroActivo] = useState("todos")
-  const [userRole, setUserRole] = useState<string | null>(null)
   const [filterEstado, setFilterEstado] = useState<string>("todos")
   const [filterPrioridad, setFilterPrioridad] = useState<string>("todos")
 
@@ -48,41 +48,41 @@ export default function ListadoTetrazolioPage() {
   const [totalElements, setTotalElements] = useState(0)
   const [isLast, setIsLast] = useState(false)
   const [isFirst, setIsFirst] = useState(true)
-  const [lastResponse, setLastResponse] = useState<any>(null)
+  const [, setLastResponse] = useState<any>(null)
   const pageSize = 10
 
-  // Debounce searchTerm
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-    }, 500)
-    return () => clearTimeout(handler)
-  }, [searchTerm])
+    setCurrentPage(0)
+    fetchTetrazolio(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtroActivo]) // Recargar cuando cambien los filtros (sin searchTerm)
 
-  // Obtener rol del usuario
-  useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]))
-        setUserRole(payload.rol)
-      } catch (error) {
-        console.error("Error al decodificar el token:", error)
-      }
+  // Handler para búsqueda con Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      setCurrentPage(0)
+      fetchTetrazolio(0)
     }
-  }, [])
-  
+  }
+
+  // Handler para botón de búsqueda
+  const handleSearchClick = () => {
+    setCurrentPage(0)
+    fetchTetrazolio(0)
+  }
+
   const fetchTetrazolio = async (page: number = 0) => {
     try {
       setLoading(true)
       setError("")
-  // Convert filtroActivo string to boolean
-  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
-  
+      // Convert filtroActivo string to boolean
+      const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos"
+
       const data = await obtenerTetrazoliosPaginadas(
         page,
         pageSize,
-        debouncedSearchTerm || undefined,
+        searchTerm,
         activoFilter,
         undefined,
         undefined
@@ -111,16 +111,16 @@ export default function ListadoTetrazolioPage() {
 
       setAnalisis(mapped)
 
-      const pageMeta = (data as any).page ? (data as any).page : (data as any);
-      const totalPagesFrom = pageMeta.totalPages ?? 1;
-      const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0);
-      const numberFrom = pageMeta.number ?? page;
+      const pageMeta = (data as any).page ? (data as any).page : (data as any)
+      const totalPagesFrom = pageMeta.totalPages ?? 1
+      const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0)
+      const numberFrom = pageMeta.number ?? page
 
-      setTotalPages(totalPagesFrom);
-      setTotalElements(totalElementsFrom);
-      setCurrentPage(numberFrom);
-      setIsFirst(numberFrom === 0);
-      setIsLast(numberFrom >= totalPagesFrom - 1);
+      setTotalPages(totalPagesFrom)
+      setTotalElements(totalElementsFrom)
+      setCurrentPage(numberFrom)
+      setIsFirst(numberFrom === 0)
+      setIsLast(numberFrom >= totalPagesFrom - 1)
     } catch (err: any) {
       console.error("Error fetching Tetrazolio paginadas:", err)
       setError("Error al cargar los análisis Tetrazolio")
@@ -128,11 +128,6 @@ export default function ListadoTetrazolioPage() {
       setLoading(false)
     }
   }
-
-  useEffect(() => {
-    setCurrentPage(0)
-    fetchTetrazolio(0)
-  }, [filtroActivo, debouncedSearchTerm])
 
   // Handlers para desactivar/reactivar
   const handleDesactivar = async (id: number) => {
@@ -159,16 +154,10 @@ export default function ListadoTetrazolioPage() {
   }
 
   const filteredAnalisis = analisis.filter((item) => {
-    const matchesSearch =
-      item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.loteId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.loteName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.analyst.toLowerCase().includes(searchTerm.toLowerCase())
-
     const matchesEstado = filterEstado === "todos" || item.estado === filterEstado
     const matchesPrioridad = filterPrioridad === "todos" || item.prioridad === filterPrioridad
 
-    return matchesSearch && matchesEstado && matchesPrioridad
+    return matchesEstado && matchesPrioridad
   })
 
   const getEstadoBadgeVariant = (estado: string) => {
@@ -198,35 +187,6 @@ export default function ListadoTetrazolioPage() {
         return "outline"
     }
   }
-
-  if (loading) {
-    return (
-      <div className="space-y-6 p-3 sm:p-4 md:p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Cargando análisis de Tetrazolio...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6 p-3 sm:p-4 md:p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <p className="text-lg font-semibold mb-2">Error al cargar</p>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => void fetchTetrazolio(currentPage)}>Reintentar</Button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-  
 
   return (
     <div className="w-full max-w-full overflow-x-hidden">
@@ -330,17 +290,27 @@ export default function ListadoTetrazolioPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSearchClick()
+              }}
+              className="flex-1 flex gap-2"
+            >
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por ID, lote, nombre o analista..."
+                  placeholder="Buscar por ID análisis, Lote o Ficha..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   className="pl-10"
                 />
               </div>
-            </div>
+              <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                <Search className="h-4 w-4" />
+              </Button>
+            </form>
             <Select value={filterEstado} onValueChange={setFilterEstado}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Filtrar por estado" />
@@ -436,7 +406,7 @@ export default function ListadoTetrazolioPage() {
                             <Edit className="h-4 w-4" />
                           </Button>
                         </Link>
-                        {userRole === "ADMIN" && (
+                        {user?.role === "administrador" && (
                           item.activo ? (
                             <Button 
                               variant="ghost" 

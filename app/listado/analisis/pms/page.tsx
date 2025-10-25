@@ -14,6 +14,7 @@ import { Toaster, toast } from "sonner"
 import Pagination from "@/components/pagination"
 import { obtenerPmsPaginadas, eliminarPms, desactivarPms, activarPms } from "@/app/services/pms-service"
 import { PmsDTO } from "@/app/models"
+import { useAuth } from "@/components/auth-provider"
 
 interface AnalisisPMS {
   id: string
@@ -35,12 +36,11 @@ interface AnalisisPMS {
 }
 
 export default function ListadoPMSPage() {
+  const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState<string>("todos")
   const [filterPrioridad, setFilterPrioridad] = useState<string>("todos")
   const [filtroActivo, setFiltroActivo] = useState("todos")
-  const [userRole, setUserRole] = useState<string | null>(null)
   const [analisis, setAnalisis] = useState<AnalisisPMS[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -49,38 +49,38 @@ export default function ListadoPMSPage() {
   const [totalElements, setTotalElements] = useState(0)
   const pageSize = 10
 
-  // Debounce searchTerm
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-    }, 500)
-    return () => clearTimeout(handler)
-  }, [searchTerm])
+    setCurrentPage(0)
+    fetchPms(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtroActivo]) // Recargar cuando cambien los filtros (sin searchTerm)
 
-  // Obtener rol del usuario
-  useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]))
-        setUserRole(payload.rol)
-      } catch (error) {
-        console.error("Error al decodificar el token:", error)
-      }
+  // Handler para búsqueda con Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      setCurrentPage(0)
+      fetchPms(0)
     }
-  }, [])
+  }
+
+  // Handler para botón de búsqueda
+  const handleSearchClick = () => {
+    setCurrentPage(0)
+    fetchPms(0)
+  }
 
   // Fetch paginated PMS
   const fetchPms = async (page: number = 0) => {
     try {
       setLoading(true)
-  // Convert filtroActivo string to boolean
-  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
-  
+      // Convert filtroActivo string to boolean
+      const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos"
+      
       const data = await obtenerPmsPaginadas(
         page,
         pageSize,
-        debouncedSearchTerm || undefined,
+        searchTerm,
         activoFilter,
         undefined,
         undefined
@@ -122,11 +122,6 @@ export default function ListadoPMSPage() {
     }
   }
 
-  useEffect(() => {
-    setCurrentPage(0)
-    fetchPms(0)
-  }, [filtroActivo, debouncedSearchTerm])
-
   // Handlers para desactivar/reactivar
   const handleDesactivar = async (id: number) => {
     if (!confirm("¿Está seguro de desactivar este análisis PMS?")) return
@@ -152,14 +147,8 @@ export default function ListadoPMSPage() {
   }
 
   const filteredAnalisis = analisis.filter((item) => {
-    const matchesSearch =
-      item.id?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.loteId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.loteName?.toLowerCase().includes(searchTerm.toLowerCase())
-
     const matchesEstado = filterEstado === "todos" || item.estado === filterEstado
-
-    return matchesSearch && matchesEstado
+    return matchesEstado
   })
 
   const getEstadoBadgeVariant = (estado: string) => {
@@ -218,19 +207,6 @@ export default function ListadoPMSPage() {
   const enProceso = analisis.filter((a) => a.estado === "En Proceso").length
   const promedioGeneral = analisis.filter((a) => a.pesoPromedio && a.pesoPromedio > 0)
     .reduce((sum, a, _, arr) => sum + (a.pesoPromedio || 0) / arr.length, 0)
-
-  if (loading) {
-    return (
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <Scale className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">Cargando análisis de PMS...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="w-full max-w-full overflow-x-hidden">
@@ -346,17 +322,27 @@ export default function ListadoPMSPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSearchClick()
+              }}
+              className="flex-1 flex gap-2"
+            >
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por ID de análisis, lote o ID de lote..."
+                  placeholder="Buscar por ID análisis, Lote o Ficha..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   className="pl-10"
                 />
               </div>
-            </div>
+              <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                <Search className="h-4 w-4" />
+              </Button>
+            </form>
             <Select value={filterEstado} onValueChange={setFilterEstado}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Filtrar por estado" />
@@ -411,7 +397,7 @@ export default function ListadoPMSPage() {
                 {filteredAnalisis.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                      {searchTerm || filterEstado !== "todos" 
+                      {filterEstado !== "todos" 
                         ? "No se encontraron análisis que coincidan con los filtros."
                         : "No hay análisis de PMS registrados aún."
                       }
@@ -459,7 +445,7 @@ export default function ListadoPMSPage() {
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Link>
-                          {userRole === "ADMIN" && (
+                          {user?.role === "administrador" && (
                             item.activo ? (
                               <Button 
                                 variant="ghost" 

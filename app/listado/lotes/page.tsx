@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { obtenerLotesPaginadas, eliminarLote, activarLote, obtenerEstadisticasLotes } from "@/app/services/lote-service"
+import { obtenerTodosCultivares } from "@/app/services/cultivar-service"
 import { obtenerPerfil } from "@/app/services/auth-service"
 import Pagination from "@/components/pagination"
 import { LoteSimpleDTO } from "@/app/models"
@@ -20,6 +21,7 @@ export default function ListadoLotesPage() {
   const [filterEstado, setFilterEstado] = useState<string>("todos")
   const [filterCultivo, setFilterCultivo] = useState<string>("todos")
   const [lotes, setLotes] = useState<LoteSimpleDTO[]>([])
+  const [cultivos, setCultivos] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
@@ -63,9 +65,39 @@ export default function ListadoLotesPage() {
     fetchStats()
   }, [])
 
+  // Cargar todos los cultivares para el select
   useEffect(() => {
+    const fetchCultivares = async () => {
+      try {
+        const todosLosCultivares = await obtenerTodosCultivares(true) // Solo activos
+        const nombresCultivares = [...new Set(todosLosCultivares.map(c => c.nombre).filter(Boolean))] as string[]
+        setCultivos(nombresCultivares)
+      } catch (error) {
+        console.error("Error obteniendo cultivares:", error)
+      }
+    }
+    fetchCultivares()
+  }, [])
+
+  useEffect(() => {
+    setCurrentPage(0)
     fetchLotes(0)
-  }, [searchTerm, filterEstado, filterCultivo]) // Recargar cuando cambien los filtros
+  }, [filterEstado, filterCultivo]) // Recargar cuando cambien los filtros (sin searchTerm)
+
+  // Handler para búsqueda con Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      setCurrentPage(0)
+      fetchLotes(0)
+    }
+  }
+
+  // Handler para botón de búsqueda
+  const handleSearchClick = () => {
+    setCurrentPage(0)
+    fetchLotes(0)
+  }
 
   const fetchLotes = async (page: number = 0) => {
     try {
@@ -114,10 +146,6 @@ export default function ListadoLotesPage() {
       setIsLoading(false)
     }
   }
-
-  // Los cultivos ahora deben venir de todos los lotes, no solo de la página actual
-  // Para esto, necesitaremos un endpoint separado o cargar todos los cultivares
-  const cultivos = [...new Set(lotes.map((lote) => lote.cultivarNombre || "").filter(Boolean))]
 
   // Handler para desactivar lote
   const handleDesactivarLote = async (id: number) => {
@@ -272,16 +300,20 @@ export default function ListadoLotesPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
+            <div className="flex-1 flex gap-2">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por ficha, nombre de lote, cultivar o especie..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   className="pl-10"
                 />
               </div>
+              <Button onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                <Search className="h-4 w-4" />
+              </Button>
             </div>
             <Select value={filterEstado} onValueChange={setFilterEstado}>
               <SelectTrigger className="w-full md:w-48">

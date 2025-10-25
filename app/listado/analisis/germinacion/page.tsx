@@ -13,6 +13,7 @@ import { GerminacionListadoDTO } from "@/app/models/interfaces/germinacion"
 import { EstadoAnalisis } from "@/app/models/types/enums"
 import Pagination from "@/components/pagination"
 import { toast } from "sonner"
+import { useAuth } from "@/components/auth-provider"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -62,11 +63,10 @@ const formatearFechaHora = (fechaString: string): string => {
 }
 
 export default function ListadoGerminacionPage() {
+  const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [filtroActivo, setFiltroActivo] = useState("todos")
-  const [userRole, setUserRole] = useState<string | null>(null)
   const [germinaciones, setGerminaciones] = useState<GerminacionListadoDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -77,55 +77,55 @@ export default function ListadoGerminacionPage() {
   const [isFirst, setIsFirst] = useState(true)
   const pageSize = 10
 
-  // Debounce searchTerm
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-    }, 500)
-    return () => clearTimeout(handler)
-  }, [searchTerm])
+    setCurrentPage(0)
+    fetchGerminaciones(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtroActivo, selectedStatus]) // Recargar cuando cambien los filtros (sin searchTerm)
 
-  // Obtener rol del usuario
-  useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]))
-        setUserRole(payload.rol)
-      } catch (error) {
-        console.error("Error al decodificar el token:", error)
-      }
+  // Handler para búsqueda con Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      setCurrentPage(0)
+      fetchGerminaciones(0)
     }
-  }, [])
+  }
+
+  // Handler para botón de búsqueda
+  const handleSearchClick = () => {
+    setCurrentPage(0)
+    fetchGerminaciones(0)
+  }
 
   const fetchGerminaciones = async (page: number = 0) => {
     try {
       setLoading(true)
-  // Convert filtroActivo string to boolean
-  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
-  
-  const data = await obtenerGerminacionesPaginadas(
-    page,
-    pageSize,
-    debouncedSearchTerm || undefined,
-    activoFilter,
-    selectedStatus !== "all" ? selectedStatus : undefined,
-    undefined
-  )
-  const content = (data as any).content || []
-  setGerminaciones(content)
+      // Convert filtroActivo string to boolean
+      const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos"
+      
+      const data = await obtenerGerminacionesPaginadas(
+        page,
+        pageSize,
+        searchTerm,
+        activoFilter,
+        selectedStatus !== "all" ? selectedStatus : undefined,
+        undefined
+      )
+      const content = (data as any).content || []
+      setGerminaciones(content)
 
-  // support two response shapes: { content, page: { ... } } or Spring page directly { content, totalPages, number, ... }
-  const pageMeta = (data as any).page ? (data as any).page : (data as any)
-  const totalPagesFrom = pageMeta.totalPages ?? 1
-  const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0)
-  const numberFrom = pageMeta.number ?? page
+      // support two response shapes: { content, page: { ... } } or Spring page directly { content, totalPages, number, ... }
+      const pageMeta = (data as any).page ? (data as any).page : (data as any)
+      const totalPagesFrom = pageMeta.totalPages ?? 1
+      const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0)
+      const numberFrom = pageMeta.number ?? page
 
-  setTotalPages(totalPagesFrom)
-  setTotalElements(totalElementsFrom)
-  setCurrentPage(numberFrom)
-  setIsFirst(numberFrom === 0)
-  setIsLast(numberFrom >= totalPagesFrom - 1)
+      setTotalPages(totalPagesFrom)
+      setTotalElements(totalElementsFrom)
+      setCurrentPage(numberFrom)
+      setIsFirst(numberFrom === 0)
+      setIsLast(numberFrom >= totalPagesFrom - 1)
     } catch (err) {
       setError("Error al cargar los análisis de germinación")
       console.error("Error fetching germinaciones:", err)
@@ -133,11 +133,6 @@ export default function ListadoGerminacionPage() {
       setLoading(false)
     }
   }
-
-  useEffect(() => {
-    setCurrentPage(0)
-    fetchGerminaciones(0)
-  }, [filtroActivo, selectedStatus, debouncedSearchTerm])
 
   // Handlers para desactivar/reactivar
   const handleDesactivar = async (id: number) => {
@@ -162,7 +157,6 @@ export default function ListadoGerminacionPage() {
       toast.error("Error al reactivar el análisis")
     }
   }
-
   // No client-side filtering - all filtering done on backend
   const filteredAnalysis = germinaciones
 
@@ -210,34 +204,6 @@ export default function ListadoGerminacionPage() {
     if (newPage >= 0 && newPage < totalPages) {
       fetchGerminaciones(newPage)
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="space-y-6 p-3 sm:p-4 md:p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Cargando análisis de germinación...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6 p-3 sm:p-4 md:p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <p className="text-lg font-semibold mb-2">Error al cargar</p>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => fetchGerminaciones(currentPage)}>Reintentar</Button>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -320,17 +286,27 @@ export default function ListadoGerminacionPage() {
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSearchClick()
+              }}
+              className="flex-1 flex gap-2"
+            >
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Buscar por ID, lote o usuario..."
+                  placeholder="Buscar por ID análisis, Lote o Ficha..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   className="pl-10"
                 />
               </div>
-            </div>
+              <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                <Search className="h-4 w-4" />
+              </Button>
+            </form>
             <div className="flex gap-2">
               <select
                 value={selectedStatus}
@@ -444,7 +420,7 @@ export default function ListadoGerminacionPage() {
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Link>
-                          {userRole === "ADMIN" && (
+                          {user?.role === "administrador" && (
                             analysis.activo ? (
                               <Button 
                                 variant="ghost" 
