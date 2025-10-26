@@ -6,68 +6,99 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
-import { ArrowLeft, Search, Eye, FileText, AlertTriangle, Database, FileArchive, Package } from "lucide-react"
-import legadoService from "@/app/services/legado-service" 
-import type { LegadoSimpleDTO } from "@/app/models/interfaces/legado"
+import { ArrowLeft, Search, Eye, AlertTriangle, Database, Loader2, Filter } from "lucide-react"
+import { obtenerLegadosPaginadas, obtenerEspeciesUnicas } from "@/app/services/legado-service"
+import type { LegadoListadoDTO } from "@/app/models/interfaces/legado"
+import Pagination from "@/components/pagination"
 
 export default function ListadoLegadoPage() {
-  const [legados, setLegados] = useState<LegadoSimpleDTO[]>([])
-  const [filteredLegados, setFilteredLegados] = useState<LegadoSimpleDTO[]>([])
+  const [legados, setLegados] = useState<LegadoListadoDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const [filterEspecie, setFilterEspecie] = useState<string>("todos")
+  const [especies, setEspecies] = useState<string[]>([])
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const pageSize = 10
+
+  // Fetch legados paginados
+  const fetchLegados = async (page: number = 0) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const data = await obtenerLegadosPaginadas(
+        page,
+        pageSize,
+        searchTerm,
+        filterEspecie
+      )
+
+      console.log("DEBUG obtenerLegadosPaginadas response:", data)
+
+      const content = data.content || []
+      setLegados(content)
+
+      // Verificar si la metadata viene en data.page o directamente en data
+      const pageInfo = (data as any).page || data
+      const totalPagesFrom = pageInfo.totalPages ?? 1
+      const totalElementsFrom = pageInfo.totalElements ?? 0
+      const numberFrom = pageInfo.number ?? page
+
+      console.log("DEBUG pagination info:", { totalPagesFrom, totalElementsFrom, numberFrom })
+
+      setTotalPages(totalPagesFrom)
+      setTotalElements(totalElementsFrom)
+      setCurrentPage(numberFrom)
+    } catch (err) {
+      console.error("Error fetching legados:", err)
+      setError("Error al cargar los datos legados. Intente nuevamente más tarde.")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchLegados = async () => {
-      try {
-        setLoading(true)
-        const data = await legadoService.getAll()
-        setLegados(data)
-        setFilteredLegados(data)
-      } catch (err) {
-        setError("Error al cargar los datos legados")
-        console.error("Error al cargar datos legados:", err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchLegados()
+    fetchLegados(0)
+    fetchEspecies()
   }, [])
 
-  useEffect(() => {
-    const filtered = legados.filter((legado) => {
-      const searchLower = searchTerm.toLowerCase()
-      return (
-        legado.ficha?.toLowerCase().includes(searchLower) ||
-        legado.nomLote?.toLowerCase().includes(searchLower) ||
-        legado.codDoc?.toLowerCase().includes(searchLower) ||
-        legado.nomDoc?.toLowerCase().includes(searchLower) ||
-        legado.familia?.toLowerCase().includes(searchLower)
-      )
-    })
-    setFilteredLegados(filtered)
-  }, [searchTerm, legados])
-
-  // Estadísticas
-  const totalLegados = legados.length
-  const lotesUnicos = new Set(legados.map(l => l.nomLote).filter(Boolean)).size
-  const fichasUnicas = new Set(legados.map(l => l.ficha).filter(Boolean)).size
-  const familiasUnicas = new Set(legados.map(l => l.familia).filter(Boolean)).size
-
-  if (loading) {
-    return (
-      <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Cargando datos legados...</p>
-          </div>
-        </div>
-      </div>
-    )
+  // Cargar especies únicas
+  const fetchEspecies = async () => {
+    try {
+      const especiesData = await obtenerEspeciesUnicas()
+      setEspecies(especiesData)
+    } catch (err) {
+      console.error("Error fetching especies:", err)
+    }
   }
+
+  // Handler para búsqueda
+  const handleSearchClick = () => {
+    fetchLegados(0)
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      fetchLegados(0)
+    }
+  }
+
+  // Handler para cambio de filtro de especie
+  const handleFilterEspecieChange = (value: string) => {
+    setFilterEspecie(value)
+  }
+
+  // Aplicar filtros
+  useEffect(() => {
+    if (!loading) {
+      fetchLegados(0)
+    }
+  }, [filterEspecie])
 
   if (error) {
     return (
@@ -77,7 +108,7 @@ export default function ListadoLegadoPage() {
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <p className="text-lg font-semibold mb-2">Error al cargar</p>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>Reintentar</Button>
+            <Button onClick={() => fetchLegados(currentPage)}>Reintentar</Button>
           </div>
         </div>
       </div>
@@ -98,19 +129,28 @@ export default function ListadoLegadoPage() {
           </Link>
           <div className="text-center sm:text-left flex-1">
             <h1 className="text-2xl sm:text-3xl font-bold text-balance">Datos Legados</h1>
-            <p className="text-sm sm:text-base text-muted-foreground text-pretty">Consulta los datos históricos importados desde Excel</p>
+            <p className="text-sm sm:text-base text-muted-foreground text-pretty">
+              Consulta los datos históricos importados desde Excel
+            </p>
           </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Registros</p>
-                <p className="text-2xl font-bold">{totalLegados}</p>
+                {loading ? (
+                  <div className="flex items-center">
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <span>Cargando...</span>
+                  </div>
+                ) : (
+                  <p className="text-2xl font-bold">{totalElements}</p>
+                )}
               </div>
               <Database className="h-8 w-8 text-blue-600" />
             </div>
@@ -120,32 +160,17 @@ export default function ListadoLegadoPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Fichas Únicas</p>
-                <p className="text-2xl font-bold">{fichasUnicas}</p>
+                <p className="text-sm font-medium text-muted-foreground">Página Actual</p>
+                {loading ? (
+                  <div className="flex items-center">
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <span>Cargando...</span>
+                  </div>
+                ) : (
+                  <p className="text-2xl font-bold">{currentPage + 1} / {Math.max(totalPages, 1)}</p>
+                )}
               </div>
-              <FileArchive className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Lotes Únicos</p>
-                <p className="text-2xl font-bold">{lotesUnicos}</p>
-              </div>
-              <Package className="h-8 w-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Familias Diferentes</p>
-                <p className="text-2xl font-bold">{familiasUnicas}</p>
-              </div>
-              <FileText className="h-8 w-8 text-purple-600" />
+              <Database className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
@@ -153,18 +178,43 @@ export default function ListadoLegadoPage() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-4">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filtros y Búsqueda
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
+            <div className="flex-1 flex gap-2">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Buscar por ficha, lote, código de documento, nombre o familia..."
+                  placeholder="Buscar por ID o ficha..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   className="pl-10"
                 />
               </div>
+              <Button onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                <Search className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Select value={filterEspecie} onValueChange={handleFilterEspecieChange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Especie" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todas las especies</SelectItem>
+                  {especies.map((especie) => (
+                    <SelectItem key={especie} value={especie}>
+                      {especie}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>
@@ -173,60 +223,96 @@ export default function ListadoLegadoPage() {
       {/* Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Datos Legados ({filteredLegados.length})</CardTitle>
+          <CardTitle>Lista de Datos Legados ({loading ? "..." : totalElements})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[80px]">ID</TableHead>
-                  <TableHead className="min-w-[120px]">Ficha</TableHead>
-                  <TableHead className="min-w-[150px]">Lote</TableHead>
-                  <TableHead className="min-w-[120px]">Cód. Documento</TableHead>
-                  <TableHead className="min-w-[150px]">Nombre Documento</TableHead>
-                  <TableHead className="min-w-[120px]">Familia</TableHead>
-                  <TableHead className="min-w-[100px]">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLegados.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      <div className="flex flex-col items-center gap-2">
-                        <AlertTriangle className="h-8 w-8 text-muted-foreground" />
-                        <p className="text-muted-foreground">
-                          {searchTerm ? "No se encontraron resultados" : "No hay datos legados registrados"}
-                        </p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredLegados.map((legado) => (
-                    <TableRow key={legado.legadoID}>
-                      <TableCell className="font-medium">LEG-{legado.legadoID}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{legado.ficha || "-"}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{legado.nomLote || "-"}</div>
-                      </TableCell>
-                      <TableCell>{legado.codDoc || "-"}</TableCell>
-                      <TableCell>{legado.nomDoc || "-"}</TableCell>
-                      <TableCell>{legado.familia || "-"}</TableCell>
-                      <TableCell>
-                        <Link href={`/listado/legado/${legado.legadoID}`}>
-                          <Button variant="ghost" size="sm" title="Ver detalles">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </TableCell>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">Cargando datos...</span>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[80px]">ID</TableHead>
+                      <TableHead className="min-w-[120px]">Ficha</TableHead>
+                      <TableHead className="min-w-[150px]">Especie</TableHead>
+                      <TableHead className="min-w-[120px]">Fecha Recibo</TableHead>
+                      <TableHead className="min-w-[100px]">Germ C</TableHead>
+                      <TableHead className="min-w-[100px]">Germ SC</TableHead>
+                      <TableHead className="min-w-[100px]">Peso 1000</TableHead>
+                      <TableHead className="min-w-[100px]">Pureza INIA</TableHead>
+                      <TableHead className="min-w-[100px]">Pureza INASE</TableHead>
+                      <TableHead className="min-w-[100px]">Acciones</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  </TableHeader>
+                  <TableBody>
+                    {legados.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={10} className="text-center py-8">
+                          <div className="flex flex-col items-center gap-2">
+                            <AlertTriangle className="h-8 w-8 text-muted-foreground" />
+                            <p className="text-muted-foreground">
+                              {searchTerm ? "No se encontraron resultados" : "No hay datos legados registrados"}
+                            </p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      legados.map((legado) => (
+                        <TableRow key={legado.legadoID}>
+                          <TableCell className="font-medium">LEG-{legado.legadoID}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{legado.ficha || "-"}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium">{legado.especie || "-"}</div>
+                          </TableCell>
+                          <TableCell>
+                            {legado.fechaRecibo ? new Date(legado.fechaRecibo).toLocaleDateString("es-ES") : "-"}
+                          </TableCell>
+                          <TableCell>{legado.germC ?? "-"}</TableCell>
+                          <TableCell>{legado.germSC ?? "-"}</TableCell>
+                          <TableCell>{legado.peso1000 ? legado.peso1000.toFixed(2) : "-"}</TableCell>
+                          <TableCell>{legado.pura ? legado.pura.toFixed(2) : "-"}</TableCell>
+                          <TableCell>{legado.puraI ? legado.puraI.toFixed(2) : "-"}</TableCell>
+                          <TableCell>
+                            <Link href={`/listado/legado/${legado.legadoID}`}>
+                              <Button variant="ghost" size="sm" title="Ver detalles">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination */}
+              <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-sm text-muted-foreground">
+                  {totalElements === 0 ? (
+                    <>No hay resultados</>
+                  ) : (
+                    <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
+                  )}
+                </div>
+
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={Math.max(totalPages, 1)}
+                  onPageChange={(p) => fetchLegados(p)}
+                  showRange={1}
+                  alwaysShow={true}
+                />
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

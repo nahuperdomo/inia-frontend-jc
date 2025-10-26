@@ -14,6 +14,21 @@ export interface LegadoSimpleDTO {
 }
 
 /**
+ * Interfaz para listado paginado de legados
+ */
+export interface LegadoListadoDTO {
+  legadoID: number
+  ficha: string | null
+  especie: string | null
+  fechaRecibo: string | null
+  germC: number | null
+  germSC: number | null
+  peso1000: number | null
+  pura: number | null
+  puraI: number | null
+}
+
+/**
  * Interfaz completa para un registro Legado - coincide con LegadoDTO del backend
  */
 export interface LegadoDTO {
