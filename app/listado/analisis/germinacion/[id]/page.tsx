@@ -29,6 +29,7 @@ import { obtenerGerminacionPorId, obtenerTablasGerminacion } from "@/app/service
 import type { GerminacionDTO } from "@/app/models/interfaces/germinacion"
 import type { TablaGermDTO } from "@/app/models/interfaces/repeticiones"
 import type { EstadoAnalisis } from "@/app/models/types/enums"
+import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -95,13 +96,13 @@ export default function GerminacionDetailPage() {
 
   const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
     switch (estado) {
-      case "FINALIZADO":
+      case "REGISTRADO":
         return "default"
       case "EN_PROCESO":
         return "secondary"
       case "APROBADO":
         return "outline"
-      case "PENDIENTE":
+      case "PENDIENTE_APROBACION":
         return "destructive"
       default:
         return "outline"
@@ -751,105 +752,12 @@ export default function GerminacionDetailPage() {
           </div>
 
           <div className="space-y-6">
-            {/* Quick Actions */}
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-muted/50 border-b">
-                <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <Link href={`/registro/analisis?tipo=germinacion&lote=${germinacion.idLote}`} className="block">
-                    <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                      <div className="p-1.5 rounded-md bg-primary/10">
-                        <Sprout className="h-4 w-4 text-primary" />
-                      </div>
-                      <span className="font-medium">Nuevo Análisis</span>
-                    </Button>
-                  </Link>
-                  <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                    <div className="p-1.5 rounded-md bg-primary/10">
-                      <Download className="h-4 w-4 text-primary" />
-                    </div>
-                    <span className="font-medium">Descargar Certificado</span>
-                  </Button>
-                  <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                    <div className="p-1.5 rounded-md bg-primary/10">
-                      <Calendar className="h-4 w-4 text-primary" />
-                    </div>
-                    <span className="font-medium">Programar Seguimiento</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Estado del Análisis */}
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-muted/50 border-b">
-                <CardTitle className="text-lg">Estado del Análisis</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Progreso general</span>
-                    <span className="text-sm text-muted-foreground">{tablasFinalizadas}/{tablas.length}</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full transition-all" 
-                      style={{ width: `${tablas.length > 0 ? (tablasFinalizadas / tablas.length) * 100 : 0}%` }}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Estado</p>
-                      <p className="font-medium">{germinacion.estado}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Completado</p>
-                      <p className="font-medium">{tablas.length > 0 ? Math.round((tablasFinalizadas / tablas.length) * 100) : 0}%</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Historial de Actividades */}
-            {germinacion.historial && germinacion.historial.length > 0 && (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-muted/50 border-b">
-                  <CardTitle className="text-lg">Historial de Actividades</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {germinacion.historial.map((item, index) => (
-                      <div key={index} className="relative pl-6 pb-4 last:pb-0">
-                        <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
-                        {index !== germinacion.historial.length - 1 && (
-                          <div className="absolute left-[5px] top-5 bottom-0 w-0.5 bg-border" />
-                        )}
-                        <div className="space-y-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="text-sm font-semibold leading-tight">
-                              {item.estadoAnterior} → {item.estadoNuevo}
-                            </p>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(item.fechaCambio).toLocaleDateString("es-ES", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Por: {item.usuario}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <AnalysisHistoryCard
+              analisisId={germinacion.analisisID}
+              analisisTipo="germinacion"
+              historial={germinacion.historial}
+            />
           </div>
         </div>
       </div>

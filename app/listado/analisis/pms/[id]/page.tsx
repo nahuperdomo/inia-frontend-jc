@@ -17,8 +17,6 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  Plus,
-  Trash2,
   Calculator
 } from "lucide-react"
 import { Toaster, toast } from "sonner"
@@ -26,6 +24,7 @@ import Link from "next/link"
 import { PmsDTO, RepPmsDTO } from "@/app/models"
 import { obtenerPmsPorId, finalizarAnalisis, aprobarAnalisis, marcarParaRepetir } from "@/app/services/pms-service"
 import { obtenerRepeticionesPorPms, eliminarRepPms } from "@/app/services/repeticiones-service"
+import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 
 export default function DetallePMSPage() {
   const params = useParams()
@@ -300,17 +299,18 @@ export default function DetallePMSPage() {
       </div>
 
       <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
-
-      {/* Información General */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Scale className="h-5 w-5" />
-              Información del Análisis
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content - 2 columns */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Información General */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Scale className="h-5 w-5" />
+                  Información del Análisis
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex justify-between">
@@ -380,7 +380,7 @@ export default function DetallePMSPage() {
           </CardContent>
         </Card>
 
-        {/* Resultados */}
+        {/* Repeticiones */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -453,32 +453,19 @@ export default function DetallePMSPage() {
             )}
           </CardContent>
         </Card>
-      </div>
 
-      {/* Repeticiones */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Hash className="h-5 w-5" />
-                Repeticiones ({repeticiones.length})
-              </CardTitle>
-              <CardDescription>
-                Datos de pesaje por repetición y tanda
-              </CardDescription>
-            </div>
-            {analisis.estado !== "APROBADO" && (
-              <Link href={`/listado/analisis/pms/${id}/editar`}>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Agregar Repetición
-                </Button>
-              </Link>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
+        {/* Repeticiones */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Hash className="h-5 w-5" />
+              Repeticiones ({repeticiones.length})
+            </CardTitle>
+            <CardDescription>
+              Datos de pesaje por repetición y tanda
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
           {repeticiones.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Hash className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -497,8 +484,7 @@ export default function DetallePMSPage() {
                     <TableHead className="whitespace-nowrap">Repetición</TableHead>
                     <TableHead className="whitespace-nowrap">Tanda</TableHead>
                     <TableHead className="whitespace-nowrap">Peso (g)</TableHead>
-                    <TableHead className="whitespace-nowrap">Válido</TableHead>
-                    {analisis.estado !== "APROBADO" && <TableHead className="whitespace-nowrap">Acciones</TableHead>}
+                    <TableHead className="whitespace-nowrap">Estado</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -508,22 +494,10 @@ export default function DetallePMSPage() {
                       <TableCell className="whitespace-nowrap">{rep.numTanda}</TableCell>
                       <TableCell className="whitespace-nowrap">{rep.peso ? `${rep.peso.toFixed(3)}g` : "-"}</TableCell>
                       <TableCell className="whitespace-nowrap">
-                        <Badge variant={rep.valido ? "default" : "destructive"}>
-                          {rep.valido ? "Válido" : "Inválido"}
+                        <Badge variant={rep.valido ? "default" : rep.valido === false ? "destructive" : "secondary"}>
+                          {rep.valido === true ? "✓ Válido" : rep.valido === false ? "✗ Inválido" : "Pendiente"}
                         </Badge>
                       </TableCell>
-                      {analisis.estado !== "APROBADO" && (
-                        <TableCell className="whitespace-nowrap">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => handleEliminarRepeticion(rep.repPMSID)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -531,112 +505,20 @@ export default function DetallePMSPage() {
             </div>
           )}
         </CardContent>
-      </Card>
-
-      {/* Resultados Calculados */}
-      {analisis.promedio100g && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              Resultados Calculados
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Promedio 100g</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {analisis.promedio100g.toFixed(4)}g
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Desviación Estándar</p>
-                <p className="text-2xl font-bold">
-                  {analisis.desvioStd?.toFixed(4) || "-"}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Coef. Variación</p>
-                <p className={`text-2xl font-bold ${
-                  analisis.coefVariacion && analisis.coefVariacion <= (analisis.esSemillaBrozosa ? 6 : 4)
-                    ? 'text-green-600' 
-                    : 'text-red-600'
-                }`}>
-                  {analisis.coefVariacion?.toFixed(4)}%
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Total Repeticiones</p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {repeticiones.length}
-                </p>
-              </div>
-            </div>
-
-            {/* PMS Final - Solo mostrar si hay repeticiones válidas */}
-            {analisis.pmssinRedon && (
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-green-800 mb-4">
-                  Peso de Mil Semillas (PMS)
-                </h3>
-                
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* PMS Sin Redondeo */}
-                  <Card className="border-blue-200">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base text-blue-800 flex items-center gap-2">
-                        <Calculator className="h-4 w-4" />
-                        PMS sin Redondeo
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center">
-                        <div className="text-3xl font-bold text-blue-600 mb-2">
-                          {analisis.pmssinRedon.toFixed(4)}g
-                        </div>
-                        <p className="text-sm text-blue-700">
-                          Valor calculado automáticamente
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* PMS Con Redondeo */}
-                  <Card className="border-green-200">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base text-green-800 flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4" />
-                        PMS con Redondeo
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {analisis.pmsconRedon ? (
-                        <div className="text-center p-4 bg-green-100 rounded-md border border-green-300">
-                          <div className="text-2xl font-bold text-green-800 mb-1">
-                            {analisis.pmsconRedon}g
-                          </div>
-                          <span className="text-sm font-medium text-green-700">
-                            ✓ Valor Final Confirmado
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="text-center p-4 border-2 border-dashed border-green-300 rounded-md">
-                          <p className="text-muted-foreground font-medium mb-2">Valor no establecido</p>
-                          <p className="text-sm text-muted-foreground">
-                            El valor final debe ser establecido en modo edición.
-                          </p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
-          </CardContent>
         </Card>
-      )}
+      </div>
+
+      {/* Sidebar */}
+      <div className="space-y-6">
+        {/* Historial de Actividades */}
+        <AnalysisHistoryCard
+          analisisId={analisis.analisisID}
+          analisisTipo="pms"
+          historial={analisis.historial}
+        />
       </div>
     </div>
+    </div>
+  </div>
   )
 }

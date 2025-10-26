@@ -22,6 +22,7 @@ import { useParams } from "next/navigation"
 import { obtenerDosnPorId } from "@/app/services/dosn-service"
 import type { DosnDTO } from "@/app/models"
 import type { EstadoAnalisis, TipoDOSN, TipoListado } from "@/app/models/types/enums"
+import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -116,13 +117,13 @@ export default function DosnDetailPage() {
 
   const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
     switch (estado) {
-      case "FINALIZADO":
+      case "REGISTRADO":
         return "default"
       case "EN_PROCESO":
         return "secondary"
       case "APROBADO":
         return "outline"
-      case "PENDIENTE":
+      case "PENDIENTE_APROBACION":
         return "destructive"
       default:
         return "outline"
@@ -266,11 +267,9 @@ export default function DosnDetailPage() {
     {/* Compensar altura del header sticky */}
     <div className="pt-4">
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      
-
-        <div className="grid grid-cols-1 gap-6 lg:gap-8">
-          {/* Main Content - Full width now */}
-          <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
             <Card className="overflow-hidden bg-background">
               <CardHeader className="bg-background border-b sticky top-[20px] z-20">
                 <CardTitle className="flex items-center gap-2 text-xl">
@@ -545,78 +544,16 @@ export default function DosnDetailPage() {
                 </CardContent>
               </Card>
             )}
-          
-            {/* 
-            TODO: Acciones Rápidas - Comentado temporalmente
-            <div className="space-y-6">
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-muted/50 border-b">
-                  <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <Link href={`/registro/analisis/dosn?lote=${dosn.idLote}`} className="block">
-                      <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                        <div className="p-1.5 rounded-md bg-primary/10">
-                          <BarChart3 className="h-4 w-4 text-primary" />
-                        </div>
-                        <span className="font-medium">Nuevo Análisis</span>
-                      </Button>
-                    </Link>
-                    <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                      <div className="p-1.5 rounded-md bg-primary/10">
-                        <Download className="h-4 w-4 text-primary" />
-                      </div>
-                      <span className="font-medium">Descargar Certificado</span>
-                    </Button>
-                    <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                      <div className="p-1.5 rounded-md bg-primary/10">
-                        <Calendar className="h-4 w-4 text-primary" />
-                      </div>
-                      <span className="font-medium">Programar Seguimiento</span>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+          </div>
 
-              {dosn.historial && dosn.historial.length > 0 && (
-                <Card className="overflow-hidden">
-                  <CardHeader className="bg-muted/50 border-b">
-                    <CardTitle className="text-lg">Historial de Actividades</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      {dosn.historial.map((item, index) => (
-                        <div key={index} className="relative pl-6 pb-4 last:pb-0">
-                          <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
-                          {index !== dosn.historial.length - 1 && (
-                            <div className="absolute left-[5px] top-5 bottom-0 w-0.5 bg-border" />
-                          )}
-                          <div className="space-y-1">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="text-sm font-semibold leading-tight">
-                                {item.estadoAnterior} → {item.estadoNuevo}
-                              </p>
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(item.fechaCambio).toLocaleDateString("es-ES", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </p>
-                            <p className="text-xs text-muted-foreground">Por: {item.usuario}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-            */}
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Historial de Actividades */}
+            <AnalysisHistoryCard
+              analisisId={dosn.analisisID}
+              analisisTipo="dosn"
+              historial={dosn.historial}
+            />
           </div>
         </div>
       </div>

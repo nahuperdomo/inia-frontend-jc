@@ -28,6 +28,7 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import Link from 'next/link'
+import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 
 // Función utilitaria para formatear fechas
 const formatearFechaLocal = (fechaString: string): string => {
@@ -216,8 +217,9 @@ export default function TetrazolioDetailPage() {
       {/* Compensar altura del header sticky */}
       <div className="pt-4">
         <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-          {/* Información del análisis */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              {/* Información del análisis */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -433,8 +435,20 @@ export default function TetrazolioDetailPage() {
               </CardContent>
             </Card>
           )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Historial de Actividades */}
+            <AnalysisHistoryCard
+              analisisId={tetrazolio.analisisID}
+              analisisTipo="tetrazolio"
+              historial={tetrazolio.historial}
+            />
+          </div>
         </div>
       </div>
     </div>
+  </div>
   )
 }
