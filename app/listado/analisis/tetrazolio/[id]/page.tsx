@@ -295,6 +295,19 @@ export default function TetrazolioDetailPage() {
                   </Label>
                   <div className="text-sm">{tetrazolio.numRepeticionesEsperadas}</div>
                 </div>
+
+                {/* Viabilidad INASE */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <TestTube className="h-4 w-4" />
+                    Viabilidad INASE (%)
+                  </Label>
+                  <div className="text-sm">
+                    {(tetrazolio as any).viabilidadInase != null && (tetrazolio as any).viabilidadInase !== ''
+                      ? `${(tetrazolio as any).viabilidadInase}%`
+                      : 'No especificado'}
+                  </div>
+                </div>
               </div>
 
               {/* Notas generales */}

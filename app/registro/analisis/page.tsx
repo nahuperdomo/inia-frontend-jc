@@ -136,6 +136,7 @@ export type AnalysisFormData = {
   tincionTemp: number
   tincionTempOtro: string
   comentarios: string
+  viabilidadInase: number | string
 }
 
 const analysisTypes = [
@@ -300,6 +301,7 @@ export default function RegistroAnalisisPage() {
     tincionTempOtro: "",
     comentarios: "",
     numRepeticionesEsperadasTetrazolio: 2,
+    viabilidadInase: "",
   });
   const [loading, setLoading] = useState(false)
   const getAnalysisTypeName = (typeId: string | TipoAnalisis): string => {
@@ -684,6 +686,7 @@ export default function RegistroAnalisisPage() {
         tincionHs: tincionHsFinal,
         tincionTemp: tincionTempFinal,
         numRepeticionesEsperadas: formData.numRepeticionesEsperadasTetrazolio,
+        viabilidadInase: formData.viabilidadInase ? Number(formData.viabilidadInase) : undefined,
       };
     }
 

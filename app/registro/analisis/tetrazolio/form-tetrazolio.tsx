@@ -29,15 +29,22 @@ import {
   AlertTriangle,
   Info,
 } from "lucide-react"
+import { toast } from "react-toastify"
 
 type Props = {
   formData: any
   handleInputChange: (field: string, value: any) => void
   mostrarValidacion?: boolean
   modoEdicion?: boolean
+  validationErrors?: {
+    pretratamientoOtro?: string
+    concentracionOtro?: string
+    tincionHsOtro?: string
+    tincionTempOtro?: string
+  }
 }
 
-export default function TetrazolioFields({ formData, handleInputChange, mostrarValidacion, modoEdicion = false }: Props) {
+export default function TetrazolioFields({ formData, handleInputChange, mostrarValidacion, modoEdicion = false, validationErrors = {} }: Props) {
   const data = formData || {}
   const showErrors = !!mostrarValidacion
 
@@ -48,62 +55,59 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
   }
 
   const validarFecha = () => !!data.fecha
-  
+
   const validarConcentracion = () => {
-    if (!data.concentracion || data.concentracion === "") return false
+    if (!data.concentracion || data.concentracion.trim() === "") {
+      toast.error("El campo 'Concentración' no puede estar vacío.")
+      return false
+    }
     if (data.concentracion === "Otro (especificar)" && !data.concentracionOtro) return false
     return true
   }
 
   const validarPretratamiento = () => {
-    if (!data.pretratamiento || data.pretratamiento === "") return false
+    if (!data.pretratamiento || data.pretratamiento.trim() === "") {
+      toast.error("El campo 'Pretratamiento' no puede estar vacío.")
+      return false
+    }
     if (data.pretratamiento === "Otro (especificar)" && !data.pretratamientoOtro) return false
     return true
   }
 
   const validarTemp = () => {
-    const usarOtro = data.tincionTemp === 0 || data.tincionTemp === "0"
-    
-    console.log("🔍 VALIDAR TEMP:", {
-      tincionTemp: data.tincionTemp,
-      tincionTempOtro: data.tincionTempOtro,
-      usarOtro: usarOtro,
-      tipo: typeof data.tincionTemp,
-      tipoOtro: typeof data.tincionTempOtro
-    })
-    
-    if (usarOtro) {
-      // Si usa "Otro", debe haber un valor en tincionTempOtro
-      const valorOtro = data.tincionTempOtro
-      if (valorOtro === "" || valorOtro === null || valorOtro === undefined) {
-        console.log("❌ tincionTempOtro vacío")
-        return false
-      }
-      const valor = Number(valorOtro)
-      const esValido = !isNaN(valor) && valor >= 15 && valor <= 45
-      console.log("✅ tincionTempOtro:", valor, "válido:", esValido)
-      return esValido
+  const usarOtro = data.tincionTemp === 0 || data.tincionTemp === "0"
+
+  if (usarOtro) {
+    const valorOtro = data.tincionTempOtro
+    if (valorOtro === "" || valorOtro === null || valorOtro === undefined) {
+      return false  // ❌ Campo vacío → inválido
     }
-    
-    // Si no usa "Otro", debe tener tincionTemp válido
-    if (!data.tincionTemp) {
-      console.log("❌ tincionTemp vacío")
-      return false
-    }
-    const valor = Number(data.tincionTemp)
-    const esValido = !isNaN(valor) && valor >= 15 && valor <= 45
-    console.log("✅ tincionTemp:", valor, "válido:", esValido)
-    return esValido
+    const valor = Number(valorOtro)
+    return !isNaN(valor)  // ✅ Acepta cualquier número
   }
 
+  if (!data.tincionTemp) return false  // ❌ Campo vacío → inválido
+
+  const valor = Number(data.tincionTemp)
+  return !isNaN(valor)  // ✅ Solo revisa que sea un número
+}
 
 
-  const validarTincionHs = () => {
-    const hs = data.tincionHs === "Otra (especificar)"
-      ? parseFloat(data.tincionHsOtro)
-      : parseFloat(data.tincionHs)
-    return !isNaN(hs) && hs >= 1 && hs <= 72
+
+const validarTincionHs = () => {
+  const hs = data.tincionHs === "Otra (especificar)"
+    ? parseFloat(data.tincionHsOtro)
+    : parseFloat(data.tincionHs)
+  return !isNaN(hs)
+}
+
+const validarViabilidadInase = () => {
+  if (!data.viabilidadInase || isNaN(data.viabilidadInase)) {
+    toast.error("El campo 'Viabilidad INASE' debe ser un número válido.")
+    return false
   }
+  return true
+}
 
   // Opciones predefinidas
   const opcionesPretratamiento = [
@@ -170,9 +174,8 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
                 type="date"
                 value={data.fecha || ""}
                 onChange={(e) => handleInputChange("fecha", e.target.value)}
-                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
-                  showErrors && !validarFecha() ? "border-red-300 bg-red-50" : ""
-                }`}
+                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${showErrors && !validarFecha() ? "border-red-300 bg-red-50" : ""
+                  }`}
               />
               {showErrors && !validarFecha() && (
                 <p className="text-xs text-red-600 flex items-center gap-1">
@@ -194,12 +197,11 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
                 disabled={modoEdicion}
               >
                 <SelectTrigger
-                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
-                    showErrors &&
-                    ![25, 50, 100].includes(Number(data.numSemillasPorRep))
+                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${showErrors &&
+                      ![25, 50, 100].includes(Number(data.numSemillasPorRep))
                       ? "border-red-300 bg-red-50"
                       : ""
-                  } ${modoEdicion ? "bg-gray-50 cursor-not-allowed" : ""}`}
+                    } ${modoEdicion ? "bg-gray-50 cursor-not-allowed" : ""}`}
                 >
                   <SelectValue placeholder="Seleccionar cantidad" />
                 </SelectTrigger>
@@ -243,14 +245,14 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
               max="8"
               value={data.numRepeticionesEsperadas ?? data.numRepeticionesEsperadasTetrazolio ?? ""}
               onChange={(e) => {
-                const fieldName = data.hasOwnProperty('numRepeticionesEsperadasTetrazolio') 
-                  ? 'numRepeticionesEsperadasTetrazolio' 
+                const fieldName = data.hasOwnProperty('numRepeticionesEsperadasTetrazolio')
+                  ? 'numRepeticionesEsperadasTetrazolio'
                   : 'numRepeticionesEsperadas'
-                
+
                 const raw = e.target.value
                 const parsed = parseInt(raw, 10)
                 const value = Number.isNaN(parsed) ? raw === "" ? "" : 2 : parsed
-                
+
                 // Solo enviar números válidos al estado padre
                 if (value === "") {
                   handleInputChange(fieldName, undefined)
@@ -258,9 +260,8 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
                   handleInputChange(fieldName, Math.min(8, Math.max(2, Number(value))))
                 }
               }}
-              className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
-                showErrors && !validarNumRepeticiones() ? "border-red-300 bg-red-50" : ""
-              } ${modoEdicion ? "bg-gray-50 cursor-not-allowed" : ""}`}
+              className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${showErrors && !validarNumRepeticiones() ? "border-red-300 bg-red-50" : ""
+                } ${modoEdicion ? "bg-gray-50 cursor-not-allowed" : ""}`}
               disabled={modoEdicion}
               readOnly={modoEdicion}
             />
@@ -303,9 +304,8 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
               }}
             >
               <SelectTrigger
-                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
-                  showErrors && !validarPretratamiento() ? "border-red-300 bg-red-50" : ""
-                }`}
+                className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${showErrors && !validarPretratamiento() ? "border-red-300 bg-red-50" : ""
+                  }`}
               >
                 <SelectValue placeholder="Seleccionar pretratamiento" />
               </SelectTrigger>
@@ -319,12 +319,20 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
             </Select>
 
             {data.pretratamiento === "Otro (especificar)" && (
-              <Input
-                value={data.pretratamientoOtro || ""}
-                onChange={(e) => handleInputChange("pretratamientoOtro", e.target.value)}
-                placeholder="Ingresar pretratamiento manualmente"
-                className="h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200"
-              />
+              <div className="space-y-1">
+                <Input
+                  value={data.pretratamientoOtro || ""}
+                  onChange={(e) => handleInputChange("pretratamientoOtro", e.target.value)}
+                  placeholder="Ingresar pretratamiento manualmente"
+                  className={`h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${validationErrors.pretratamientoOtro ? "border-red-500 bg-red-50" : ""}`}
+                />
+                {validationErrors.pretratamientoOtro && (
+                  <p className="text-xs text-red-600 flex items-center gap-1 mt-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    {validationErrors.pretratamientoOtro}
+                  </p>
+                )}
+              </div>
             )}
 
             {showErrors && !validarPretratamiento() && (
@@ -360,9 +368,8 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
                 }}
               >
                 <SelectTrigger
-                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
-                    showErrors && !validarConcentracion() ? "border-red-300 bg-red-50" : ""
-                  }`}
+                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${showErrors && !validarConcentracion() ? "border-red-300 bg-red-50" : ""
+                    }`}
                 >
                   <SelectValue placeholder="Seleccionar concentración" />
                 </SelectTrigger>
@@ -374,16 +381,24 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
                   ))}
                 </SelectContent>
               </Select>
-              
+
               {data.concentracion === "Otro (especificar)" && (
-                <Input
-                  value={data.concentracionOtro || ""}
-                  onChange={(e) => handleInputChange("concentracionOtro", e.target.value)}
-                  placeholder="Ingresar concentración manualmente"
-                  className="h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200"
-                />
+                <div className="space-y-1">
+                  <Input
+                    value={data.concentracionOtro || ""}
+                    onChange={(e) => handleInputChange("concentracionOtro", e.target.value)}
+                    placeholder="Ingresar concentración manualmente"
+                    className={`h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${validationErrors.concentracionOtro ? "border-red-500 bg-red-50" : ""}`}
+                  />
+                  {validationErrors.concentracionOtro && (
+                    <p className="text-xs text-red-600 flex items-center gap-1 mt-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      {validationErrors.concentracionOtro}
+                    </p>
+                  )}
+                </div>
               )}
-              
+
               {showErrors && !validarConcentracion() && (
                 <p className="text-xs text-red-600 flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" />
@@ -395,69 +410,64 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
             </div>
 
             {/* Temperatura */}
-<div className="space-y-2">
-  <Label className="text-sm font-medium flex items-center gap-2">
-    <Thermometer className="h-4 w-4 text-muted-foreground" />
-    Tinción (°C) *
-  </Label>
-  <Select
-    value={
-      data.tincionTemp === 0 || data.tincionTemp === "0"
-        ? "Otro (especificar)"
-        : data.tincionTemp?.toString() || ""
-    }
-    onValueChange={(value) => {
-      if (value === "Otro (especificar)") {
-        handleInputChange("tincionTemp", 0)
-        handleInputChange("tincionTempOtro", "")
-      } else {
-        handleInputChange("tincionTemp", Number(value))
-        handleInputChange("tincionTempOtro", "")
-      }
-    }}
-  >
-    <SelectTrigger
-      className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
-        showErrors && !validarTemp() ? "border-red-300 bg-red-50" : ""
-      }`}
-    >
-      <SelectValue placeholder="Seleccionar temperatura" />
-    </SelectTrigger>
-    <SelectContent>
-      {opcionesTemperatura.map((temp) => (
-        <SelectItem key={temp} value={temp.toString()}>
-          {temp}°C
-        </SelectItem>
-      ))}
-      <SelectItem value="Otro (especificar)">Otro (especificar)</SelectItem>
-    </SelectContent>
-  </Select>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Thermometer className="h-4 w-4 text-muted-foreground" />
+                Tinción (°C) *
+              </Label>
+              <Select
+                value={data.tincionTemp?.toString() || ""}
+                onValueChange={(value) => {
+                  if (value === "0") {
+                    handleInputChange("tincionTemp", 0)
+                    handleInputChange("tincionTempOtro", "")
+                  } else {
+                    handleInputChange("tincionTemp", Number(value))
+                    handleInputChange("tincionTempOtro", "")
+                  }
+                }}
+              >
+                <SelectTrigger
+                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${showErrors && !validarTemp() ? "border-red-300 bg-red-50" : ""
+                    }`}
+                >
+                  <SelectValue placeholder="Seleccionar temperatura" />
+                </SelectTrigger>
+                <SelectContent>
+                  {opcionesTemperatura.map((temp) => (
+                    <SelectItem key={temp} value={temp.toString()}>
+                      {temp}°C
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="0">Otra (especificar)</SelectItem>
+                </SelectContent>
+              </Select>
 
-  {(data.tincionTemp === 0 || data.tincionTemp === "0") && (
-    <Input
-      type="number"
-      inputMode="numeric"
-      step="any"
-      value={data.tincionTempOtro ?? ""}
-      onChange={(e) => {
-        const val = e.target.value
-        handleInputChange(
-          "tincionTempOtro",
-          val === "" ? "" : val
-        )
-      }}
-      placeholder="Ingresar temperatura (15–45°C)"
-      className="h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200"
-    />
-  )}
+              {(data.tincionTemp === 0 || data.tincionTemp === "0") && (
+                <div className="space-y-1">
+                  <Input
+                    type="number"
+                    value={data.tincionTempOtro || ""}
+                    onChange={(e) => handleInputChange("tincionTempOtro", e.target.value)}
+                    placeholder="Ingresar temperatura (°C)"
+                    className={`h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${validationErrors.tincionTempOtro ? "border-red-500 bg-red-50" : ""}`}
+                  />
+                  {validationErrors.tincionTempOtro && (
+                    <p className="text-xs text-red-600 flex items-center gap-1 mt-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      {validationErrors.tincionTempOtro}
+                    </p>
+                  )}
+                </div>
+              )}
 
-  {showErrors && !validarTemp() && (
-    <p className="text-xs text-red-600 flex items-center gap-1">
-      <AlertTriangle className="h-3 w-3" />
-      Debe seleccionar o ingresar una temperatura válida (15–45°C)
-    </p>
-  )}
-</div>
+              {showErrors && !validarTemp() && (
+                <p className="text-xs text-red-600 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  Debe seleccionar una temperatura válida
+                </p>
+              )}
+            </div>
 
 
             {/* Tiempo */}
@@ -479,9 +489,8 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
                 }}
               >
                 <SelectTrigger
-                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
-                    showErrors && !validarTincionHs() ? "border-red-300 bg-red-50" : ""
-                  }`}
+                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${showErrors && !validarTincionHs() ? "border-red-300 bg-red-50" : ""
+                    }`}
                 >
                   <SelectValue placeholder="Seleccionar horas de tinción" />
                 </SelectTrigger>
@@ -494,21 +503,59 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
                 </SelectContent>
               </Select>
               {data.tincionHs === "Otra (especificar)" && (
-                <Input
-                  type="number"
-                  value={data.tincionHsOtro || ""}
-                  onChange={(e) => handleInputChange("tincionHsOtro", e.target.value)}
-                  placeholder="Ingresar horas (1-72 hs)"
-                  className="h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200"
-                />
+                <div className="space-y-1">
+                  <Input
+                    type="number"
+                    value={data.tincionHsOtro || ""}
+                    onChange={(e) => handleInputChange("tincionHsOtro", e.target.value)}
+                    placeholder="Ingresar horas"
+                    className={`h-11 mt-2 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${validationErrors.tincionHsOtro ? "border-red-500 bg-red-50" : ""}`}
+                  />
+                  {validationErrors.tincionHsOtro && (
+                    <p className="text-xs text-red-600 flex items-center gap-1 mt-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      {validationErrors.tincionHsOtro}
+                    </p>
+                  )}
+                </div>
               )}
               {showErrors && !validarTincionHs() && (
                 <p className="text-xs text-red-600 flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" />
-                  Debe seleccionar o ingresar horas de tinción válidas (1–72 hs)
+                  Debe seleccionar o ingresar horas de tinción válidas
                 </p>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Viabilidad INASE */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Beaker className="h-5 w-5 text-orange-600" />
+            <h3 className="text-lg font-semibold">Viabilidad INASE</h3>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <Beaker className="h-4 w-4 text-muted-foreground" />
+              Viabilidad INASE *
+            </Label>
+            <Input
+              id="viabilidadInase"
+              type="number"
+              value={data.viabilidadInase || ""}
+              onChange={(e) => handleInputChange("viabilidadInase", Number(e.target.value))}
+              placeholder="Ingrese la viabilidad INASE"
+              className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${showErrors && !validarViabilidadInase() ? "border-red-300 bg-red-50" : ""
+                }`}
+            />
+            {showErrors && !validarViabilidadInase() && (
+              <p className="text-xs text-red-600 flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                Debe ingresar un valor numérico para la viabilidad INASE
+              </p>
+            )}
           </div>
         </div>
       </CardContent>

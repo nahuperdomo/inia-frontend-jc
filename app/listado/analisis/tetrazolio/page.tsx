@@ -26,6 +26,7 @@ interface AnalisisTetrazolio {
   temperatura: string
   duracion: string
   viabilidad: number
+  viabilidadInase: number
   vigor: string
   semillasViables: number
   semillasNoViables: number
@@ -103,6 +104,7 @@ export default function ListadoTetrazolioPage() {
         temperatura: t.tincionTemp ? `${t.tincionTemp}°C` : "-",
         duracion: t.tincionHs ? `${t.tincionHs} horas` : "-",
         viabilidad: t.porcViablesRedondeo || t.porcViables || 0,
+        viabilidadInase: t.viabilidadInase || 0,
         vigor: t.vigor || "",
         semillasViables: t.semillasViables || 0,
         semillasNoViables: t.semillasNoViables || 0,
@@ -399,6 +401,7 @@ export default function ListadoTetrazolioPage() {
                   <TableHead className="min-w-[100px]">Estado</TableHead>
                   <TableHead className="min-w-[120px]">Prioridad</TableHead>
                   <TableHead className="min-w-[120px]">Viabilidad (%)</TableHead>
+                  <TableHead className="min-w-[120px]">Viabilidad INASE</TableHead>
                   <TableHead className="min-w-[120px]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -424,6 +427,7 @@ export default function ListadoTetrazolioPage() {
                       <Badge variant={getPrioridadBadgeVariant(item.prioridad)}>{item.prioridad}</Badge>
                     </TableCell>
                     <TableCell>{item.viabilidad > 0 ? `${item.viabilidad}%` : "-"}</TableCell>
+                    <TableCell>{item.viabilidadInase > 0 ? `${item.viabilidadInase}%` : "-"}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Link href={`/listado/analisis/tetrazolio/${item.id}`}>

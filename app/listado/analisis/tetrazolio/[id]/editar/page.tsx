@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Save, Loader2, AlertTriangle, TestTube, Target, Plus, Hash, Trash2 } from "lucide-react"
+import { ArrowLeft, Save, Loader2, AlertTriangle, TestTube, Target, Plus, Hash, Edit, X } from "lucide-react"
 import Link from "next/link"
 import { 
   obtenerTetrazolioPorId, 
@@ -78,6 +78,7 @@ export default function EditarTetrazolioPage() {
     tincionTemp: number | string
     tincionTempOtro: string
     comentarios: string
+    viabilidadInase: number | string
   }
 
   const [formData, setFormData] = useState<FormState>({
@@ -93,6 +94,7 @@ export default function EditarTetrazolioPage() {
     tincionTemp: 30,
     tincionTempOtro: "",
     comentarios: "",
+    viabilidadInase: "",
   })
 
   // Estado para porcentajes redondeados
@@ -118,6 +120,14 @@ export default function EditarTetrazolioPage() {
 
   // Estados para edición de repeticiones
   const [editingRepeticionIndex, setEditingRepeticionIndex] = useState<number | null>(null)
+
+  // Estado para errores de validación
+  const [validationErrors, setValidationErrors] = useState<{
+    pretratamientoOtro?: string
+    concentracionOtro?: string
+    tincionHsOtro?: string
+    tincionTempOtro?: string
+  }>({})
 
   // Fecha de hoy en formato ISO
   const hoy = new Date().toISOString().split('T')[0]
@@ -145,11 +155,11 @@ export default function EditarTetrazolioPage() {
           setRepeticiones([])
         }
 
-        // Configurar porcentajes
+        // Configurar porcentajes - usar '' en lugar de 0 para campos vacíos
         setPorcentajesEditados({
-          porcViablesRedondeo: tetrazolioData.porcViablesRedondeo || 0,
-          porcNoViablesRedondeo: tetrazolioData.porcNoViablesRedondeo || 0,
-          porcDurasRedondeo: tetrazolioData.porcDurasRedondeo || 0
+          porcViablesRedondeo: tetrazolioData.porcViablesRedondeo ?? '',
+          porcNoViablesRedondeo: tetrazolioData.porcNoViablesRedondeo ?? '',
+          porcDurasRedondeo: tetrazolioData.porcDurasRedondeo ?? ''
         })
 
         // Opciones predefinidas para validar
@@ -194,6 +204,7 @@ export default function EditarTetrazolioPage() {
           tincionTemp: isTincionTempPersonalizada ? 0 : tincionTempActual,
           tincionTempOtro: isTincionTempPersonalizada ? tincionTempActual.toString() : "",
           comentarios: tetrazolioData.comentarios || "",
+          viabilidadInase: tetrazolioData.viabilidadInase || "",
         })
 
       } catch (err) {
@@ -212,6 +223,14 @@ export default function EditarTetrazolioPage() {
 
   // Control especial para numRepeticionesEsperadas: no permitir bajar de repeticiones.length
   const handleInputChange = useCallback((field: string, value: any) => {
+    // Limpiar errores de validación cuando el usuario modifica campos "Otro"
+    if (field === "pretratamientoOtro" || field === "concentracionOtro" || field === "tincionHsOtro" || field === "tincionTempOtro") {
+      setValidationErrors(prev => ({
+        ...prev,
+        [field]: undefined
+      }))
+    }
+
     if (field === "numRepeticionesEsperadas") {
       // Si el valor está vacío, permitirlo temporalmente (usuario está escribiendo)
       if (value === "" || value === null || value === undefined) {
@@ -348,56 +367,6 @@ export default function EditarTetrazolioPage() {
     }
   }
 
-  // Función para verificar si se pueden agregar más repeticiones
-  const puedeAgregarRepeticiones = () => {
-    if (!tetrazolio) return false
-    
-    const repeticionesEsperadas = tetrazolio.numRepeticionesEsperadas || 0
-    const totalRepeticiones = repeticiones.length
-    
-    // Verificar que no se exceda el número esperado
-    if (totalRepeticiones >= repeticionesEsperadas) {
-      console.log("❌ No se pueden agregar más: límite alcanzado")
-      return false
-    }
-    
-    return true
-  }
-
-  // Función para eliminar repetición
-  const handleEliminarRepeticion = async (repId: number, index: number) => {
-    if (!tetrazolio) return
-    
-    if (!confirm(`¿Estás seguro de que deseas eliminar la repetición #${index + 1}?`)) {
-      return
-    }
-
-    try {
-      console.log("🗑️ Eliminando repetición:", repId)
-      
-      // Llamar al servicio para eliminar
-      await fetch(`/api/tetrazolio/${tetrazolio.analisisID}/repeticiones/${repId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
-      
-      // Recargar repeticiones
-      const repeticionesActualizadas = await obtenerRepeticionesPorTetrazolio(parseInt(tetrazolioId))
-      setRepeticiones(repeticionesActualizadas)
-      
-      toast.success('Repetición eliminada exitosamente')
-      
-      console.log(`✅ Repetición eliminada. Total restante: ${repeticionesActualizadas.length}`)
-    } catch (err: any) {
-      console.error("❌ Error al eliminar repetición:", err)
-      toast.error('Error al eliminar repetición', {
-        description: err?.message || "No se pudo eliminar la repetición",
-      })
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     await saveChanges()
@@ -405,7 +374,10 @@ export default function EditarTetrazolioPage() {
 
 
   const saveChanges = async () => {
-    // Validaciones
+    // Limpiar errores previos
+    setValidationErrors({})
+
+    // Validaciones básicas
     const hoy = new Date().toISOString().split('T')[0]
     if (!formData.fecha) {
       toast.error("Debe ingresar la fecha del ensayo")
@@ -436,30 +408,92 @@ export default function EditarTetrazolioPage() {
       return
     }
 
+    // ========== VALIDACIONES PARA CAMPOS "OTRO (ESPECIFICAR)" ==========
+    
+    // Validar Pretratamiento
+    if (formData.pretratamiento === "Otro (especificar)") {
+      if (!formData.pretratamientoOtro || formData.pretratamientoOtro.trim() === "") {
+        setValidationErrors(prev => ({ ...prev, pretratamientoOtro: "Campo obligatorio" }))
+        toast.error("Debe especificar el pretratamiento personalizado", {
+          description: "El campo de pretratamiento no puede estar vacío cuando selecciona 'Otro (especificar)'",
+          duration: 4000,
+        })
+        return
+      }
+    }
+
+    // Validar Concentración
+    if (formData.concentracion === "Otro (especificar)") {
+      if (!formData.concentracionOtro || formData.concentracionOtro.trim() === "") {
+        setValidationErrors(prev => ({ ...prev, concentracionOtro: "Campo obligatorio" }))
+        toast.error("Debe especificar la concentración personalizada", {
+          description: "El campo de concentración no puede estar vacío cuando selecciona 'Otro (especificar)'",
+          duration: 4000,
+        })
+        return
+      }
+    }
+
+    // Validar Tinción Horas
+    if (typeof formData.tincionHs === "string" && formData.tincionHs === "Otra (especificar)") {
+      if (!formData.tincionHsOtro || formData.tincionHsOtro.trim() === "") {
+        setValidationErrors(prev => ({ ...prev, tincionHsOtro: "Campo obligatorio" }))
+        toast.error("Debe especificar las horas de tinción personalizadas", {
+          description: "El campo de horas de tinción no puede estar vacío cuando selecciona 'Otra (especificar)'",
+          duration: 4000,
+        })
+        return
+      }
+      const tincionHsValor = parseFloat(formData.tincionHsOtro)
+      if (isNaN(tincionHsValor) || tincionHsValor <= 0) {
+        setValidationErrors(prev => ({ ...prev, tincionHsOtro: "Debe ser un número válido mayor a 0" }))
+        toast.error("Las horas de tinción deben ser un número válido mayor a 0")
+        return
+      }
+    }
+
+    // Validar Temperatura
+    if (formData.tincionTemp === 0 || formData.tincionTemp === "0") {
+      if (!formData.tincionTempOtro || formData.tincionTempOtro.trim() === "") {
+        setValidationErrors(prev => ({ ...prev, tincionTempOtro: "Campo obligatorio" }))
+        toast.error("Debe especificar la temperatura personalizada", {
+          description: "El campo de temperatura no puede estar vacío cuando selecciona 'Otra (especificar)'",
+          duration: 4000,
+        })
+        return
+      }
+      const tincionTempValor = parseFloat(formData.tincionTempOtro)
+      if (isNaN(tincionTempValor) || tincionTempValor <= 0) {
+        setValidationErrors(prev => ({ ...prev, tincionTempOtro: "Debe ser un número válido mayor a 0" }))
+        toast.error("La temperatura debe ser un número válido mayor a 0")
+        return
+      }
+    }
+
     try {
       setSaving(true)
 
       // Determinar valores finales basados en las selecciones
       const pretratamientoFinal =
         formData.pretratamiento === "Otro (especificar)"
-          ? formData.pretratamientoOtro
+          ? formData.pretratamientoOtro.trim()
           : formData.pretratamiento
 
       const concentracionFinal =
         formData.concentracion === "Otro (especificar)"
-          ? formData.concentracionOtro
+          ? formData.concentracionOtro.trim()
           : formData.concentracion
 
       const tincionHsFinal =
         (typeof formData.tincionHs === "string" && formData.tincionHs === "Otra (especificar)")
-          ? parseFloat(formData.tincionHsOtro) || 24
+          ? parseFloat(formData.tincionHsOtro)
           : typeof formData.tincionHs === "string"
-            ? parseFloat(formData.tincionHs) || 24
+            ? parseFloat(formData.tincionHs)
             : formData.tincionHs
 
       const tincionTempFinal: number | undefined =
         formData.tincionTemp === 0 || formData.tincionTemp === "0"
-          ? (parseFloat(formData.tincionTempOtro) || 30)
+          ? parseFloat(formData.tincionTempOtro)
           : typeof formData.tincionTemp === "string"
             ? ((): number | undefined => {
                 const parsed = parseFloat(formData.tincionTemp)
@@ -477,6 +511,7 @@ export default function EditarTetrazolioPage() {
         tincionHs: tincionHsFinal,
         tincionTemp: tincionTempFinal,
         fecha: formData.fecha,
+        viabilidadInase: Number(formData.viabilidadInase) || undefined,
       }
 
       // Guardar cambios de repeticiones editadas
@@ -494,6 +529,18 @@ export default function EditarTetrazolioPage() {
       }
 
       await actualizarTetrazolio(Number.parseInt(tetrazolioId), requestData)
+
+      // Guardar porcentajes redondeados si están disponibles
+      if (puedeEditarPorcentajes && (porcentajesEditados.porcViablesRedondeo !== '' || 
+          porcentajesEditados.porcNoViablesRedondeo !== '' || 
+          porcentajesEditados.porcDurasRedondeo !== '')) {
+        const payloadPorcentajes = {
+          porcViablesRedondeo: parseFloat(String(porcentajesEditados.porcViablesRedondeo) || '0') || 0,
+          porcNoViablesRedondeo: parseFloat(String(porcentajesEditados.porcNoViablesRedondeo) || '0') || 0,
+          porcDurasRedondeo: parseFloat(String(porcentajesEditados.porcDurasRedondeo) || '0') || 0,
+        }
+        await actualizarPorcentajesRedondeados(parseInt(tetrazolioId), payloadPorcentajes)
+      }
 
       toast.success("Análisis de Tetrazolio actualizado exitosamente")
       router.push(`/listado/analisis/tetrazolio/${tetrazolioId}`)
@@ -662,6 +709,7 @@ export default function EditarTetrazolioPage() {
                   formData={formData}
                   handleInputChange={handleInputChange}
                   modoEdicion={true}
+                  validationErrors={validationErrors}
                 />
               </CardContent>
             </Card>
@@ -736,7 +784,7 @@ export default function EditarTetrazolioPage() {
                     Gestionar las repeticiones del análisis de Tetrazolio
                   </p>
                 </div>
-                {tetrazolio.estado !== "APROBADO" && puedeAgregarRepeticiones() && (
+                {tetrazolio.estado !== "APROBADO" && repeticiones.length < (tetrazolio.numRepeticionesEsperadas || 0) && (
                   <Button 
                     onClick={() => {
                       setNuevaRepeticion({
@@ -753,12 +801,9 @@ export default function EditarTetrazolioPage() {
                     Agregar Repetición
                   </Button>
                 )}
-                {!puedeAgregarRepeticiones() && (
+                {repeticiones.length >= (tetrazolio.numRepeticionesEsperadas || 0) && (
                   <div className="text-sm text-muted-foreground">
-                    {repeticiones.length >= (tetrazolio.numRepeticionesEsperadas || 0)
-                      ? "Todas las repeticiones esperadas completadas"
-                      : "No se pueden agregar más repeticiones"
-                    }
+                    Todas las repeticiones esperadas completadas
                   </div>
                 )}
               </div>
@@ -923,25 +968,29 @@ export default function EditarTetrazolioPage() {
                                 Repetición #{index + 1}
                               </Badge>
                             </div>
-                            {tetrazolio.estado !== "APROBADO" && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEliminarRepeticion(repeticion.repTetrazolioViabID, index)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              >
-                                <AlertTriangle className="h-4 w-4 mr-1" />
-                                Eliminar
-                              </Button>
-                            )}
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                            <div>
-                              <Label className="text-xs text-muted-foreground">Repetición</Label>
-                              <div className="font-medium">#{index + 1}</div>
+                            <div className="flex gap-2">
+                              {editingRepeticionIndex === index ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setEditingRepeticionIndex(null)}
+                                >
+                                  <X className="h-4 w-4 mr-1" />
+                                  Cancelar
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setEditingRepeticionIndex(index)}
+                                >
+                                  <Edit className="h-4 w-4 mr-1" />
+                                  Editar
+                                </Button>
+                              )}
                             </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                             <div>
                               <Label className="text-xs text-muted-foreground">Fecha</Label>
                               <Input
@@ -949,56 +998,70 @@ export default function EditarTetrazolioPage() {
                                 value={repeticion.fecha}
                                 max={hoy}
                                 onChange={e => {
-                                  const nuevas = [...repeticiones]
-                                  nuevas[index] = { ...nuevas[index], fecha: e.target.value }
-                                  setRepeticiones(nuevas)
+                                  const nuevas = [...repeticiones];
+                                  nuevas[index] = { ...nuevas[index], fecha: e.target.value };
+                                  setRepeticiones(nuevas);
                                 }}
+                                disabled={editingRepeticionIndex !== index}
                               />
                             </div>
+
                             <div>
                               <Label className="text-xs text-muted-foreground">Viables</Label>
                               <Input
                                 type="number"
                                 min="0"
-                                max={tetrazolio?.numSemillasPorRep || 100}
                                 value={repeticion.viablesNum}
                                 onChange={e => {
-                                  const nuevas = [...repeticiones]
-                                  nuevas[index] = { ...nuevas[index], viablesNum: e.target.value === '' ? 0 : Number(e.target.value) }
-                                  setRepeticiones(nuevas)
+                                  const nuevas = [...repeticiones];
+                                  const valor = e.target.value === '' ? 0 : parseInt(e.target.value);
+                                  nuevas[index] = { ...nuevas[index], viablesNum: valor };
+                                  setRepeticiones(nuevas);
                                 }}
-                                className="text-green-600 font-medium"
+                                disabled={editingRepeticionIndex !== index}
                               />
                             </div>
-                            <div>
-                              <Label className="text-xs text-muted-foreground">No Viables</Label>
-                              <Input
-                                type="number"
-                                min="0"
-                                max={tetrazolio?.numSemillasPorRep || 100}
-                                value={repeticion.noViablesNum}
-                                onChange={e => {
-                                  const nuevas = [...repeticiones]
-                                  nuevas[index] = { ...nuevas[index], noViablesNum: e.target.value === '' ? 0 : Number(e.target.value) }
-                                  setRepeticiones(nuevas)
-                                }}
-                                className="text-red-600 font-medium"
-                              />
-                            </div>
+
                             <div>
                               <Label className="text-xs text-muted-foreground">Duras</Label>
                               <Input
                                 type="number"
                                 min="0"
-                                max={tetrazolio?.numSemillasPorRep || 100}
                                 value={repeticion.duras}
                                 onChange={e => {
-                                  const nuevas = [...repeticiones]
-                                  nuevas[index] = { ...nuevas[index], duras: e.target.value === '' ? 0 : Number(e.target.value) }
-                                  setRepeticiones(nuevas)
+                                  const nuevas = [...repeticiones];
+                                  const valor = e.target.value === '' ? 0 : parseInt(e.target.value);
+                                  nuevas[index] = { ...nuevas[index], duras: valor };
+                                  setRepeticiones(nuevas);
                                 }}
-                                className="text-yellow-600 font-medium"
+                                disabled={editingRepeticionIndex !== index}
                               />
+                            </div>
+
+                            <div>
+                              <Label className="text-xs text-muted-foreground">No viables</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={repeticion.noViablesNum}
+                                onChange={e => {
+                                  const nuevas = [...repeticiones];
+                                  const valor = e.target.value === '' ? 0 : parseInt(e.target.value);
+                                  nuevas[index] = { ...nuevas[index], noViablesNum: valor };
+                                  setRepeticiones(nuevas);
+                                }}
+                                disabled={editingRepeticionIndex !== index}
+                              />
+                            </div>
+
+                            <div>
+                              <Label>Total</Label>
+                              <div className="h-9 px-3 py-2 border rounded-md bg-muted text-sm flex items-center">
+                                {(repeticion.viablesNum || 0) + (repeticion.duras || 0) + (repeticion.noViablesNum || 0)}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Esperado: {tetrazolio?.numSemillasPorRep}
+                              </div>
                             </div>
                           </div>
 
@@ -1139,18 +1202,6 @@ export default function EditarTetrazolioPage() {
                         />
                       </div>
                     </div>
-                  </div>
-
-                  {/* Botón para guardar porcentajes */}
-                  <div className="flex justify-end">
-                    <Button
-                      type="button"
-                      onClick={handleGuardarPorcentajes}
-                      className="gap-2"
-                    >
-                      <Save className="h-4 w-4" />
-                      Guardar Porcentajes
-                    </Button>
                   </div>
                 </div>
               </CardContent>

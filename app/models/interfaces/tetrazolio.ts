@@ -12,6 +12,7 @@ export interface TetrazolioDTO extends AnalisisDTO {
   porcViablesRedondeo?: number; // BigDecimal as number
   porcNoViablesRedondeo?: number; // BigDecimal as number
   porcDurasRedondeo?: number; // BigDecimal as number
+  viabilidadInase?: number; // BigDecimal as number
 }
 
 export interface TetrazolioRequestDTO extends AnalisisRequestDTO {
@@ -23,6 +24,7 @@ export interface TetrazolioRequestDTO extends AnalisisRequestDTO {
   tincionTemp?: number;
   fecha?: string; // LocalDate as string
   numRepeticionesEsperadas?: number;
+  viabilidadInase?: number; // BigDecimal as number
 }
 
 export interface ResponseListadoTetrazolio {
