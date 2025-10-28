@@ -1206,6 +1206,7 @@ export default function EditarPurezaPage() {
                             ...prev,
                             listadoTipo: value,
                             idCatalogo: 0,
+                            idEspecie: 0, // Reset también idEspecie
                           }))
                         }
                       >
@@ -1255,16 +1256,37 @@ export default function EditarPurezaPage() {
                     <div className="space-y-2">
                       <Label>Especie</Label>
                       <Select
-                        value={newListado.idCatalogo.toString()}
+                        value={
+                          newListado.listadoTipo === "OTROS"
+                            ? newListado.idEspecie.toString()
+                            : newListado.idCatalogo.toString()
+                        }
                         onValueChange={(value) =>
-                          setNewListado((prev) => ({ ...prev, idCatalogo: Number.parseInt(value) }))
+                          setNewListado((prev) => ({
+                            ...prev,
+                            ...(newListado.listadoTipo === "OTROS"
+                              ? { idEspecie: Number.parseInt(value), idCatalogo: 0 }
+                              : { idCatalogo: Number.parseInt(value), idEspecie: 0 }),
+                          }))
                         }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Seleccionar especie" />
                         </SelectTrigger>
                         <SelectContent>
-                          {catalogos.length === 0 ? (
+                          {newListado.listadoTipo === "OTROS" ? (
+                            especies.length === 0 ? (
+                              <SelectItem value="0" disabled>
+                                No hay especies disponibles
+                              </SelectItem>
+                            ) : (
+                              especies.map((especie) => (
+                                <SelectItem key={especie.especieID} value={especie.especieID.toString()}>
+                                  {especie.nombreComun}
+                                </SelectItem>
+                              ))
+                            )
+                          ) : catalogos.length === 0 ? (
                             <SelectItem value="0" disabled>
                               No hay malezas disponibles
                             </SelectItem>
@@ -1283,15 +1305,34 @@ export default function EditarPurezaPage() {
                   <div className="flex gap-3">
                     <Button
                       onClick={() => {
-                        const hasRequiredFields = newListado.listadoTipo && newListado.listadoInsti && newListado.idCatalogo
+                        // Validar según el tipo
+                        const isOtrosCultivos = newListado.listadoTipo === "OTROS"
+                        const hasRequiredFields = newListado.listadoTipo && 
+                          newListado.listadoInsti && 
+                          (isOtrosCultivos ? newListado.idEspecie : newListado.idCatalogo)
 
                         if (hasRequiredFields) {
-                          const catalogo = catalogos.find((c) => c.catalogoID === newListado.idCatalogo)
-                          handleListadoAdd({
-                            ...newListado,
-                            catalogoNombre: catalogo?.nombreComun || "",
-                            catalogoCientifico: catalogo?.nombreCientifico || "",
-                          })
+                          if (isOtrosCultivos) {
+                            // Para otros cultivos, buscar en especies
+                            const especie = especies.find((e) => e.especieID === newListado.idEspecie)
+                            handleListadoAdd({
+                              ...newListado,
+                              especieNombre: especie?.nombreComun || "",
+                              especieCientifico: especie?.nombreCientifico || "",
+                              catalogoNombre: "",
+                              catalogoCientifico: "",
+                            })
+                          } else {
+                            // Para malezas, buscar en catalogos
+                            const catalogo = catalogos.find((c) => c.catalogoID === newListado.idCatalogo)
+                            handleListadoAdd({
+                              ...newListado,
+                              catalogoNombre: catalogo?.nombreComun || "",
+                              catalogoCientifico: catalogo?.nombreCientifico || "",
+                              especieNombre: "",
+                              especieCientifico: "",
+                            })
+                          }
                           setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0, idEspecie: 0 })
                           setShowAddListado(false)
                           toast.success("Registro agregado")
@@ -1340,9 +1381,17 @@ export default function EditarPurezaPage() {
                         <TableRow key={index}>
                           <TableCell>
                             <div>
-                              <div className="font-medium">{listado.catalogoNombre || "--"}</div>
+                              <div className="font-medium">
+                                {listado.listadoTipo === "OTROS" 
+                                  ? (listado.especieNombre || "--")
+                                  : (listado.catalogoNombre || "--")
+                                }
+                              </div>
                               <div className="text-sm text-muted-foreground italic">
-                                {listado.catalogoCientifico}
+                                {listado.listadoTipo === "OTROS"
+                                  ? listado.especieCientifico
+                                  : listado.catalogoCientifico
+                                }
                               </div>
                             </div>
                           </TableCell>

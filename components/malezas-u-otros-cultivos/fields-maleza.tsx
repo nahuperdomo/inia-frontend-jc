@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge"
 import { Trash2, Plus, Leaf, AlertTriangle, CheckCircle, XCircle } from "lucide-react"
 import { obtenerMalezas } from "@/app/services/malezas-service"
 import { MalezasCatalogoDTO } from "@/app/models"
-import { usePersistentArray } from "@/lib/hooks/use-form-persistence"
 
 type Maleza = {
   tipoMaleza: "MAL_TOLERANCIA" | "MAL_TOLERANCIA_CERO" | "MAL_COMUNES" | "NO_CONTIENE" | ""
@@ -38,22 +37,11 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
     }))
     : [{ tipoMaleza: "" as const, listado: "", entidad: "", numero: "", idCatalogo: null }]
 
-  // Usar persistencia solo si no hay registros precargados
-  const persistence = usePersistentArray<Maleza>(
-    `${contexto}-malezas-${titulo}`, // Clave única por contexto y título
-    initialMalezas
-  )
+  // NO usar persistencia - los datos solo deben vivir en la sesión actual
+  const [malezas, setMalezas] = useState<Maleza[]>(initialMalezas)
 
-  const [malezas, setMalezas] = useState<Maleza[]>(
-    registros && registros.length > 0 ? initialMalezas : persistence.array
-  )
-
-  // Sincronizar con persistencia cuando cambie malezas (solo en modo creación)
-  useEffect(() => {
-    if (!registros || registros.length === 0) {
-      persistence.setArray(malezas)
-    }
-  }, [malezas])
+  // ❌ Eliminar sincronización con persistencia
+  // Los datos NO deben guardarse en localStorage durante el registro
 
 
   const [opcionesMalezas, setOpcionesMalezas] = useState<MalezasCatalogoDTO[]>([])
@@ -80,17 +68,25 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
     if (onChangeListados) {
       const listados = malezas
         .filter((m) => {
-          // Verificar que tenga los campos requeridos y no sea "NO_CONTIENE"
-          const hasRequiredFields = m.listado && m.listado.trim() !== "" &&
-            m.entidad && m.entidad.trim() !== "" &&
-            m.tipoMaleza && m.tipoMaleza !== "NO_CONTIENE" && m.tipoMaleza !== "" as any;
-          return hasRequiredFields;
+          // Enviar registros válidos:
+          // 1. Con tipo válido (incluyendo NO_CONTIENE) y entidad
+          if (m.tipoMaleza && m.entidad && m.entidad.trim() !== "") {
+            // Si es NO_CONTIENE, solo necesita tipo y entidad
+            if (m.tipoMaleza === "NO_CONTIENE") {
+              return true;
+            }
+            // Si es otro tipo, necesita también especie (listado)
+            if (m.listado && m.listado.trim() !== "") {
+              return true;
+            }
+          }
+          return false;
         })
         .map((m) => ({
           listadoTipo: m.tipoMaleza,
           listadoInsti: m.entidad.toUpperCase(),
           listadoNum: m.numero !== "" ? Number(m.numero) : null,
-          idCatalogo: m.idCatalogo,
+          idCatalogo: m.tipoMaleza === "NO_CONTIENE" ? null : m.idCatalogo,
         }))
 
       onChangeListados(listados)
@@ -109,9 +105,20 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
 
   const updateMaleza = (index: number, field: keyof Maleza, value: any) => {
     const updated = [...malezas]
-    updated[index] = {
-      ...updated[index],
-      [field]: value,
+    if (field === "tipoMaleza" && value === "NO_CONTIENE") {
+      // Cuando selecciona "NO_CONTIENE", limpiar campos pero MANTENER entidad
+      updated[index] = {
+        tipoMaleza: "NO_CONTIENE",
+        listado: "",
+        entidad: updated[index].entidad,
+        numero: "",
+        idCatalogo: null
+      }
+    } else {
+      updated[index] = {
+        ...updated[index],
+        [field]: value,
+      }
     }
     setMalezas(updated)
   }
@@ -139,6 +146,8 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
       <CardContent className="space-y-6">
         {malezas.map((maleza, index) => {
           const isDisabled = registros && registros.length > 0
+          const isNoContiene = maleza.tipoMaleza === "NO_CONTIENE"
+          
           return (
             <Card key={index} className="bg-background border shadow-sm transition-all duration-200">
               <CardContent className="p-4">
@@ -203,11 +212,11 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
 
                   {/* Especie de Maleza */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-foreground">Especie</Label>
+                    <Label className={`text-sm font-medium ${isNoContiene ? "text-muted-foreground" : "text-foreground"}`}>Especie</Label>
                     <Select
                       value={maleza.listado || ""}
                       onValueChange={(val: string) => handleEspecieSelect(index, val)}
-                      disabled={isDisabled || loading || maleza.tipoMaleza === "NO_CONTIENE"}
+                      disabled={isDisabled || loading || isNoContiene}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder={loading ? "Cargando..." : "Seleccionar especie"} />
@@ -231,7 +240,7 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
                     <Select
                       value={maleza.entidad || ""}
                       onValueChange={(val) => updateMaleza(index, "entidad", val)}
-                      disabled={isDisabled || maleza.tipoMaleza === "NO_CONTIENE"}
+                      disabled={isDisabled} // Siempre habilitado excepto en modo edición
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Seleccionar entidad" />
@@ -245,11 +254,11 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
 
                   {/* Número */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-foreground">Número</Label>
+                    <Label className={`text-sm font-medium ${isNoContiene ? "text-muted-foreground" : "text-foreground"}`}>Número</Label>
                     <Input
                       value={maleza.numero}
                       onChange={(e) => updateMaleza(index, "numero", e.target.value)}
-                      disabled={isDisabled || maleza.tipoMaleza === "NO_CONTIENE"}
+                      disabled={isDisabled || isNoContiene}
                       type="number"
                       placeholder="Ingrese número"
                     />
@@ -265,18 +274,11 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
             <Button
               onClick={addMaleza}
               variant="outline"
-              disabled={tieneNoContiene}
-              className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent text-sm px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent text-sm px-2 py-1"
             >
               <Plus className="h-3 w-3 mr-1" />
               Agregar registro
             </Button>
-            {tieneNoContiene && (
-              <p className="text-xs text-muted-foreground ml-3 flex items-center">
-                <XCircle className="h-3 w-3 mr-1" />
-                No se pueden agregar más registros cuando hay "No contiene" seleccionado
-              </p>
-            )}
           </div>
         ) : null}
       </CardContent>

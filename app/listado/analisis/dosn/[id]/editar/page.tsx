@@ -97,9 +97,7 @@ export default function EditarDosnPage() {
     fechaINASE: "",
     gramosAnalizadosINASE: 0,
     tipoINASE: [] as string[],
-    cuscuta_g: 0,
-    cuscutaNum: 0,
-    institutoCuscuta: "" as Instituto | "",
+    cuscutaRegistros: [] as any[], // Array de registros de Cuscuta
     listados: [] as any[],
   })
 
@@ -205,9 +203,13 @@ export default function EditarDosnPage() {
           fechaINASE: formatDateForInput(dosnData.fechaINASE),
           gramosAnalizadosINASE: dosnData.gramosAnalizadosINASE || 0,
           tipoINASE: dosnData.tipoINASE || [],
-          cuscuta_g: dosnData.cuscuta_g || 0,
-          cuscutaNum: dosnData.cuscutaNum || 0,
-          institutoCuscuta: (dosnData.institutoCuscuta || "") as Instituto | "",
+          cuscutaRegistros: dosnData.cuscutaRegistros?.map(r => ({
+            id: r.id,
+            instituto: r.instituto,
+            cuscuta_g: r.cuscuta_g || 0,
+            cuscutaNum: r.cuscutaNum || 0,
+            fechaCuscuta: formatDateForInput(r.fechaCuscuta),
+          })) || [],
           listados:
             dosnData.listados?.map((listado) => ({
               listadoTipo: listado.listadoTipo,
@@ -268,6 +270,36 @@ export default function EditarDosnPage() {
       ...prev,
       listados: prev.listados.filter((_, i) => i !== index),
     }))
+  }
+
+  const handleCuscutaRegistroAdd = () => {
+    setFormData((prev) => ({
+      ...prev,
+      cuscutaRegistros: [
+        ...prev.cuscutaRegistros,
+        {
+          instituto: "",
+          cuscuta_g: 0,
+          cuscutaNum: 0,
+          fechaCuscuta: new Date().toISOString().split('T')[0],
+        },
+      ],
+    }))
+  }
+
+  const handleCuscutaRegistroRemove = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      cuscutaRegistros: prev.cuscutaRegistros.filter((_, i) => i !== index),
+    }))
+  }
+
+  const handleCuscutaRegistroUpdate = (index: number, field: string, value: any) => {
+    setFormData((prev) => {
+      const updated = [...prev.cuscutaRegistros]
+      updated[index] = { ...updated[index], [field]: value }
+      return { ...prev, cuscutaRegistros: updated }
+    })
   }
 
   const handleSave = async () => {
@@ -379,8 +411,7 @@ export default function EditarDosnPage() {
       console.log("Fechas antes del formateo:")
       console.log("- fechaINIA:", formData.fechaINIA)
       console.log("- fechaINASE:", formData.fechaINASE)
-      console.log("- cuscuta_g:", formData.cuscuta_g)
-      console.log("- cuscutaNum:", formData.cuscutaNum)
+      console.log("- cuscutaRegistros:", formData.cuscutaRegistros)
 
       const updateData: DosnRequestDTO = {
         idLote: dosn.idLote || 0,
@@ -392,12 +423,15 @@ export default function EditarDosnPage() {
         fechaINASE: formatDateForBackend(formData.fechaINASE),
         gramosAnalizadosINASE: formData.gramosAnalizadosINASE || undefined,
         tipoINASE: formData.tipoINASE as any[],
-        cuscuta_g: formData.cuscuta_g || undefined,
-        cuscutaNum: formData.cuscutaNum || undefined,
-        institutoCuscuta: formData.institutoCuscuta as Instituto || undefined,
-        fechaCuscuta: (formData.cuscuta_g > 0 || formData.cuscutaNum > 0)
-          ? (dosn.fechaCuscuta || new Date().toISOString().split('T')[0]) // Usar fecha existente o actual
-          : undefined,
+        cuscutaRegistros: formData.cuscutaRegistros
+          .filter((r: any) => r.instituto) // Solo enviar registros con instituto
+          .map((r: any) => ({
+            id: r.id, // Incluir ID si existe (para actualización)
+            instituto: r.instituto,
+            cuscuta_g: r.cuscuta_g || undefined,
+            cuscutaNum: r.cuscutaNum || undefined,
+            fechaCuscuta: formatDateForBackend(r.fechaCuscuta) || new Date().toISOString().split('T')[0],
+          })),
         listados: formData.listados.map((listado) => ({
           listadoTipo: listado.listadoTipo,
           listadoInsti: listado.listadoInsti,
@@ -407,10 +441,6 @@ export default function EditarDosnPage() {
         })),
       }
 
-      console.log("Fechas después del formateo:")
-      console.log("- fechaINIA:", updateData.fechaINIA)
-      console.log("- fechaINASE:", updateData.fechaINASE)
-      console.log("- fechaCuscuta:", updateData.fechaCuscuta)
       console.log("Datos completos a enviar al backend:", updateData)
 
       await actualizarDosn(Number.parseInt(dosnId), updateData)
@@ -823,67 +853,117 @@ export default function EditarDosnPage() {
 
         <Card className="border-orange-200 dark:border-orange-900/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-orange-100 dark:bg-orange-900/30">
-                <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-              </div>
-              <span className="text-xl">Análisis de Cuscuta</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="cuscuta_g" className="text-sm font-medium">
-                  Peso Cuscuta
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="cuscuta_g"
-                    type="number"
-                    value={formData.cuscuta_g === 0 ? "" : formData.cuscuta_g}
-                    onChange={(e) => handleInputChange("cuscuta_g", e.target.value === "" ? 0 : Number.parseFloat(e.target.value) || 0)}
-                    placeholder="Ingrese peso"
-                    min="0"
-                    step="0.01"
-                    className="pr-10 text-base"
-                  />
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
-                    g
-                  </span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-orange-100 dark:bg-orange-900/30">
+                  <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cuscutaNum" className="text-sm font-medium">
-                  Número de Cuscuta
-                </Label>
-                <Input
-                  id="cuscutaNum"
-                  type="number"
-                  value={formData.cuscutaNum === 0 ? "" : formData.cuscutaNum}
-                  onChange={(e) => handleInputChange("cuscutaNum", e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0)}
-                  placeholder="Ingrese número"
-                  min="0"
-                  className="text-base"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="institutoCuscuta" className="text-sm font-medium">
-                  Instituto Cuscuta
-                </Label>
-                <Select
-                  value={formData.institutoCuscuta}
-                  onValueChange={(value) => handleInputChange("institutoCuscuta", value)}
-                >
-                  <SelectTrigger className="text-base">
-                    <SelectValue placeholder="Seleccionar instituto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="INIA">INIA</SelectItem>
-                    <SelectItem value="INASE">INASE</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <span className="text-xl">Análisis de Cuscuta</span>
+              </CardTitle>
+              <Button 
+                onClick={handleCuscutaRegistroAdd} 
+                size="sm" 
+                variant="outline" 
+                className="w-full sm:w-auto"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Agregar Registro
+              </Button>
             </div>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            {formData.cuscutaRegistros.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <AlertTriangle className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">No hay registros de Cuscuta. Haga clic en "Agregar Registro" para crear uno.</p>
+              </div>
+            ) : (
+              formData.cuscutaRegistros.map((registro: any, index: number) => (
+                <Card key={index} className="bg-muted/30 border-dashed">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <Badge variant="outline" className="text-xs">
+                        Registro {index + 1} - {registro.instituto || "Sin instituto"}
+                      </Badge>
+                      <Button
+                        onClick={() => handleCuscutaRegistroRemove(index)}
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Instituto</Label>
+                        <Select
+                          value={registro.instituto || ""}
+                          onValueChange={(value) => handleCuscutaRegistroUpdate(index, "instituto", value)}
+                        >
+                          <SelectTrigger className="text-base">
+                            <SelectValue placeholder="Seleccionar instituto" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="INIA">INIA</SelectItem>
+                            <SelectItem value="INASE">INASE</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Peso (g)</Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            value={registro.cuscuta_g === 0 ? "" : registro.cuscuta_g}
+                            onChange={(e) =>
+                              handleCuscutaRegistroUpdate(
+                                index,
+                                "cuscuta_g",
+                                e.target.value === "" ? 0 : Number.parseFloat(e.target.value) || 0
+                              )
+                            }
+                            placeholder="Ingrese peso"
+                            min="0"
+                            step="0.01"
+                            className="pr-10 text-base"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
+                            g
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Número</Label>
+                        <Input
+                          type="number"
+                          value={registro.cuscutaNum === 0 ? "" : registro.cuscutaNum}
+                          onChange={(e) =>
+                            handleCuscutaRegistroUpdate(
+                              index,
+                              "cuscutaNum",
+                              e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0
+                            )
+                          }
+                          placeholder="Ingrese número"
+                          min="0"
+                          className="text-base"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Fecha</Label>
+                        <Input
+                          type="date"
+                          value={registro.fechaCuscuta || ""}
+                          onChange={(e) => handleCuscutaRegistroUpdate(index, "fechaCuscuta", e.target.value)}
+                          className="text-base"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -997,7 +1077,7 @@ export default function EditarDosnPage() {
                   {newListado.listadoTipo && newListado.listadoTipo !== "BRASSICA" && (() => {
                     return (
                       <p className="text-xs text-muted-foreground mt-1">
-                        {`${catalogos.length} malezas disponibles`}
+                       {/* {`${catalogos.length} malezas disponibles`} */}
                       </p>
                     )
                   })()}

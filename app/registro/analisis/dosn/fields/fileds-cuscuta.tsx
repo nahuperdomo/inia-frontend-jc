@@ -8,7 +8,6 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { FlaskConical, CheckCircle2, XCircle, Plus, Trash2 } from "lucide-react"
-import { usePersistentArray } from "@/lib/hooks/use-form-persistence"
 import { Instituto } from "@/app/models/types/enums"
 
 type Props = {
@@ -24,26 +23,31 @@ type CuscutaRegistro = {
 }
 
 export default function CuscutaSection({ formData, handleInputChange }: Props) {
-  // ✅ Persistir array de registros de Cuscuta
-  const persistence = usePersistentArray<CuscutaRegistro>(
-    "dosn-cuscuta-registros",
-    [{ contiene: "", instituto: "", gramos: "", numero: "" }]
-  )
+  // NO usar persistencia - los datos solo deben vivir en la sesión actual
+  const [registros, setRegistros] = useState<CuscutaRegistro[]>([
+    { contiene: "", instituto: "", gramos: "", numero: "" }
+  ])
 
-  const [registros, setRegistros] = useState<CuscutaRegistro[]>(
-    persistence.array.length > 0 ? persistence.array : [{ contiene: "", instituto: "", gramos: "", numero: "" }]
-  )
-
-  // Sincronizar con persistencia
-  useEffect(() => {
-    persistence.setArray(registros)
-  }, [registros])
+  // ❌ Eliminar sincronización con persistencia
+  // Los datos NO deben guardarse en localStorage durante el registro
 
   // Notificar cambios al padre (enviar array completo)
   useEffect(() => {
-    // Filtrar solo registros válidos (con "si contiene" y datos completos)
+    // Filtrar registros válidos:
+    // - Si contiene "si" con instituto y datos → enviar
+    // - Si NO contiene con instituto → enviar también (para registrar verificación)
     const registrosValidos = registros
-      .filter(r => r.contiene === "si" && r.instituto && (r.gramos || r.numero))
+      .filter(r => {
+        // Si contiene "si" y tiene instituto y algún dato
+        if (r.contiene === "si" && r.instituto && (r.gramos || r.numero)) {
+          return true;
+        }
+        // Si NO contiene y tiene instituto (para registrar verificación)
+        if (r.contiene === "no" && r.instituto) {
+          return true;
+        }
+        return false;
+      })
       .map(r => ({
         instituto: r.instituto,
         cuscuta_g: r.gramos ? parseFloat(r.gramos) : undefined,
@@ -72,14 +76,13 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
   const updateRegistro = (index: number, field: keyof CuscutaRegistro, value: any) => {
     const updated = [...registros]
     if (field === "contiene" && value === "no") {
-      updated[index] = { contiene: "no", instituto: "", gramos: "", numero: "" }
+      // Cuando selecciona "No contiene", limpiar gramos y numero pero MANTENER instituto
+      updated[index] = { contiene: "no", instituto: updated[index].instituto, gramos: "", numero: "" }
     } else {
       updated[index] = { ...updated[index], [field]: value }
     }
     setRegistros(updated)
   }
-
-  const tieneNoContiene = registros.some((r) => r.contiene === "no")
 
   return (
     <Card className="border-border/50 bg-background shadow-sm">
@@ -140,11 +143,11 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
 
                   {/* Instituto */}
                   <div className="space-y-2">
-                    <Label className={isDisabled ? "text-muted-foreground" : "text-foreground"}>Instituto</Label>
+                    <Label className="text-foreground">Instituto</Label>
                     <Select
                       value={registro.instituto}
                       onValueChange={(val) => updateRegistro(index, "instituto", val)}
-                      disabled={isDisabled}
+                      disabled={false} // Siempre habilitado
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Seleccionar instituto" />
@@ -192,18 +195,11 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
           <Button
             onClick={addRegistro}
             variant="outline"
-            disabled={tieneNoContiene}
-            className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent text-sm px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent text-sm px-2 py-1"
           >
             <Plus className="h-3 w-3 mr-1" />
             Agregar registro
           </Button>
-          {tieneNoContiene && (
-            <p className="text-xs text-muted-foreground ml-3 flex items-center">
-              <XCircle className="h-3 w-3 mr-1" />
-              No se pueden agregar más registros cuando hay "No contiene" seleccionado
-            </p>
-          )}
         </div>
       </CardContent>
     </Card>

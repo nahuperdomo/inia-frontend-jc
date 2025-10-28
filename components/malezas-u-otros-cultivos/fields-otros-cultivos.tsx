@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge"
 import { Trash2, Plus, Wheat, XCircle } from "lucide-react"
 import { obtenerTodasEspecies } from "@/app/services/especie-service"
 import { EspecieDTO } from "@/app/models"
-import { usePersistentArray } from "@/lib/hooks/use-form-persistence"
 
 type Cultivo = {
   contiene: "si" | "no" | ""
@@ -37,22 +36,11 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
       }))
     : [{ contiene: "" as const, listado: "", entidad: "", numero: "", idEspecie: null }]
 
-  // ✅ Usar persistencia solo si no hay registros precargados
-  const persistence = usePersistentArray<Cultivo>(
-    `${contexto}-otros-cultivos`,
-    initialCultivos
-  )
+  // NO usar persistencia - los datos solo deben vivir en la sesión actual
+  const [cultivos, setCultivos] = useState<Cultivo[]>(initialCultivos)
 
-  const [cultivos, setCultivos] = useState<Cultivo[]>(
-    registros && registros.length > 0 ? initialCultivos : persistence.array
-  )
-
-  // Sincronizar con persistencia cuando cambie cultivos (solo en modo creación)
-  useEffect(() => {
-    if (!registros || registros.length === 0) {
-      persistence.setArray(cultivos)
-    }
-  }, [cultivos])
+  // ❌ Eliminar sincronización con persistencia
+  // Los datos NO deben guardarse en localStorage durante el registro
 
   const [opcionesEspecies, setOpcionesEspecies] = useState<EspecieDTO[]>([])
   const [loading, setLoading] = useState(true)
@@ -78,19 +66,22 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
     if (onChangeListados) {
       const listados = cultivos
         .filter((c) => {
-          const hasRequiredFields =
-            c.contiene === "si" &&
-            c.listado &&
-            c.listado.trim() !== "" &&
-            c.entidad &&
-            c.entidad.trim() !== ""
-          return hasRequiredFields
+          // Enviar registros válidos:
+          // 1. Si contiene "no" y tiene entidad → enviar como NO_CONTIENE
+          if (c.contiene === "no" && c.entidad && c.entidad.trim() !== "") {
+            return true;
+          }
+          // 2. Si contiene "si" y tiene todos los datos → enviar como OTROS
+          if (c.contiene === "si" && c.listado && c.listado.trim() !== "" && c.entidad && c.entidad.trim() !== "") {
+            return true;
+          }
+          return false;
         })
         .map((c) => ({
-          listadoTipo: "OTROS",
+          listadoTipo: c.contiene === "no" ? "NO_CONTIENE" : "OTROS",
           listadoInsti: c.entidad.toUpperCase(),
           listadoNum: c.numero !== "" ? Number(c.numero) : null,
-          idEspecie: c.idEspecie ?? null,
+          idEspecie: c.contiene === "no" ? null : (c.idEspecie ?? null),
         }))
 
       onChangeListados(listados)
@@ -109,7 +100,8 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
   const updateCultivo = (i: number, field: keyof Cultivo, value: any) => {
     const updated = [...cultivos]
     if (field === "contiene" && value === "no") {
-      updated[i] = { contiene: "no", listado: "", entidad: "", numero: "", idEspecie: null }
+      // Cuando selecciona "No contiene", limpiar campos pero MANTENER entidad
+      updated[i] = { contiene: "no", listado: "", entidad: updated[i].entidad, numero: "", idEspecie: null }
     } else {
       updated[i] = { ...updated[i], [field]: value }
     }
@@ -210,11 +202,11 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
 
                   {/* Entidad */}
                   <div className="space-y-2">
-                    <Label className={isDisabled ? "text-muted-foreground" : "text-foreground"}>Entidad</Label>
+                    <Label className="text-foreground">Entidad</Label>
                     <Select
                       value={c.entidad}
                       onValueChange={(val) => updateCultivo(i, "entidad", val)}
-                      disabled={isDisabled}
+                      disabled={false} // Siempre habilitado
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Seleccionar entidad" />
@@ -248,18 +240,11 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
           <Button
             onClick={addCultivo}
             variant="outline"
-            disabled={tieneNoContiene}
-            className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent text-sm px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent text-sm px-2 py-1"
           >
             <Plus className="h-3 w-3 mr-1" />
             Agregar registro
           </Button>
-          {tieneNoContiene && (
-            <p className="text-xs text-muted-foreground ml-3 flex items-center">
-              <XCircle className="h-3 w-3 mr-1" />
-              No se pueden agregar más registros cuando hay "No contiene" seleccionado
-            </p>
-          )}
         </div>
       </CardContent>
     </Card>

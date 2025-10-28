@@ -351,6 +351,27 @@ export default function RegistroAnalisisPage() {
     }
   }
 
+  // Funciones para limpiar localStorage
+  const clearDosnStorage = () => {
+    localStorage.removeItem('dosn-malezas-Malezas')
+    localStorage.removeItem('dosn-otros-cultivos')
+    localStorage.removeItem('dosn-brassicas')
+    localStorage.removeItem('dosn-cuscuta-registros')
+  }
+
+  const clearPurezaStorage = () => {
+    localStorage.removeItem('pureza-malezas-Malezas')
+    localStorage.removeItem('pureza-otros-cultivos')
+    localStorage.removeItem('pureza-brassicas')
+  }
+
+  const clearGerminacionStorage = () => {
+    // Agregar keys específicas de germinación si existen
+  }
+
+  const clearTetrazolioStorage = () => {
+    // Agregar keys específicas de tetrazolio si existen
+  }
 
   const handleSubmit = async () => {
     setLoading(true)
