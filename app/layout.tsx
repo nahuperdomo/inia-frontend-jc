@@ -9,6 +9,8 @@ import { NotificationProvider } from "@/components/notificaciones"
 import { QueryProvider } from "@/components/providers/query-provider"
 import { PWAInstallPrompt } from "@/components/pwa-install"
 import { NetworkStatusIndicator } from "@/components/network-status"
+import { ToastContainer } from "@/components/ui/toast-container"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Suspense } from "react"
 import "./globals.css"
 
@@ -87,6 +89,8 @@ export default function RootLayout({
                   {children}
                   <PWAInstallPrompt />
                   <NetworkStatusIndicator />
+                  <ToastContainer />
+                  <ConfirmDialog />
                 </NotificationProvider>
               </AuthProvider>
             </LoadingProvider>

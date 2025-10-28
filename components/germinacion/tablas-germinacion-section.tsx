@@ -10,6 +10,8 @@ import { ValoresGermDTO, ValoresGermRequestDTO } from '@/app/models/interfaces/v
 import { Instituto } from '@/app/models/types/enums'
 import { RepeticionesManager } from './repeticiones-manager-v2'
 import { Table, Plus, Trash2, CheckCircle, Calculator, Building } from 'lucide-react'
+import { useToast } from '@/lib/hooks/useToast'
+import { useConfirm } from '@/lib/hooks/useConfirm'
 import { 
   eliminarTablaGerminacion, 
   finalizarTabla, 
@@ -60,6 +62,10 @@ export function TablasGerminacionSection({
   const [valoresOriginalesInase, setValoresOriginalesInase] = useState<ValoresGermRequestDTO | null>(null)
   const [erroresValidacion, setErroresValidacion] = useState<{[key: string]: string}>({})
   const [erroresValidacionNuevaTabla, setErroresValidacionNuevaTabla] = useState<{[key: string]: string}>({})
+  
+  // Hook de notificaciones
+  const toast = useToast()
+  const { confirm } = useConfirm()
   
   // Estados para controlar la opción "Otro" en selects
   const [mostrarOtroTratamiento, setMostrarOtroTratamiento] = useState(false)
@@ -140,16 +146,19 @@ export function TablasGerminacionSection({
   }, [tablas])
 
   const handleEliminarTabla = async (tablaId: number) => {
-    if (!window.confirm("¿Está seguro que desea eliminar esta tabla? Esta acción no se puede deshacer.")) {
-      return
-    }
+    const confirmed = await confirm({
+      title: '¿Eliminar tabla?',
+      message: 'Esta acción no se puede deshacer.\n¿Está seguro que desea eliminar esta tabla?',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      variant: 'danger'
+    })
+
+    if (!confirmed) return
 
     try {
       setEliminandoTabla(tablaId)
-      console.log("Eliminando tabla:", tablaId)
-      
       await eliminarTablaGerminacion(germinacionId, tablaId)
-      console.log("Tabla eliminada exitosamente")
       
       // Actualizar estado local en lugar de recargar
       setTablasLocales(prev => prev.filter(tabla => tabla.tablaGermID !== tablaId))
@@ -158,9 +167,11 @@ export function TablasGerminacionSection({
       if (tablaExpandida === tablaId) {
         setTablaExpandida(null)
       }
+
+      toast.success('Tabla eliminada', 'La tabla se eliminó correctamente')
     } catch (error) {
       console.error("Error eliminando tabla:", error)
-      alert("Error al eliminar la tabla")
+      toast.error('Error al eliminar', 'No se pudo eliminar la tabla')
     } finally {
       setEliminandoTabla(null)
     }
@@ -171,16 +182,19 @@ export function TablasGerminacionSection({
   }
 
   const handleFinalizarTabla = async (tablaId: number) => {
-    if (!window.confirm("¿Está seguro que desea finalizar esta tabla? Esta acción no se puede deshacer.")) {
-      return
-    }
+    const confirmed = await confirm({
+      title: '¿Finalizar tabla?',
+      message: 'Esta acción no se puede deshacer.\n¿Está seguro que desea finalizar esta tabla?',
+      confirmText: 'Finalizar',
+      cancelText: 'Cancelar',
+      variant: 'warning'
+    })
+
+    if (!confirmed) return
 
     try {
       setFinalizandoTabla(tablaId)
-      console.log("Finalizando tabla:", tablaId)
-      
       await finalizarTabla(germinacionId, tablaId)
-      console.log("Tabla finalizada exitosamente")
       
       // Actualizar estado local en lugar de recargar
       setTablasLocales(prev => 
@@ -190,23 +204,31 @@ export function TablasGerminacionSection({
             : tabla
         )
       )
+
+      toast.success('Tabla finalizada', 'La tabla se finalizó correctamente')
     } catch (error) {
       console.error("Error finalizando tabla:", error)
-      alert("Error al finalizar la tabla")
+      toast.error('Error al finalizar', 'No se pudo finalizar la tabla')
     } finally {
       setFinalizandoTabla(null)
     }
   }
 
   const handleFinalizarGerminacion = async () => {
-    if (!window.confirm("¿Está seguro que desea finalizar toda la germinación? Esto cambiará el estado del análisis.")) {
-      return
-    }
+    const confirmed = await confirm({
+      title: '¿Finalizar germinación?',
+      message: 'Esto cambiará el estado del análisis.\n¿Está seguro que desea finalizar toda la germinación?',
+      confirmText: 'Finalizar',
+      cancelText: 'Cancelar',
+      variant: 'warning'
+    })
+
+    if (!confirmed) return
 
     setFinalizandoGerminacion(true)
     try {
       await finalizarGerminacion(germinacionId)
-      alert("Germinación finalizada exitosamente")
+      toast.success('Germinación finalizada', 'El análisis de germinación se finalizó correctamente')
       
       // Usar el callback si está disponible, sino recargar
       if (onAnalysisFinalized) {
@@ -216,7 +238,7 @@ export function TablasGerminacionSection({
       }
     } catch (error) {
       console.error("Error finalizando germinación:", error)
-      alert("Error al finalizar la germinación")
+      toast.error('Error al finalizar', 'No se pudo finalizar la germinación')
     } finally {
       setFinalizandoGerminacion(false)
     }
@@ -224,13 +246,17 @@ export function TablasGerminacionSection({
 
 
   const handleEditarTabla = async (tablaId: number) => {
-    if (!window.confirm("¿Está seguro que desea editar esta tabla? Podrá volver a modificarla.")) {
-      return
-    }
+    const confirmed = await confirm({
+      title: '¿Editar tabla?',
+      message: 'Podrá volver a modificar esta tabla.\n¿Desea continuar?',
+      confirmText: 'Editar',
+      cancelText: 'Cancelar',
+      variant: 'info'
+    })
+
+    if (!confirmed) return
 
     try {
-      console.log("Editando tabla:", tablaId)
-      
       // Actualizar estado local para marcar como no finalizada
       setTablasLocales(prev => 
         prev.map(tabla => 
@@ -239,11 +265,11 @@ export function TablasGerminacionSection({
             : tabla
         )
       )
-      
-      console.log("Tabla habilitada para edición")
+
+      toast.success('Tabla habilitada', 'La tabla está disponible para edición')
     } catch (error) {
       console.error("Error reabriendo tabla:", error)
-      alert("Error al reabrir la tabla")
+      toast.error('Error al reabrir', 'No se pudo habilitar la tabla para edición')
     }
   }
 
@@ -485,10 +511,7 @@ export function TablasGerminacionSection({
       // Limpiar errores si todo está bien
       setErroresValidacionNuevaTabla({})
       
-      console.log("Creando nueva tabla con datos:", nuevaTabla)
-      
       const tablaCreada = await crearTablaGerminacion(germinacionId, nuevaTabla)
-      console.log("✅ Tabla creada:", tablaCreada)
       
       // Actualizar estado local
       setTablasLocales(prev => [...prev, tablaCreada])
@@ -516,9 +539,10 @@ export function TablasGerminacionSection({
       })
       
       setMostrandoFormularioTabla(false)
+      toast.success('Tabla creada', 'La tabla de germinación se creó correctamente')
     } catch (error) {
-      console.error("❌ Error creando tabla:", error)
-      alert("Error al crear la tabla")
+      console.error("Error creando tabla:", error)
+      toast.error('Error al crear tabla', 'No se pudo crear la tabla de germinación')
     }
   }
 
@@ -580,15 +604,12 @@ export function TablasGerminacionSection({
                            porcentajes.porcentajeMuertasConRedondeo
 
     if (Math.abs(totalPorcentajes - 100) > 0.1) {
-      alert("Los porcentajes deben sumar exactamente 100%")
+      toast.warning('Porcentajes inválidos', 'Los porcentajes deben sumar exactamente 100%')
       return
     }
 
     try {
-      console.log("Guardando porcentajes para tabla:", tablaId)
-      
       await actualizarPorcentajes(germinacionId, tablaId, porcentajes)
-      console.log("✅ Porcentajes guardados exitosamente")
       
       // Actualizar estado local
       setTablasLocales(prev => 
@@ -608,9 +629,10 @@ export function TablasGerminacionSection({
       
       setEditandoPorcentajes(null)
       setPorcentajesOriginales(null)
+      toast.success('Porcentajes guardados', 'Los porcentajes se actualizaron correctamente')
     } catch (error) {
-      console.error("❌ Error guardando porcentajes:", error)
-      alert("Error al guardar porcentajes")
+      console.error("Error guardando porcentajes:", error)
+      toast.error('Error al guardar', 'No se pudieron guardar los porcentajes')
     }
   }
 
@@ -682,8 +704,6 @@ export function TablasGerminacionSection({
     setErroresValidacion({})
 
     try {
-      console.log("Guardando datos generales para tabla:", tablaId)
-      
       // VALIDACIONES ANTES DE GUARDAR
       const tablaActual = tablasLocales.find(t => t.tablaGermID === tablaId)
       
@@ -721,23 +741,34 @@ export function TablasGerminacionSection({
         })
         
         if (hayFechasCambiadas && tablaActual.repGerm && tablaActual.repGerm.length > 0) {
-          let mensaje = '⚠️ Has cambiado fechas de conteos.\n\n'
+          let mensaje = ''
+          let tituloMensaje = 'Cambios en fechas de conteos'
           
           if (hayFechaUltimoConteoCambiadaAFutura && hayOtrasFechasCambiadasAFutura) {
-            mensaje += 'Se detectaron los siguientes cambios:\n' +
-                      '• Fecha del último conteo cambió a futura: Se eliminarán anormales, duras, frescas y muertas de todas las repeticiones.\n' +
-                      '• Otras fechas de conteos cambiaron a futuras: Se eliminarán los datos de normales de esos conteos específicos.\n\n'
+            mensaje = 'Se detectaron los siguientes cambios:\n\n' +
+                      '• Fecha del último conteo cambió a futura: Se eliminarán anormales, duras, frescas y muertas de todas las repeticiones.\n\n' +
+                      '• Otras fechas de conteos cambiaron a futuras: Se eliminarán los datos de normales de esos conteos específicos.'
           } else if (hayFechaUltimoConteoCambiadaAFutura) {
-            mensaje += 'La fecha del último conteo cambió a una fecha futura.\n' +
-                      'Esto eliminará los campos anormales, duras, frescas y muertas de todas las repeticiones.\n' +
-                      'Los datos de normales en los conteos con fechas presentes o pasadas se mantendrán.\n\n'
+            mensaje = 'La fecha del último conteo cambió a una fecha futura.\n\n' +
+                      'Esto eliminará los campos anormales, duras, frescas y muertas de todas las repeticiones.\n\n' +
+                      'Los datos de normales en los conteos con fechas presentes o pasadas se mantendrán.'
           } else if (hayOtrasFechasCambiadasAFutura) {
-            mensaje += 'Esto eliminará los datos de normales ingresados en los conteos cuyas fechas sean futuras.\n\n'
+            mensaje = 'Algunas fechas de conteos cambiaron a futuras.\n\n' +
+                      'Esto eliminará los datos de normales ingresados en los conteos cuyas fechas sean futuras.'
+          } else {
+            // Fechas cambiaron pero no a futuras
+            tituloMensaje = 'Cambios en fechas de conteos'
+            mensaje = 'Has modificado las fechas de conteos.\n\n¿Deseas continuar con estos cambios?'
           }
           
-          mensaje += '¿Deseas continuar?'
+          const confirmar = await confirm({
+            title: tituloMensaje,
+            message: mensaje,
+            confirmText: 'Continuar',
+            cancelText: 'Cancelar',
+            variant: (hayFechaUltimoConteoCambiadaAFutura || hayOtrasFechasCambiadasAFutura) ? 'warning' : 'info'
+          })
           
-          const confirmar = window.confirm(mensaje)
           if (!confirmar) return
         }
       }
@@ -745,11 +776,13 @@ export function TablasGerminacionSection({
       // 2. Validar cambio en número de conteos
       if (tablaActual && tablaActual.numeroConteos !== tablaEditada.numeroConteos) {
         if (tablaActual.repGerm && tablaActual.repGerm.length > 0) {
-          const confirmar = window.confirm(
-            '⚠️ Has cambiado el número de conteos.\n\n' +
-            'Esto eliminará TODOS los datos de normales ingresados en TODAS las repeticiones.\n\n' +
-            '¿Deseas continuar?'
-          )
+          const confirmar = await confirm({
+            title: '⚠️ Cambio en número de conteos',
+            message: 'Esto eliminará TODOS los datos de normales ingresados en TODAS las repeticiones.\n\n¿Deseas continuar?',
+            confirmText: 'Continuar',
+            cancelText: 'Cancelar',
+            variant: 'warning'
+          })
           if (!confirmar) return
         }
       }
@@ -759,38 +792,30 @@ export function TablasGerminacionSection({
         if (tablaActual.repGerm && tablaActual.repGerm.length > 0) {
           const diferencia = tablaEditada.numeroRepeticiones - tablaActual.numeroRepeticiones
           if (diferencia < 0) {
-            const confirmar = window.confirm(
-              `⚠️ Has reducido el número de repeticiones de ${tablaActual.numeroRepeticiones} a ${tablaEditada.numeroRepeticiones}.\n\n` +
-              `Esto eliminará las últimas ${Math.abs(diferencia)} repeticiones guardadas (desde la última hasta la primera).\n\n` +
-              '¿Deseas continuar?'
-            )
+            const confirmar = await confirm({
+              title: '⚠️ Reducción de repeticiones',
+              message: `Has reducido el número de repeticiones de ${tablaActual.numeroRepeticiones} a ${tablaEditada.numeroRepeticiones}.\n\nEsto eliminará las últimas ${Math.abs(diferencia)} repeticiones guardadas (desde la última hasta la primera).\n\n¿Deseas continuar?`,
+              confirmText: 'Continuar',
+              cancelText: 'Cancelar',
+              variant: 'warning'
+            })
             if (!confirmar) return
           } else {
-            alert(
-              `ℹ️ Has aumentado el número de repeticiones de ${tablaActual.numeroRepeticiones} a ${tablaEditada.numeroRepeticiones}.\n\n` +
+            toast.info(
+              'Repeticiones aumentadas',
               `Se agregarán ${diferencia} repeticiones nuevas al final.`
             )
           }
         }
       }
       
-      console.log("📤 Enviando actualización de tabla al backend:", {
-        tablaId,
-        fechaConteos: tablaEditada.fechaConteos,
-        numeroConteos: tablaEditada.numeroConteos,
-        numeroRepeticiones: tablaEditada.numeroRepeticiones
-      })
-      
       await actualizarTablaGerminacion(germinacionId, tablaId, tablaEditada)
-      console.log("✅ Datos generales guardados exitosamente")
       
       // Pequeño delay para asegurar que el backend procese completamente
       await new Promise(resolve => setTimeout(resolve, 500))
       
       // Recargar las repeticiones actualizadas desde el servidor
       const tablaActualizada = await obtenerTablaPorId(germinacionId, tablaId)
-      console.log("📊 Tabla actualizada recargada desde servidor:", tablaActualizada)
-      console.log("🔢 Repeticiones en tabla actualizada:", tablaActualizada.repGerm?.length || 0)
       
       // Actualizar estado local con los datos completos del servidor
       setTablasLocales(prev => 
@@ -804,11 +829,10 @@ export function TablasGerminacionSection({
       setEditandoTablaGeneral(null)
       setTablaOriginal(null)
       
-      // Mostrar mensaje de éxito
-      alert("✅ Datos guardados correctamente. Los datos de las repeticiones se han actualizado.")
+      toast.success('Datos guardados', 'Los datos de la tabla se guardaron correctamente')
     } catch (error) {
-      console.error("❌ Error guardando datos generales:", error)
-      alert("Error al guardar los datos de la tabla")
+      console.error("Error guardando datos generales:", error)
+      toast.error('Error al guardar', 'No se pudieron guardar los datos de la tabla')
     }
   }
 
@@ -855,7 +879,7 @@ export function TablasGerminacionSection({
           germinacion: valoresIniaData.germinacion || 0
         }
       } catch (error) {
-        console.log("No hay valores INIA existentes, usando valores por defecto")
+        // No hay valores INIA existentes, usando valores por defecto
       }
       
       // Cargar valores INASE existentes
@@ -879,7 +903,7 @@ export function TablasGerminacionSection({
           germinacion: valoresInaseData.germinacion || 0
         }
       } catch (error) {
-        console.log("No hay valores INASE existentes, usando valores por defecto")
+        // No hay valores INASE existentes, usando valores por defecto
       }
       
       // Establecer estados (como hace porcentajes)
@@ -893,7 +917,7 @@ export function TablasGerminacionSection({
       
     } catch (error) {
       console.error("Error cargando valores:", error)
-      alert("Error al cargar los valores")
+      toast.error('Error al cargar valores', 'No se pudieron cargar los valores de la tabla')
     } finally {
       setCargandoValores(false)
     }
@@ -942,44 +966,30 @@ export function TablasGerminacionSection({
     // Validar suma de valores INIA antes de guardar
     const sumaInia = calcularSumaValores(valoresInia)
     if (sumaInia > 100) {
-      alert(`La suma de valores INIA (${sumaInia}) no puede superar 100. Por favor, ajuste los valores.`)
+      toast.warning('Suma de valores INIA excedida', `La suma no puede superar 100 (actual: ${sumaInia})`)
       return
     }
 
     // Validar suma de valores INASE antes de guardar
     const sumaInase = calcularSumaValores(valoresInase)
     if (sumaInase > 100) {
-      alert(`La suma de valores INASE (${sumaInase}) no puede superar 100. Por favor, ajuste los valores.`)
+      toast.warning('Suma de valores INASE excedida', `La suma no puede superar 100 (actual: ${sumaInase})`)
       return
     }
 
     try {
-      console.log("Guardando valores para tabla:", tablaId)
-      
       // Guardar valores INIA solo si han cambiado
       if (hanCambiadoValoresInia()) {
-        console.log("📤 Enviando valores INIA:", valoresInia)
-        
-        // Primero obtener el registro de INIA para conseguir su ID real
         const valoresIniaExistentes = await obtenerValoresIniaPorTabla(germinacionId, tablaId)
         const valoresIniaId = valoresIniaExistentes.valoresGermID
-        console.log("ID real de valores INIA:", valoresIniaId)
-        
         await actualizarValores(germinacionId, tablaId, valoresIniaId, valoresInia)
-        console.log("✅ Valores INIA guardados")
       }
       
       // Guardar valores INASE solo si han cambiado
       if (hanCambiadoValoresInase()) {
-        console.log("📤 Enviando valores INASE:", valoresInase)
-        
-        // Primero obtener el registro de INASE para conseguir su ID real
         const valoresInaseExistentes = await obtenerValoresInasePorTabla(germinacionId, tablaId)
         const valoresInaseId = valoresInaseExistentes.valoresGermID
-        console.log("ID real de valores INASE:", valoresInaseId)
-        
         await actualizarValores(germinacionId, tablaId, valoresInaseId, valoresInase)
-        console.log("✅ Valores INASE guardados")
       }
       
       // Actualizar valores originales para reflejar el estado guardado
@@ -987,11 +997,11 @@ export function TablasGerminacionSection({
       setValoresOriginalesInase({ ...valoresInase })
       
       setEditandoValores(null)
-      console.log("✅ Valores guardados exitosamente")
+      toast.success('Valores guardados', 'Los valores se guardaron correctamente')
       
     } catch (error) {
-      console.error("❌ Error guardando valores:", error)
-      alert("Error al guardar valores")
+      console.error("Error guardando valores:", error)
+      toast.error('Error al guardar valores', 'No se pudieron guardar los valores')
     }
   }
 
@@ -1020,7 +1030,7 @@ export function TablasGerminacionSection({
 
       // Validar que la suma no supere 100
       if (nuevaSuma > 100) {
-        alert(`La suma de valores INIA (normales + anormales + duras + frescas + muertas) no puede superar 100. Suma actual sería: ${nuevaSuma}`)
+        toast.warning('Suma excedida', `La suma de valores INIA no puede superar 100 (sería: ${nuevaSuma})`)
         return
       }
 
@@ -1050,7 +1060,7 @@ export function TablasGerminacionSection({
 
       // Validar que la suma no supere 100
       if (nuevaSuma > 100) {
-        alert(`La suma de valores INASE (normales + anormales + duras + frescas + muertas) no puede superar 100. Suma actual sería: ${nuevaSuma}`)
+        toast.warning('Suma excedida', `La suma de valores INASE no puede superar 100 (sería: ${nuevaSuma})`)
         return
       }
 
@@ -1109,8 +1119,6 @@ export function TablasGerminacionSection({
     
     const resultado = tieneNumeroCorrect && todasGuardadas
     
-    console.log(`Tabla ${tabla.tablaGermID}: ${tabla.repGerm.length}/${tabla.numeroRepeticiones} repeticiones, todas guardadas: ${todasGuardadas}, resultado: ${resultado}`)
-    
     return resultado
   }
 
@@ -1132,7 +1140,7 @@ export function TablasGerminacionSection({
           setValoresInia(valoresIniaActuales)
           setValoresOriginalesInia({ ...valoresIniaActuales })
         } catch (error) {
-          console.log("No hay valores INIA para cargar automáticamente")
+          // No hay valores INIA para cargar automáticamente
         }
 
         // Cargar valores INASE automáticamente
@@ -1149,7 +1157,7 @@ export function TablasGerminacionSection({
           setValoresInase(valoresInaseActuales)
           setValoresOriginalesInase({ ...valoresInaseActuales })
         } catch (error) {
-          console.log("No hay valores INASE para cargar automáticamente")
+          // No hay valores INASE para cargar automáticamente
         }
 
         // Cargar porcentajes automáticamente
