@@ -30,10 +30,10 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
   const initialCultivos = registros && registros.length > 0
     ? registros.map((r) => ({
         contiene: "si" as const,
-        listado: r.especie?.nombreComun || "",
+        listado: r.especie?.nombreComun || r.especieNombre || "",
         entidad: r.listadoInsti?.toLowerCase() || "",
         numero: r.listadoNum?.toString() || "",
-        idEspecie: r.especie?.especieID ?? null,
+        idEspecie: r.especie?.especieID || r.idEspecie || null,
       }))
     : [{ contiene: "" as const, listado: "", entidad: "", numero: "", idEspecie: null }]
 

@@ -20,8 +20,9 @@ import {
   aprobarAnalisis,
   marcarParaRepetir
 } from "@/app/services/pureza-service"
-import { obtenerTodosActivosMalezasCultivos } from "@/app/services/malezas-service"
-import type { PurezaDTO, PurezaRequestDTO, MalezasCatalogoDTO, TipoListado } from "@/app/models"
+import * as malezasService from "@/app/services/malezas-service"
+import { obtenerTodasEspecies } from "@/app/services/especie-service"
+import type { PurezaDTO, PurezaRequestDTO, MalezasCatalogoDTO, EspecieDTO, TipoListado } from "@/app/models"
 import { toast } from "sonner"
 import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
@@ -68,6 +69,7 @@ export default function EditarPurezaPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [catalogos, setCatalogos] = useState<MalezasCatalogoDTO[]>([])
+  const [especies, setEspecies] = useState<EspecieDTO[]>([])
 
   // Nuevos estados para agregar listados
   const [showAddListado, setShowAddListado] = useState(false)
@@ -76,6 +78,7 @@ export default function EditarPurezaPage() {
     listadoInsti: "",
     listadoNum: 0,
     idCatalogo: 0,
+    idEspecie: 0,
   })
 
   // Form state
@@ -126,13 +129,26 @@ export default function EditarPurezaPage() {
 
         // Cargar catálogos
         try {
-          const catalogosData = await obtenerTodosActivosMalezasCultivos()
+          console.log("Cargando catálogos de malezas...")
+          const catalogosData = await malezasService.obtenerTodasMalezas()
           if (Array.isArray(catalogosData)) {
             setCatalogos(catalogosData)
           }
         } catch (catalogError) {
           console.error("Error al cargar catálogos:", catalogError)
           setCatalogos([])
+        }
+
+        // Cargar especies
+        try {
+          console.log("Cargando especies...")
+          const especiesData = await obtenerTodasEspecies(true)
+          if (Array.isArray(especiesData)) {
+            setEspecies(especiesData)
+          }
+        } catch (especiesError) {
+          console.error("Error al cargar especies:", especiesError)
+          setEspecies([])
         }
 
         // Función para formatear fecha
@@ -187,6 +203,9 @@ export default function EditarPurezaPage() {
             idCatalogo: listado.catalogo?.catalogoID || null,
             catalogoNombre: listado.catalogo?.nombreComun || "",
             catalogoCientifico: listado.catalogo?.nombreCientifico || "",
+            idEspecie: listado.especie?.especieID || null,
+            especieNombre: listado.especie?.nombreComun || "",
+            especieCientifico: listado.especie?.nombreCientifico || "",
           })) || [],
         })
       } catch (err) {
@@ -378,7 +397,8 @@ export default function EditarPurezaPage() {
           listadoTipo: listado.listadoTipo,
           listadoInsti: listado.listadoInsti,
           listadoNum: listado.listadoNum,
-          idCatalogo: listado.idCatalogo,
+          idCatalogo: listado.idCatalogo || undefined,  // Para malezas
+          idEspecie: listado.idEspecie || undefined,    // Para otros cultivos
         })),
       }
 
@@ -1272,7 +1292,7 @@ export default function EditarPurezaPage() {
                             catalogoNombre: catalogo?.nombreComun || "",
                             catalogoCientifico: catalogo?.nombreCientifico || "",
                           })
-                          setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0 })
+                          setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0, idEspecie: 0 })
                           setShowAddListado(false)
                           toast.success("Registro agregado")
                         } else {
@@ -1287,7 +1307,7 @@ export default function EditarPurezaPage() {
                     <Button
                       onClick={() => {
                         setShowAddListado(false)
-                        setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0 })
+                        setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0 , idEspecie: 0 })
                       }}
                       size="sm"
                       variant="outline"

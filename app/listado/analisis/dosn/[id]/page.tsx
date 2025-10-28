@@ -22,6 +22,9 @@ import { useParams } from "next/navigation"
 import { obtenerDosnPorId } from "@/app/services/dosn-service"
 import type { DosnDTO } from "@/app/models"
 import type { EstadoAnalisis, TipoDOSN, TipoListado } from "@/app/models/types/enums"
+import * as especiesService from "@/app/services/especie-service"
+import type { EspecieDTO } from "@/app/models"
+
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -460,7 +463,13 @@ export default function DosnDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {dosn.institutoCuscuta && (
+                      <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-200/50 rounded-lg p-4 text-center space-y-2">
+                        <p className="text-2xl font-bold text-blue-600">{dosn.institutoCuscuta}</p>
+                        <p className="text-sm font-medium text-muted-foreground">Instituto Analista</p>
+                      </div>
+                    )}
                     {dosn.cuscuta_g !== undefined && dosn.cuscuta_g !== null && (
                       <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-200/50 rounded-lg p-4 text-center space-y-2">
                         <p className="text-3xl font-bold text-orange-600">{dosn.cuscuta_g}</p>
@@ -504,15 +513,24 @@ export default function DosnDetailPage() {
                               Especie
                             </label>
                             <p className="text-base font-semibold">
+                              {/* Mostrar catalogo (malezas) o especie (otros cultivos) */}
                               {listado.catalogo?.nombreComun || 
+                               listado.especie?.nombreComun ||
                                (listado.listadoTipo === "BRASSICA" ? "Sin especificación" : "--")}
                             </p>
+                            {/* Nombre científico de malezas */}
                             {listado.catalogo?.nombreCientifico && (
                               <p className="text-sm text-muted-foreground italic">
                                 {listado.catalogo.nombreCientifico}
                               </p>
                             )}
-                            {listado.listadoTipo === "BRASSICA" && !listado.catalogo?.nombreComun && (
+                            {/* Nombre científico de especies/cultivos */}
+                            {listado.especie?.nombreCientifico && (
+                              <p className="text-sm text-muted-foreground italic">
+                                {listado.especie.nombreCientifico}
+                              </p>
+                            )}
+                            {listado.listadoTipo === "BRASSICA" && !listado.catalogo?.nombreComun && !listado.especie?.nombreComun && (
                               <p className="text-sm text-muted-foreground">
                                 Las brassicas no requieren especificación de catálogo
                               </p>

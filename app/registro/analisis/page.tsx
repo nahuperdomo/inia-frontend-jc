@@ -106,6 +106,7 @@ export type AnalysisFormData = {
   cuscutaNumero: string
   cuscutaFecha: string
   cuscutaCumple: string
+  institutoCuscuta: string
 
   // Cumple estándar
   cumpleEstandar: string
@@ -274,6 +275,7 @@ export default function RegistroAnalisisPage() {
     cuscutaNumero: "",
     cuscutaFecha: "",
     cuscutaCumple: "",
+    institutoCuscuta: "",
     // Cumple estándar
     cumpleEstandar: "",
     cumpleFecha: "",
@@ -435,6 +437,7 @@ export default function RegistroAnalisisPage() {
         // Cuscuta - usar fecha actual si hay datos de cuscuta y no se especificó fecha
         cuscuta_g: toNum(formData.cuscutaGramos),
         cuscutaNum: toNum(formData.cuscutaNumero),
+        institutoCuscuta: formData.institutoCuscuta || undefined,
         fechaCuscuta: ((toNum(formData.cuscutaGramos) || 0) > 0 || (toNum(formData.cuscutaNumero) || 0) > 0)
           ? new Date().toISOString().split('T')[0] // Fecha actual en formato YYYY-MM-DD
           : null,

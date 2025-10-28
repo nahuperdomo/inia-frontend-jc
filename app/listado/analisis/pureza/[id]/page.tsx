@@ -676,11 +676,21 @@ export default function PurezaDetailPage() {
                                 Especie
                               </label>
                               <p className="text-base font-semibold">
-                                {listado.catalogo?.nombreComun || "--"}
+                                {/* Mostrar catalogo (malezas) o especie (otros cultivos) */}
+                                {listado.catalogo?.nombreComun || 
+                                 listado.especie?.nombreComun || 
+                                 "--"}
                               </p>
+                              {/* Nombre científico de malezas */}
                               {listado.catalogo?.nombreCientifico && (
                                 <p className="text-sm text-muted-foreground italic">
                                   {listado.catalogo.nombreCientifico}
+                                </p>
+                              )}
+                              {/* Nombre científico de especies/cultivos */}
+                              {listado.especie?.nombreCientifico && (
+                                <p className="text-sm text-muted-foreground italic">
+                                  {listado.especie.nombreCientifico}
                                 </p>
                               )}
                             </div>

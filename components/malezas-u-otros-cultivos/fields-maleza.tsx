@@ -31,10 +31,10 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
   const initialMalezas = registros && registros.length > 0
     ? registros.map((r) => ({
       tipoMaleza: r.listadoTipo || "",
-      listado: r.catalogo?.nombreComun || "",
+      listado: r.catalogo?.nombreComun || r.catalogoNombre || "",
       entidad: r.listadoInsti?.toLowerCase() || "",
       numero: r.listadoNum?.toString() || "",
-      idCatalogo: r.catalogo?.catalogoID || null,
+      idCatalogo: r.catalogo?.catalogoID || r.idCatalogo || null,
     }))
     : [{ tipoMaleza: "" as const, listado: "", entidad: "", numero: "", idCatalogo: null }]
 
