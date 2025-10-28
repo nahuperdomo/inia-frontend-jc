@@ -1709,6 +1709,11 @@ export function TablasGerminacionSection({
                                     fechaConteos: newFechas,
                                     fechaUltConteo: e.target.value
                                   }))
+                                  
+                                  // Validar fechaFinal si ya está definida
+                                  if (nuevaTabla.fechaFinal) {
+                                    validarCampoEnTiempoReal('fechaFinal', nuevaTabla.fechaFinal, true)
+                                  }
                                 } else {
                                   setNuevaTabla(prev => ({ ...prev, fechaConteos: newFechas }))
                                 }
@@ -1765,7 +1770,11 @@ export function TablasGerminacionSection({
                           setNuevaTabla(prev => ({ ...prev, fechaFinal: e.target.value }))
                           validarCampoEnTiempoReal('fechaFinal', e.target.value, true)
                         }}
-                        min={nuevaTabla.fechaUltConteo || undefined}
+                        min={
+                          nuevaTabla.fechaConteos && nuevaTabla.fechaConteos.length > 0 
+                            ? nuevaTabla.fechaConteos[nuevaTabla.fechaConteos.length - 1] 
+                            : nuevaTabla.fechaUltConteo || nuevaTabla.fechaInicioGerm || undefined
+                        }
                         className={erroresValidacionNuevaTabla.fechaFinal ? "border-red-500 focus:border-red-500" : ""}
                         lang="es-ES"
                       />
@@ -2431,6 +2440,11 @@ export function TablasGerminacionSection({
                                     fechaConteos: newFechas,
                                     fechaUltConteo: e.target.value
                                   }))
+                                  
+                                  // Validar fechaFinal si ya está definida
+                                  if (tablaEditada.fechaFinal) {
+                                    validarCampoEnTiempoReal('fechaFinal', tablaEditada.fechaFinal, false)
+                                  }
                                 } else {
                                   setTablaEditada(prev => ({ ...prev, fechaConteos: newFechas }))
                                 }
@@ -2487,7 +2501,11 @@ export function TablasGerminacionSection({
                           setTablaEditada(prev => ({ ...prev, fechaFinal: e.target.value }))
                           validarCampoEnTiempoReal('fechaFinal', e.target.value, false)
                         }}
-                        min={tablaEditada.fechaUltConteo || undefined}
+                        min={
+                          tablaEditada.fechaConteos && tablaEditada.fechaConteos.length > 0 
+                            ? tablaEditada.fechaConteos[tablaEditada.fechaConteos.length - 1] 
+                            : tablaEditada.fechaUltConteo || tablaEditada.fechaInicioGerm || undefined
+                        }
                         className={erroresValidacion.fechaFinal ? "border-red-500 focus:border-red-500" : ""}
                         lang="es-ES"
                       />
