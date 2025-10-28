@@ -33,7 +33,6 @@ export interface LoteDTO {
   numeroArticuloID?: number;
   numeroArticuloValor?: string;
   
-  cantidad?: number;
   origenID?: number;
   origenValor?: string;
   estadoID?: number;
@@ -67,7 +66,6 @@ export interface LoteRequestDTO {
     valor: number;
   }>;
   numeroArticuloID: number;
-  cantidad: number;
   origenID: number;
   estadoID: number;
   fechaCosecha: string;

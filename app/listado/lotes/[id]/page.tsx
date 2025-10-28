@@ -253,12 +253,12 @@ export default function DetalleLotePage() {
             </CardContent>
           </Card>
 
-          {/* Información de Cantidad y Peso */}
+          {/* Información de Peso */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Scale className="h-5 w-5" />
-                Cantidad y Peso
+                Peso
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -266,10 +266,6 @@ export default function DetalleLotePage() {
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Kilos Limpios</label>
                   <p className="text-sm">{lote.kilosLimpios ? `${lote.kilosLimpios} kg` : "-"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Cantidad</label>
-                  <p className="text-sm">{lote.cantidad ? `${lote.cantidad}` : "-"}</p>
                 </div>
               </div>
             </CardContent>

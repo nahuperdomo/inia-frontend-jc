@@ -41,7 +41,6 @@ export interface LoteFormData {
         valor: number | "";
     }>;
     numeroArticuloID: number | "";
-    cantidad: number | "";
     origenID: number | "";
     estadoID: number | "";
     fechaCosecha: string;
@@ -53,16 +52,8 @@ export interface LoteFormData {
  */
 export const loteValidationSchema: ValidationSchema<LoteFormData> = {
     // Pestaña "datos"
-    ficha: compose([
-        required,
-        minLength(2),
-        maxLength(50)
-    ]),
-    nomLote: compose([
-        required,
-        minLength(2),
-        maxLength(100)
-    ]),
+    ficha: minLength(2),
+    nomLote: minLength(2),
     cultivarID: compose([
         required,
         isNumber
@@ -82,21 +73,15 @@ export const loteValidationSchema: ValidationSchema<LoteFormData> = {
     codigoFF: minLength(2),
 
     // Pestaña "recepcion"
-    fechaEntrega: compose([
-        required,
-        isValidDate
-    ]),
+    fechaEntrega: isValidDate,
     fechaRecibo: compose([
         required,
         isValidDate,
         isPastOrPresent
     ]),
-    depositoID: compose([
-        required,
-        isNumber
-    ]),
-    unidadEmbolsado: required,
-    remitente: required,
+    depositoID: isNumber,
+    unidadEmbolsado: minLength(1),
+    remitente: minLength(2),
 
     // Pestaña "calidad"
     kilosLimpios: compose([
@@ -106,11 +91,6 @@ export const loteValidationSchema: ValidationSchema<LoteFormData> = {
     ]),
     // La validación de datosHumedad se maneja de forma especial en el componente
     numeroArticuloID: isNumber,
-    cantidad: compose([
-        required,
-        isNumber,
-        minValue(0.1)
-    ]),
     origenID: compose([
         required,
         isNumber
@@ -119,10 +99,7 @@ export const loteValidationSchema: ValidationSchema<LoteFormData> = {
         required,
         isNumber
     ]),
-    fechaCosecha: compose([
-        required,
-        isValidDate
-    ]),
+    fechaCosecha: isValidDate,
     tiposAnalisisAsignados: (value: TipoAnalisis[]) => {
         if (!value || value.length === 0) {
             return 'Debe seleccionar al menos un tipo de análisis';

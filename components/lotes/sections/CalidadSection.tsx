@@ -19,14 +19,10 @@ export function CalidadSection({ lot }: CalidadSectionProps) {
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div>
                         <Label className="text-sm font-medium text-muted-foreground">Kilos limpios</Label>
                         <div className="font-semibold">{lot.kilosLimpios ? `${lot.kilosLimpios} kg` : "-"}</div>
-                    </div>
-                    <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Cantidad</Label>
-                        <div className="font-semibold">{lot.cantidad ? `${lot.cantidad}` : "-"}</div>
                     </div>
                     <div>
                         <Label className="text-sm font-medium text-muted-foreground">Depósito</Label>

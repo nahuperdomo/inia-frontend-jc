@@ -151,11 +151,11 @@ export function LotFormTabs({
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="datos">Datos</TabsTrigger>
-            <TabsTrigger value="empresa">Empresa</TabsTrigger>
-            <TabsTrigger value="recepcion">Recepción y almacenamiento</TabsTrigger>
-            <TabsTrigger value="calidad">Calidad y producción</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1">
+            <TabsTrigger value="datos" className="text-xs sm:text-sm">Datos</TabsTrigger>
+            <TabsTrigger value="empresa" className="text-xs sm:text-sm">Empresa</TabsTrigger>
+            <TabsTrigger value="recepcion" className="text-xs sm:text-sm">Recepción</TabsTrigger>
+            <TabsTrigger value="calidad" className="text-xs sm:text-sm">Calidad</TabsTrigger>
           </TabsList>
 
           {/* Datos Tab */}
@@ -168,7 +168,6 @@ export function LotFormTabs({
                 onChange={(e) => handleInputChange("ficha", e.target.value)}
                 onBlur={() => handleBlur("ficha")}
                 error={hasError("ficha") ? getErrorMessage("ficha") : undefined}
-                required={true}
               />
 
               <FormField
@@ -178,7 +177,6 @@ export function LotFormTabs({
                 onChange={(e) => handleInputChange("nomLote", e.target.value)}
                 onBlur={() => handleBlur("nomLote")}
                 error={hasError("nomLote") ? getErrorMessage("nomLote") : undefined}
-                required={true}
                 placeholder="Ingrese un nombre único para el lote"
               />
 
@@ -266,7 +264,6 @@ export function LotFormTabs({
                 onChange={(e) => handleInputChange("fechaEntrega", e.target.value)}
                 onBlur={() => handleBlur("fechaEntrega")}
                 error={hasError("fechaEntrega") ? getErrorMessage("fechaEntrega") : undefined}
-                required={true}
               />
 
               <FormField
@@ -288,7 +285,6 @@ export function LotFormTabs({
                 onBlur={() => handleBlur("depositoID")}
                 options={depositosOptions}
                 error={hasError("depositoID") ? getErrorMessage("depositoID") : undefined}
-                required={true}
                 placeholder="Seleccionar depósito"
               />
 
@@ -300,7 +296,6 @@ export function LotFormTabs({
                 onBlur={() => handleBlur("unidadEmbolsado")}
                 options={unidadesEmbolsadoOptions}
                 error={hasError("unidadEmbolsado") ? getErrorMessage("unidadEmbolsado") : undefined}
-                required={true}
                 placeholder="Seleccionar unidad"
               />
 
@@ -311,7 +306,6 @@ export function LotFormTabs({
                 onChange={(e) => handleInputChange("remitente", e.target.value)}
                 onBlur={() => handleBlur("remitente")}
                 error={hasError("remitente") ? getErrorMessage("remitente") : undefined}
-                required={true}
               />
 
               <FormField
@@ -348,20 +342,7 @@ export function LotFormTabs({
                   onBlur={() => handleBlur("numeroArticuloID")}
                   options={articulosOptions}
                   error={hasError("numeroArticuloID") ? getErrorMessage("numeroArticuloID") : undefined}
-                  required={true}
                   placeholder="Seleccionar artículo"
-                />
-
-                <FormField
-                  id="cantidad"
-                  label="Cantidad"
-                  type="number"
-                  step="0.01"
-                  value={formData.cantidad}
-                  onChange={(e) => handleInputChange("cantidad", e.target.value === "" ? "" : Number(e.target.value))}
-                  onBlur={() => handleBlur("cantidad")}
-                  error={hasError("cantidad") ? getErrorMessage("cantidad") : undefined}
-                  required={true}
                 />
 
                 <FormSelect
@@ -396,7 +377,6 @@ export function LotFormTabs({
                   onChange={(e) => handleInputChange("fechaCosecha", e.target.value)}
                   onBlur={() => handleBlur("fechaCosecha")}
                   error={hasError("fechaCosecha") ? getErrorMessage("fechaCosecha") : undefined}
-                  required={true}
                 />
               </div>
 

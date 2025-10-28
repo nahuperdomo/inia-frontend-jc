@@ -168,24 +168,24 @@ export default function ListadoLotesPage() {
     <div className="w-full max-w-full overflow-x-hidden">
       <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
           <Link href="/listado">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Listados
+              Volver
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-balance">Listado de Lotes</h1>
-            <p className="text-muted-foreground text-pretty">
-              Consulta y administra todos los lotes registrados en el sistema
+            <h1 className="text-2xl sm:text-3xl font-bold text-balance">Listado de Lotes</h1>
+            <p className="text-sm text-muted-foreground text-pretty">
+              Consulta y administra todos los lotes registrados
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Link href="/registro/lotes">
-            <Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Link href="/registro/lotes" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Nuevo Lote
             </Button>
@@ -194,81 +194,81 @@ export default function ListadoLotesPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Lotes</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Lotes</p>
                 {isLoading ? (
                   <div className="flex items-center">
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
+                    <span className="text-sm">Cargando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl font-bold">{stats.total}</p>
+                  <p className="text-xl sm:text-2xl font-bold">{stats.total}</p>
                 )}
               </div>
-              <Package className="h-8 w-8 text-primary" />
+              <Package className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Activos</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Activos</p>
                 {isLoading ? (
                   <div className="flex items-center">
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
+                    <span className="text-sm">Cargando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl font-bold">{stats.activos}</p>
+                  <p className="text-xl sm:text-2xl font-bold">{stats.activos}</p>
                 )}
               </div>
-              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-green-500"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Inactivos</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold">{stats.inactivos}</p>
-                )}
-              </div>
-              <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-yellow-500"></div>
+              <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-green-100 flex items-center justify-center">
+                <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-green-500"></div>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Con Análisis</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Inactivos</p>
                 {isLoading ? (
                   <div className="flex items-center">
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Cargando...</span>
+                    <span className="text-sm">Cargando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl font-bold">0</p>
+                  <p className="text-xl sm:text-2xl font-bold">{stats.inactivos}</p>
                 )}
               </div>
-              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-blue-500"></div>
+              <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-yellow-500"></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Con Análisis</p>
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <span className="text-sm">Cargando...</span>
+                  </div>
+                ) : (
+                  <p className="text-xl sm:text-2xl font-bold">0</p>
+                )}
+              </div>
+              <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-blue-500"></div>
               </div>
             </div>
           </CardContent>
@@ -348,16 +348,16 @@ export default function ListadoLotesPage() {
             </div>
           ) : (
             <>
-              <div className="rounded-md border overflow-x-auto max-w-full">
-                <Table>
+              <div className="rounded-md border overflow-x-auto w-full">
+                <Table className="min-w-full">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Ficha</TableHead>
-                      <TableHead>Lote</TableHead>
-                      <TableHead>Cultivar</TableHead>
-                      <TableHead>Especie</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Acciones</TableHead>
+                      <TableHead className="whitespace-nowrap">Ficha</TableHead>
+                      <TableHead className="whitespace-nowrap">Lote</TableHead>
+                      <TableHead className="whitespace-nowrap">Cultivar</TableHead>
+                      <TableHead className="whitespace-nowrap">Especie</TableHead>
+                      <TableHead className="whitespace-nowrap">Estado</TableHead>
+                      <TableHead className="whitespace-nowrap">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -384,12 +384,12 @@ export default function ListadoLotesPage() {
                           <TableCell>{lote.cultivarNombre || "-"}</TableCell>
                           <TableCell>{lote.especieNombre || "-"}</TableCell>
                           <TableCell>
-                            <Badge variant={lote.activo ? "default" : "destructive"}>
+                            <Badge variant={lote.activo ? "default" : "destructive"} className="text-xs whitespace-nowrap">
                               {lote.activo ? "Activo" : "Inactivo"}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 whitespace-nowrap">
                               <Link href={`/listado/lotes/${lote.loteID}`}>
                                 <Button variant="ghost" size="sm" title="Ver detalles">
                                   <Eye className="h-4 w-4" />
