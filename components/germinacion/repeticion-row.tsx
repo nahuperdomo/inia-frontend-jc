@@ -85,10 +85,25 @@ export function RepeticionRow({
     }
   }, [datos.normales, datos.anormales, datos.duras, datos.frescas, datos.muertas])
 
+  // Verificar si hay fechas futuras
+  const hayFechasFuturas = () => {
+    if (!fechasConteos || fechasConteos.length === 0) return false
+    const fechaActual = new Date()
+    fechaActual.setHours(0, 0, 0, 0)
+    
+    return fechasConteos.some(fechaStr => {
+      const fechaConteo = new Date(fechaStr)
+      fechaConteo.setHours(0, 0, 0, 0)
+      return fechaConteo > fechaActual
+    })
+  }
+
   const handleGuardar = async () => {
-    // Validación: total no puede superar numSemillasPRep
-    if (datos.total > numSemillasPRep) {
-      alert(`El total (${datos.total}) no puede superar el número de semillas por repetición (${numSemillasPRep})`)
+    const limiteMaximo = Math.ceil(numSemillasPRep * 1.05)
+    
+    // Validación del máximo - siempre se aplica
+    if (datos.total > limiteMaximo) {
+      alert(`El total (${datos.total}) excede el límite máximo permitido (${limiteMaximo} - con 5% de tolerancia sobre ${numSemillasPRep} semillas)`)
       return
     }
 
@@ -189,8 +204,14 @@ export function RepeticionRow({
     return fechaConteo <= fechaActual
   }
 
-  const totalExcedido = datos.total > numSemillasPRep
-  const puedeGuardar = datos.total > 0 && !totalExcedido
+  const limiteMinimo = Math.floor(numSemillasPRep * 0.95)
+  const limiteMaximo = Math.ceil(numSemillasPRep * 1.05)
+  const tieneFechasFuturas = hayFechasFuturas()
+  
+  // totalExcedido solo si excede el máximo (el mínimo solo es advertencia)
+  const totalExcedido = datos.total > limiteMaximo
+  const totalBajoMinimo = datos.total < limiteMinimo && datos.total > 0
+  const puedeGuardar = datos.total > 0 && datos.total <= limiteMaximo
 
   return (
     <Card className={`mb-4 ${totalExcedido ? 'border-red-300' : ''}`}>
@@ -379,10 +400,12 @@ export function RepeticionRow({
 
           {/* Total con validación */}
           <div className="flex items-center justify-between">
-            <div className={`text-sm font-medium ${totalExcedido ? 'text-red-600' : 'text-green-600'}`}>
-              Total: {datos.total}/{numSemillasPRep} semillas
-              {totalExcedido && ' ❌ Excede el límite'}
-              {puedeGuardar && datos.total === numSemillasPRep && ' ✅ Completo'}
+            <div className={`text-sm font-medium ${totalExcedido ? 'text-red-600' : totalBajoMinimo ? 'text-orange-600' : 'text-green-600'}`}>
+              Total: {datos.total}/{numSemillasPRep} semillas (rango permitido: {limiteMinimo}-{limiteMaximo})
+              {datos.total > limiteMaximo && ' ❌ Excede el límite máximo'}
+              {totalBajoMinimo && !tieneFechasFuturas && ' ⚠️ Menor al mínimo (se perdió más del 5% - bloqueará la finalización de la tabla)'}
+              {totalBajoMinimo && tieneFechasFuturas && ' ⏳ Aún hay fechas futuras pendientes (puede seguir ingresando datos)'}
+              {puedeGuardar && datos.total >= limiteMinimo && datos.total <= limiteMaximo && ' ✅ Dentro del rango'}
             </div>
           </div>
         </div>
