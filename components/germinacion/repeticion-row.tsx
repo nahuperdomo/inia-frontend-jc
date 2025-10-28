@@ -173,6 +173,22 @@ export function RepeticionRow({
     return fechaConteo <= fechaActual
   }
 
+  // Función para validar si se pueden ingresar los campos del último conteo (anormales, duras, frescas, muertas)
+  // Estos campos se cuentan en el último conteo, por lo que dependen de su fecha
+  const puedeIngresarCamposUltimoConteo = (): boolean => {
+    if (!fechasConteos || fechasConteos.length === 0) return true
+    
+    const fechaUltimoConteo = fechasConteos[fechasConteos.length - 1]
+    if (!fechaUltimoConteo) return true
+    
+    const fechaConteo = new Date(fechaUltimoConteo)
+    const fechaActual = new Date()
+    fechaActual.setHours(0, 0, 0, 0)
+    fechaConteo.setHours(0, 0, 0, 0)
+    
+    return fechaConteo <= fechaActual
+  }
+
   const totalExcedido = datos.total > numSemillasPRep
   const puedeGuardar = datos.total > 0 && !totalExcedido
 
@@ -277,7 +293,12 @@ export function RepeticionRow({
           {/* Otros campos */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label className="text-sm font-medium">Anormales</label>
+              <label className="text-sm font-medium">
+                Anormales
+                {!puedeIngresarCamposUltimoConteo() && (
+                  <span className="text-red-500 ml-1" title="Fecha del último conteo futura - no disponible">⚠️</span>
+                )}
+              </label>
               <Input
                 type="number"
                 min="0"
@@ -286,13 +307,19 @@ export function RepeticionRow({
                 onChange={(e) => manejarCambioNumerico(e.target.value, datos.anormales, (nuevoValor) => 
                   actualizarCampo('anormales', nuevoValor)
                 )}
-                disabled={!modoEdicion}
-                className="text-center text-black disabled:text-black disabled:opacity-100"
+                disabled={!modoEdicion || !puedeIngresarCamposUltimoConteo()}
+                className={`text-center text-black disabled:text-black disabled:opacity-100 ${!puedeIngresarCamposUltimoConteo() ? 'bg-gray-100' : ''}`}
+                title={!puedeIngresarCamposUltimoConteo() ? "No se puede ingresar datos hasta la fecha del último conteo" : ""}
               />
             </div>
             
             <div>
-              <label className="text-sm font-medium">Duras</label>
+              <label className="text-sm font-medium">
+                Duras
+                {!puedeIngresarCamposUltimoConteo() && (
+                  <span className="text-red-500 ml-1" title="Fecha del último conteo futura - no disponible">⚠️</span>
+                )}
+              </label>
               <Input
                 type="number"
                 min="0"
@@ -301,13 +328,19 @@ export function RepeticionRow({
                 onChange={(e) => manejarCambioNumerico(e.target.value, datos.duras, (nuevoValor) => 
                   actualizarCampo('duras', nuevoValor)
                 )}
-                disabled={!modoEdicion}
-                className="text-center text-black disabled:text-black disabled:opacity-100"
+                disabled={!modoEdicion || !puedeIngresarCamposUltimoConteo()}
+                className={`text-center text-black disabled:text-black disabled:opacity-100 ${!puedeIngresarCamposUltimoConteo() ? 'bg-gray-100' : ''}`}
+                title={!puedeIngresarCamposUltimoConteo() ? "No se puede ingresar datos hasta la fecha del último conteo" : ""}
               />
             </div>
             
             <div>
-              <label className="text-sm font-medium">Frescas</label>
+              <label className="text-sm font-medium">
+                Frescas
+                {!puedeIngresarCamposUltimoConteo() && (
+                  <span className="text-red-500 ml-1" title="Fecha del último conteo futura - no disponible">⚠️</span>
+                )}
+              </label>
               <Input
                 type="number"
                 min="0"
@@ -316,13 +349,19 @@ export function RepeticionRow({
                 onChange={(e) => manejarCambioNumerico(e.target.value, datos.frescas, (nuevoValor) => 
                   actualizarCampo('frescas', nuevoValor)
                 )}
-                disabled={!modoEdicion}
-                className="text-center text-black disabled:text-black disabled:opacity-100"
+                disabled={!modoEdicion || !puedeIngresarCamposUltimoConteo()}
+                className={`text-center text-black disabled:text-black disabled:opacity-100 ${!puedeIngresarCamposUltimoConteo() ? 'bg-gray-100' : ''}`}
+                title={!puedeIngresarCamposUltimoConteo() ? "No se puede ingresar datos hasta la fecha del último conteo" : ""}
               />
             </div>
             
             <div>
-              <label className="text-sm font-medium">Muertas</label>
+              <label className="text-sm font-medium">
+                Muertas
+                {!puedeIngresarCamposUltimoConteo() && (
+                  <span className="text-red-500 ml-1" title="Fecha del último conteo futura - no disponible">⚠️</span>
+                )}
+              </label>
               <Input
                 type="number"
                 min="0"
@@ -331,8 +370,9 @@ export function RepeticionRow({
                 onChange={(e) => manejarCambioNumerico(e.target.value, datos.muertas, (nuevoValor) => 
                   actualizarCampo('muertas', nuevoValor)
                 )}
-                disabled={!modoEdicion}
-                className="text-center text-black disabled:text-black disabled:opacity-100"
+                disabled={!modoEdicion || !puedeIngresarCamposUltimoConteo()}
+                className={`text-center text-black disabled:text-black disabled:opacity-100 ${!puedeIngresarCamposUltimoConteo() ? 'bg-gray-100' : ''}`}
+                title={!puedeIngresarCamposUltimoConteo() ? "No se puede ingresar datos hasta la fecha del último conteo" : ""}
               />
             </div>
           </div>

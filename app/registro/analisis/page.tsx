@@ -111,14 +111,6 @@ export type AnalysisFormData = {
   cumpleEstandar: string
   cumpleFecha: string
 
-  // Germinación
-  fechaInicioGerm: string
-  fechaConteos: string[]
-  fechaUltConteo: string
-  numDias: string
-  numeroRepeticiones: number
-  numeroConteos: number
-
   // PMS
   numRepeticionesEsperadasPms: number
   numTandas: number
@@ -276,13 +268,6 @@ export default function RegistroAnalisisPage() {
     // Cumple estándar
     cumpleEstandar: "",
     cumpleFecha: "",
-    // Germinación
-    fechaInicioGerm: "",
-    fechaConteos: [],
-    fechaUltConteo: "",
-    numDias: "",
-    numeroRepeticiones: 1,
-    numeroConteos: 0,
     // PMS
     numRepeticionesEsperadasPms: 8,
     numTandas: 1,
@@ -502,89 +487,9 @@ export default function RegistroAnalisisPage() {
         otrasSemillas,
       };
     } else if (selectedAnalysisType === "GERMINACION") {
-      // Validaciones específicas para germinación
-      if (!formData.fechaInicioGerm) {
-        toast.error('Fecha de inicio requerida', {
-          description: 'La fecha de inicio de germinación es obligatoria.'
-        });
-        setLoading(false);
-        return;
-      }
-      if (!formData.fechaUltConteo) {
-        toast.error('Fecha de último conteo requerida', {
-          description: 'La fecha del último conteo es obligatoria.'
-        });
-        setLoading(false);
-        return;
-      }
-      if (!formData.numeroRepeticiones || formData.numeroRepeticiones < 1) {
-        toast.error('Número de repeticiones inválido', {
-          description: 'El número de repeticiones debe ser mayor a 0.'
-        });
-        setLoading(false);
-        return;
-      }
-      if (!formData.numeroConteos || formData.numeroConteos < 1) {
-        toast.error('Número de conteos inválido', {
-          description: 'El número de conteos debe ser mayor a 0.'
-        });
-        setLoading(false);
-        return;
-      }
-      if (!formData.fechaConteos || formData.fechaConteos.length === 0) {
-        toast.error('Fechas de conteo requeridas', {
-          description: 'Debe especificar al menos una fecha de conteo.'
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Filtrar fechas vacías
-      const fechasValidas = formData.fechaConteos.filter((fecha: string) => fecha && fecha.trim() !== "");
-      if (fechasValidas.length === 0) {
-        toast.error('Fechas de conteo incompletas', {
-          description: 'Debe completar al menos una fecha de conteo válida.'
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Validar que la fecha de inicio sea anterior a la fecha de último conteo
-      if (formData.fechaInicioGerm && formData.fechaUltConteo) {
-        const fechaInicio = new Date(formData.fechaInicioGerm);
-        const fechaFin = new Date(formData.fechaUltConteo);
-
-        if (fechaInicio >= fechaFin) {
-          toast.error("La fecha de inicio debe ser anterior a la fecha de último conteo");
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Validar que todas las fechas de conteo estén entre la fecha de inicio y fin
-      if (formData.fechaInicioGerm && formData.fechaUltConteo) {
-        const fechaInicio = new Date(formData.fechaInicioGerm);
-        const fechaFin = new Date(formData.fechaUltConteo);
-
-        for (const fecha of fechasValidas) {
-          const fechaConteo = new Date(fecha);
-          if (fechaConteo < fechaInicio || fechaConteo > fechaFin) {
-            toast.error(`Todas las fechas de conteo deben estar entre ${fechaInicio.toLocaleDateString()} y ${fechaFin.toLocaleDateString()}`);
-            setLoading(false);
-            return;
-          }
-        }
-      }
-
       payload = {
-        idLote: parseInt(formData.loteid), // Convertir a número
-        comentarios: formData.observaciones || "",
-        fechaInicioGerm: formData.fechaInicioGerm,
-        fechaConteos: fechasValidas,
-        fechaUltConteo: formData.fechaUltConteo,
-        numDias: formData.numDias || "",
-        numeroRepeticiones: formData.numeroRepeticiones || 1,
-        numeroConteos: formData.numeroConteos || 1,
+        idLote: parseInt(formData.loteid),
+        comentarios: formData.comentarios || "",
       };
     } else if (selectedAnalysisType === "PMS") {
       // Validaciones específicas para PMS
@@ -717,7 +622,7 @@ export default function RegistroAnalisisPage() {
         clearGerminacionStorage()
 
         setTimeout(() => {
-          router.push(`/listado/analisis/germinacion/${result.analisisID}`);
+          router.push(`/listado/analisis/germinacion/${result.analisisID}/editar`);
         }, 1500);
       } else if (selectedAnalysisType === "PMS") {
         console.log("🚀 Intentando crear PMS...");

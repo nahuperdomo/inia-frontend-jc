@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { TablaGermDTO, PorcentajesRedondeoRequestDTO, TablaGermRequestDTO, RepGermDTO } from '@/app/models/interfaces/repeticiones'
 import { ValoresGermDTO, ValoresGermRequestDTO } from '@/app/models/interfaces/valores-germ'
 import { Instituto } from '@/app/models/types/enums'
@@ -58,6 +59,15 @@ export function TablasGerminacionSection({
   const [valoresOriginalesInase, setValoresOriginalesInase] = useState<ValoresGermRequestDTO | null>(null)
   const [erroresValidacion, setErroresValidacion] = useState<{[key: string]: string}>({})
   const [erroresValidacionNuevaTabla, setErroresValidacionNuevaTabla] = useState<{[key: string]: string}>({})
+  
+  // Estados para controlar la opción "Otro" en selects
+  const [mostrarOtroTratamiento, setMostrarOtroTratamiento] = useState(false)
+  const [mostrarOtroMetodo, setMostrarOtroMetodo] = useState(false)
+  const [mostrarOtraTemperatura, setMostrarOtraTemperatura] = useState(false)
+  const [mostrarOtroPretratamiento, setMostrarOtroPretratamiento] = useState(false)
+  const [mostrarOtroNumSemillas, setMostrarOtroNumSemillas] = useState(false)
+  const [mostrarOtroNumSemillasEdit, setMostrarOtroNumSemillasEdit] = useState(false)
+  
   const [tablaEditada, setTablaEditada] = useState<TablaGermRequestDTO>({
     fechaFinal: '',
     tratamiento: '',
@@ -65,8 +75,18 @@ export function TablasGerminacionSection({
     numSemillasPRep: 0,
     metodo: '',
     temperatura: 0,
-    prefrio: '',
-    pretratamiento: ''
+    tienePrefrio: false,
+    descripcionPrefrio: '',
+    tienePretratamiento: false,
+    descripcionPretratamiento: '',
+    diasPrefrio: 0,
+    diasPretratamiento: 0,
+    fechaInicioGerm: '',
+    fechaConteos: [],
+    fechaUltConteo: '',
+    numDias: 0,
+    numeroRepeticiones: 0,
+    numeroConteos: 0
   })
   const [tablaOriginal, setTablaOriginal] = useState<TablaGermRequestDTO | null>(null)
   const [nuevaTabla, setNuevaTabla] = useState<TablaGermRequestDTO>({
@@ -76,8 +96,18 @@ export function TablasGerminacionSection({
     numSemillasPRep: 0,
     metodo: '',
     temperatura: 0,
-    prefrio: '',
-    pretratamiento: ''
+    tienePrefrio: false,
+    descripcionPrefrio: '',
+    tienePretratamiento: false,
+    descripcionPretratamiento: '',
+    diasPrefrio: 0,
+    diasPretratamiento: 0,
+    fechaInicioGerm: '',
+    fechaConteos: [],
+    fechaUltConteo: '',
+    numDias: 0,
+    numeroRepeticiones: 8, // Por defecto 8 repeticiones
+    numeroConteos: 0
   })
   const [porcentajes, setPorcentajes] = useState<PorcentajesRedondeoRequestDTO>({
     porcentajeNormalesConRedondeo: 0,
@@ -216,13 +246,29 @@ export function TablasGerminacionSection({
     }
   }
 
+  // Función para calcular la fecha mínima del primer conteo
+  const calcularFechaMinimaConteo = (tabla: any) => {
+    if (!tabla.fechaInicioGerm) return null
+    
+    const diasTotales = (tabla.diasPrefrio || 0) + (tabla.diasPretratamiento || 0)
+    if (diasTotales === 0) return tabla.fechaInicioGerm
+    
+    const fechaInicio = new Date(tabla.fechaInicioGerm + 'T00:00:00')
+    fechaInicio.setDate(fechaInicio.getDate() + diasTotales)
+    return fechaInicio.toISOString().split('T')[0]
+  }
+
   const validarDatosTabla = (tabla: any) => {
     const camposRequeridos = [
       { campo: 'fechaFinal', nombre: 'Fecha final' },
       { campo: 'tratamiento', nombre: 'Tratamiento' },
       { campo: 'metodo', nombre: 'Método' },
       { campo: 'numSemillasPRep', nombre: 'Número de semillas por repetición' },
-      { campo: 'temperatura', nombre: 'Temperatura' }
+      { campo: 'temperatura', nombre: 'Temperatura' },
+      { campo: 'fechaInicioGerm', nombre: 'Fecha de inicio de germinación' },
+      { campo: 'fechaUltConteo', nombre: 'Fecha de último conteo' },
+      { campo: 'numeroRepeticiones', nombre: 'Número de repeticiones' },
+      { campo: 'numeroConteos', nombre: 'Número de conteos' }
     ]
     
     const errores = []
@@ -233,16 +279,76 @@ export function TablasGerminacionSection({
       }
     }
     
-    // Validación adicional para fechaFinal
-    if (tabla.fechaFinal) {
-      const fechaFinal = new Date(tabla.fechaFinal)
-      const fechaInicio = germinacion?.fechaInicioGerm ? new Date(germinacion.fechaInicioGerm) : null
-      const fechaUltConteo = germinacion?.fechaUltConteo ? new Date(germinacion.fechaUltConteo) : null
+    // Validación de fechas de la tabla misma
+    if (tabla.fechaInicioGerm && tabla.fechaUltConteo) {
+      const fechaInicio = new Date(tabla.fechaInicioGerm)
+      const fechaUltConteo = new Date(tabla.fechaUltConteo)
       
-      if (fechaInicio && fechaFinal < fechaInicio) {
-        errores.push('Fecha final debe ser posterior a la fecha de inicio de germinación')
-      } else if (fechaUltConteo && fechaFinal > fechaUltConteo) {
-        errores.push('Fecha final debe ser anterior o igual a la fecha de último conteo')
+      if (fechaInicio >= fechaUltConteo) {
+        errores.push('Fecha de inicio debe ser anterior a la fecha de último conteo')
+      }
+    }
+    
+    // Validación adicional para fechaFinal (debe estar entre fechaInicioGerm y fechaUltConteo de la tabla)
+    if (tabla.fechaFinal && tabla.fechaInicioGerm && tabla.fechaUltConteo) {
+      const fechaFinal = new Date(tabla.fechaFinal)
+      const fechaInicio = new Date(tabla.fechaInicioGerm)
+      const fechaUltConteo = new Date(tabla.fechaUltConteo)
+      
+      if (fechaFinal < fechaInicio) {
+        errores.push('Fecha final debe ser posterior o igual a la fecha de inicio de germinación')
+      } else if (fechaFinal < fechaUltConteo) {
+        errores.push('Fecha final debe ser igual o posterior a la fecha de último conteo')
+      }
+    }
+    
+    // Validar número de repeticiones
+    if (tabla.numeroRepeticiones && (tabla.numeroRepeticiones < 1 || tabla.numeroRepeticiones > 20)) {
+      errores.push('Número de repeticiones debe estar entre 1 y 20')
+    }
+    
+    // Validar número de conteos
+    if (tabla.numeroConteos && (tabla.numeroConteos < 1 || tabla.numeroConteos > 15)) {
+      errores.push('Número de conteos debe estar entre 1 y 15')
+    }
+    
+    // Validar fechas de conteos individuales
+    if (tabla.fechaConteos && tabla.fechaConteos.length > 0) {
+      const fechasValidas = tabla.fechaConteos.filter((f: string) => f && f.trim() !== '')
+      if (fechasValidas.length !== tabla.numeroConteos) {
+        errores.push(`Debe especificar todas las ${tabla.numeroConteos} fechas de conteos`)
+      }
+      
+      // Validar que cada fecha esté en el rango correcto
+      if (tabla.fechaInicioGerm && tabla.fechaUltConteo) {
+        const fechaInicio = new Date(tabla.fechaInicioGerm)
+        const fechaUltConteo = new Date(tabla.fechaUltConteo)
+        const fechaMinimaConteo = calcularFechaMinimaConteo(tabla)
+        
+        fechasValidas.forEach((fecha: string, index: number) => {
+          const fechaConteo = new Date(fecha)
+          
+          // Validar primer conteo (debe ser al menos diasPrefrio + diasPretratamiento después del inicio)
+          if (index === 0 && fechaMinimaConteo) {
+            const fechaMinima = new Date(fechaMinimaConteo)
+            if (fechaConteo < fechaMinima) {
+              const diasRequeridos = (tabla.diasPrefrio || 0) + (tabla.diasPretratamiento || 0)
+              errores.push(`Primer conteo debe ser al menos ${diasRequeridos} días después del inicio (prefrío + pretratamiento)`)
+            }
+          }
+          
+          // Validar secuencia de fechas (cada conteo debe ser >= al anterior)
+          if (index > 0) {
+            const fechaAnterior = new Date(fechasValidas[index - 1])
+            if (fechaConteo < fechaAnterior) {
+              errores.push(`Fecha de conteo ${index + 1} debe ser igual o posterior a la fecha del conteo ${index}`)
+            }
+          }
+          
+          if (fechaConteo < fechaInicio || fechaConteo > fechaUltConteo) {
+            errores.push(`Fecha de conteo ${index + 1} debe estar entre la fecha de inicio y último conteo`)
+          }
+        })
       }
     }
     
@@ -251,6 +357,7 @@ export function TablasGerminacionSection({
 
   const validarCampoEnTiempoReal = (campo: string, valor: any, esNuevaTabla: boolean = false) => {
     const setErrores = esNuevaTabla ? setErroresValidacionNuevaTabla : setErroresValidacion
+    const datosTabla = esNuevaTabla ? nuevaTabla : tablaEditada
     
     setErrores(prev => {
       const nuevosErrores = { ...prev }
@@ -259,27 +366,71 @@ export function TablasGerminacionSection({
         if (!valor || valor === '') {
           nuevosErrores[campo] = 'Fecha final es requerida'
         } else {
-          // Validar que esté en el rango correcto
+          // Validar que esté en el rango correcto (usando fechas de la tabla)
           const fechaFinal = new Date(valor)
-          const fechaInicio = germinacion?.fechaInicioGerm ? new Date(germinacion.fechaInicioGerm) : null
-          const fechaUltConteo = germinacion?.fechaUltConteo ? new Date(germinacion.fechaUltConteo) : null
+          const fechaInicio = datosTabla.fechaInicioGerm ? new Date(datosTabla.fechaInicioGerm) : null
+          const fechaUltConteo = datosTabla.fechaUltConteo ? new Date(datosTabla.fechaUltConteo) : null
           
           if (fechaInicio && fechaFinal < fechaInicio) {
-            nuevosErrores[campo] = 'La fecha final debe ser posterior a la fecha de inicio de germinación'
-          } else if (fechaUltConteo && fechaFinal > fechaUltConteo) {
-            nuevosErrores[campo] = 'La fecha final debe ser anterior o igual a la fecha de último conteo'
+            nuevosErrores[campo] = 'La fecha final debe ser posterior o igual a la fecha de inicio de germinación de esta tabla'
+          } else if (fechaUltConteo && fechaFinal < fechaUltConteo) {
+            nuevosErrores[campo] = 'La fecha final debe ser igual o posterior a la fecha de último conteo de esta tabla'
           } else {
             delete nuevosErrores[campo]
           }
         }
+      } else if (campo === 'fechaInicioGerm') {
+        if (!valor || valor === '') {
+          nuevosErrores[campo] = 'Fecha de inicio de germinación es requerida'
+        } else {
+          delete nuevosErrores[campo]
+        }
+      } else if (campo === 'fechaUltConteo') {
+        if (!valor || valor === '') {
+          nuevosErrores[campo] = 'Fecha de último conteo es requerida'
+        } else {
+          const fechaUltConteo = new Date(valor)
+          const fechaInicio = datosTabla.fechaInicioGerm ? new Date(datosTabla.fechaInicioGerm) : null
+          
+          if (fechaInicio && fechaUltConteo <= fechaInicio) {
+            nuevosErrores[campo] = 'La fecha de último conteo debe ser posterior a la fecha de inicio'
+          } else {
+            delete nuevosErrores[campo]
+            // Calcular automáticamente los días
+            if (fechaInicio) {
+              const dias = Math.ceil((fechaUltConteo.getTime() - fechaInicio.getTime()) / (1000 * 60 * 60 * 24))
+              if (esNuevaTabla) {
+                setNuevaTabla(prev => ({ ...prev, numDias: dias }))
+              } else {
+                setTablaEditada(prev => ({ ...prev, numDias: dias }))
+              }
+            }
+          }
+        }
+      } else if (campo === 'numeroRepeticiones') {
+        if (!valor || valor === 0) {
+          nuevosErrores[campo] = 'Número de repeticiones es requerido'
+        } else if (valor < 1 || valor > 20) {
+          nuevosErrores[campo] = 'Debe estar entre 1 y 20'
+        } else {
+          delete nuevosErrores[campo]
+        }
+      } else if (campo === 'numeroConteos') {
+        if (!valor || valor === 0) {
+          nuevosErrores[campo] = 'Número de conteos es requerido'
+        } else if (valor < 1 || valor > 15) {
+          nuevosErrores[campo] = 'Debe estar entre 1 y 15'
+        } else {
+          delete nuevosErrores[campo]
+        }
       } else if (!valor || valor === '' || valor === 0) {
-        const nombresCampos = {
+        const nombresCampos: { [key: string]: string } = {
           'tratamiento': 'Tratamiento',
           'metodo': 'Método',
           'numSemillasPRep': 'Número de semillas por repetición',
           'temperatura': 'Temperatura'
         }
-        nuevosErrores[campo] = `${nombresCampos[campo as keyof typeof nombresCampos]} es requerido`
+        nuevosErrores[campo] = `${nombresCampos[campo]} es requerido`
       } else {
         delete nuevosErrores[campo]
       }
@@ -349,8 +500,18 @@ export function TablasGerminacionSection({
         numSemillasPRep: 0,
         metodo: '',
         temperatura: 0,
-        prefrio: '',
-        pretratamiento: ''
+        tienePrefrio: false,
+        descripcionPrefrio: '',
+        tienePretratamiento: false,
+        descripcionPretratamiento: '',
+        diasPrefrio: 0,
+        diasPretratamiento: 0,
+        fechaInicioGerm: '',
+        fechaConteos: [],
+        fechaUltConteo: '',
+        numDias: 0,
+        numeroRepeticiones: 0,
+        numeroConteos: 0
       })
       
       setMostrandoFormularioTabla(false)
@@ -461,8 +622,18 @@ export function TablasGerminacionSection({
       numSemillasPRep: tabla.numSemillasPRep || 0,
       metodo: tabla.metodo || '',
       temperatura: tabla.temperatura || 0,
-      prefrio: tabla.prefrio || '',
-      pretratamiento: tabla.pretratamiento || ''
+      tienePrefrio: tabla.tienePrefrio || false,
+      descripcionPrefrio: tabla.descripcionPrefrio || '',
+      tienePretratamiento: tabla.tienePretratamiento || false,
+      descripcionPretratamiento: tabla.descripcionPretratamiento || '',
+      diasPrefrio: tabla.diasPrefrio || 0,
+      diasPretratamiento: tabla.diasPretratamiento || 0,
+      fechaInicioGerm: tabla.fechaInicioGerm || '',
+      fechaConteos: tabla.fechaConteos || [],
+      fechaUltConteo: tabla.fechaUltConteo || '',
+      numDias: tabla.numDias || 0,
+      numeroRepeticiones: tabla.numeroRepeticiones || 0,
+      numeroConteos: tabla.numeroConteos || 0
     }
     setTablaEditada(datosTabla)
     setTablaOriginal({ ...datosTabla })
@@ -822,15 +993,19 @@ export function TablasGerminacionSection({
 
   // Función helper para verificar si todas las repeticiones requeridas están guardadas
   const tieneTodasLasRepeticionesGuardadas = (tabla: TablaGermDTO): boolean => {
-    if (!tabla.repGerm || !germinacion?.numeroRepeticiones) return false
+    if (!tabla.repGerm || !tabla.numeroRepeticiones) return false
     
-    // Verificar que tengamos el número correcto de repeticiones
-    const tieneNumeroCorrect = tabla.repGerm.length === germinacion.numeroRepeticiones
+    // Verificar que tengamos el número correcto de repeticiones (usar el de la tabla, no el de germinacion)
+    const tieneNumeroCorrect = tabla.repGerm.length === tabla.numeroRepeticiones
     
     // Verificar que todas las repeticiones estén guardadas (tengan repGermID)
     const todasGuardadas = tabla.repGerm.every((rep: any) => rep.repGermID)
     
-    return tieneNumeroCorrect && todasGuardadas
+    const resultado = tieneNumeroCorrect && todasGuardadas
+    
+    console.log(`Tabla ${tabla.tablaGermID}: ${tabla.repGerm.length}/${tabla.numeroRepeticiones} repeticiones, todas guardadas: ${todasGuardadas}, resultado: ${resultado}`)
+    
+    return resultado
   }
 
   // Efecto para cargar valores automáticamente cuando se muestra una tabla completada
@@ -885,7 +1060,7 @@ export function TablasGerminacionSection({
         }
       }
     })
-  }, [tablasLocales, germinacionId, germinacion?.numeroRepeticiones])
+  }, [tablasLocales, germinacionId])
 
   return (
     <Card>
@@ -909,38 +1084,43 @@ export function TablasGerminacionSection({
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Tratamiento - Select */}
                 <div>
-                  <Label className="text-sm font-medium">Fecha Final *</Label>
-                  <Input
-                    type="date"
-                    value={nuevaTabla.fechaFinal}
-                    onChange={(e) => {
-                      setNuevaTabla(prev => ({ ...prev, fechaFinal: e.target.value }))
-                      validarCampoEnTiempoReal('fechaFinal', e.target.value, true)
-                    }}
-                    min={germinacion?.fechaInicioGerm || undefined}
-                    max={germinacion?.fechaUltConteo || undefined}
-                    className={erroresValidacionNuevaTabla.fechaFinal ? "border-red-500 focus:border-red-500" : ""}
-                  />
-                  {erroresValidacionNuevaTabla.fechaFinal && (
-                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.fechaFinal}</p>
-                  )}
-                  <p className="text-xs text-gray-500 mt-1">
-                    Debe estar entre {germinacion?.fechaInicioGerm} y {germinacion?.fechaUltConteo}
-                  </p>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Tratamiento</Label>
-                  <Input
+                  <Label className="text-sm font-medium">Tratamiento *</Label>
+                  <Select
                     value={nuevaTabla.tratamiento}
-                    onChange={(e) => {
-                      setNuevaTabla(prev => ({ ...prev, tratamiento: e.target.value }))
-                      validarCampoEnTiempoReal('tratamiento', e.target.value, true)
+                    onValueChange={(value) => {
+                      if (value === 'Otro') {
+                        setMostrarOtroTratamiento(true)
+                        setNuevaTabla(prev => ({ ...prev, tratamiento: '' }))
+                      } else {
+                        setMostrarOtroTratamiento(false)
+                        setNuevaTabla(prev => ({ ...prev, tratamiento: value }))
+                        validarCampoEnTiempoReal('tratamiento', value, true)
+                      }
                     }}
-                    placeholder="Control, Tratamiento A, etc."
-                    className={erroresValidacionNuevaTabla.tratamiento ? "border-red-500 focus:border-red-500" : ""}
-                  />
+                  >
+                    <SelectTrigger className={erroresValidacionNuevaTabla.tratamiento ? "border-red-500" : ""}>
+                      <SelectValue placeholder="Seleccionar tratamiento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Sin curar">Sin curar</SelectItem>
+                      <SelectItem value="Curada en Planta">Curada en Planta</SelectItem>
+                      <SelectItem value="Curada en Laboratorio">Curada en Laboratorio</SelectItem>
+                      <SelectItem value="Otro">Otro (especifique)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {mostrarOtroTratamiento && (
+                    <Input
+                      value={nuevaTabla.tratamiento}
+                      onChange={(e) => {
+                        setNuevaTabla(prev => ({ ...prev, tratamiento: e.target.value }))
+                        validarCampoEnTiempoReal('tratamiento', e.target.value, true)
+                      }}
+                      placeholder="Especifique el tratamiento"
+                      className="mt-2"
+                    />
+                  )}
                   {erroresValidacionNuevaTabla.tratamiento && (
                     <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.tratamiento}</p>
                   )}
@@ -955,78 +1135,547 @@ export function TablasGerminacionSection({
                   />
                 </div>
 
-                  <div>
-                    <Label className="text-sm font-medium">Número de Semillas por Repetición</Label>
+                {/* Número de Semillas por Repetición - Select */}
+                <div>
+                  <Label className="text-sm font-medium">Número de Semillas por Repetición *</Label>
+                  <Select
+                    value={mostrarOtroNumSemillas ? 'otro' : (nuevaTabla.numSemillasPRep === 0 ? '' : nuevaTabla.numSemillasPRep.toString())}
+                    onValueChange={(value) => {
+                      if (value === 'otro') {
+                        setMostrarOtroNumSemillas(true)
+                        setNuevaTabla(prev => ({ ...prev, numSemillasPRep: 0 }))
+                      } else {
+                        setMostrarOtroNumSemillas(false)
+                        const numValue = parseInt(value)
+                        setNuevaTabla(prev => ({ ...prev, numSemillasPRep: numValue }))
+                        validarCampoEnTiempoReal('numSemillasPRep', numValue, true)
+                      }
+                    }}
+                  >
+                    <SelectTrigger className={erroresValidacionNuevaTabla.numSemillasPRep ? "border-red-500" : ""}>
+                      <SelectValue placeholder="Seleccionar cantidad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                      <SelectItem value="otro">Otro (especifique)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {mostrarOtroNumSemillas && (
                     <Input
                       type="number"
                       min="1"
                       max="500"
                       value={nuevaTabla.numSemillasPRep === 0 ? '' : nuevaTabla.numSemillasPRep}
                       onChange={(e) => {
-                        manejarCambioNumerico(e.target.value, nuevaTabla.numSemillasPRep, (valor) => 
-                          setNuevaTabla(prev => ({ ...prev, numSemillasPRep: valor }))
-                        )
-                        validarCampoEnTiempoReal('numSemillasPRep', parseInt(e.target.value) || 0, true)
+                        const valor = parseInt(e.target.value) || 0
+                        setNuevaTabla(prev => ({ ...prev, numSemillasPRep: valor }))
+                        validarCampoEnTiempoReal('numSemillasPRep', valor, true)
                       }}
-                      placeholder="Ej: 100"
-                      className={erroresValidacionNuevaTabla.numSemillasPRep ? "border-red-500 focus:border-red-500" : ""}
+                      placeholder="Especifique la cantidad"
+                      className="mt-2"
                     />
-                    {erroresValidacionNuevaTabla.numSemillasPRep && (
-                      <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.numSemillasPRep}</p>
-                    )}
-                  </div>                <div>
-                  <Label className="text-sm font-medium">Método</Label>
-                  <Input
+                  )}
+                  {erroresValidacionNuevaTabla.numSemillasPRep && (
+                    <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.numSemillasPRep}</p>
+                  )}
+                </div>
+
+                {/* Método - Select */}
+                <div>
+                  <Label className="text-sm font-medium">Método *</Label>
+                  <Select
                     value={nuevaTabla.metodo}
-                    onChange={(e) => {
-                      setNuevaTabla(prev => ({ ...prev, metodo: e.target.value }))
-                      validarCampoEnTiempoReal('metodo', e.target.value, true)
+                    onValueChange={(value) => {
+                      if (value === 'Otro') {
+                        setMostrarOtroMetodo(true)
+                        setNuevaTabla(prev => ({ ...prev, metodo: '' }))
+                      } else {
+                        setMostrarOtroMetodo(false)
+                        setNuevaTabla(prev => ({ ...prev, metodo: value }))
+                        validarCampoEnTiempoReal('metodo', value, true)
+                      }
                     }}
-                    placeholder="Papel, Arena, Suelo, etc."
-                    className={erroresValidacionNuevaTabla.metodo ? "border-red-500 focus:border-red-500" : ""}
-                  />
+                  >
+                    <SelectTrigger className={erroresValidacionNuevaTabla.metodo ? "border-red-500" : ""}>
+                      <SelectValue placeholder="Seleccionar método" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="SP">SP</SelectItem>
+                      <SelectItem value="EP">EP</SelectItem>
+                      <SelectItem value="A">A</SelectItem>
+                      <SelectItem value="RPT">RPT</SelectItem>
+                      <SelectItem value="Tierra">Tierra</SelectItem>
+                      <SelectItem value="Otro">Otro (especifique)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {mostrarOtroMetodo && (
+                    <Input
+                      value={nuevaTabla.metodo}
+                      onChange={(e) => {
+                        setNuevaTabla(prev => ({ ...prev, metodo: e.target.value }))
+                        validarCampoEnTiempoReal('metodo', e.target.value, true)
+                      }}
+                      placeholder="Especifique el método"
+                      className="mt-2"
+                    />
+                  )}
                   {erroresValidacionNuevaTabla.metodo && (
                     <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.metodo}</p>
                   )}
                 </div>
 
+                {/* Temperatura - Select */}
                 <div>
-                  <Label className="text-sm font-medium">Temperatura (°C)</Label>
-                  <Input
-                    type="number"
-                    min="-10"
-                    max="50"
-                    value={nuevaTabla.temperatura === 0 ? '' : nuevaTabla.temperatura}
-                    onChange={(e) => {
-                      manejarCambioNumerico(e.target.value, nuevaTabla.temperatura, (valor) => 
-                        setNuevaTabla(prev => ({ ...prev, temperatura: valor })), true
-                      )
-                      validarCampoEnTiempoReal('temperatura', parseFloat(e.target.value) || 0, true)
+                  <Label className="text-sm font-medium">Temperatura *</Label>
+                  <Select
+                    value={mostrarOtraTemperatura ? 'otro' : (nuevaTabla.temperatura === 0 ? '' : nuevaTabla.temperatura.toString())}
+                    onValueChange={(value) => {
+                      if (value === 'otro') {
+                        setMostrarOtraTemperatura(true)
+                        setNuevaTabla(prev => ({ ...prev, temperatura: 0 }))
+                      } else {
+                        setMostrarOtraTemperatura(false)
+                        // Guardar el texto completo como está (el backend lo procesará)
+                        setNuevaTabla(prev => ({ ...prev, temperatura: value as any }))
+                        validarCampoEnTiempoReal('temperatura', value, true)
+                      }
                     }}
-                    placeholder="Ej: 20"
-                    className={erroresValidacionNuevaTabla.temperatura ? "border-red-500 focus:border-red-500" : ""}
-                  />
+                  >
+                    <SelectTrigger className={erroresValidacionNuevaTabla.temperatura ? "border-red-500" : ""}>
+                      <SelectValue placeholder="Seleccionar temperatura" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15°C</SelectItem>
+                      <SelectItem value="20">20°C</SelectItem>
+                      <SelectItem value="25">25°C</SelectItem>
+                      <SelectItem value="20-30">20↔30°C</SelectItem>
+                      <SelectItem value="15-35">15↔35°C</SelectItem>
+                      <SelectItem value="otro">Otro (especifique)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {mostrarOtraTemperatura && (
+                    <Input
+                      type="number"
+                      min="-10"
+                      max="50"
+                      value=""
+                      onChange={(e) => {
+                        const valor = parseFloat(e.target.value) || 0
+                        setNuevaTabla(prev => ({ ...prev, temperatura: valor }))
+                        validarCampoEnTiempoReal('temperatura', valor, true)
+                      }}
+                      placeholder="Especifique la temperatura (°C)"
+                      className="mt-2"
+                    />
+                  )}
                   {erroresValidacionNuevaTabla.temperatura && (
                     <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.temperatura}</p>
                   )}
                 </div>
 
-                <div>
-                  <Label className="text-sm font-medium">Prefrío</Label>
-                  <Input
-                    value={nuevaTabla.prefrio}
-                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, prefrio: e.target.value }))}
-                    placeholder="No, Sí - 5°C por 7 días, etc."
-                  />
+                {/* Prefrío */}
+                <div className="md:col-span-2">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <input
+                      type="checkbox"
+                      id="tienePrefrio"
+                      checked={nuevaTabla.tienePrefrio}
+                      onChange={(e) => setNuevaTabla(prev => ({
+                        ...prev,
+                        tienePrefrio: e.target.checked,
+                        descripcionPrefrio: e.target.checked ? prev.descripcionPrefrio : '',
+                        diasPrefrio: e.target.checked ? prev.diasPrefrio : 0
+                      }))}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="tienePrefrio" className="text-sm font-medium cursor-pointer">
+                      ¿Tiene Prefrío?
+                    </Label>
+                  </div>
+                  {nuevaTabla.tienePrefrio && (
+                    <div className="space-y-2 mt-2 pl-6">
+                      <div>
+                        <Label className="text-sm">Descripción de Prefrío</Label>
+                        <Input
+                          value={nuevaTabla.descripcionPrefrio}
+                          onChange={(e) => setNuevaTabla(prev => ({ ...prev, descripcionPrefrio: e.target.value }))}
+                          placeholder="Ej: 5°C por 7 días"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm">Días de Prefrío *</Label>
+                        <Select
+                          value={nuevaTabla.diasPrefrio === 0 ? '' : nuevaTabla.diasPrefrio.toString()}
+                          onValueChange={(value) => setNuevaTabla(prev => ({ ...prev, diasPrefrio: parseInt(value) }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar días" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 15 }, (_, i) => i + 1).map(day => (
+                              <SelectItem key={day} value={day.toString()}>{day} días</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
+                {/* Pretratamiento */}
                 <div className="md:col-span-2">
-                  <Label className="text-sm font-medium">Pretratamiento</Label>
-                  <Input
-                    value={nuevaTabla.pretratamiento}
-                    onChange={(e) => setNuevaTabla(prev => ({ ...prev, pretratamiento: e.target.value }))}
-                    placeholder="Ninguno, Escarificación, etc."
-                  />
+                  <div className="flex items-center space-x-2 mb-2">
+                    <input
+                      type="checkbox"
+                      id="tienePretratamiento"
+                      checked={nuevaTabla.tienePretratamiento}
+                      onChange={(e) => setNuevaTabla(prev => ({
+                        ...prev,
+                        tienePretratamiento: e.target.checked,
+                        descripcionPretratamiento: e.target.checked ? prev.descripcionPretratamiento : '',
+                        diasPretratamiento: e.target.checked ? prev.diasPretratamiento : 0
+                      }))}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="tienePretratamiento" className="text-sm font-medium cursor-pointer">
+                      ¿Tiene Pretratamiento?
+                    </Label>
+                  </div>
+                  {nuevaTabla.tienePretratamiento && (
+                    <div className="space-y-2 mt-2 pl-6">
+                      <div>
+                        <Label className="text-sm">Tipo de Pretratamiento *</Label>
+                        <Select
+                          value={nuevaTabla.descripcionPretratamiento}
+                          onValueChange={(value) => {
+                            if (value === 'Otro') {
+                              setMostrarOtroPretratamiento(true)
+                              setNuevaTabla(prev => ({ ...prev, descripcionPretratamiento: '' }))
+                            } else {
+                              setMostrarOtroPretratamiento(false)
+                              setNuevaTabla(prev => ({ ...prev, descripcionPretratamiento: value }))
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar pretratamiento" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="KNO3">KNO3</SelectItem>
+                            <SelectItem value="Pre-lavado">Pre-lavado</SelectItem>
+                            <SelectItem value="Pre-secado">Pre-secado</SelectItem>
+                            <SelectItem value="GA3">GA3</SelectItem>
+                            <SelectItem value="Otro">Otro (especifique)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {mostrarOtroPretratamiento && (
+                          <Input
+                            value={nuevaTabla.descripcionPretratamiento}
+                            onChange={(e) => setNuevaTabla(prev => ({ ...prev, descripcionPretratamiento: e.target.value }))}
+                            placeholder="Especifique el pretratamiento"
+                            className="mt-2"
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <Label className="text-sm">Días de Pretratamiento *</Label>
+                        <Select
+                          value={nuevaTabla.diasPretratamiento === 0 ? '' : nuevaTabla.diasPretratamiento.toString()}
+                          onValueChange={(value) => setNuevaTabla(prev => ({ ...prev, diasPretratamiento: parseInt(value) }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar días" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 10 }, (_, i) => i + 1).map(day => (
+                              <SelectItem key={day} value={day.toString()}>{day} días</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Separador visual */}
+              <div className="border-t my-6"></div>
+              
+              {/* Sección de Fechas y Conteos */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  📅 Fechas y Conteos
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Fecha Inicio Germinación */}
+                  <div>
+                    <Label className="text-sm font-medium">📆 Fecha Inicio Germinación *</Label>
+                    <Input
+                      type="date"
+                      value={nuevaTabla.fechaInicioGerm}
+                      onChange={(e) => setNuevaTabla(prev => ({ 
+                        ...prev, 
+                        fechaInicioGerm: e.target.value 
+                      }))}
+                      className={erroresValidacionNuevaTabla.fechaInicioGerm ? "border-red-500 focus:border-red-500" : ""}
+                      lang="es-ES"
+                    />
+                    {erroresValidacionNuevaTabla.fechaInicioGerm && (
+                      <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.fechaInicioGerm}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Fecha en que se inicia el ensayo de germinación
+                      {nuevaTabla.fechaInicioGerm && (
+                        <span className="block text-blue-600 font-medium mt-0.5">
+                          ✓ {new Date(nuevaTabla.fechaInicioGerm + 'T00:00:00').toLocaleDateString('es-ES')}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Fecha Último Conteo */}
+                  <div>
+                    <Label className="text-sm font-medium">📆 Fecha Último Conteo *</Label>
+                    <Input
+                      type="date"
+                      value={nuevaTabla.fechaUltConteo}
+                      disabled
+                      className="bg-gray-50 cursor-not-allowed"
+                      lang="es-ES"
+                    />
+                    <p className="text-xs text-gray-500 mt-1 italic">
+                      Se actualiza automáticamente con el último conteo
+                      {nuevaTabla.fechaUltConteo && (
+                        <span className="block text-blue-600 font-medium mt-0.5">
+                          ✓ {new Date(nuevaTabla.fechaUltConteo + 'T00:00:00').toLocaleDateString('es-ES')}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Número de Días (calculado) */}
+                  <div>
+                    <Label className="text-sm font-medium">Número de Días</Label>
+                    <Input
+                      type="number"
+                      value={nuevaTabla.fechaInicioGerm && nuevaTabla.fechaUltConteo ? 
+                        Math.ceil((new Date(nuevaTabla.fechaUltConteo).getTime() - new Date(nuevaTabla.fechaInicioGerm).getTime()) / (1000 * 60 * 60 * 24)) : 0}
+                      disabled
+                      className="bg-gray-50 cursor-not-allowed text-center font-semibold"
+                    />
+                    <p className="text-xs text-gray-500 mt-1 italic">Calculado automáticamente</p>
+                  </div>
+
+                  {/* Número de Repeticiones */}
+                  <div>
+                    <Label className="text-sm font-medium">Número de Repeticiones *</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={nuevaTabla.numeroRepeticiones === 0 ? '' : nuevaTabla.numeroRepeticiones}
+                      onChange={(e) => setNuevaTabla(prev => ({ 
+                        ...prev, 
+                        numeroRepeticiones: parseInt(e.target.value) || 0 
+                      }))}
+                      placeholder="Por defecto: 8"
+                      className={`text-center ${erroresValidacionNuevaTabla.numeroRepeticiones ? "border-red-500 focus:border-red-500" : ""}`}
+                    />
+                    {erroresValidacionNuevaTabla.numeroRepeticiones && (
+                      <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.numeroRepeticiones}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Cuántas repeticiones se crearán (1-20)
+                    </p>
+                  </div>
+
+                  {/* Número de Conteos */}
+                  <div className="md:col-span-2">
+                    <Label className="text-sm font-medium">Número de Conteos *</Label>
+                    <Select
+                      value={nuevaTabla.numeroConteos === 0 ? '' : nuevaTabla.numeroConteos.toString()}
+                      onValueChange={(value) => {
+                        const numConteos = value === 'otro' ? 0 : parseInt(value)
+                        setNuevaTabla(prev => ({ 
+                          ...prev, 
+                          numeroConteos: numConteos,
+                          fechaConteos: Array(numConteos).fill('')
+                        }))
+                      }}
+                    >
+                      <SelectTrigger className={erroresValidacionNuevaTabla.numeroConteos ? "border-red-500" : ""}>
+                        <SelectValue placeholder="Seleccionar número de conteos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 9 }, (_, i) => i + 2).map(num => (
+                          <SelectItem key={num} value={num.toString()}>{num} conteos</SelectItem>
+                        ))}
+                        <SelectItem value="otro">Otro (especifique)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {nuevaTabla.numeroConteos === 0 && (
+                      <Input
+                        type="number"
+                        min="1"
+                        max="15"
+                        placeholder="Especifique el número de conteos (1-15)"
+                        onChange={(e) => {
+                          const numConteos = parseInt(e.target.value) || 0
+                          setNuevaTabla(prev => ({ 
+                            ...prev, 
+                            numeroConteos: numConteos,
+                            fechaConteos: Array(numConteos).fill('')
+                          }))
+                        }}
+                        className="mt-2"
+                      />
+                    )}
+                    {erroresValidacionNuevaTabla.numeroConteos && (
+                      <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.numeroConteos}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Cantidad de veces que se harán conteos (1-15)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Fechas de Conteos Individuales */}
+                {nuevaTabla.numeroConteos > 0 && (
+                  <div className="mt-4">
+                    <Label className="text-sm font-medium mb-2 block">Fechas de Conteos Individuales *</Label>
+                    <p className="text-xs text-gray-500 mb-3">
+                      Especifica la fecha de cada conteo. La fecha del último conteo se guardará como Fecha de Último Conteo.
+                      {(nuevaTabla.diasPrefrio > 0 || nuevaTabla.diasPretratamiento > 0) && nuevaTabla.fechaConteos[0] && (() => {
+                        const fechaMinimaConteo = calcularFechaMinimaConteo(nuevaTabla)
+                        if (fechaMinimaConteo) {
+                          const fechaMinima = new Date(fechaMinimaConteo + 'T00:00:00')
+                          const fechaPrimerConteo = new Date(nuevaTabla.fechaConteos[0] + 'T00:00:00')
+                          if (fechaPrimerConteo < fechaMinima) {
+                            return (
+                              <span className="text-orange-600 font-semibold block mt-1">
+                                ⚠️ El primer conteo debe ser al menos {(nuevaTabla.diasPrefrio || 0) + (nuevaTabla.diasPretratamiento || 0)} días después del inicio (prefrío + pretratamiento)
+                              </span>
+                            )
+                          }
+                        }
+                        return null
+                      })()}
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {Array.from({ length: nuevaTabla.numeroConteos }, (_, index) => {
+                        // Calcular fecha mínima: primer conteo usa calcularFechaMinimaConteo, los demás usan el conteo anterior
+                        let fechaMinimaConteo: string | undefined
+                        if (index === 0) {
+                          fechaMinimaConteo = calcularFechaMinimaConteo(nuevaTabla) || nuevaTabla.fechaInicioGerm
+                        } else if (nuevaTabla.fechaConteos[index - 1]) {
+                          fechaMinimaConteo = nuevaTabla.fechaConteos[index - 1]
+                        } else {
+                          fechaMinimaConteo = nuevaTabla.fechaInicioGerm
+                        }
+                        
+                        const esUltimoConteo = index === nuevaTabla.numeroConteos - 1
+                        
+                        // Validar si la fecha actual es menor que la mínima permitida
+                        const fechaActual = nuevaTabla.fechaConteos[index]
+                        const tieneFechaInvalida = fechaActual && fechaMinimaConteo && 
+                          new Date(fechaActual + 'T00:00:00') < new Date(fechaMinimaConteo + 'T00:00:00')
+                        
+                        return (
+                          <div key={index}>
+                            <Label className="text-xs font-medium">
+                              Conteo {index + 1} {esUltimoConteo ? '(Último)' : index === 0 ? '(Primero)' : ''}
+                            </Label>
+                            <Input
+                              type="date"
+                              min={fechaMinimaConteo || undefined}
+                              value={nuevaTabla.fechaConteos[index] || ''}
+                              onChange={(e) => {
+                                const newFechas = [...nuevaTabla.fechaConteos]
+                                newFechas[index] = e.target.value
+                                
+                                // Si es el último conteo, actualizar también fechaUltConteo
+                                if (esUltimoConteo) {
+                                  setNuevaTabla(prev => ({ 
+                                    ...prev, 
+                                    fechaConteos: newFechas,
+                                    fechaUltConteo: e.target.value
+                                  }))
+                                } else {
+                                  setNuevaTabla(prev => ({ ...prev, fechaConteos: newFechas }))
+                                }
+                              }}
+                              lang="es-ES"
+                              className={`${esUltimoConteo ? 'border-blue-300 bg-blue-50' : ''} ${tieneFechaInvalida ? 'border-red-500' : ''}`}
+                            />
+                            {index === 0 && fechaMinimaConteo && !tieneFechaInvalida && nuevaTabla.fechaConteos[index] && (
+                              <p className="text-xs text-green-600 mt-1">
+                                ✓ Cumple mínimo: {new Date(fechaMinimaConteo + 'T00:00:00').toLocaleDateString('es-ES')}
+                              </p>
+                            )}
+                            {index === 0 && fechaMinimaConteo && (!nuevaTabla.fechaConteos[index] || tieneFechaInvalida) && (
+                              <p className="text-xs text-orange-600 mt-1">
+                                Mínimo: {new Date(fechaMinimaConteo + 'T00:00:00').toLocaleDateString('es-ES')}
+                              </p>
+                            )}
+                            {index > 0 && fechaMinimaConteo && !tieneFechaInvalida && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Mínimo: {new Date(fechaMinimaConteo + 'T00:00:00').toLocaleDateString('es-ES')}
+                              </p>
+                            )}
+                            {tieneFechaInvalida && (
+                              <p className="text-xs text-red-500 mt-1">
+                                ⚠️ Debe ser igual o posterior a la fecha del Conteo {index}
+                              </p>
+                            )}
+                            {nuevaTabla.fechaConteos[index] && !tieneFechaInvalida && index !== 0 && (
+                              <p className="text-xs text-blue-600 mt-1">
+                                ✓ {new Date(nuevaTabla.fechaConteos[index] + 'T00:00:00').toLocaleDateString('es-ES')}
+                              </p>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                    {nuevaTabla.numeroConteos > 1 && (
+                      <p className="text-xs text-blue-600 mt-2">
+                        💡 Nota: La fecha del último conteo se guardará automáticamente como Fecha de Último Conteo
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Fecha Final - AL FINAL DEL FORMULARIO */}
+                <div className="mt-6 border-t pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium">🏁 Fecha Final *</Label>
+                      <Input
+                        type="date"
+                        value={nuevaTabla.fechaFinal}
+                        onChange={(e) => {
+                          setNuevaTabla(prev => ({ ...prev, fechaFinal: e.target.value }))
+                          validarCampoEnTiempoReal('fechaFinal', e.target.value, true)
+                        }}
+                        min={nuevaTabla.fechaUltConteo || undefined}
+                        className={erroresValidacionNuevaTabla.fechaFinal ? "border-red-500 focus:border-red-500" : ""}
+                        lang="es-ES"
+                      />
+                      {erroresValidacionNuevaTabla.fechaFinal && (
+                        <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.fechaFinal}</p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        Debe ser POSTERIOR a la fecha de último conteo
+                        {nuevaTabla.fechaFinal && (
+                          <span className="block text-blue-600 font-medium mt-0.5">
+                            ✓ {new Date(nuevaTabla.fechaFinal + 'T00:00:00').toLocaleDateString('es-ES')}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1152,38 +1801,43 @@ export function TablasGerminacionSection({
                       {editandoTablaGeneral === tabla.tablaGermID ? (
                         <div className="space-y-4">
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {/* Tratamiento - Select */}
                             <div>
-                              <Label className="text-sm font-medium">Fecha Final *</Label>
-                              <Input
-                                type="date"
-                                value={tablaEditada.fechaFinal}
-                                onChange={(e) => {
-                                  setTablaEditada(prev => ({ ...prev, fechaFinal: e.target.value }))
-                                  validarCampoEnTiempoReal('fechaFinal', e.target.value, false)
-                                }}
-                                min={germinacion?.fechaInicioGerm || undefined}
-                                max={germinacion?.fechaUltConteo || undefined}
-                                className={erroresValidacion.fechaFinal ? "border-red-500 focus:border-red-500" : ""}
-                              />
-                              {erroresValidacion.fechaFinal && (
-                                <p className="text-red-500 text-xs mt-1">{erroresValidacion.fechaFinal}</p>
-                              )}
-                              <p className="text-xs text-gray-500 mt-1">
-                                Entre {germinacion?.fechaInicioGerm} y {germinacion?.fechaUltConteo}
-                              </p>
-                            </div>
-
-                            <div>
-                              <Label className="text-sm font-medium">Tratamiento</Label>
-                              <Input
+                              <Label className="text-sm font-medium">Tratamiento *</Label>
+                              <Select
                                 value={tablaEditada.tratamiento}
-                                onChange={(e) => {
-                                  setTablaEditada(prev => ({ ...prev, tratamiento: e.target.value }))
-                                  validarCampoEnTiempoReal('tratamiento', e.target.value, false)
+                                onValueChange={(value) => {
+                                  if (value === 'Otro') {
+                                    setMostrarOtroTratamiento(true)
+                                    setTablaEditada(prev => ({ ...prev, tratamiento: '' }))
+                                  } else {
+                                    setMostrarOtroTratamiento(false)
+                                    setTablaEditada(prev => ({ ...prev, tratamiento: value }))
+                                    validarCampoEnTiempoReal('tratamiento', value, false)
+                                  }
                                 }}
-                                placeholder="Control, Tratamiento A, etc."
-                                className={erroresValidacion.tratamiento ? "border-red-500 focus:border-red-500" : ""}
-                              />
+                              >
+                                <SelectTrigger className={erroresValidacion.tratamiento ? "border-red-500" : ""}>
+                                  <SelectValue placeholder="Seleccionar tratamiento" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Sin curar">Sin curar</SelectItem>
+                                  <SelectItem value="Curada en Planta">Curada en Planta</SelectItem>
+                                  <SelectItem value="Curada en Laboratorio">Curada en Laboratorio</SelectItem>
+                                  <SelectItem value="Otro">Otro (especifique)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {mostrarOtroTratamiento && (
+                                <Input
+                                  value={tablaEditada.tratamiento}
+                                  onChange={(e) => {
+                                    setTablaEditada(prev => ({ ...prev, tratamiento: e.target.value }))
+                                    validarCampoEnTiempoReal('tratamiento', e.target.value, false)
+                                  }}
+                                  placeholder="Especifique el tratamiento"
+                                  className="mt-2"
+                                />
+                              )}
                               {erroresValidacion.tratamiento && (
                                 <p className="text-red-500 text-xs mt-1">{erroresValidacion.tratamiento}</p>
                               )}
@@ -1198,20 +1852,49 @@ export function TablasGerminacionSection({
                               />
                             </div>
 
+                            {/* Número de Semillas por Repetición - Select */}
                             <div>
-                              <Label className="text-sm font-medium">Número de Semillas por Repetición</Label>
-                              <Input
-                                type="number"
-                                min="1"
-                                max="500"
-                                value={tablaEditada.numSemillasPRep === 0 ? '' : tablaEditada.numSemillasPRep}
-                                onChange={(e) => manejarCambioNumerico(e.target.value, tablaEditada.numSemillasPRep, (valor) => 
-                                  setTablaEditada(prev => ({ ...prev, numSemillasPRep: valor }))
-                                )}
-                                placeholder="Ej: 100"
+                              <Label className="text-sm font-medium">Número de Semillas por Repetición *</Label>
+                              <Select
+                                value={mostrarOtroNumSemillasEdit ? 'otro' : (tablaEditada.numSemillasPRep === 0 ? '' : tablaEditada.numSemillasPRep.toString())}
+                                onValueChange={(value) => {
+                                  if (value === 'otro') {
+                                    setMostrarOtroNumSemillasEdit(true)
+                                    setTablaEditada(prev => ({ ...prev, numSemillasPRep: 0 }))
+                                  } else {
+                                    setMostrarOtroNumSemillasEdit(false)
+                                    const numValue = parseInt(value)
+                                    setTablaEditada(prev => ({ ...prev, numSemillasPRep: numValue }))
+                                    validarCampoEnTiempoReal('numSemillasPRep', numValue, false)
+                                  }
+                                }}
                                 disabled={tablaConRepeticionesGuardadas(editandoTablaGeneral!)}
-                                className={tablaConRepeticionesGuardadas(editandoTablaGeneral!) ? "bg-gray-100 text-gray-500" : ""}
-                              />
+                              >
+                                <SelectTrigger className={tablaConRepeticionesGuardadas(editandoTablaGeneral!) ? "bg-gray-100 text-gray-500" : ""}>
+                                  <SelectValue placeholder="Seleccionar cantidad" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="25">25</SelectItem>
+                                  <SelectItem value="50">50</SelectItem>
+                                  <SelectItem value="100">100</SelectItem>
+                                  <SelectItem value="otro">Otro (especifique)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {mostrarOtroNumSemillasEdit && !tablaConRepeticionesGuardadas(editandoTablaGeneral!) && (
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  max="500"
+                                  value={tablaEditada.numSemillasPRep === 0 ? '' : tablaEditada.numSemillasPRep}
+                                  onChange={(e) => {
+                                    const valor = parseInt(e.target.value) || 0
+                                    setTablaEditada(prev => ({ ...prev, numSemillasPRep: valor }))
+                                    validarCampoEnTiempoReal('numSemillasPRep', valor, false)
+                                  }}
+                                  placeholder="Especifique la cantidad"
+                                  className="mt-2"
+                                />
+                              )}
                               {tablaConRepeticionesGuardadas(editandoTablaGeneral!) && (
                                 <p className="text-xs text-orange-600 mt-1">
                                   No se puede modificar el número de semillas porque ya hay repeticiones guardadas
@@ -1219,59 +1902,506 @@ export function TablasGerminacionSection({
                               )}
                             </div>
 
+                            {/* Método - Select */}
                             <div>
-                  <Label className="text-sm font-medium">Método</Label>
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                    value={tablaEditada.metodo}
-                    onChange={(e) => setTablaEditada(prev => ({ ...prev, metodo: e.target.value }))}
-                  >
-                    <option value="">Seleccionar método</option>
-                    <option value="Papel">Papel</option>
-                    <option value="Arena">Arena</option>
-                    <option value="Suelo">Suelo</option>
-                    <option value="Agar">Agar</option>
-                  </select>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Temperatura (°C)</Label>
-                  <Input
-                    type="number"
-                    min="-10"
-                    max="50"
-                    value={tablaEditada.temperatura === 0 ? '' : tablaEditada.temperatura}
-                    onChange={(e) => manejarCambioNumerico(e.target.value, tablaEditada.temperatura, (valor) => 
-                      setTablaEditada(prev => ({ ...prev, temperatura: valor })), true
-                    )}
-                    placeholder="Ej: 20"
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Prefrío</Label>
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                    value={tablaEditada.prefrio}
-                    onChange={(e) => setTablaEditada(prev => ({ ...prev, prefrio: e.target.value }))}
-                  >
-                    <option value="">Seleccionar prefrío</option>
-                    <option value="No">No</option>
-                    <option value="Sí - 5°C por 7 días">Sí - 5°C por 7 días</option>
-                    <option value="Sí - 5°C por 14 días">Sí - 5°C por 14 días</option>
-                    <option value="Personalizado">Personalizado</option>
-                  </select>
-                </div>                            <div className="md:col-span-2">
-                              <Label className="text-sm font-medium">Pretratamiento</Label>
-                              <Input
-                                value={tablaEditada.pretratamiento}
-                                onChange={(e) => setTablaEditada(prev => ({ ...prev, pretratamiento: e.target.value }))}
-                                placeholder="Ninguno, Escarificación, etc."
-                              />
+                              <Label className="text-sm font-medium">Método *</Label>
+                              <Select
+                                value={tablaEditada.metodo}
+                                onValueChange={(value) => {
+                                  if (value === 'Otro') {
+                                    setMostrarOtroMetodo(true)
+                                    setTablaEditada(prev => ({ ...prev, metodo: '' }))
+                                  } else {
+                                    setMostrarOtroMetodo(false)
+                                    setTablaEditada(prev => ({ ...prev, metodo: value }))
+                                    validarCampoEnTiempoReal('metodo', value, false)
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className={erroresValidacion.metodo ? "border-red-500" : ""}>
+                                  <SelectValue placeholder="Seleccionar método" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="SP">SP</SelectItem>
+                                  <SelectItem value="EP">EP</SelectItem>
+                                  <SelectItem value="A">A</SelectItem>
+                                  <SelectItem value="RPT">RPT</SelectItem>
+                                  <SelectItem value="Tierra">Tierra</SelectItem>
+                                  <SelectItem value="Otro">Otro (especifique)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {mostrarOtroMetodo && (
+                                <Input
+                                  value={tablaEditada.metodo}
+                                  onChange={(e) => {
+                                    setTablaEditada(prev => ({ ...prev, metodo: e.target.value }))
+                                    validarCampoEnTiempoReal('metodo', e.target.value, false)
+                                  }}
+                                  placeholder="Especifique el método"
+                                  className="mt-2"
+                                />
+                              )}
+                              {erroresValidacion.metodo && (
+                                <p className="text-red-500 text-xs mt-1">{erroresValidacion.metodo}</p>
+                              )}
                             </div>
+
+                            {/* Temperatura - Select */}
+                            <div>
+                              <Label className="text-sm font-medium">Temperatura *</Label>
+                              <Select
+                                value={mostrarOtraTemperatura ? 'otro' : (tablaEditada.temperatura === 0 ? '' : tablaEditada.temperatura.toString())}
+                                onValueChange={(value) => {
+                                  if (value === 'otro') {
+                                    setMostrarOtraTemperatura(true)
+                                    setTablaEditada(prev => ({ ...prev, temperatura: 0 }))
+                                  } else {
+                                    setMostrarOtraTemperatura(false)
+                                    // Guardar el texto completo como está (el backend lo procesará)
+                                    setTablaEditada(prev => ({ ...prev, temperatura: value as any }))
+                                    validarCampoEnTiempoReal('temperatura', value, false)
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className={erroresValidacion.temperatura ? "border-red-500" : ""}>
+                                  <SelectValue placeholder="Seleccionar temperatura" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="15">15°C</SelectItem>
+                                  <SelectItem value="20">20°C</SelectItem>
+                                  <SelectItem value="25">25°C</SelectItem>
+                                  <SelectItem value="20-30">20↔30°C</SelectItem>
+                                  <SelectItem value="15-35">15↔35°C</SelectItem>
+                                  <SelectItem value="otro">Otro (especifique)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {mostrarOtraTemperatura && (
+                                <Input
+                                  type="number"
+                                  min="-10"
+                                  max="50"
+                                  value=""
+                                  onChange={(e) => {
+                                    const valor = parseFloat(e.target.value) || 0
+                                    setTablaEditada(prev => ({ ...prev, temperatura: valor }))
+                                    validarCampoEnTiempoReal('temperatura', valor, false)
+                                  }}
+                                  placeholder="Especifique la temperatura (°C)"
+                                  className="mt-2"
+                                />
+                              )}
+                              {erroresValidacion.temperatura && (
+                                <p className="text-red-500 text-xs mt-1">{erroresValidacion.temperatura}</p>
+                              )}
+                            </div>
+
+                {/* Prefrío */}
+                <div className="md:col-span-2">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <input
+                      type="checkbox"
+                      id="tienePrefrio-edit"
+                      checked={tablaEditada.tienePrefrio}
+                      onChange={(e) => setTablaEditada(prev => ({
+                        ...prev,
+                        tienePrefrio: e.target.checked,
+                        descripcionPrefrio: e.target.checked ? prev.descripcionPrefrio : '',
+                        diasPrefrio: e.target.checked ? prev.diasPrefrio : 0
+                      }))}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="tienePrefrio-edit" className="text-sm font-medium cursor-pointer">
+                      ¿Tiene Prefrío?
+                    </Label>
+                  </div>
+                  {tablaEditada.tienePrefrio && (
+                    <div className="space-y-2 mt-2 pl-6">
+                      <div>
+                        <Label className="text-sm">Descripción de Prefrío</Label>
+                        <Input
+                          value={tablaEditada.descripcionPrefrio}
+                          onChange={(e) => setTablaEditada(prev => ({ ...prev, descripcionPrefrio: e.target.value }))}
+                          placeholder="Ej: 5°C por 7 días"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm">Días de Prefrío *</Label>
+                        <Select
+                          value={tablaEditada.diasPrefrio === 0 ? '' : tablaEditada.diasPrefrio.toString()}
+                          onValueChange={(value) => setTablaEditada(prev => ({ ...prev, diasPrefrio: parseInt(value) }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar días" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 15 }, (_, i) => i + 1).map(day => (
+                              <SelectItem key={day} value={day.toString()}>{day} días</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Pretratamiento */}
+                <div className="md:col-span-2">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <input
+                      type="checkbox"
+                      id="tienePretratamiento-edit"
+                      checked={tablaEditada.tienePretratamiento}
+                      onChange={(e) => setTablaEditada(prev => ({
+                        ...prev,
+                        tienePretratamiento: e.target.checked,
+                        descripcionPretratamiento: e.target.checked ? prev.descripcionPretratamiento : '',
+                        diasPretratamiento: e.target.checked ? prev.diasPretratamiento : 0
+                      }))}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="tienePretratamiento-edit" className="text-sm font-medium cursor-pointer">
+                      ¿Tiene Pretratamiento?
+                    </Label>
+                  </div>
+                  {tablaEditada.tienePretratamiento && (
+                    <div className="space-y-2 mt-2 pl-6">
+                      <div>
+                        <Label className="text-sm">Tipo de Pretratamiento *</Label>
+                        <Select
+                          value={tablaEditada.descripcionPretratamiento}
+                          onValueChange={(value) => {
+                            if (value === 'Otro') {
+                              setMostrarOtroPretratamiento(true)
+                              setTablaEditada(prev => ({ ...prev, descripcionPretratamiento: '' }))
+                            } else {
+                              setMostrarOtroPretratamiento(false)
+                              setTablaEditada(prev => ({ ...prev, descripcionPretratamiento: value }))
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar pretratamiento" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="KNO3">KNO3</SelectItem>
+                            <SelectItem value="Pre-lavado">Pre-lavado</SelectItem>
+                            <SelectItem value="Pre-secado">Pre-secado</SelectItem>
+                            <SelectItem value="GA3">GA3</SelectItem>
+                            <SelectItem value="Otro">Otro (especifique)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {mostrarOtroPretratamiento && (
+                          <Input
+                            value={tablaEditada.descripcionPretratamiento}
+                            onChange={(e) => setTablaEditada(prev => ({ ...prev, descripcionPretratamiento: e.target.value }))}
+                            placeholder="Especifique el pretratamiento"
+                            className="mt-2"
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <Label className="text-sm">Días de Pretratamiento *</Label>
+                        <Select
+                          value={tablaEditada.diasPretratamiento === 0 ? '' : tablaEditada.diasPretratamiento.toString()}
+                          onValueChange={(value) => setTablaEditada(prev => ({ ...prev, diasPretratamiento: parseInt(value) }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar días" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 10 }, (_, i) => i + 1).map(day => (
+                              <SelectItem key={day} value={day.toString()}>{day} días</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Separador visual */}
+              <div className="border-t my-6"></div>
+              
+              {/* Sección de Fechas y Conteos para Edición */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-base flex items-center gap-2">
+                  📅 Fechas y Conteos
+                </h4>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Fecha Inicio Germinación */}
+                  <div>
+                    <Label className="text-sm font-medium">📆 Fecha Inicio Germinación *</Label>
+                    <Input
+                      type="date"
+                      value={tablaEditada.fechaInicioGerm}
+                      onChange={(e) => {
+                        setTablaEditada(prev => ({ ...prev, fechaInicioGerm: e.target.value }))
+                        validarCampoEnTiempoReal('fechaInicioGerm', e.target.value, false)
+                      }}
+                      className={erroresValidacion.fechaInicioGerm ? "border-red-500 focus:border-red-500" : ""}
+                      lang="es-ES"
+                    />
+                    {erroresValidacion.fechaInicioGerm && (
+                      <p className="text-red-500 text-xs mt-1">{erroresValidacion.fechaInicioGerm}</p>
+                    )}
+                    {tablaEditada.fechaInicioGerm && (
+                      <p className="text-xs text-blue-600 font-medium mt-1">
+                        ✓ {new Date(tablaEditada.fechaInicioGerm + 'T00:00:00').toLocaleDateString('es-ES')}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Fecha Último Conteo */}
+                  <div>
+                    <Label className="text-sm font-medium">📆 Fecha Último Conteo *</Label>
+                    <Input
+                      type="date"
+                      value={tablaEditada.fechaUltConteo}
+                      disabled
+                      className="bg-gray-50 cursor-not-allowed"
+                      lang="es-ES"
+                    />
+                    <p className="text-xs text-gray-500 mt-1 italic">
+                      Se actualiza automáticamente con el último conteo
+                      {tablaEditada.fechaUltConteo && (
+                        <span className="block text-blue-600 font-medium mt-0.5">
+                          ✓ {new Date(tablaEditada.fechaUltConteo + 'T00:00:00').toLocaleDateString('es-ES')}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Número de Días */}
+                  <div>
+                    <Label className="text-sm font-medium">Número de Días</Label>
+                    <Input
+                      type="number"
+                      value={tablaEditada.fechaInicioGerm && tablaEditada.fechaUltConteo ? 
+                        Math.ceil((new Date(tablaEditada.fechaUltConteo).getTime() - new Date(tablaEditada.fechaInicioGerm).getTime()) / (1000 * 60 * 60 * 24)) : 0}
+                      disabled
+                      className="bg-gray-50 cursor-not-allowed text-center font-semibold"
+                    />
+                    <p className="text-xs text-gray-500 mt-1 italic">Calculado automáticamente</p>
+                  </div>
+
+                  {/* Número de Repeticiones */}
+                  <div>
+                    <Label className="text-sm font-medium">Número de Repeticiones *</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={tablaEditada.numeroRepeticiones === 0 ? '' : tablaEditada.numeroRepeticiones}
+                      onChange={(e) => {
+                        setTablaEditada(prev => ({ ...prev, numeroRepeticiones: parseInt(e.target.value) || 0 }))
+                        validarCampoEnTiempoReal('numeroRepeticiones', parseInt(e.target.value) || 0, false)
+                      }}
+                      className={`text-center ${erroresValidacion.numeroRepeticiones ? "border-red-500 focus:border-red-500" : ""}`}
+                    />
+                    {erroresValidacion.numeroRepeticiones && (
+                      <p className="text-red-500 text-xs mt-1">{erroresValidacion.numeroRepeticiones}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Cuántas repeticiones (1-20)
+                    </p>
+                  </div>
+
+                  {/* Número de Conteos */}
+                  <div className="sm:col-span-2">
+                    <Label className="text-sm font-medium">Número de Conteos *</Label>
+                    <Select
+                      value={tablaEditada.numeroConteos === 0 ? '' : tablaEditada.numeroConteos.toString()}
+                      onValueChange={(value) => {
+                        const numConteos = value === 'otro' ? 0 : parseInt(value)
+                        setTablaEditada(prev => ({ 
+                          ...prev, 
+                          numeroConteos: numConteos,
+                          fechaConteos: Array(numConteos).fill('').map((_, i) => 
+                            prev.fechaConteos && prev.fechaConteos[i] ? prev.fechaConteos[i] : ''
+                          )
+                        }))
+                        validarCampoEnTiempoReal('numeroConteos', numConteos, false)
+                      }}
+                    >
+                      <SelectTrigger className={erroresValidacion.numeroConteos ? "border-red-500" : ""}>
+                        <SelectValue placeholder="Seleccionar número de conteos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 9 }, (_, i) => i + 2).map(num => (
+                          <SelectItem key={num} value={num.toString()}>{num} conteos</SelectItem>
+                        ))}
+                        <SelectItem value="otro">Otro (especifique)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {tablaEditada.numeroConteos === 0 && (
+                      <Input
+                        type="number"
+                        min="1"
+                        max="15"
+                        placeholder="Especifique el número de conteos (1-15)"
+                        onChange={(e) => {
+                          const numConteos = parseInt(e.target.value) || 0
+                          setTablaEditada(prev => ({ 
+                            ...prev, 
+                            numeroConteos: numConteos,
+                            fechaConteos: Array(numConteos).fill('').map((_, i) => 
+                              prev.fechaConteos && prev.fechaConteos[i] ? prev.fechaConteos[i] : ''
+                            )
+                          }))
+                          validarCampoEnTiempoReal('numeroConteos', numConteos, false)
+                        }}
+                        className="mt-2"
+                      />
+                    )}
+                    {erroresValidacion.numeroConteos && (
+                      <p className="text-red-500 text-xs mt-1">{erroresValidacion.numeroConteos}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Cantidad de veces que se harán conteos (1-15)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Fechas de Conteos Individuales */}
+                {tablaEditada.numeroConteos > 0 && (
+                  <div className="mt-4">
+                    <Label className="text-sm font-medium mb-2 block">Fechas de Conteos Individuales *</Label>
+                    <p className="text-xs text-gray-500 mb-3">
+                      Especifica la fecha de cada conteo. La fecha del último conteo se guardará como Fecha de Último Conteo.
+                      {(tablaEditada.diasPrefrio > 0 || tablaEditada.diasPretratamiento > 0) && tablaEditada.fechaConteos[0] && (() => {
+                        const fechaMinimaConteo = calcularFechaMinimaConteo(tablaEditada)
+                        if (fechaMinimaConteo) {
+                          const fechaMinima = new Date(fechaMinimaConteo + 'T00:00:00')
+                          const fechaPrimerConteo = new Date(tablaEditada.fechaConteos[0] + 'T00:00:00')
+                          if (fechaPrimerConteo < fechaMinima) {
+                            return (
+                              <span className="text-orange-600 font-semibold block mt-1">
+                                ⚠️ El primer conteo debe ser al menos {(tablaEditada.diasPrefrio || 0) + (tablaEditada.diasPretratamiento || 0)} días después del inicio (prefrío + pretratamiento)
+                              </span>
+                            )
+                          }
+                        }
+                        return null
+                      })()}
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {Array.from({ length: tablaEditada.numeroConteos }, (_, index) => {
+                        // Calcular fecha mínima: primer conteo usa calcularFechaMinimaConteo, los demás usan el conteo anterior
+                        let fechaMinimaConteo: string | undefined
+                        if (index === 0) {
+                          fechaMinimaConteo = calcularFechaMinimaConteo(tablaEditada) || tablaEditada.fechaInicioGerm
+                        } else if (tablaEditada.fechaConteos[index - 1]) {
+                          fechaMinimaConteo = tablaEditada.fechaConteos[index - 1]
+                        } else {
+                          fechaMinimaConteo = tablaEditada.fechaInicioGerm
+                        }
+                        
+                        const esUltimoConteo = index === tablaEditada.numeroConteos - 1
+                        
+                        // Validar si la fecha actual es menor que la mínima permitida
+                        const fechaActual = tablaEditada.fechaConteos[index]
+                        const tieneFechaInvalida = fechaActual && fechaMinimaConteo && 
+                          new Date(fechaActual + 'T00:00:00') < new Date(fechaMinimaConteo + 'T00:00:00')
+                        
+                        return (
+                          <div key={index}>
+                            <Label className="text-xs font-medium">
+                              Conteo {index + 1} {esUltimoConteo ? '(Último)' : index === 0 ? '(Primero)' : ''}
+                            </Label>
+                            <Input
+                              type="date"
+                              min={fechaMinimaConteo || undefined}
+                              value={tablaEditada.fechaConteos[index] || ''}
+                              onChange={(e) => {
+                                const newFechas = [...(tablaEditada.fechaConteos || [])]
+                                newFechas[index] = e.target.value
+                                
+                                // Si es el último conteo, actualizar también fechaUltConteo
+                                if (esUltimoConteo) {
+                                  setTablaEditada(prev => ({ 
+                                    ...prev, 
+                                    fechaConteos: newFechas,
+                                    fechaUltConteo: e.target.value
+                                  }))
+                                } else {
+                                  setTablaEditada(prev => ({ ...prev, fechaConteos: newFechas }))
+                                }
+                              }}
+                              lang="es-ES"
+                              className={`${esUltimoConteo ? 'border-blue-300 bg-blue-50' : ''} ${tieneFechaInvalida ? 'border-red-500' : ''}`}
+                            />
+                            {index === 0 && fechaMinimaConteo && !tieneFechaInvalida && tablaEditada.fechaConteos[index] && (
+                              <p className="text-xs text-green-600 mt-1">
+                                ✓ Cumple mínimo: {new Date(fechaMinimaConteo + 'T00:00:00').toLocaleDateString('es-ES')}
+                              </p>
+                            )}
+                            {index === 0 && fechaMinimaConteo && (!tablaEditada.fechaConteos[index] || tieneFechaInvalida) && (
+                              <p className="text-xs text-orange-600 mt-1">
+                                Mínimo: {new Date(fechaMinimaConteo + 'T00:00:00').toLocaleDateString('es-ES')}
+                              </p>
+                            )}
+                            {index > 0 && fechaMinimaConteo && !tieneFechaInvalida && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Mínimo: {new Date(fechaMinimaConteo + 'T00:00:00').toLocaleDateString('es-ES')}
+                              </p>
+                            )}
+                            {tieneFechaInvalida && (
+                              <p className="text-xs text-red-500 mt-1">
+                                ⚠️ Debe ser igual o posterior a conteo {index}
+                              </p>
+                            )}
+                            {tablaEditada.fechaConteos[index] && !tieneFechaInvalida && index !== 0 && (
+                              <p className="text-xs text-blue-600 mt-1">
+                                ✓ {new Date(tablaEditada.fechaConteos[index] + 'T00:00:00').toLocaleDateString('es-ES')}
+                              </p>
+                            )}
                           </div>
-                          
-                          <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
+                        )
+                      })}
+                    </div>
+                    {tablaEditada.numeroConteos > 1 && (
+                      <p className="text-xs text-blue-600 mt-2">
+                        💡 La fecha del último conteo se guardará automáticamente como Fecha de Último Conteo
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Fecha Final - AL FINAL DEL FORMULARIO DE EDICIÓN */}
+                <div className="mt-6 border-t pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium">🏁 Fecha Final *</Label>
+                      <Input
+                        type="date"
+                        value={tablaEditada.fechaFinal}
+                        onChange={(e) => {
+                          setTablaEditada(prev => ({ ...prev, fechaFinal: e.target.value }))
+                          validarCampoEnTiempoReal('fechaFinal', e.target.value, false)
+                        }}
+                        min={tablaEditada.fechaUltConteo || undefined}
+                        className={erroresValidacion.fechaFinal ? "border-red-500 focus:border-red-500" : ""}
+                        lang="es-ES"
+                      />
+                      {erroresValidacion.fechaFinal && (
+                        <p className="text-red-500 text-xs mt-1">{erroresValidacion.fechaFinal}</p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        Debe ser POSTERIOR a la fecha de último conteo
+                        {tablaEditada.fechaFinal && (
+                          <span className="block text-blue-600 font-medium mt-0.5">
+                            ✓ {new Date(tablaEditada.fechaFinal + 'T00:00:00').toLocaleDateString('es-ES')}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
                             <Button
                               variant="outline"
                               onClick={handleCancelarEdicionTabla}
@@ -1316,11 +2446,31 @@ export function TablasGerminacionSection({
                           </div>
                           <div>
                             <span className="font-medium text-gray-600">Prefrío:</span>
-                            <p className="text-gray-800">{tabla.prefrio || 'No especificado'}</p>
+                            <p className="text-gray-800">
+                              {tabla.tienePrefrio ? (
+                                <>
+                                  <span className="text-green-600 font-semibold">Sí</span>
+                                  {tabla.descripcionPrefrio && ` - ${tabla.descripcionPrefrio}`}
+                                  {tabla.diasPrefrio > 0 && ` (${tabla.diasPrefrio} días)`}
+                                </>
+                              ) : (
+                                <span className="text-gray-500">No</span>
+                              )}
+                            </p>
                           </div>
                           <div>
                             <span className="font-medium text-gray-600">Pretratamiento:</span>
-                            <p className="text-gray-800">{tabla.pretratamiento || 'No especificado'}</p>
+                            <p className="text-gray-800">
+                              {tabla.tienePretratamiento ? (
+                                <>
+                                  <span className="text-green-600 font-semibold">Sí</span>
+                                  {tabla.descripcionPretratamiento && ` - ${tabla.descripcionPretratamiento}`}
+                                  {tabla.diasPretratamiento > 0 && ` (${tabla.diasPretratamiento} días)`}
+                                </>
+                              ) : (
+                                <span className="text-gray-500">No</span>
+                              )}
+                            </p>
                           </div>
                           {tabla.finalizada && tabla.fechaFinal && (
                             <div>
@@ -1338,10 +2488,10 @@ export function TablasGerminacionSection({
                   <RepeticionesManager
                     tabla={tabla}
                     germinacionId={germinacionId}
-                    numeroRepeticiones={germinacion?.numeroRepeticiones || 4}
-                    numeroConteos={germinacion?.numeroConteos || 3}
+                    numeroRepeticiones={tabla.numeroRepeticiones || 8}
+                    numeroConteos={tabla.numeroConteos || 3}
                     isFinalized={isFinalized}
-                    fechasConteos={germinacion?.fechaConteos}
+                    fechasConteos={tabla.fechaConteos}
                     onRepeticionesUpdated={(repeticiones) => handleRepeticionesUpdated(tabla.tablaGermID, repeticiones)}
                   />
 

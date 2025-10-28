@@ -128,7 +128,7 @@ export function RepeticionesManager({
           
           return (
             <RepeticionRow
-              key={numeroRep}
+              key={repeticionExistente ? `rep-${repeticionExistente.repGermID}` : `nuevo-rep-${numeroRep}`}
               repeticion={repeticionExistente}
               numeroRepeticion={numeroRep}
               numeroConteos={numeroConteos}

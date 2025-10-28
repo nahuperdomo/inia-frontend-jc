@@ -85,8 +85,18 @@ export interface TablaGermDTO {
   numSemillasPRep: number;
   metodo: string;
   temperatura: number;
-  prefrio: string;
-  pretratamiento: string;
+  tienePrefrio: boolean;
+  descripcionPrefrio?: string;
+  tienePretratamiento: boolean;
+  descripcionPretratamiento?: string;
+  diasPrefrio: number;
+  diasPretratamiento: number;
+  fechaInicioGerm: string;
+  fechaConteos: string[];
+  fechaUltConteo: string;
+  numDias: number;
+  numeroRepeticiones: number;
+  numeroConteos: number;
   total: number;
   promedioSinRedondeo: number[];
   promediosSinRedPorConteo?: number[]; // Nueva lista con promedios por conteo
@@ -109,8 +119,18 @@ export interface TablaGermRequestDTO {
   numSemillasPRep: number;
   metodo: string;
   temperatura: number;
-  prefrio: string;
-  pretratamiento: string;
+  tienePrefrio: boolean;
+  descripcionPrefrio?: string;
+  tienePretratamiento: boolean;
+  descripcionPretratamiento?: string;
+  diasPrefrio: number;
+  diasPretratamiento: number;
+  fechaInicioGerm: string;
+  fechaConteos: string[];
+  fechaUltConteo: string;
+  numDias: number;
+  numeroRepeticiones: number;
+  numeroConteos: number;
 }
 
 export interface PorcentajesRedondeoRequestDTO {
