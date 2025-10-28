@@ -107,6 +107,7 @@ export type AnalysisFormData = {
   cuscutaFecha: string
   cuscutaCumple: string
   institutoCuscuta: string
+  cuscutaRegistros: any[] // Array de registros de cuscuta
 
   // Cumple estándar
   cumpleEstandar: string
@@ -276,6 +277,7 @@ export default function RegistroAnalisisPage() {
     cuscutaFecha: "",
     cuscutaCumple: "",
     institutoCuscuta: "",
+    cuscutaRegistros: [],
     // Cumple estándar
     cumpleEstandar: "",
     cumpleFecha: "",
@@ -434,13 +436,8 @@ export default function RegistroAnalisisPage() {
         fechaINASE: formData.inaseFecha || null,
         gramosAnalizadosINASE: toNum(formData.inaseGramos),
         tipoINASE: mapTipoDosn(formData, "inase"),
-        // Cuscuta - usar fecha actual si hay datos de cuscuta y no se especificó fecha
-        cuscuta_g: toNum(formData.cuscutaGramos),
-        cuscutaNum: toNum(formData.cuscutaNumero),
-        institutoCuscuta: formData.institutoCuscuta || undefined,
-        fechaCuscuta: ((toNum(formData.cuscutaGramos) || 0) > 0 || (toNum(formData.cuscutaNumero) || 0) > 0)
-          ? new Date().toISOString().split('T')[0] // Fecha actual en formato YYYY-MM-DD
-          : null,
+        // Cuscuta - enviar array de registros
+        cuscutaRegistros: formData.cuscutaRegistros || [],
         // Listados
         listados,
       };

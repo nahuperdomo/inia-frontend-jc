@@ -39,20 +39,24 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
     persistence.setArray(registros)
   }, [registros])
 
-  // Notificar cambios al padre (consolidar datos)
+  // Notificar cambios al padre (enviar array completo)
   useEffect(() => {
-    // Por ahora, solo enviamos el primer registro con datos válidos
-    const registroValido = registros.find(r => r.contiene === "si" && r.instituto && (r.gramos || r.numero))
+    // Filtrar solo registros válidos (con "si contiene" y datos completos)
+    const registrosValidos = registros
+      .filter(r => r.contiene === "si" && r.instituto && (r.gramos || r.numero))
+      .map(r => ({
+        instituto: r.instituto,
+        cuscuta_g: r.gramos ? parseFloat(r.gramos) : undefined,
+        cuscutaNum: r.numero ? parseInt(r.numero) : undefined,
+        fechaCuscuta: new Date().toISOString().split('T')[0] // Fecha actual por defecto
+      }))
     
-    if (registroValido) {
-      handleInputChange("cuscutaGramos", registroValido.gramos)
-      handleInputChange("cuscutaNumero", registroValido.numero)
-      handleInputChange("cuscutaCumple", "si")
-      handleInputChange("institutoCuscuta", registroValido.instituto)
-    } else {
-      const tieneNoContiene = registros.some(r => r.contiene === "no")
-      handleInputChange("cuscutaCumple", tieneNoContiene ? "no" : "")
-    }
+    handleInputChange("cuscutaRegistros", registrosValidos)
+    
+    // Mantener cuscutaCumple para validación
+    const tieneNoContiene = registros.some(r => r.contiene === "no")
+    const tieneSiContiene = registros.some(r => r.contiene === "si")
+    handleInputChange("cuscutaCumple", tieneNoContiene ? "no" : (tieneSiContiene ? "si" : ""))
   }, [registros])
 
   const addRegistro = () => {
