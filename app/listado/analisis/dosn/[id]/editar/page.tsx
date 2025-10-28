@@ -13,35 +13,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ArrowLeft, Save, Loader2, AlertTriangle, FileText, Building2, Plus, Trash2, Leaf } from "lucide-react"
 import Link from "next/link"
-import { 
-  obtenerDosnPorId, 
-  actualizarDosn, 
+import {
+  obtenerDosnPorId,
+  actualizarDosn,
   obtenerTodasDosnActivas,
   finalizarAnalisis,
   aprobarAnalisis,
   marcarParaRepetir
 } from "@/app/services/dosn-service"
-import { obtenerTodosActivosMalezasCultivos } from "@/app/services/malezas-service"
-import type { DosnDTO, DosnRequestDTO, MalezasYCultivosCatalogoDTO, TipoListado, TipoMYCCatalogo } from "@/app/models"
+import * as malezasService from "@/app/services/malezas-service"
+import * as especiesService from "@/app/services/especie-service"
+import type { DosnDTO, DosnRequestDTO, MalezasCatalogoDTO, TipoListado, Instituto, EspecieDTO } from "@/app/models"
 import { toast } from "sonner"
 import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
-
-// Función helper para mapear tipos de listado a tipos de catálogo
-const getCompatibleCatalogTypes = (listadoTipo: TipoListado): TipoMYCCatalogo[] => {
-  switch (listadoTipo) {
-    case "MAL_TOLERANCIA":
-    case "MAL_TOLERANCIA_CERO":
-    case "MAL_COMUNES":
-      return ["MALEZA"]
-    case "BRASSICA":
-      return [] // Las brassicas no tienen catálogo
-    case "OTROS":
-      return ["CULTIVO"]
-    default:
-      return ["MALEZA", "CULTIVO"] // Solo malezas y cultivos
-  }
-}
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -88,7 +73,8 @@ export default function EditarDosnPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [catalogos, setCatalogos] = useState<MalezasYCultivosCatalogoDTO[]>([])
+  const [catalogos, setCatalogos] = useState<MalezasCatalogoDTO[]>([])
+  const [especies, setEspecies] = useState<EspecieDTO[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Nuevos estados para agregar listados
@@ -98,6 +84,7 @@ export default function EditarDosnPage() {
     listadoInsti: "",
     listadoNum: 0,
     idCatalogo: 0,
+    idEspecie: 0,
   })
 
   // Form state
@@ -110,8 +97,7 @@ export default function EditarDosnPage() {
     fechaINASE: "",
     gramosAnalizadosINASE: 0,
     tipoINASE: [] as string[],
-    cuscuta_g: 0,
-    cuscutaNum: 0,
+    cuscutaRegistros: [] as any[], // Array de registros de Cuscuta
     listados: [] as any[],
   })
 
@@ -154,24 +140,14 @@ export default function EditarDosnPage() {
 
         // Cargar los catálogos usando el servicio correcto
         try {
-          console.log("Cargando catálogos de malezas/cultivos/brassicas...")
-          const catalogosData = await obtenerTodosActivosMalezasCultivos()
+          console.log("Cargando catálogos de malezas...")
+          const catalogosData = await malezasService.obtenerTodasMalezas()
           console.log("Respuesta de catálogos:", catalogosData)
           console.log("Tipo de respuesta:", typeof catalogosData)
           console.log("Es array?", Array.isArray(catalogosData))
 
           if (Array.isArray(catalogosData)) {
             console.log("Catálogos cargados correctamente:", catalogosData.length, "items")
-
-            // Mostrar distribución por tipos
-            const tipoDistribution = catalogosData.reduce(
-              (acc, cat) => {
-                acc[cat.tipoMYCCatalogo] = (acc[cat.tipoMYCCatalogo] || 0) + 1
-                return acc
-              },
-              {} as Record<string, number>,
-            )
-            console.log("Distribución por tipos:", tipoDistribution)
 
             if (catalogosData.length > 0) {
               console.log("Primer catálogo:", catalogosData[0])
@@ -185,6 +161,17 @@ export default function EditarDosnPage() {
           console.error("Error detallado al cargar catálogos:", catalogError)
           setCatalogos([])
         }
+
+        try {
+          console.log("Cargando especies...")
+          const especiesData = await especiesService.obtenerTodasEspecies(true)
+          setEspecies(especiesData)
+          console.log("Especies cargadas:", especiesData.length)
+        } catch (error) {
+          console.error("Error cargando especies:", error)
+          setEspecies([])
+        }
+
 
         // Función para formatear fecha evitando problemas de zona horaria
         const formatDateForInput = (dateString: string | undefined) => {
@@ -216,8 +203,13 @@ export default function EditarDosnPage() {
           fechaINASE: formatDateForInput(dosnData.fechaINASE),
           gramosAnalizadosINASE: dosnData.gramosAnalizadosINASE || 0,
           tipoINASE: dosnData.tipoINASE || [],
-          cuscuta_g: dosnData.cuscuta_g || 0,
-          cuscutaNum: dosnData.cuscutaNum || 0,
+          cuscutaRegistros: dosnData.cuscutaRegistros?.map(r => ({
+            id: r.id,
+            instituto: r.instituto,
+            cuscuta_g: r.cuscuta_g || 0,
+            cuscutaNum: r.cuscutaNum || 0,
+            fechaCuscuta: formatDateForInput(r.fechaCuscuta),
+          })) || [],
           listados:
             dosnData.listados?.map((listado) => ({
               listadoTipo: listado.listadoTipo,
@@ -226,6 +218,9 @@ export default function EditarDosnPage() {
               idCatalogo: listado.catalogo?.catalogoID || null,
               catalogoNombre: listado.catalogo?.nombreComun || "",
               catalogoCientifico: listado.catalogo?.nombreCientifico || "",
+              idEspecie: listado.especie?.especieID || null,
+              especieNombre: listado.especie?.nombreComun || "",
+              especieCientifico: listado.especie?.nombreCientifico || "",
             })) || [],
         }
 
@@ -275,6 +270,36 @@ export default function EditarDosnPage() {
       ...prev,
       listados: prev.listados.filter((_, i) => i !== index),
     }))
+  }
+
+  const handleCuscutaRegistroAdd = () => {
+    setFormData((prev) => ({
+      ...prev,
+      cuscutaRegistros: [
+        ...prev.cuscutaRegistros,
+        {
+          instituto: "",
+          cuscuta_g: 0,
+          cuscutaNum: 0,
+          fechaCuscuta: new Date().toISOString().split('T')[0],
+        },
+      ],
+    }))
+  }
+
+  const handleCuscutaRegistroRemove = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      cuscutaRegistros: prev.cuscutaRegistros.filter((_, i) => i !== index),
+    }))
+  }
+
+  const handleCuscutaRegistroUpdate = (index: number, field: string, value: any) => {
+    setFormData((prev) => {
+      const updated = [...prev.cuscutaRegistros]
+      updated[index] = { ...updated[index], [field]: value }
+      return { ...prev, cuscutaRegistros: updated }
+    })
   }
 
   const handleSave = async () => {
@@ -386,8 +411,7 @@ export default function EditarDosnPage() {
       console.log("Fechas antes del formateo:")
       console.log("- fechaINIA:", formData.fechaINIA)
       console.log("- fechaINASE:", formData.fechaINASE)
-      console.log("- cuscuta_g:", formData.cuscuta_g)
-      console.log("- cuscutaNum:", formData.cuscutaNum)
+      console.log("- cuscutaRegistros:", formData.cuscutaRegistros)
 
       const updateData: DosnRequestDTO = {
         idLote: dosn.idLote || 0,
@@ -399,23 +423,24 @@ export default function EditarDosnPage() {
         fechaINASE: formatDateForBackend(formData.fechaINASE),
         gramosAnalizadosINASE: formData.gramosAnalizadosINASE || undefined,
         tipoINASE: formData.tipoINASE as any[],
-        cuscuta_g: formData.cuscuta_g || undefined,
-        cuscutaNum: formData.cuscutaNum || undefined,
-        fechaCuscuta: (formData.cuscuta_g > 0 || formData.cuscutaNum > 0)
-          ? (dosn.fechaCuscuta || new Date().toISOString().split('T')[0]) // Usar fecha existente o actual
-          : undefined,
+        cuscutaRegistros: formData.cuscutaRegistros
+          .filter((r: any) => r.instituto) // Solo enviar registros con instituto
+          .map((r: any) => ({
+            id: r.id, // Incluir ID si existe (para actualización)
+            instituto: r.instituto,
+            cuscuta_g: r.cuscuta_g || undefined,
+            cuscutaNum: r.cuscutaNum || undefined,
+            fechaCuscuta: formatDateForBackend(r.fechaCuscuta) || new Date().toISOString().split('T')[0],
+          })),
         listados: formData.listados.map((listado) => ({
           listadoTipo: listado.listadoTipo,
           listadoInsti: listado.listadoInsti,
           listadoNum: listado.listadoNum,
-          idCatalogo: listado.idCatalogo,
+          idCatalogo: listado.idCatalogo || undefined,  // Para malezas
+          idEspecie: listado.idEspecie || undefined,    // Para otros cultivos
         })),
       }
 
-      console.log("Fechas después del formateo:")
-      console.log("- fechaINIA:", updateData.fechaINIA)
-      console.log("- fechaINASE:", updateData.fechaINASE)
-      console.log("- fechaCuscuta:", updateData.fechaCuscuta)
       console.log("Datos completos a enviar al backend:", updateData)
 
       await actualizarDosn(Number.parseInt(dosnId), updateData)
@@ -432,7 +457,7 @@ export default function EditarDosnPage() {
   // Finalizar análisis
   const handleFinalizarAnalisis = async () => {
     if (!dosn) return
-    
+
     try {
       console.log("🏁 Finalizando análisis DOSN:", dosn.analisisID)
       await finalizarAnalisis(dosn.analisisID)
@@ -449,7 +474,7 @@ export default function EditarDosnPage() {
   // Aprobar análisis
   const handleAprobar = async () => {
     if (!dosn) return
-    
+
     try {
       console.log("✅ Aprobando análisis DOSN:", dosn.analisisID)
       await aprobarAnalisis(dosn.analisisID)
@@ -468,7 +493,7 @@ export default function EditarDosnPage() {
   // Marcar para repetir
   const handleMarcarParaRepetir = async () => {
     if (!dosn) return
-    
+
     try {
       console.log("🔄 Marcando análisis DOSN para repetir:", dosn.analisisID)
       await marcarParaRepetir(dosn.analisisID)
@@ -487,7 +512,7 @@ export default function EditarDosnPage() {
   // Finalizar y aprobar
   const handleFinalizarYAprobar = async () => {
     if (!dosn) return
-    
+
     try {
       console.log("🏁✅ Finalizando y aprobando análisis DOSN:", dosn.analisisID)
       // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
@@ -606,7 +631,7 @@ export default function EditarDosnPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        {/*  <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-primary/10">
@@ -615,25 +640,27 @@ export default function EditarDosnPage() {
               <span className="text-xl">Información General</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <Label htmlFor="comentarios" className="text-base font-medium">
-                Comentarios
-              </Label>
-              <Textarea
-                id="comentarios"
-                value={formData.comentarios}
-                onChange={(e) => handleInputChange("comentarios", e.target.value)}
-                placeholder="Ingrese comentarios sobre el análisis..."
-                rows={5}
-                className="resize-none text-base"
-              />
-              <p className="text-xs text-muted-foreground">
-                Agregue observaciones o notas relevantes sobre este análisis
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+       
+                  <CardContent>
+                    <div className="space-y-3">
+                      <Label htmlFor="comentarios" className="text-base font-medium">
+                        Comentarios
+                      </Label>
+                      <Textarea
+                        id="comentarios"
+                        value={formData.comentarios}
+                        onChange={(e) => handleInputChange("comentarios", e.target.value)}
+                        placeholder="Ingrese comentarios sobre el análisis..."
+                        rows={5}
+                        className="resize-none text-base"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Agregue observaciones o notas relevantes sobre este análisis
+                      </p>
+                    </div>
+                  </CardContent>
+        
+        </Card>*/}
 
         {/* Análisis INIA */}
         <Card className="border-blue-200 dark:border-blue-900/50">
@@ -826,50 +853,117 @@ export default function EditarDosnPage() {
 
         <Card className="border-orange-200 dark:border-orange-900/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-orange-100 dark:bg-orange-900/30">
-                <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-              </div>
-              <span className="text-xl">Análisis de Cuscuta</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="cuscuta_g" className="text-sm font-medium">
-                  Peso Cuscuta
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="cuscuta_g"
-                    type="number"
-                    value={formData.cuscuta_g === 0 ? "" : formData.cuscuta_g}
-                    onChange={(e) => handleInputChange("cuscuta_g", e.target.value === "" ? 0 : Number.parseFloat(e.target.value) || 0)}
-                    placeholder="Ingrese peso"
-                    min="0"
-                    step="0.01"
-                    className="pr-10 text-base"
-                  />
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
-                    g
-                  </span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-orange-100 dark:bg-orange-900/30">
+                  <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cuscutaNum" className="text-sm font-medium">
-                  Número de Cuscuta
-                </Label>
-                <Input
-                  id="cuscutaNum"
-                  type="number"
-                  value={formData.cuscutaNum === 0 ? "" : formData.cuscutaNum}
-                  onChange={(e) => handleInputChange("cuscutaNum", e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0)}
-                  placeholder="Ingrese número"
-                  min="0"
-                  className="text-base"
-                />
-              </div>
+                <span className="text-xl">Análisis de Cuscuta</span>
+              </CardTitle>
+              <Button 
+                onClick={handleCuscutaRegistroAdd} 
+                size="sm" 
+                variant="outline" 
+                className="w-full sm:w-auto"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Agregar Registro
+              </Button>
             </div>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            {formData.cuscutaRegistros.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <AlertTriangle className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">No hay registros de Cuscuta. Haga clic en "Agregar Registro" para crear uno.</p>
+              </div>
+            ) : (
+              formData.cuscutaRegistros.map((registro: any, index: number) => (
+                <Card key={index} className="bg-muted/30 border-dashed">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <Badge variant="outline" className="text-xs">
+                        Registro {index + 1} - {registro.instituto || "Sin instituto"}
+                      </Badge>
+                      <Button
+                        onClick={() => handleCuscutaRegistroRemove(index)}
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Instituto</Label>
+                        <Select
+                          value={registro.instituto || ""}
+                          onValueChange={(value) => handleCuscutaRegistroUpdate(index, "instituto", value)}
+                        >
+                          <SelectTrigger className="text-base">
+                            <SelectValue placeholder="Seleccionar instituto" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="INIA">INIA</SelectItem>
+                            <SelectItem value="INASE">INASE</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Peso (g)</Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            value={registro.cuscuta_g === 0 ? "" : registro.cuscuta_g}
+                            onChange={(e) =>
+                              handleCuscutaRegistroUpdate(
+                                index,
+                                "cuscuta_g",
+                                e.target.value === "" ? 0 : Number.parseFloat(e.target.value) || 0
+                              )
+                            }
+                            placeholder="Ingrese peso"
+                            min="0"
+                            step="0.01"
+                            className="pr-10 text-base"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
+                            g
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Número</Label>
+                        <Input
+                          type="number"
+                          value={registro.cuscutaNum === 0 ? "" : registro.cuscutaNum}
+                          onChange={(e) =>
+                            handleCuscutaRegistroUpdate(
+                              index,
+                              "cuscutaNum",
+                              e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0
+                            )
+                          }
+                          placeholder="Ingrese número"
+                          min="0"
+                          className="text-base"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Fecha</Label>
+                        <Input
+                          type="date"
+                          value={registro.fechaCuscuta || ""}
+                          onChange={(e) => handleCuscutaRegistroUpdate(index, "fechaCuscuta", e.target.value)}
+                          className="text-base"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -888,251 +982,292 @@ export default function EditarDosnPage() {
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="pt-6">
-            {showAddListado && (
-              <div className="border-2 border-dashed rounded-xl p-6 mb-6 bg-muted/30">
-                <h3 className="text-sm font-semibold mb-4 uppercase tracking-wide text-muted-foreground">
-                  Nuevo Listado
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                  {/* 1. Tipo de Listado */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Tipo de Listado</Label>
+        <CardContent className="pt-6">
+          {showAddListado && (
+            <div className="border-2 border-dashed rounded-xl p-6 mb-6 bg-muted/30">
+              <h3 className="text-sm font-semibold mb-4 uppercase tracking-wide text-muted-foreground">
+                Nuevo Listado
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                {/* 1. Tipo de Listado */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Tipo de Listado</Label>
+                  <Select
+                    value={newListado.listadoTipo}
+                    onValueChange={(value) =>
+                      setNewListado((prev) => ({
+                        ...prev,
+                        listadoTipo: value,
+                        idCatalogo: 0,
+                        idEspecie: 0,
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="text-base">
+                      <SelectValue placeholder="Seleccionar tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MAL_TOLERANCIA_CERO">Maleza Tolerancia Cero</SelectItem>
+                      <SelectItem value="MAL_TOLERANCIA">Maleza Tolerancia</SelectItem>
+                      <SelectItem value="MAL_COMUNES">Malezas Comunes</SelectItem>
+                      <SelectItem value="BRASSICA">Brassica</SelectItem>
+                      <SelectItem value="OTROS">Otros Cultivos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* 2. Especie */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    Especie {newListado.listadoTipo === "BRASSICA" && <span className="text-xs text-muted-foreground">(No requerido para Brassica)</span>}
+                  </Label>
+                  {newListado.listadoTipo === "BRASSICA" ? (
+                    <div className="p-3 rounded-lg bg-muted/50 border border-dashed">
+                      <p className="text-sm text-muted-foreground">
+                        Las brassicas no requieren especie específica del catálogo
+                      </p>
+                    </div>
+                  ) : (
                     <Select
-                      value={newListado.listadoTipo}
+                      value={
+                        newListado.listadoTipo === "OTROS"
+                          ? newListado.idEspecie.toString()
+                          : newListado.idCatalogo.toString()
+                      }
                       onValueChange={(value) =>
                         setNewListado((prev) => ({
                           ...prev,
-                          listadoTipo: value,
-                          idCatalogo: 0,
+                          ...(newListado.listadoTipo === "OTROS"
+                            ? { idEspecie: Number.parseInt(value), idCatalogo: 0 }
+                            : { idCatalogo: Number.parseInt(value), idEspecie: 0 }),
                         }))
                       }
                     >
                       <SelectTrigger className="text-base">
-                        <SelectValue placeholder="Seleccionar tipo" />
+                        <SelectValue placeholder="Seleccionar especie" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="MAL_TOLERANCIA_CERO">Maleza Tolerancia Cero</SelectItem>
-                        <SelectItem value="MAL_TOLERANCIA">Maleza Tolerancia</SelectItem>
-                        <SelectItem value="MAL_COMUNES">Malezas Comunes</SelectItem>
-                        <SelectItem value="BRASSICA">Brassica</SelectItem>
-                        <SelectItem value="OTROS">Otros Cultivos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* 2. Especie */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">
-                      Especie {newListado.listadoTipo === "BRASSICA" && <span className="text-xs text-muted-foreground">(No requerido para Brassica)</span>}
-                    </Label>
-                    {newListado.listadoTipo === "BRASSICA" ? (
-                      <div className="p-3 rounded-lg bg-muted/50 border border-dashed">
-                        <p className="text-sm text-muted-foreground">
-                          Las brassicas no requieren especie específica del catálogo
-                        </p>
-                      </div>
-                    ) : (
-                      <Select
-                        value={newListado.idCatalogo.toString()}
-                        onValueChange={(value) =>
-                          setNewListado((prev) => ({ ...prev, idCatalogo: Number.parseInt(value) }))
-                        }
-                      >
-                        <SelectTrigger className="text-base">
-                          <SelectValue placeholder="Seleccionar especie" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(() => {
-                            const tiposCompatibles = newListado.listadoTipo
-                              ? getCompatibleCatalogTypes(newListado.listadoTipo as TipoListado)
-                              : ["MALEZA", "CULTIVO"]
-
-                            const catalogosFiltrados = catalogos.filter((cat) =>
-                              tiposCompatibles.includes(cat.tipoMYCCatalogo),
-                            )
-
-                            if (catalogosFiltrados.length === 0) {
-                              return (
-                                <SelectItem value="0" disabled>
-                                  {newListado.listadoTipo ? `No hay especies disponibles` : "Selecciona primero el tipo"}
-                                </SelectItem>
-                              )
-                            }
-
-                            return catalogosFiltrados.map((catalogo) => (
-                              <SelectItem key={catalogo.catalogoID} value={catalogo.catalogoID.toString()}>
-                                {catalogo.nombreComun}
+                        {newListado.listadoTipo === "OTROS" ? (
+                          especies.length === 0 ? (
+                            <SelectItem value="0" disabled>
+                              No hay especies disponibles
+                            </SelectItem>
+                          ) : (
+                            especies.map((especie) => (
+                              <SelectItem key={especie.especieID} value={especie.especieID.toString()}>
+                                {especie.nombreComun}
                               </SelectItem>
                             ))
-                          })()}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    {newListado.listadoTipo && newListado.listadoTipo !== "BRASSICA" && (() => {
-                      const tiposCompatibles = getCompatibleCatalogTypes(newListado.listadoTipo as TipoListado)
-                      const catalogosFiltrados = catalogos.filter((cat) =>
-                        tiposCompatibles.includes(cat.tipoMYCCatalogo),
-                      )
-
-                      return (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {`${catalogosFiltrados.length} especies disponibles`}
-                        </p>
-                      )
-                    })()}
-                  </div>
-
-                  {/* 3. Instituto */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Instituto</Label>
-                    <Select
-                      value={newListado.listadoInsti}
-                      onValueChange={(value) => setNewListado((prev) => ({ ...prev, listadoInsti: value }))}
-                    >
-                      <SelectTrigger className="text-base">
-                        <SelectValue placeholder="Seleccionar instituto" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="INIA">INIA</SelectItem>
-                        <SelectItem value="INASE">INASE</SelectItem>
+                          )
+                        ) : catalogos.length === 0 ? (
+                          <SelectItem value="0" disabled>
+                            No hay malezas disponibles
+                          </SelectItem>
+                        ) : (
+                          catalogos.map((catalogo) => (
+                            <SelectItem key={catalogo.catalogoID} value={catalogo.catalogoID.toString()}>
+                              {catalogo.nombreComun}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
-                  </div>
 
-                  {/* 4. Número */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Número</Label>
-                    <Input
-                      type="number"
-                      value={newListado.listadoNum === 0 ? "" : newListado.listadoNum}
-                      onChange={(e) =>
-                        setNewListado((prev) => ({
-                          ...prev,
-                          listadoNum: e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0
-                        }))
-                      }
-                      min="0"
-                      placeholder="Ingrese número"
-                      className="text-base"
-                    />
-                  </div>
+                  )}
+                  {newListado.listadoTipo && newListado.listadoTipo !== "BRASSICA" && (() => {
+                    return (
+                      <p className="text-xs text-muted-foreground mt-1">
+                       {/* {`${catalogos.length} malezas disponibles`} */}
+                      </p>
+                    )
+                  })()}
                 </div>
 
-                <div className="flex gap-3">
-                  <Button
-                    onClick={() => {
-                      // Para brassicas, no requerimos idCatalogo
-                      const isBrassica = newListado.listadoTipo === "BRASSICA"
-                      const hasRequiredFields = newListado.listadoTipo &&
-                        newListado.listadoInsti &&
-                        (isBrassica || newListado.idCatalogo)
-
-                      if (hasRequiredFields) {
-                        const catalogo = isBrassica ? null : catalogos.find((c) => c.catalogoID === newListado.idCatalogo)
-                        handleListadoAdd({
-                          ...newListado,
-                          idCatalogo: isBrassica ? null : newListado.idCatalogo,
-                          catalogoNombre: catalogo?.nombreComun || (isBrassica ? "Brassica spp." : ""),
-                          catalogoCientifico: catalogo?.nombreCientifico || "",
-                        })
-                        setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0 })
-                        setShowAddListado(false)
-                        toast.success("Listado agregado correctamente")
-                      } else {
-                        toast.error("Complete todos los campos requeridos")
-                      }
-                    }}
-                    size="sm"
+                {/* 3. Instituto */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Instituto</Label>
+                  <Select
+                    value={newListado.listadoInsti}
+                    onValueChange={(value) => setNewListado((prev) => ({ ...prev, listadoInsti: value }))}
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Agregar
-                  </Button>
-                  <Button
-                    onClick={() => {
+                    <SelectTrigger className="text-base">
+                      <SelectValue placeholder="Seleccionar instituto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="INIA">INIA</SelectItem>
+                      <SelectItem value="INASE">INASE</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* 4. Número */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Número</Label>
+                  <Input
+                    type="number"
+                    value={newListado.listadoNum === 0 ? "" : newListado.listadoNum}
+                    onChange={(e) =>
+                      setNewListado((prev) => ({
+                        ...prev,
+                        listadoNum: e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0
+                      }))
+                    }
+                    min="0"
+                    placeholder="Ingrese número"
+                    className="text-base"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => {
+                    // Determinar tipo de listado especial
+                    const isBrassica = newListado.listadoTipo === "BRASSICA"
+                    const isOtros = newListado.listadoTipo === "OTROS"
+
+                    // Validación de campos requeridos
+                    const hasRequiredFields =
+                      newListado.listadoTipo &&
+                      newListado.listadoInsti &&
+                      (isBrassica || (isOtros ? newListado.idEspecie : newListado.idCatalogo))
+
+                    if (hasRequiredFields) {
+                      // 🔍 Buscar el registro correcto según tipo
+                      const catalogo = isBrassica
+                        ? null
+                        : isOtros
+                          ? especies.find((e) => e.especieID === newListado.idEspecie)
+                          : catalogos.find((c) => c.catalogoID === newListado.idCatalogo)
+
+                      // 🧾 Armar objeto a agregar
+                      handleListadoAdd({
+                        ...newListado,
+                        idCatalogo:
+                          isBrassica || isOtros
+                            ? null
+                            : newListado.idCatalogo,
+                        idEspecie: isOtros ? newListado.idEspecie : null,
+                        catalogoNombre:
+                          catalogo?.nombreComun ||
+                          (isBrassica ? "Brassica spp." : ""),
+                        catalogoCientifico: catalogo?.nombreCientifico || "",
+                        especieNombre: isOtros ? catalogo?.nombreComun || "" : "",
+                        especieCientifico: isOtros ? catalogo?.nombreCientifico || "" : "",
+                      })
+
+                      // 🧹 Limpiar formulario
+                      setNewListado({
+                        listadoTipo: "",
+                        listadoInsti: "",
+                        listadoNum: 0,
+                        idCatalogo: 0,
+                        idEspecie: 0,
+                      })
                       setShowAddListado(false)
-                      setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0 })
-                    }}
-                    size="sm"
-                    variant="outline"
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              </div>
-            )}
+                      toast.success("Listado agregado correctamente")
+                    } else {
+                      toast.error("Complete todos los campos requeridos")
+                    }
+                  }}
+                  size="sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar
+                </Button>
 
-            {/* Lista de listados existentes */}
-            {formData.listados.length === 0 ? (
-              <div className="text-center py-12 border-2 border-dashed rounded-xl">
-                <Leaf className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
-                <p className="text-lg font-medium text-muted-foreground">No hay listados registrados</p>
-                <p className="text-sm text-muted-foreground mt-1">Agrega un listado para comenzar</p>
+                <Button
+                  onClick={() => {
+                    setShowAddListado(false)
+                    setNewListado({
+                      listadoTipo: "",
+                      listadoInsti: "",
+                      listadoNum: 0,
+                      idCatalogo: 0,
+                      idEspecie: 0,
+                    })
+                  }}
+                  size="sm"
+                  variant="outline"
+                >
+                  Cancelar
+                </Button>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[200px]">Especie</TableHead>
-                      <TableHead className="min-w-[150px]">Tipo</TableHead>
-                      <TableHead className="min-w-[100px]">Instituto</TableHead>
-                      <TableHead className="min-w-[80px]">Número</TableHead>
-                      <TableHead className="min-w-[80px]">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {formData.listados.map((listado, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">
-                              {listado.catalogoNombre ||
-                                (listado.listadoTipo === "BRASSICA" ? "Sin especificación" : "--")}
-                            </div>
-                            <div className="text-sm text-muted-foreground italic">
-                              {listado.catalogoCientifico}
-                            </div>
-                            {listado.listadoTipo === "BRASSICA" && !listado.catalogoNombre && (
-                              <div className="text-xs text-muted-foreground mt-1">
-                                No requiere catálogo
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}>
-                            {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">
-                            {listado.listadoInsti}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-mono text-lg">{listado.listadoNum}</span>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            onClick={() => {
-                              handleListadoRemove(index)
-                              toast.success("Listado eliminado")
-                            }}
-                            size="sm"
-                            variant="ghost"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
+            </div>
+          )}
+
+          {/* Lista de listados existentes */}
+              {formData.listados.length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed rounded-xl">
+                  <Leaf className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
+                  <p className="text-lg font-medium text-muted-foreground">No hay listados registrados</p>
+                  <p className="text-sm text-muted-foreground mt-1">Agrega un listado para comenzar</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="min-w-[200px]">Especie</TableHead>
+                        <TableHead className="min-w-[150px]">Tipo</TableHead>
+                        <TableHead className="min-w-[100px]">Instituto</TableHead>
+                        <TableHead className="min-w-[80px]">Número</TableHead>
+                        <TableHead className="min-w-[80px]">Acciones</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
+                    </TableHeader>
+                    <TableBody>
+                      {formData.listados.map((listado, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">
+                                {listado.catalogoNombre ||
+                                  listado.especieNombre ||
+                                  (listado.listadoTipo === "BRASSICA" ? "Sin especificación" : "--")}
+                              </div>
+                              <div className="text-sm text-muted-foreground italic">
+                                {listado.catalogoCientifico || listado.especieCientifico}
+                              </div>
+                              {listado.listadoTipo === "BRASSICA" && !listado.catalogoNombre && !listado.especieNombre && (
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  No requiere catálogo
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}>
+                              {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">
+                              {listado.listadoInsti}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-mono text-lg">{listado.listadoNum}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              onClick={() => {
+                                handleListadoRemove(index)
+                                toast.success("Listado eliminado")
+                              }}
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
         </Card>
 
         {/* Card de Acciones */}

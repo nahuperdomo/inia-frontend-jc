@@ -3,7 +3,7 @@ import {
   PurezaDTO,
   PurezaRequestDTO,
   ResponseListadoPureza,
-  MalezasYCultivosCatalogoDTO
+  MalezasCatalogoDTO
 } from "../models";
 
 // Pureza specific interfaces extending base classes
@@ -79,7 +79,7 @@ export async function obtenerPurezasPorIdLote(idLote: number): Promise<PurezaDTO
   return apiFetch(`/api/purezas/lote/${idLote}`);
 }
 
-export async function obtenerTodosCatalogos(): Promise<MalezasYCultivosCatalogoDTO[]> {
+export async function obtenerTodosCatalogos(): Promise<MalezasCatalogoDTO[]> {
   return apiFetch("/api/purezas/catalogos");
 }
 

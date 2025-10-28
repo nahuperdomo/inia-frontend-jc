@@ -20,25 +20,12 @@ import {
   aprobarAnalisis,
   marcarParaRepetir
 } from "@/app/services/pureza-service"
-import { obtenerTodosActivosMalezasCultivos } from "@/app/services/malezas-service"
-import type { PurezaDTO, PurezaRequestDTO, MalezasYCultivosCatalogoDTO, TipoListado, TipoMYCCatalogo } from "@/app/models"
+import * as malezasService from "@/app/services/malezas-service"
+import { obtenerTodasEspecies } from "@/app/services/especie-service"
+import type { PurezaDTO, PurezaRequestDTO, MalezasCatalogoDTO, EspecieDTO, TipoListado } from "@/app/models"
 import { toast } from "sonner"
 import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
-
-// Función helper para mapear tipos de listado a tipos de catálogo
-const getCompatibleCatalogTypes = (listadoTipo: TipoListado): TipoMYCCatalogo[] => {
-  switch (listadoTipo) {
-    case "MAL_TOLERANCIA":
-    case "MAL_TOLERANCIA_CERO":
-    case "MAL_COMUNES":
-      return ["MALEZA"]
-    case "OTROS":
-      return ["CULTIVO"]
-    default:
-      return ["MALEZA", "CULTIVO"]
-  }
-}
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -81,7 +68,8 @@ export default function EditarPurezaPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [catalogos, setCatalogos] = useState<MalezasYCultivosCatalogoDTO[]>([])
+  const [catalogos, setCatalogos] = useState<MalezasCatalogoDTO[]>([])
+  const [especies, setEspecies] = useState<EspecieDTO[]>([])
 
   // Nuevos estados para agregar listados
   const [showAddListado, setShowAddListado] = useState(false)
@@ -90,6 +78,7 @@ export default function EditarPurezaPage() {
     listadoInsti: "",
     listadoNum: 0,
     idCatalogo: 0,
+    idEspecie: 0,
   })
 
   // Form state
@@ -140,13 +129,26 @@ export default function EditarPurezaPage() {
 
         // Cargar catálogos
         try {
-          const catalogosData = await obtenerTodosActivosMalezasCultivos()
+          console.log("Cargando catálogos de malezas...")
+          const catalogosData = await malezasService.obtenerTodasMalezas()
           if (Array.isArray(catalogosData)) {
             setCatalogos(catalogosData)
           }
         } catch (catalogError) {
           console.error("Error al cargar catálogos:", catalogError)
           setCatalogos([])
+        }
+
+        // Cargar especies
+        try {
+          console.log("Cargando especies...")
+          const especiesData = await obtenerTodasEspecies(true)
+          if (Array.isArray(especiesData)) {
+            setEspecies(especiesData)
+          }
+        } catch (especiesError) {
+          console.error("Error al cargar especies:", especiesError)
+          setEspecies([])
         }
 
         // Función para formatear fecha
@@ -201,6 +203,9 @@ export default function EditarPurezaPage() {
             idCatalogo: listado.catalogo?.catalogoID || null,
             catalogoNombre: listado.catalogo?.nombreComun || "",
             catalogoCientifico: listado.catalogo?.nombreCientifico || "",
+            idEspecie: listado.especie?.especieID || null,
+            especieNombre: listado.especie?.nombreComun || "",
+            especieCientifico: listado.especie?.nombreCientifico || "",
           })) || [],
         })
       } catch (err) {
@@ -392,7 +397,8 @@ export default function EditarPurezaPage() {
           listadoTipo: listado.listadoTipo,
           listadoInsti: listado.listadoInsti,
           listadoNum: listado.listadoNum,
-          idCatalogo: listado.idCatalogo,
+          idCatalogo: listado.idCatalogo || undefined,  // Para malezas
+          idEspecie: listado.idEspecie || undefined,    // Para otros cultivos
         })),
       }
 
@@ -1200,6 +1206,7 @@ export default function EditarPurezaPage() {
                             ...prev,
                             listadoTipo: value,
                             idCatalogo: 0,
+                            idEspecie: 0, // Reset también idEspecie
                           }))
                         }
                       >
@@ -1249,38 +1256,47 @@ export default function EditarPurezaPage() {
                     <div className="space-y-2">
                       <Label>Especie</Label>
                       <Select
-                        value={newListado.idCatalogo.toString()}
+                        value={
+                          newListado.listadoTipo === "OTROS"
+                            ? newListado.idEspecie.toString()
+                            : newListado.idCatalogo.toString()
+                        }
                         onValueChange={(value) =>
-                          setNewListado((prev) => ({ ...prev, idCatalogo: Number.parseInt(value) }))
+                          setNewListado((prev) => ({
+                            ...prev,
+                            ...(newListado.listadoTipo === "OTROS"
+                              ? { idEspecie: Number.parseInt(value), idCatalogo: 0 }
+                              : { idCatalogo: Number.parseInt(value), idEspecie: 0 }),
+                          }))
                         }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Seleccionar especie" />
                         </SelectTrigger>
                         <SelectContent>
-                          {(() => {
-                            const tiposCompatibles = newListado.listadoTipo
-                              ? getCompatibleCatalogTypes(newListado.listadoTipo as TipoListado)
-                              : ["MALEZA", "CULTIVO"]
-
-                            const catalogosFiltrados = catalogos.filter((cat) =>
-                              tiposCompatibles.includes(cat.tipoMYCCatalogo),
-                            )
-
-                            if (catalogosFiltrados.length === 0) {
-                              return (
-                                <SelectItem value="0" disabled>
-                                  {newListado.listadoTipo ? "No hay especies" : "Selecciona tipo primero"}
+                          {newListado.listadoTipo === "OTROS" ? (
+                            especies.length === 0 ? (
+                              <SelectItem value="0" disabled>
+                                No hay especies disponibles
+                              </SelectItem>
+                            ) : (
+                              especies.map((especie) => (
+                                <SelectItem key={especie.especieID} value={especie.especieID.toString()}>
+                                  {especie.nombreComun}
                                 </SelectItem>
-                              )
-                            }
-
-                            return catalogosFiltrados.map((catalogo) => (
+                              ))
+                            )
+                          ) : catalogos.length === 0 ? (
+                            <SelectItem value="0" disabled>
+                              No hay malezas disponibles
+                            </SelectItem>
+                          ) : (
+                            catalogos.map((catalogo) => (
                               <SelectItem key={catalogo.catalogoID} value={catalogo.catalogoID.toString()}>
                                 {catalogo.nombreComun}
                               </SelectItem>
                             ))
-                          })()}
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -1289,16 +1305,35 @@ export default function EditarPurezaPage() {
                   <div className="flex gap-3">
                     <Button
                       onClick={() => {
-                        const hasRequiredFields = newListado.listadoTipo && newListado.listadoInsti && newListado.idCatalogo
+                        // Validar según el tipo
+                        const isOtrosCultivos = newListado.listadoTipo === "OTROS"
+                        const hasRequiredFields = newListado.listadoTipo && 
+                          newListado.listadoInsti && 
+                          (isOtrosCultivos ? newListado.idEspecie : newListado.idCatalogo)
 
                         if (hasRequiredFields) {
-                          const catalogo = catalogos.find((c) => c.catalogoID === newListado.idCatalogo)
-                          handleListadoAdd({
-                            ...newListado,
-                            catalogoNombre: catalogo?.nombreComun || "",
-                            catalogoCientifico: catalogo?.nombreCientifico || "",
-                          })
-                          setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0 })
+                          if (isOtrosCultivos) {
+                            // Para otros cultivos, buscar en especies
+                            const especie = especies.find((e) => e.especieID === newListado.idEspecie)
+                            handleListadoAdd({
+                              ...newListado,
+                              especieNombre: especie?.nombreComun || "",
+                              especieCientifico: especie?.nombreCientifico || "",
+                              catalogoNombre: "",
+                              catalogoCientifico: "",
+                            })
+                          } else {
+                            // Para malezas, buscar en catalogos
+                            const catalogo = catalogos.find((c) => c.catalogoID === newListado.idCatalogo)
+                            handleListadoAdd({
+                              ...newListado,
+                              catalogoNombre: catalogo?.nombreComun || "",
+                              catalogoCientifico: catalogo?.nombreCientifico || "",
+                              especieNombre: "",
+                              especieCientifico: "",
+                            })
+                          }
+                          setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0, idEspecie: 0 })
                           setShowAddListado(false)
                           toast.success("Registro agregado")
                         } else {
@@ -1313,7 +1348,7 @@ export default function EditarPurezaPage() {
                     <Button
                       onClick={() => {
                         setShowAddListado(false)
-                        setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0 })
+                        setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0 , idEspecie: 0 })
                       }}
                       size="sm"
                       variant="outline"
@@ -1346,9 +1381,17 @@ export default function EditarPurezaPage() {
                         <TableRow key={index}>
                           <TableCell>
                             <div>
-                              <div className="font-medium">{listado.catalogoNombre || "--"}</div>
+                              <div className="font-medium">
+                                {listado.listadoTipo === "OTROS" 
+                                  ? (listado.especieNombre || "--")
+                                  : (listado.catalogoNombre || "--")
+                                }
+                              </div>
                               <div className="text-sm text-muted-foreground italic">
-                                {listado.catalogoCientifico}
+                                {listado.listadoTipo === "OTROS"
+                                  ? listado.especieCientifico
+                                  : listado.catalogoCientifico
+                                }
                               </div>
                             </div>
                           </TableCell>

@@ -106,6 +106,8 @@ export type AnalysisFormData = {
   cuscutaNumero: string
   cuscutaFecha: string
   cuscutaCumple: string
+  institutoCuscuta: string
+  cuscutaRegistros: any[] // Array de registros de cuscuta
 
   // Cumple estándar
   cumpleEstandar: string
@@ -128,6 +130,7 @@ export type AnalysisFormData = {
   tincionTemp: number
   tincionTempOtro: string
   comentarios: string
+  viabilidadInase: number | string
 }
 
 const analysisTypes = [
@@ -265,6 +268,8 @@ export default function RegistroAnalisisPage() {
     cuscutaNumero: "",
     cuscutaFecha: "",
     cuscutaCumple: "",
+    institutoCuscuta: "",
+    cuscutaRegistros: [],
     // Cumple estándar
     cumpleEstandar: "",
     cumpleFecha: "",
@@ -285,6 +290,7 @@ export default function RegistroAnalisisPage() {
     tincionTempOtro: "",
     comentarios: "",
     numRepeticionesEsperadasTetrazolio: 2,
+    viabilidadInase: "",
   });
   const [loading, setLoading] = useState(false)
   const getAnalysisTypeName = (typeId: string | TipoAnalisis): string => {
@@ -330,6 +336,27 @@ export default function RegistroAnalisisPage() {
     }
   }
 
+  // Funciones para limpiar localStorage
+  const clearDosnStorage = () => {
+    localStorage.removeItem('dosn-malezas-Malezas')
+    localStorage.removeItem('dosn-otros-cultivos')
+    localStorage.removeItem('dosn-brassicas')
+    localStorage.removeItem('dosn-cuscuta-registros')
+  }
+
+  const clearPurezaStorage = () => {
+    localStorage.removeItem('pureza-malezas-Malezas')
+    localStorage.removeItem('pureza-otros-cultivos')
+    localStorage.removeItem('pureza-brassicas')
+  }
+
+  const clearGerminacionStorage = () => {
+    // Agregar keys específicas de germinación si existen
+  }
+
+  const clearTetrazolioStorage = () => {
+    // Agregar keys específicas de tetrazolio si existen
+  }
 
   const handleSubmit = async () => {
     setLoading(true)
@@ -415,12 +442,8 @@ export default function RegistroAnalisisPage() {
         fechaINASE: formData.inaseFecha || null,
         gramosAnalizadosINASE: toNum(formData.inaseGramos),
         tipoINASE: mapTipoDosn(formData, "inase"),
-        // Cuscuta - usar fecha actual si hay datos de cuscuta y no se especificó fecha
-        cuscuta_g: toNum(formData.cuscutaGramos),
-        cuscutaNum: toNum(formData.cuscutaNumero),
-        fechaCuscuta: ((toNum(formData.cuscutaGramos) || 0) > 0 || (toNum(formData.cuscutaNumero) || 0) > 0)
-          ? new Date().toISOString().split('T')[0] // Fecha actual en formato YYYY-MM-DD
-          : null,
+        // Cuscuta - enviar array de registros
+        cuscutaRegistros: formData.cuscutaRegistros || [],
         // Listados
         listados,
       };
@@ -589,6 +612,7 @@ export default function RegistroAnalisisPage() {
         tincionHs: tincionHsFinal,
         tincionTemp: tincionTempFinal,
         numRepeticionesEsperadas: formData.numRepeticionesEsperadasTetrazolio,
+        viabilidadInase: formData.viabilidadInase ? Number(formData.viabilidadInase) : undefined,
       };
     }
 
