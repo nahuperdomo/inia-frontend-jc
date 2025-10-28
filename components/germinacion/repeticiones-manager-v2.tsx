@@ -41,7 +41,17 @@ export function RepeticionesManager({
       setLoading(true)
       setError("")
       
+      console.log(`🔄 Cargando repeticiones para tabla ${tabla.tablaGermID}...`)
       const data = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
+      console.log(`✅ Repeticiones cargadas para tabla ${tabla.tablaGermID}:`, data.length, "repeticiones")
+      console.log("📝 Detalles de repeticiones:", data.map(r => ({
+        numRep: r.numRep,
+        normales: r.normales,
+        anormales: r.anormales,
+        duras: r.duras,
+        frescas: r.frescas,
+        muertas: r.muertas
+      })))
       setRepeticiones(data)
       onRepeticionesUpdated(data)
     } catch (err: any) {

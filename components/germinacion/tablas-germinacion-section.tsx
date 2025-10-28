@@ -16,7 +16,8 @@ import {
   actualizarPorcentajes,
   crearTablaGerminacion,
   actualizarTablaGerminacion,
-  finalizarGerminacion
+  finalizarGerminacion,
+  obtenerTablaPorId
 } from '@/app/services/germinacion-service'
 import {
   obtenerValoresPorTabla,
@@ -291,9 +292,9 @@ export function TablasGerminacionSection({
     
     // Validación adicional para fechaFinal (debe estar entre fechaInicioGerm y fechaUltConteo de la tabla)
     if (tabla.fechaFinal && tabla.fechaInicioGerm && tabla.fechaUltConteo) {
-      const fechaFinal = new Date(tabla.fechaFinal)
-      const fechaInicio = new Date(tabla.fechaInicioGerm)
-      const fechaUltConteo = new Date(tabla.fechaUltConteo)
+      const fechaFinal = new Date(tabla.fechaFinal + 'T00:00:00')
+      const fechaInicio = new Date(tabla.fechaInicioGerm + 'T00:00:00')
+      const fechaUltConteo = new Date(tabla.fechaUltConteo + 'T00:00:00')
       
       if (fechaFinal < fechaInicio) {
         errores.push('Fecha final debe ser posterior o igual a la fecha de inicio de germinación')
@@ -367,9 +368,9 @@ export function TablasGerminacionSection({
           nuevosErrores[campo] = 'Fecha final es requerida'
         } else {
           // Validar que esté en el rango correcto (usando fechas de la tabla)
-          const fechaFinal = new Date(valor)
-          const fechaInicio = datosTabla.fechaInicioGerm ? new Date(datosTabla.fechaInicioGerm) : null
-          const fechaUltConteo = datosTabla.fechaUltConteo ? new Date(datosTabla.fechaUltConteo) : null
+          const fechaFinal = new Date(valor + 'T00:00:00')
+          const fechaInicio = datosTabla.fechaInicioGerm ? new Date(datosTabla.fechaInicioGerm + 'T00:00:00') : null
+          const fechaUltConteo = datosTabla.fechaUltConteo ? new Date(datosTabla.fechaUltConteo + 'T00:00:00') : null
           
           if (fechaInicio && fechaFinal < fechaInicio) {
             nuevosErrores[campo] = 'La fecha final debe ser posterior o igual a la fecha de inicio de germinación de esta tabla'
@@ -683,23 +684,128 @@ export function TablasGerminacionSection({
     try {
       console.log("Guardando datos generales para tabla:", tablaId)
       
+      // VALIDACIONES ANTES DE GUARDAR
+      const tablaActual = tablasLocales.find(t => t.tablaGermID === tablaId)
+      
+      // 1. Validar cambios en fechas de conteos
+      if (tablaActual && tablaActual.fechaConteos && tablaEditada.fechaConteos) {
+        const fechaActualDate = new Date()
+        fechaActualDate.setHours(0, 0, 0, 0)
+        
+        // Verificar si alguna fecha cambió a futura
+        let hayFechasCambiadas = false
+        let hayFechaUltimoConteoCambiadaAFutura = false
+        let hayOtrasFechasCambiadasAFutura = false
+        
+        tablaEditada.fechaConteos.forEach((fecha, index) => {
+          const fechaAnterior = tablaActual.fechaConteos?.[index]
+          if (!fechaAnterior || !fecha) return
+          
+          const fechaAnteriorDate = new Date(fechaAnterior + 'T00:00:00')
+          const fechaNuevaDate = new Date(fecha + 'T00:00:00')
+          
+          // Detectar si alguna fecha cambió
+          if (fechaAnterior !== fecha) {
+            hayFechasCambiadas = true
+            
+            // Si la fecha cambió de pasada/presente a futura
+            if (fechaAnteriorDate <= fechaActualDate && fechaNuevaDate > fechaActualDate) {
+              // Si es la última fecha de conteo
+              if (index === tablaEditada.fechaConteos.length - 1) {
+                hayFechaUltimoConteoCambiadaAFutura = true
+              } else {
+                hayOtrasFechasCambiadasAFutura = true
+              }
+            }
+          }
+        })
+        
+        if (hayFechasCambiadas && tablaActual.repGerm && tablaActual.repGerm.length > 0) {
+          let mensaje = '⚠️ Has cambiado fechas de conteos.\n\n'
+          
+          if (hayFechaUltimoConteoCambiadaAFutura && hayOtrasFechasCambiadasAFutura) {
+            mensaje += 'Se detectaron los siguientes cambios:\n' +
+                      '• Fecha del último conteo cambió a futura: Se eliminarán anormales, duras, frescas y muertas de todas las repeticiones.\n' +
+                      '• Otras fechas de conteos cambiaron a futuras: Se eliminarán los datos de normales de esos conteos específicos.\n\n'
+          } else if (hayFechaUltimoConteoCambiadaAFutura) {
+            mensaje += 'La fecha del último conteo cambió a una fecha futura.\n' +
+                      'Esto eliminará los campos anormales, duras, frescas y muertas de todas las repeticiones.\n' +
+                      'Los datos de normales en los conteos con fechas presentes o pasadas se mantendrán.\n\n'
+          } else if (hayOtrasFechasCambiadasAFutura) {
+            mensaje += 'Esto eliminará los datos de normales ingresados en los conteos cuyas fechas sean futuras.\n\n'
+          }
+          
+          mensaje += '¿Deseas continuar?'
+          
+          const confirmar = window.confirm(mensaje)
+          if (!confirmar) return
+        }
+      }
+      
+      // 2. Validar cambio en número de conteos
+      if (tablaActual && tablaActual.numeroConteos !== tablaEditada.numeroConteos) {
+        if (tablaActual.repGerm && tablaActual.repGerm.length > 0) {
+          const confirmar = window.confirm(
+            '⚠️ Has cambiado el número de conteos.\n\n' +
+            'Esto eliminará TODOS los datos de normales ingresados en TODAS las repeticiones.\n\n' +
+            '¿Deseas continuar?'
+          )
+          if (!confirmar) return
+        }
+      }
+      
+      // 3. Validar cambio en número de repeticiones
+      if (tablaActual && tablaActual.numeroRepeticiones !== tablaEditada.numeroRepeticiones) {
+        if (tablaActual.repGerm && tablaActual.repGerm.length > 0) {
+          const diferencia = tablaEditada.numeroRepeticiones - tablaActual.numeroRepeticiones
+          if (diferencia < 0) {
+            const confirmar = window.confirm(
+              `⚠️ Has reducido el número de repeticiones de ${tablaActual.numeroRepeticiones} a ${tablaEditada.numeroRepeticiones}.\n\n` +
+              `Esto eliminará las últimas ${Math.abs(diferencia)} repeticiones guardadas (desde la última hasta la primera).\n\n` +
+              '¿Deseas continuar?'
+            )
+            if (!confirmar) return
+          } else {
+            alert(
+              `ℹ️ Has aumentado el número de repeticiones de ${tablaActual.numeroRepeticiones} a ${tablaEditada.numeroRepeticiones}.\n\n` +
+              `Se agregarán ${diferencia} repeticiones nuevas al final.`
+            )
+          }
+        }
+      }
+      
+      console.log("📤 Enviando actualización de tabla al backend:", {
+        tablaId,
+        fechaConteos: tablaEditada.fechaConteos,
+        numeroConteos: tablaEditada.numeroConteos,
+        numeroRepeticiones: tablaEditada.numeroRepeticiones
+      })
+      
       await actualizarTablaGerminacion(germinacionId, tablaId, tablaEditada)
       console.log("✅ Datos generales guardados exitosamente")
       
-      // Actualizar estado local
+      // Pequeño delay para asegurar que el backend procese completamente
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Recargar las repeticiones actualizadas desde el servidor
+      const tablaActualizada = await obtenerTablaPorId(germinacionId, tablaId)
+      console.log("📊 Tabla actualizada recargada desde servidor:", tablaActualizada)
+      console.log("🔢 Repeticiones en tabla actualizada:", tablaActualizada.repGerm?.length || 0)
+      
+      // Actualizar estado local con los datos completos del servidor
       setTablasLocales(prev => 
         prev.map(tabla => 
           tabla.tablaGermID === tablaId 
-            ? { 
-                ...tabla, 
-                ...tablaEditada
-              }
+            ? tablaActualizada
             : tabla
         )
       )
       
       setEditandoTablaGeneral(null)
       setTablaOriginal(null)
+      
+      // Mostrar mensaje de éxito
+      alert("✅ Datos guardados correctamente. Los datos de las repeticiones se han actualizado.")
     } catch (error) {
       console.error("❌ Error guardando datos generales:", error)
       alert("Error al guardar los datos de la tabla")
@@ -1667,7 +1773,7 @@ export function TablasGerminacionSection({
                         <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.fechaFinal}</p>
                       )}
                       <p className="text-xs text-gray-500 mt-1">
-                        Debe ser POSTERIOR a la fecha de último conteo
+                        Debe ser igual o posterior a la fecha de último conteo
                         {nuevaTabla.fechaFinal && (
                           <span className="block text-blue-600 font-medium mt-0.5">
                             ✓ {new Date(nuevaTabla.fechaFinal + 'T00:00:00').toLocaleDateString('es-ES')}
@@ -2389,7 +2495,7 @@ export function TablasGerminacionSection({
                         <p className="text-red-500 text-xs mt-1">{erroresValidacion.fechaFinal}</p>
                       )}
                       <p className="text-xs text-gray-500 mt-1">
-                        Debe ser POSTERIOR a la fecha de último conteo
+                        Debe ser igual o posterior a la fecha de último conteo
                         {tablaEditada.fechaFinal && (
                           <span className="block text-blue-600 font-medium mt-0.5">
                             ✓ {new Date(tablaEditada.fechaFinal + 'T00:00:00').toLocaleDateString('es-ES')}
@@ -2486,6 +2592,7 @@ export function TablasGerminacionSection({
                   </Card>
 
                   <RepeticionesManager
+                    key={`rep-manager-${tabla.tablaGermID}-${tabla.numeroConteos}-${tabla.numeroRepeticiones}-${tabla.fechaConteos?.join(',')}`}
                     tabla={tabla}
                     germinacionId={germinacionId}
                     numeroRepeticiones={tabla.numeroRepeticiones || 8}
