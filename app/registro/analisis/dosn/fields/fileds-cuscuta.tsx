@@ -8,6 +8,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { FlaskConical, CheckCircle2, XCircle } from "lucide-react"
 import { usePersistentForm } from "@/lib/hooks/use-form-persistence"
+import { Instituto } from "@/app/models/types/enums"
 
 type Props = {
   formData: any
@@ -18,6 +19,7 @@ type CuscutaData = {
   gramos: string
   numero: string
   cumple: string
+  instituto: Instituto | ""
 }
 
 export default function CuscutaSection({ formData, handleInputChange }: Props) {
@@ -28,6 +30,7 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
       gramos: formData.cuscutaGramos || "",
       numero: formData.cuscutaNumero || "",
       cumple: formData.cuscutaCumple || "",
+      instituto: formData.institutoCuscuta || "",
     }
   })
 
@@ -35,6 +38,7 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
     gramos: formData.cuscutaGramos || persistedData.gramos,
     numero: formData.cuscutaNumero || persistedData.numero,
     cumple: formData.cuscutaCumple || persistedData.cumple,
+    instituto: formData.institutoCuscuta || persistedData.instituto,
   }
 
   // Sincronizar con persistencia
@@ -42,13 +46,15 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
     updateField("gramos", data.gramos)
     updateField("numero", data.numero)
     updateField("cumple", data.cumple)
-  }, [data.gramos, data.numero, data.cumple])
+    updateField("instituto", data.instituto)
+  }, [data.gramos, data.numero, data.cumple, data.instituto])
 
   const updateFieldValue = (field: string, value: string) => {
     const fieldMap: { [key: string]: string } = {
       gramos: "cuscutaGramos",
       numero: "cuscutaNumero",
-      cumple: "cuscutaCumple"
+      cumple: "cuscutaCumple",
+      instituto: "institutoCuscuta"
     }
 
     // Make 'contiene / no contiene' behave like Brassica: values 'si'|'no'
@@ -56,9 +62,11 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
       handleInputChange("cuscutaGramos", "")
       handleInputChange("cuscutaNumero", "")
       handleInputChange("cuscutaCumple", "no")
+      handleInputChange("institutoCuscuta", "")
       updateField("gramos", "")
       updateField("numero", "")
       updateField("cumple", "no")
+      updateField("instituto", "")
     } else {
       handleInputChange(fieldMap[field], value)
       updateField(field as keyof CuscutaData, value)
@@ -92,7 +100,7 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Contiene o no contiene */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">¿Contiene Cuscuta?</Label>
@@ -111,6 +119,25 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Instituto */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Instituto</Label>
+            <Select 
+              value={data.instituto} 
+              onValueChange={(val) => updateFieldValue("instituto", val)}
+              disabled={data.cumple === "no"}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Seleccionar instituto" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="INIA">INIA</SelectItem>
+                <SelectItem value="INASE">INASE</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Peso en gramos */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Peso (g)</Label>

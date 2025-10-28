@@ -8,8 +8,8 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Trash2, Plus, Wheat, XCircle } from "lucide-react"
-import { obtenerCultivos } from "@/app/services/malezas-service"
-import { MalezasYCultivosCatalogoDTO } from "@/app/models"
+import { obtenerTodasEspecies } from "@/app/services/especie-service"
+import { EspecieDTO } from "@/app/models"
 import { usePersistentArray } from "@/lib/hooks/use-form-persistence"
 
 type Cultivo = {
@@ -17,7 +17,7 @@ type Cultivo = {
   listado: string
   entidad: string
   numero: string
-  idCatalogo: number | null
+  idEspecie: number | null
 }
 
 type Props = {
@@ -30,12 +30,12 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
   const initialCultivos = registros && registros.length > 0
     ? registros.map((r) => ({
         contiene: "si" as const,
-        listado: r.catalogo?.nombreComun || "",
+        listado: r.especie?.nombreComun || "",
         entidad: r.listadoInsti?.toLowerCase() || "",
         numero: r.listadoNum?.toString() || "",
-        idCatalogo: r.catalogo?.catalogoID ?? null,
+        idEspecie: r.especie?.especieID ?? null,
       }))
-    : [{ contiene: "" as const, listado: "", entidad: "", numero: "", idCatalogo: null }]
+    : [{ contiene: "" as const, listado: "", entidad: "", numero: "", idEspecie: null }]
 
   // ✅ Usar persistencia solo si no hay registros precargados
   const persistence = usePersistentArray<Cultivo>(
@@ -54,23 +54,23 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
     }
   }, [cultivos])
 
-  const [opcionesCultivos, setOpcionesCultivos] = useState<MalezasYCultivosCatalogoDTO[]>([])
+  const [opcionesEspecies, setOpcionesEspecies] = useState<EspecieDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // cargar catálogo de cultivos
+  // cargar especies
   useEffect(() => {
-    const fetchCultivos = async () => {
+    const fetchEspecies = async () => {
       try {
-        const data = await obtenerCultivos()
-        setOpcionesCultivos(data)
+        const data = await obtenerTodasEspecies(true)  // Solo especies activas
+        setOpcionesEspecies(data)
       } catch (err) {
-        setError("Error al cargar cultivos")
+        setError("Error al cargar especies")
       } finally {
         setLoading(false)
       }
     }
-    fetchCultivos()
+    fetchEspecies()
   }, [])
 
   // avisar cambios al padre
@@ -90,7 +90,7 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
           listadoTipo: "OTROS",
           listadoInsti: c.entidad.toUpperCase(),
           listadoNum: c.numero !== "" ? Number(c.numero) : null,
-          idCatalogo: c.idCatalogo ?? null,
+          idEspecie: c.idEspecie ?? null,
         }))
 
       onChangeListados(listados)
@@ -98,7 +98,7 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
   }, [cultivos, onChangeListados])
 
   const addCultivo = () =>
-    setCultivos([...cultivos, { contiene: "", listado: "", entidad: "", numero: "", idCatalogo: null }])
+    setCultivos([...cultivos, { contiene: "", listado: "", entidad: "", numero: "", idEspecie: null }])
 
   const removeCultivo = (i: number) => {
     if (cultivos.length > 1) {
@@ -109,18 +109,18 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
   const updateCultivo = (i: number, field: keyof Cultivo, value: any) => {
     const updated = [...cultivos]
     if (field === "contiene" && value === "no") {
-      updated[i] = { contiene: "no", listado: "", entidad: "", numero: "", idCatalogo: null }
+      updated[i] = { contiene: "no", listado: "", entidad: "", numero: "", idEspecie: null }
     } else {
       updated[i] = { ...updated[i], [field]: value }
     }
     setCultivos(updated)
   }
 
-  const handleEspecieSelect = (i: number, especie: string) => {
-    const catalogo = opcionesCultivos.find((op) => op.nombreComun === especie)
-    const idCatalogo = catalogo ? catalogo.catalogoID : null
+  const handleEspecieSelect = (i: number, especieNombre: string) => {
+    const especie = opcionesEspecies.find((op) => op.nombreComun === especieNombre)
+    const idEspecie = especie ? especie.especieID : null
     const updated = [...cultivos]
-    updated[i] = { ...updated[i], listado: especie, idCatalogo }
+    updated[i] = { ...updated[i], listado: especieNombre, idEspecie }
     setCultivos(updated)
   }
 
@@ -199,8 +199,8 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
                         {error && <SelectItem value="error" disabled>{error}</SelectItem>}
                         {!loading &&
                           !error &&
-                          opcionesCultivos.map((op) => (
-                            <SelectItem key={op.catalogoID} value={op.nombreComun}>
+                          opcionesEspecies.map((op) => (
+                            <SelectItem key={op.especieID} value={op.nombreComun}>
                               {op.nombreComun}
                             </SelectItem>
                           ))}

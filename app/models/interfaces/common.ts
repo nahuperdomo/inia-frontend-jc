@@ -1,10 +1,10 @@
-import { TipoMYCCatalogo, TipoListado, Instituto } from '../types/enums';
+import { TipoListado, Instituto } from '../types/enums';
+import { EspecieDTO } from './especie';
 
-export interface MalezasYCultivosCatalogoDTO {
+export interface MalezasCatalogoDTO {
   catalogoID: number;
   nombreComun: string;
   nombreCientifico: string;
-  tipoMYCCatalogo: TipoMYCCatalogo;
   activo: boolean;
 }
 
@@ -13,14 +13,16 @@ export interface ListadoDTO {
   listadoTipo: TipoListado;
   listadoInsti: Instituto;
   listadoNum: number;
-  catalogo: MalezasYCultivosCatalogoDTO;
+  catalogo?: MalezasCatalogoDTO;  // Para malezas
+  especie?: EspecieDTO;  // Para otros cultivos
 }
 
 export interface ListadoRequestDTO {
   listadoTipo: TipoListado;
   listadoInsti: Instituto;
   listadoNum: number;
-  idCatalogo: number;
+  idCatalogo?: number;  // Para malezas
+  idEspecie?: number;   // Para otros cultivos
 }
 
 export interface DatosHumedadDTO {

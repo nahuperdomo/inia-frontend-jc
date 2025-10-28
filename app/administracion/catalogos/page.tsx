@@ -75,16 +75,16 @@ import {
   reactivarCultivar
 } from "@/app/services/cultivar-service"
 import {
-  obtenerTodosActivosMalezasCultivos,
-  obtenerInactivosMalezasCultivos,
-  crearMalezaCultivo,
-  actualizarMalezaCultivo,
-  eliminarMalezaCultivo,
-  reactivarMalezaCultivo
+  obtenerTodasMalezas,
+  obtenerMalezasInactivas,
+  crearMaleza,
+  actualizarMaleza,
+  eliminarMaleza,
+  reactivarMaleza
 } from "@/app/services/malezas-service"
 
 // Types
-import type { CatalogoDTO, EspecieDTO, CultivarDTO, MalezasYCultivosCatalogoDTO, TipoMYCCatalogo } from "@/app/models"
+import type { CatalogoDTO, EspecieDTO, CultivarDTO, MalezasCatalogoDTO } from "@/app/models"
 
 // Tipo de catálogo
 type TipoCatalogo = 
@@ -114,7 +114,7 @@ export default function CatalogosPage() {
   const [filtroCatalogo, setFiltroCatalogo] = useState<"activos" | "inactivos" | "todos">("activos")
   const [filtroEspecie, setFiltroEspecie] = useState<"activos" | "inactivos" | "todos">("activos")
   const [filtroCultivar, setFiltroCultivar] = useState<"activos" | "inactivos" | "todos">("activos")
-  const [filtroMalezasCultivos, setFiltroMalezasCultivos] = useState<"activos" | "inactivos" | "todos">("activos")
+  const [filtroMalezas, setFiltroMalezas] = useState<"activos" | "inactivos" | "todos">("activos")
 
   // Estados de catálogos
   const [catalogos, setCatalogos] = useState<CatalogoDTO[]>([])
@@ -131,15 +131,14 @@ export default function CatalogosPage() {
   const [cultivares, setCultivares] = useState<CultivarDTO[]>([])
   const [cultivaresFiltrados, setCultivaresFiltrados] = useState<CultivarDTO[]>([])
 
-  // Estados de malezas y cultivos
-  const [malezasCultivos, setMalezasCultivos] = useState<MalezasYCultivosCatalogoDTO[]>([])
-  const [malezasCultivosFiltrados, setMalezasCultivosFiltrados] = useState<MalezasYCultivosCatalogoDTO[]>([])
-  const [tipoMYCSeleccionado, setTipoMYCSeleccionado] = useState<TipoMYCCatalogo>("MALEZA")
+  // Estados de malezas
+  const [malezas, setMalezas] = useState<MalezasCatalogoDTO[]>([])
+  const [malezasFiltradas, setMalezasFiltradas] = useState<MalezasCatalogoDTO[]>([])
 
   // Estados de diálogos
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogMode, setDialogMode] = useState<"create" | "edit">("create")
-  const [entityType, setEntityType] = useState<"catalogo" | "especie" | "cultivar" | "malezasCultivos">("catalogo")
+  const [entityType, setEntityType] = useState<"catalogo" | "especie" | "cultivar" | "malezas">("catalogo")
   const [editingId, setEditingId] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -159,16 +158,15 @@ export default function CatalogosPage() {
     especieID: 0
   })
 
-  const [malezasCultivosForm, setMalezasCultivosForm] = useState({
+  const [malezasForm, setMalezasForm] = useState({
     nombreComun: "",
-    nombreCientifico: "",
-    tipoMYCCatalogo: "MALEZA" as TipoMYCCatalogo
+    nombreCientifico: ""
   })
 
   // Cargar datos iniciales y cuando cambien los filtros
   useEffect(() => {
     loadAllData()
-  }, [tipoSeleccionado, filtroCatalogo, filtroEspecie, filtroCultivar, filtroMalezasCultivos, tipoMYCSeleccionado])
+  }, [tipoSeleccionado, filtroCatalogo, filtroEspecie, filtroCultivar, filtroMalezas])
 
   const loadAllData = async () => {
     try {
@@ -179,26 +177,23 @@ export default function CatalogosPage() {
       const especieActivo = filtroEspecie === "todos" ? null : filtroEspecie === "activos"
       const cultivarActivo = filtroCultivar === "todos" ? null : filtroCultivar === "activos"
       
-      // Para malezas y cultivos, obtener según filtro y etiquetar 'activo' según la fuente
-      let malezasCultivosData: MalezasYCultivosCatalogoDTO[] = []
-      let malezasConActivo: MalezasYCultivosCatalogoDTO[] = []
-      if (filtroMalezasCultivos === "activos") {
-        const activos = await obtenerTodosActivosMalezasCultivos()
-        // El backend no incluye el campo 'activo' en el DTO; marcar como true los provenientes de este endpoint
-        malezasConActivo = activos.map((mc) => ({ ...mc, activo: true }))
-      } else if (filtroMalezasCultivos === "inactivos") {
-        const inactivos = await obtenerInactivosMalezasCultivos()
-        // Marcar como false los provenientes del endpoint de inactivos
-        malezasConActivo = inactivos.map((mc) => ({ ...mc, activo: false }))
+      // Para malezas, obtener según filtro y etiquetar 'activo' según la fuente
+      let malezasConActivo: MalezasCatalogoDTO[] = []
+      if (filtroMalezas === "activos") {
+        const activos = await obtenerTodasMalezas()
+        malezasConActivo = activos.map((m) => ({ ...m, activo: true }))
+      } else if (filtroMalezas === "inactivos") {
+        const inactivos = await obtenerMalezasInactivas()
+        malezasConActivo = inactivos.map((m) => ({ ...m, activo: false }))
       } else {
-        // Para "todos", combinar activos e inactivos y preservar su estado
+        // Para "todos", combinar activos e inactivos
         const [activos, inactivos] = await Promise.all([
-          obtenerTodosActivosMalezasCultivos(),
-          obtenerInactivosMalezasCultivos(),
+          obtenerTodasMalezas(),
+          obtenerMalezasInactivas(),
         ])
         malezasConActivo = [
-          ...activos.map((mc) => ({ ...mc, activo: true })),
-          ...inactivos.map((mc) => ({ ...mc, activo: false })),
+          ...activos.map((m) => ({ ...m, activo: true })),
+          ...inactivos.map((m) => ({ ...m, activo: false })),
         ]
       }
       
@@ -212,19 +207,14 @@ export default function CatalogosPage() {
       setCatalogos(catalogosData)
       setEspecies(especiesData)
       setCultivares(cultivaresData)
-      setMalezasCultivos(malezasConActivo)
+      setMalezas(malezasConActivo)
       setEspeciesActivas(especiesActivasData)
       setHayEspeciesActivas(especiesActivasData.length > 0)
       
       setCatalogosFiltrados(catalogosData)
       setEspeciesFiltradas(especiesData)
       setCultivaresFiltrados(cultivaresData)
-      
-      // Filtrar por tipo seleccionado
-      const filtradosPorTipo = malezasConActivo.filter(
-        (mc) => mc.tipoMYCCatalogo === tipoMYCSeleccionado
-      )
-      setMalezasCultivosFiltrados(filtradosPorTipo)
+      setMalezasFiltradas(malezasConActivo)
     } catch (error: any) {
       toast.error("Error al cargar datos", {
         description: error?.message || "No se pudieron cargar los catálogos"
@@ -268,21 +258,17 @@ export default function CatalogosPage() {
     }
   }, [searchTerm, cultivares, activeTab])
 
-  // Filtrar malezas y cultivos por búsqueda y tipo
+  // Filtrar malezas por búsqueda
   useEffect(() => {
-    if (activeTab === "malezasCultivos") {
-      const filtradosPorTipo = malezasCultivos.filter(
-        mc => mc.tipoMYCCatalogo === tipoMYCSeleccionado
-      )
-      
-      setMalezasCultivosFiltrados(
-        filtradosPorTipo.filter(mc => 
-          mc.nombreComun?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          mc.nombreCientifico?.toLowerCase().includes(searchTerm.toLowerCase())
+    if (activeTab === "malezas") {
+      setMalezasFiltradas(
+        malezas.filter(m => 
+          m.nombreComun?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          m.nombreCientifico?.toLowerCase().includes(searchTerm.toLowerCase())
         )
       )
     }
-  }, [searchTerm, malezasCultivos, activeTab, tipoMYCSeleccionado])
+  }, [searchTerm, malezas, activeTab])
 
   // Handlers para Catálogos
   const handleCreateCatalogo = () => {
@@ -533,85 +519,82 @@ export default function CatalogosPage() {
     }
   }
 
-  // Handlers para Malezas y Cultivos
-  const handleCreateMalezaCultivo = () => {
-    setMalezasCultivosForm({
+  // Handlers para Malezas
+  const handleCreateMaleza = () => {
+    setMalezasForm({
       nombreComun: "",
-      nombreCientifico: "",
-      tipoMYCCatalogo: tipoMYCSeleccionado
+      nombreCientifico: ""
     })
-    setEntityType("malezasCultivos")
+    setEntityType("malezas")
     setDialogMode("create")
     setEditingId(null)
     setDialogOpen(true)
   }
 
-  const handleEditMalezaCultivo = (malezaCultivo: MalezasYCultivosCatalogoDTO) => {
-    setMalezasCultivosForm({
-      nombreComun: malezaCultivo.nombreComun || "",
-      nombreCientifico: malezaCultivo.nombreCientifico || "",
-      tipoMYCCatalogo: malezaCultivo.tipoMYCCatalogo
+  const handleEditMaleza = (maleza: MalezasCatalogoDTO) => {
+    setMalezasForm({
+      nombreComun: maleza.nombreComun || "",
+      nombreCientifico: maleza.nombreCientifico || ""
     })
-    setEntityType("malezasCultivos")
+    setEntityType("malezas")
     setDialogMode("edit")
-    setEditingId(malezaCultivo.catalogoID)
+    setEditingId(maleza.catalogoID)
     setDialogOpen(true)
   }
 
-  const handleDeleteMalezaCultivo = async (id: number) => {
-    if (!confirm("¿Está seguro de que desea desactivar este registro?")) {
+  const handleDeleteMaleza = async (id: number) => {
+    if (!confirm("¿Está seguro de que desea desactivar esta maleza?")) {
       return
     }
 
     try {
-      await eliminarMalezaCultivo(id)
-      toast.success("Registro desactivado exitosamente")
+      await eliminarMaleza(id)
+      toast.success("Maleza desactivada exitosamente")
       await loadAllData()
     } catch (error: any) {
-      toast.error("Error al desactivar registro", {
+      toast.error("Error al desactivar maleza", {
         description: error?.message
       })
     }
   }
 
-  const handleReactivarMalezaCultivo = async (id: number) => {
+  const handleReactivarMaleza = async (id: number) => {
     try {
-      await reactivarMalezaCultivo(id)
-      toast.success("Registro reactivado exitosamente")
+      await reactivarMaleza(id)
+      toast.success("Maleza reactivada exitosamente")
       await loadAllData()
     } catch (error: any) {
-      toast.error("Error al reactivar registro", {
+      toast.error("Error al reactivar maleza", {
         description: error?.message
       })
     }
   }
 
-  const handleSaveMalezaCultivo = async () => {
-    if (!malezasCultivosForm.nombreComun.trim() || !malezasCultivosForm.nombreCientifico.trim()) {
+  const handleSaveMaleza = async () => {
+    if (!malezasForm.nombreComun.trim() || !malezasForm.nombreCientifico.trim()) {
       toast.error("Nombre común y nombre científico son requeridos")
       return
     }
 
     setSaving(true)
     try {
-      const data: import("@/app/models/interfaces/malezas").MalezasYCultivosCatalogoRequestDTO = {
-        nombreComun: malezasCultivosForm.nombreComun,
-        nombreCientifico: malezasCultivosForm.nombreCientifico,
-        tipoMYCCatalogo: malezasCultivosForm.tipoMYCCatalogo
+      const data: import("@/app/models/interfaces/malezas").MalezasCatalogoRequestDTO = {
+        nombreComun: malezasForm.nombreComun,
+        nombreCientifico: malezasForm.nombreCientifico
       }
 
       if (dialogMode === "create") {
-        await crearMalezaCultivo(data)
-        toast.success(`${data.tipoMYCCatalogo === "MALEZA" ? "Maleza" : "Cultivo"} creado exitosamente`)
+        await crearMaleza(data)
+        toast.success("Maleza creada exitosamente")
       } else if (editingId) {
-        await actualizarMalezaCultivo(editingId, data)
-        toast.success(`${data.tipoMYCCatalogo === "MALEZA" ? "Maleza" : "Cultivo"} actualizado exitosamente`)
+        await actualizarMaleza(editingId, data)
+        toast.success("Maleza actualizada exitosamente")
       }
 
       setDialogOpen(false)
       await loadAllData()
     } catch (error: any) {
-      toast.error(`Error al ${dialogMode === "create" ? "crear" : "actualizar"} registro`, {
+      toast.error(`Error al ${dialogMode === "create" ? "crear" : "actualizar"} maleza`, {
         description: error?.message
       })
     } finally {
@@ -631,8 +614,8 @@ export default function CatalogosPage() {
       case "cultivar":
         handleSaveCultivar()
         break
-      case "malezasCultivos":
-        handleSaveMalezaCultivo()
+      case "malezas":
+        handleSaveMaleza()
         break
     }
   }
@@ -717,9 +700,9 @@ export default function CatalogosPage() {
                   <Sprout className="h-4 w-4 mr-2" />
                   Cultivares
                 </TabsTrigger>
-                <TabsTrigger value="malezasCultivos" className="text-sm sm:text-base">
+                <TabsTrigger value="malezas" className="text-sm sm:text-base">
                   <Bug className="h-4 w-4 mr-2" />
-                  Malezas/Cultivos
+                  Malezas
                 </TabsTrigger>
               </TabsList>
 
@@ -1043,43 +1026,22 @@ export default function CatalogosPage() {
                 </div>
               </TabsContent>
 
-              {/* Tab Malezas y Cultivos */}
-              <TabsContent value="malezasCultivos" className="space-y-4">
+              {/* Tab Malezas */}
+              <TabsContent value="malezas" className="space-y-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                    <Select value={tipoMYCSeleccionado} onValueChange={(v) => setTipoMYCSeleccionado(v as TipoMYCCatalogo)}>
-                      <SelectTrigger className="w-full sm:w-48">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="MALEZA">
-                          <div className="flex items-center gap-2">
-                            <Bug className="h-4 w-4" />
-                            Malezas
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="CULTIVO">
-                          <div className="flex items-center gap-2">
-                            <Sprout className="h-4 w-4" />
-                            Cultivos
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select value={filtroMalezasCultivos} onValueChange={(v) => setFiltroMalezasCultivos(v as "activos" | "inactivos" | "todos")}>
-                      <SelectTrigger className="w-full sm:w-48">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="activos">✓ Solo Activos</SelectItem>
-                        <SelectItem value="inactivos">✕ Solo Inactivos</SelectItem>
-                        <SelectItem value="todos">Todos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button onClick={handleCreateMalezaCultivo}>
+                  <Select value={filtroMalezas} onValueChange={(v) => setFiltroMalezas(v as "activos" | "inactivos" | "todos")}>
+                    <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="activos">✓ Solo Activos</SelectItem>
+                      <SelectItem value="inactivos">✕ Solo Inactivos</SelectItem>
+                      <SelectItem value="todos">Todos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={handleCreateMaleza}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Nuevo {tipoMYCSeleccionado === "MALEZA" ? "Maleza" : "Cultivo"}
+                    Nueva Maleza
                   </Button>
                 </div>
 
@@ -1090,35 +1052,29 @@ export default function CatalogosPage() {
                         <TableHead>ID</TableHead>
                         <TableHead>Nombre Común</TableHead>
                         <TableHead>Nombre Científico</TableHead>
-                        <TableHead>Tipo</TableHead>
                         <TableHead>Estado</TableHead>
                         <TableHead className="text-right">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {malezasCultivosFiltrados.length === 0 ? (
+                      {malezasFiltradas.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                             <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                            <p>No hay {tipoMYCSeleccionado === "MALEZA" ? "malezas" : "cultivos"} registrados</p>
+                            <p>No hay malezas registradas</p>
                           </TableCell>
                         </TableRow>
                       ) : (
-                        malezasCultivosFiltrados.map((mc) => (
-                          <TableRow key={mc.catalogoID}>
-                            <TableCell className="font-mono">{mc.catalogoID}</TableCell>
-                            <TableCell className="font-medium">{mc.nombreComun}</TableCell>
+                        malezasFiltradas.map((maleza) => (
+                          <TableRow key={maleza.catalogoID}>
+                            <TableCell className="font-mono">{maleza.catalogoID}</TableCell>
+                            <TableCell className="font-medium">{maleza.nombreComun}</TableCell>
                             <TableCell className="italic text-muted-foreground">
-                              {mc.nombreCientifico}
+                              {maleza.nombreCientifico}
                             </TableCell>
                             <TableCell>
-                              <Badge variant={mc.tipoMYCCatalogo === "MALEZA" ? "destructive" : "default"}>
-                                {mc.tipoMYCCatalogo === "MALEZA" ? "Maleza" : "Cultivo"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={mc.activo ? "default" : "secondary"}>
-                                {mc.activo ? "Activo" : "Inactivo"}
+                              <Badge variant={maleza.activo ? "default" : "secondary"}>
+                                {maleza.activo ? "Activo" : "Inactivo"}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right">
@@ -1126,16 +1082,16 @@ export default function CatalogosPage() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleEditMalezaCultivo(mc)}
+                                  onClick={() => handleEditMaleza(maleza)}
                                   className="text-blue-600 hover:text-blue-700"
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                {mc.activo ? (
+                                {maleza.activo ? (
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleDeleteMalezaCultivo(mc.catalogoID)}
+                                    onClick={() => handleDeleteMaleza(maleza.catalogoID)}
                                     className="text-red-600 hover:text-red-700"
                                     title="Desactivar"
                                   >
@@ -1145,7 +1101,7 @@ export default function CatalogosPage() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleReactivarMalezaCultivo(mc.catalogoID)}
+                                    onClick={() => handleReactivarMaleza(maleza.catalogoID)}
                                     className="text-green-600 hover:text-green-700"
                                     title="Reactivar"
                                   >
@@ -1178,9 +1134,7 @@ export default function CatalogosPage() {
                 ? "Especie" 
                 : entityType === "cultivar"
                 ? "Cultivar"
-                : malezasCultivosForm.tipoMYCCatalogo === "MALEZA" 
-                ? "Maleza" 
-                : "Cultivo"
+                : "Maleza"
               }
             </DialogTitle>
             <DialogDescription>
@@ -1192,9 +1146,7 @@ export default function CatalogosPage() {
                       ? "una nueva especie" 
                       : entityType === "cultivar"
                       ? "un nuevo cultivar"
-                      : malezasCultivosForm.tipoMYCCatalogo === "MALEZA"
-                      ? "una nueva maleza"
-                      : "un nuevo cultivo"
+                      : "una nueva maleza"
                   }`
                 : `Modifique los datos ${
                     entityType === "catalogo" 
@@ -1203,9 +1155,7 @@ export default function CatalogosPage() {
                       ? "de la especie" 
                       : entityType === "cultivar"
                       ? "del cultivar"
-                      : malezasCultivosForm.tipoMYCCatalogo === "MALEZA"
-                      ? "de la maleza"
-                      : "del cultivo"
+                      : "de la maleza"
                   }`
               }
             </DialogDescription>
@@ -1301,49 +1251,23 @@ export default function CatalogosPage() {
               </>
             )}
 
-            {entityType === "malezasCultivos" && (
+            {entityType === "malezas" && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="tipoMYC">Tipo *</Label>
-                  <Select
-                    value={malezasCultivosForm.tipoMYCCatalogo}
-                    onValueChange={(v) => setMalezasCultivosForm({ ...malezasCultivosForm, tipoMYCCatalogo: v as TipoMYCCatalogo })}
-                    disabled={dialogMode === "edit"}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="MALEZA">
-                        <div className="flex items-center gap-2">
-                          <Bug className="h-4 w-4" />
-                          Maleza
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="CULTIVO">
-                        <div className="flex items-center gap-2">
-                          <Sprout className="h-4 w-4" />
-                          Cultivo
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="nombreComun">Nombre Común *</Label>
+                  <Label htmlFor="nombre">Nombre Común *</Label>
                   <Input
-                    id="nombreComun"
-                    value={malezasCultivosForm.nombreComun}
-                    onChange={(e) => setMalezasCultivosForm({ ...malezasCultivosForm, nombreComun: e.target.value })}
+                    id="nombre"
+                    value={malezasForm.nombreComun}
+                    onChange={(e) => setMalezasForm({ ...malezasForm, nombreComun: e.target.value })}
                     placeholder="Ej: Yuyo colorado"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="nombreCientificoMYC">Nombre Científico *</Label>
+                  <Label htmlFor="nombreCientifico">Nombre Científico *</Label>
                   <Input
-                    id="nombreCientificoMYC"
-                    value={malezasCultivosForm.nombreCientifico}
-                    onChange={(e) => setMalezasCultivosForm({ ...malezasCultivosForm, nombreCientifico: e.target.value })}
+                    id="nombreCientifico"
+                    value={malezasForm.nombreCientifico}
+                    onChange={(e) => setMalezasForm({ ...malezasForm, nombreCientifico: e.target.value })}
                     placeholder="Ej: Amaranthus quitensis"
                     className="italic"
                   />
@@ -1380,3 +1304,8 @@ export default function CatalogosPage() {
     </div>
   )
 }
+function setMalezasCultivosForm(arg0: { nombreComun: string; nombreCientifico: string; tipoMYCCatalogo: any }) {
+  throw new Error("Function not implemented.")
+}
+
+

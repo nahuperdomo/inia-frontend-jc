@@ -21,27 +21,11 @@ import {
   aprobarAnalisis,
   marcarParaRepetir
 } from "@/app/services/dosn-service"
-import { obtenerTodosActivosMalezasCultivos } from "@/app/services/malezas-service"
-import type { DosnDTO, DosnRequestDTO, MalezasYCultivosCatalogoDTO, TipoListado, TipoMYCCatalogo } from "@/app/models"
+import * as malezasService from "@/app/services/malezas-service"
+import type { DosnDTO, DosnRequestDTO, MalezasCatalogoDTO, TipoListado, Instituto } from "@/app/models"
 import { toast } from "sonner"
 import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
-
-// Función helper para mapear tipos de listado a tipos de catálogo
-const getCompatibleCatalogTypes = (listadoTipo: TipoListado): TipoMYCCatalogo[] => {
-  switch (listadoTipo) {
-    case "MAL_TOLERANCIA":
-    case "MAL_TOLERANCIA_CERO":
-    case "MAL_COMUNES":
-      return ["MALEZA"]
-    case "BRASSICA":
-      return [] // Las brassicas no tienen catálogo
-    case "OTROS":
-      return ["CULTIVO"]
-    default:
-      return ["MALEZA", "CULTIVO"] // Solo malezas y cultivos
-  }
-}
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -88,7 +72,7 @@ export default function EditarDosnPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [catalogos, setCatalogos] = useState<MalezasYCultivosCatalogoDTO[]>([])
+  const [catalogos, setCatalogos] = useState<MalezasCatalogoDTO[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Nuevos estados para agregar listados
@@ -112,6 +96,7 @@ export default function EditarDosnPage() {
     tipoINASE: [] as string[],
     cuscuta_g: 0,
     cuscutaNum: 0,
+    institutoCuscuta: "" as Instituto | "",
     listados: [] as any[],
   })
 
@@ -155,23 +140,14 @@ export default function EditarDosnPage() {
         // Cargar los catálogos usando el servicio correcto
         try {
           console.log("Cargando catálogos de malezas/cultivos/brassicas...")
-          const catalogosData = await obtenerTodosActivosMalezasCultivos()
+          // Intentamos llamar a la función esperada; si no existe, intentamos un nombre alternativo o devolvemos []
+          const catalogosData = await (malezasService as any).obtenerTodosActivosMalezasCultivos?.() ?? (malezasService as any).obtenerTodosActivos?.() ?? []
           console.log("Respuesta de catálogos:", catalogosData)
           console.log("Tipo de respuesta:", typeof catalogosData)
           console.log("Es array?", Array.isArray(catalogosData))
 
           if (Array.isArray(catalogosData)) {
             console.log("Catálogos cargados correctamente:", catalogosData.length, "items")
-
-            // Mostrar distribución por tipos
-            const tipoDistribution = catalogosData.reduce(
-              (acc, cat) => {
-                acc[cat.tipoMYCCatalogo] = (acc[cat.tipoMYCCatalogo] || 0) + 1
-                return acc
-              },
-              {} as Record<string, number>,
-            )
-            console.log("Distribución por tipos:", tipoDistribution)
 
             if (catalogosData.length > 0) {
               console.log("Primer catálogo:", catalogosData[0])
@@ -218,6 +194,7 @@ export default function EditarDosnPage() {
           tipoINASE: dosnData.tipoINASE || [],
           cuscuta_g: dosnData.cuscuta_g || 0,
           cuscutaNum: dosnData.cuscutaNum || 0,
+          institutoCuscuta: (dosnData.institutoCuscuta || "") as Instituto | "",
           listados:
             dosnData.listados?.map((listado) => ({
               listadoTipo: listado.listadoTipo,
@@ -401,6 +378,7 @@ export default function EditarDosnPage() {
         tipoINASE: formData.tipoINASE as any[],
         cuscuta_g: formData.cuscuta_g || undefined,
         cuscutaNum: formData.cuscutaNum || undefined,
+        institutoCuscuta: formData.institutoCuscuta as Instituto || undefined,
         fechaCuscuta: (formData.cuscuta_g > 0 || formData.cuscutaNum > 0)
           ? (dosn.fechaCuscuta || new Date().toISOString().split('T')[0]) // Usar fecha existente o actual
           : undefined,
@@ -834,7 +812,7 @@ export default function EditarDosnPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="cuscuta_g" className="text-sm font-medium">
                   Peso Cuscuta
@@ -868,6 +846,23 @@ export default function EditarDosnPage() {
                   min="0"
                   className="text-base"
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="institutoCuscuta" className="text-sm font-medium">
+                  Instituto Cuscuta
+                </Label>
+                <Select
+                  value={formData.institutoCuscuta}
+                  onValueChange={(value) => handleInputChange("institutoCuscuta", value)}
+                >
+                  <SelectTrigger className="text-base">
+                    <SelectValue placeholder="Seleccionar instituto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="INIA">INIA</SelectItem>
+                    <SelectItem value="INASE">INASE</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>
@@ -943,41 +938,24 @@ export default function EditarDosnPage() {
                           <SelectValue placeholder="Seleccionar especie" />
                         </SelectTrigger>
                         <SelectContent>
-                          {(() => {
-                            const tiposCompatibles = newListado.listadoTipo
-                              ? getCompatibleCatalogTypes(newListado.listadoTipo as TipoListado)
-                              : ["MALEZA", "CULTIVO"]
-
-                            const catalogosFiltrados = catalogos.filter((cat) =>
-                              tiposCompatibles.includes(cat.tipoMYCCatalogo),
-                            )
-
-                            if (catalogosFiltrados.length === 0) {
-                              return (
-                                <SelectItem value="0" disabled>
-                                  {newListado.listadoTipo ? `No hay especies disponibles` : "Selecciona primero el tipo"}
-                                </SelectItem>
-                              )
-                            }
-
-                            return catalogosFiltrados.map((catalogo) => (
+                          {catalogos.length === 0 ? (
+                            <SelectItem value="0" disabled>
+                              No hay malezas disponibles
+                            </SelectItem>
+                          ) : (
+                            catalogos.map((catalogo) => (
                               <SelectItem key={catalogo.catalogoID} value={catalogo.catalogoID.toString()}>
                                 {catalogo.nombreComun}
                               </SelectItem>
                             ))
-                          })()}
+                          )}
                         </SelectContent>
                       </Select>
                     )}
                     {newListado.listadoTipo && newListado.listadoTipo !== "BRASSICA" && (() => {
-                      const tiposCompatibles = getCompatibleCatalogTypes(newListado.listadoTipo as TipoListado)
-                      const catalogosFiltrados = catalogos.filter((cat) =>
-                        tiposCompatibles.includes(cat.tipoMYCCatalogo),
-                      )
-
                       return (
                         <p className="text-xs text-muted-foreground mt-1">
-                          {`${catalogosFiltrados.length} especies disponibles`}
+                          {`${catalogos.length} malezas disponibles`}
                         </p>
                       )
                     })()}

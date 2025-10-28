@@ -21,24 +21,10 @@ import {
   marcarParaRepetir
 } from "@/app/services/pureza-service"
 import { obtenerTodosActivosMalezasCultivos } from "@/app/services/malezas-service"
-import type { PurezaDTO, PurezaRequestDTO, MalezasYCultivosCatalogoDTO, TipoListado, TipoMYCCatalogo } from "@/app/models"
+import type { PurezaDTO, PurezaRequestDTO, MalezasCatalogoDTO, TipoListado } from "@/app/models"
 import { toast } from "sonner"
 import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
-
-// Función helper para mapear tipos de listado a tipos de catálogo
-const getCompatibleCatalogTypes = (listadoTipo: TipoListado): TipoMYCCatalogo[] => {
-  switch (listadoTipo) {
-    case "MAL_TOLERANCIA":
-    case "MAL_TOLERANCIA_CERO":
-    case "MAL_COMUNES":
-      return ["MALEZA"]
-    case "OTROS":
-      return ["CULTIVO"]
-    default:
-      return ["MALEZA", "CULTIVO"]
-  }
-}
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -81,7 +67,7 @@ export default function EditarPurezaPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [catalogos, setCatalogos] = useState<MalezasYCultivosCatalogoDTO[]>([])
+  const [catalogos, setCatalogos] = useState<MalezasCatalogoDTO[]>([])
 
   // Nuevos estados para agregar listados
   const [showAddListado, setShowAddListado] = useState(false)
@@ -1258,29 +1244,17 @@ export default function EditarPurezaPage() {
                           <SelectValue placeholder="Seleccionar especie" />
                         </SelectTrigger>
                         <SelectContent>
-                          {(() => {
-                            const tiposCompatibles = newListado.listadoTipo
-                              ? getCompatibleCatalogTypes(newListado.listadoTipo as TipoListado)
-                              : ["MALEZA", "CULTIVO"]
-
-                            const catalogosFiltrados = catalogos.filter((cat) =>
-                              tiposCompatibles.includes(cat.tipoMYCCatalogo),
-                            )
-
-                            if (catalogosFiltrados.length === 0) {
-                              return (
-                                <SelectItem value="0" disabled>
-                                  {newListado.listadoTipo ? "No hay especies" : "Selecciona tipo primero"}
-                                </SelectItem>
-                              )
-                            }
-
-                            return catalogosFiltrados.map((catalogo) => (
+                          {catalogos.length === 0 ? (
+                            <SelectItem value="0" disabled>
+                              No hay malezas disponibles
+                            </SelectItem>
+                          ) : (
+                            catalogos.map((catalogo) => (
                               <SelectItem key={catalogo.catalogoID} value={catalogo.catalogoID.toString()}>
                                 {catalogo.nombreComun}
                               </SelectItem>
                             ))
-                          })()}
+                          )}
                         </SelectContent>
                       </Select>
                     </div>

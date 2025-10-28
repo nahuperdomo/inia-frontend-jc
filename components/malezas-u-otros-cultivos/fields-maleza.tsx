@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Trash2, Plus, Leaf, AlertTriangle, CheckCircle, XCircle } from "lucide-react"
 import { obtenerMalezas } from "@/app/services/malezas-service"
-import { MalezasYCultivosCatalogoDTO } from "@/app/models"
+import { MalezasCatalogoDTO } from "@/app/models"
 import { usePersistentArray } from "@/lib/hooks/use-form-persistence"
 
 type Maleza = {
@@ -56,7 +56,7 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
   }, [malezas])
 
 
-  const [opcionesMalezas, setOpcionesMalezas] = useState<MalezasYCultivosCatalogoDTO[]>([])
+  const [opcionesMalezas, setOpcionesMalezas] = useState<MalezasCatalogoDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
