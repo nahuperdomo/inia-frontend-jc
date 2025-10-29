@@ -17,10 +17,12 @@ import {
   Pie,
   Cell,
 } from "recharts"
-import { FileText, Calendar, Beaker, FlaskConical, Scale, TestTube, TestTubes, TrendingUp, AlertTriangle } from "lucide-react"
+import { FileText, Calendar, Beaker, FlaskConical, Scale, TestTube, TestTubes, TrendingUp, AlertTriangle, Download, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { obtenerReporteGeneral } from "@/app/services/reporte-service"
 import { ReporteGeneralDTO } from "@/app/models/interfaces/reportes"
+import { BotonExportarExcel } from "@/components/exportar-excel-btn"
+import { DialogExportarConFiltros } from "@/components/dialog-exportar-filtros"
 
 export default function ReportesPage() {
   const [fechaInicio, setFechaInicio] = useState("")
@@ -134,6 +136,59 @@ export default function ReportesPage() {
         </div>
       </div>
 
+      {/* Sección de Prueba de Exportación Excel */}
+      <Card className="border-2 border-primary/20 bg-primary/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Download className="h-5 w-5 text-primary" />
+            Exportación de Datos a Excel
+          </CardTitle>
+          <CardDescription>
+            Prueba las funcionalidades de exportación de datos a Excel con diferentes opciones
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="p-4 bg-background rounded-lg border">
+              <h4 className="font-medium mb-2">Exportación Simple</h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                Exporta todos los lotes activos del sistema en formato Excel
+              </p>
+              <BotonExportarExcel 
+                variant="default" 
+                textoBoton="Exportar Todos los Lotes"
+                className="w-full sm:w-auto"
+              />
+            </div>
+            
+            <div className="p-4 bg-background rounded-lg border">
+              <h4 className="font-medium mb-2">Exportación con Filtros Avanzados</h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                Configura filtros personalizados por fecha, tipo de análisis y estado con vista previa
+              </p>
+              <DialogExportarConFiltros />
+            </div>
+            
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <h4 className="font-medium mb-2 flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                Características del Excel
+              </h4>
+              <ul className="text-sm space-y-1 text-muted-foreground ml-6">
+                <li>✓ Múltiples hojas organizadas por tipo de análisis</li>
+                <li>✓ Formato profesional con colores y estilos</li>
+                <li>✓ Metadatos incluidos (fecha, filtros aplicados)</li>
+                <li>✓ Datos validados y estructurados</li>
+                <li>✓ Compatible con Excel 2007+</li>
+                <li>✓ Vista previa de filtros antes de exportar</li>
+                <li>✓ Advertencias de exportaciones grandes</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Filtros por Fecha */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
