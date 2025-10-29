@@ -10,6 +10,7 @@ export interface LoteDTO {
   nomLote?: string;
   cultivarID: number;
   cultivarNombre?: string;
+  especieNombre?: string; // Nombre de la especie del cultivar
   tipo?: string;
   empresaID: number;
   empresaNombre?: string;

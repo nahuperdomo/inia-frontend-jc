@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { RepGermDTO, RepGermRequestDTO } from '@/app/models/interfaces/repeticiones'
 import { Save, Edit, Check, X } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface RepeticionRowProps {
   repeticion?: RepGermDTO
@@ -99,16 +100,21 @@ export function RepeticionRow({
   }
 
   const handleGuardar = async () => {
+    console.log(`🔍 RepeticionRow ${numeroRepeticion}: Iniciando validación para guardar`)
+    console.log("📝 Datos actuales:", datos)
+    
     const limiteMaximo = Math.ceil(numSemillasPRep * 1.05)
     
     // Validación del máximo - siempre se aplica
     if (datos.total > limiteMaximo) {
+      console.log(`❌ Validación fallida: total ${datos.total} excede límite ${limiteMaximo}`)
       alert(`El total (${datos.total}) excede el límite máximo permitido (${limiteMaximo} - con 5% de tolerancia sobre ${numSemillasPRep} semillas)`)
       return
     }
 
     // Validación: debe haber al menos un valor mayor a 0
     if (datos.total === 0) {
+      console.log("❌ Validación fallida: total es 0")
       alert("Debe ingresar al menos un valor mayor a 0")
       return
     }
@@ -122,16 +128,22 @@ export function RepeticionRow({
     if (datos.normales.some(val => val < 0)) valoresNegativos.push("Normales")
     
     if (valoresNegativos.length > 0) {
+      console.log("❌ Validación fallida: valores negativos en", valoresNegativos)
       alert(`Los siguientes campos no pueden ser negativos: ${valoresNegativos.join(", ")}`)
       return
     }
 
+    console.log("✅ Validaciones pasadas, llamando a onGuardar...")
+    
     try {
       setGuardando(true)
       await onGuardar(datos)
+      console.log(`✅ RepeticionRow ${numeroRepeticion}: Guardado exitoso`)
+      toast.success(`Repetición ${numeroRepeticion} guardada exitosamente`)
       setModoEdicion(false)
     } catch (error) {
-      console.error("Error guardando repetición:", error)
+      console.error(`❌ RepeticionRow ${numeroRepeticion}: Error al guardar:`, error)
+      toast.error(`Error al guardar la repetición ${numeroRepeticion}`)
     } finally {
       setGuardando(false)
     }

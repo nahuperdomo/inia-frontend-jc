@@ -27,6 +27,7 @@ export interface ListadoRequestDTO {
 
 export interface DatosHumedadDTO {
   humedadID: number;
+  humedadNombre?: string; // Nombre del tipo de humedad
   porcentaje: number;
   observaciones?: string;
 }
