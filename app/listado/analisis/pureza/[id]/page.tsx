@@ -28,6 +28,7 @@ import { obtenerPurezaPorId } from "@/app/services/pureza-service"
 import type { PurezaDTO } from "@/app/models"
 import type { EstadoAnalisis, TipoListado } from "@/app/models/types/enums"
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -299,6 +300,16 @@ export default function PurezaDetailPage() {
       {/* Content */}
       <div className="pt-4">
         <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Botón de Tabla de Tolerancias */}
+          <div className="mb-6 flex justify-end">
+            <TablaToleranciasButton
+              pdfPath="/tablas-tolerancias/tabla-pureza.pdf"
+              title="Ver Tabla de Tolerancias"
+              variant="outline"
+              size="sm"
+            />
+          </div>
+          
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             <div className="lg:col-span-2 space-y-6">
               {/* Información General */}

@@ -19,6 +19,7 @@ import {
   Info,
   BarChart3,
 } from "lucide-react"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 
 type Props = {
   formData: any;
@@ -59,18 +60,26 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
   return (
     <Card className="border-0 shadow-sm bg-card">
       <CardHeader className="pb-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
-            <Scale className="h-6 w-6 text-blue-600" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
+              <Scale className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-xl font-semibold text-foreground">
+                Análisis de Peso de Mil Semillas (PMS)
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Configura los parámetros para el análisis de peso de mil semillas
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <CardTitle className="text-xl font-semibold text-foreground">
-              Análisis de Peso de Mil Semillas (PMS)
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              Configura los parámetros para el análisis de peso de mil semillas
-            </p>
-          </div>
+          <TablaToleranciasButton
+            pdfPath="/tablas-tolerancias/tabla-pms.pdf"
+            title="Ver Tabla de Tolerancias"
+            variant="outline"
+            size="sm"
+          />
         </div>
       </CardHeader>
 

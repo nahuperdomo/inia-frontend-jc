@@ -38,6 +38,7 @@ import {
 } from "@/app/services/pms-service"
 import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 import { 
   obtenerRepeticionesPorPms, 
   crearRepPms, 
@@ -780,6 +781,10 @@ export default function EditarPMSPage() {
               Parámetros del Análisis
             </CardTitle>
             <div className="flex gap-2">
+              <TablaToleranciasButton 
+                pdfPath="/tablas-tolerancias/tabla-pms.pdf" 
+                title="Tabla de Tolerancias"
+              />
               {!editingParams ? (
                 <Button 
                   variant="outline"

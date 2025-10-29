@@ -26,6 +26,7 @@ import { Label } from '@/components/ui/label'
 import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
 import { toast } from "sonner"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -40,6 +41,26 @@ const formatearFechaLocal = (fechaString: string): string => {
     month: '2-digit',
     day: '2-digit'
   })
+}
+
+// Función para formatear fecha y hora (LocalDateTime del backend)
+const formatearFechaHora = (fechaString: string): string => {
+  if (!fechaString) return ''
+  
+  try {
+    const fecha = new Date(fechaString)
+    if (isNaN(fecha.getTime())) return fechaString // Si no se puede parsear, devolver el string original
+    
+    return fecha.toLocaleString('es-UY', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch (error) {
+    return fechaString
+  }
 }
 
 // Función para convertir fecha del backend al formato YYYY-MM-DD para inputs
@@ -354,21 +375,27 @@ export default function GerminacionDetailPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Beaker className="h-5 w-5" />
-              Información del Análisis
-            </CardTitle>
-            {!editandoGerminacion && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleEditarGerminacion}
-                className="min-w-fit"
-              >
-                <Edit className="h-4 w-4 mr-1" />
-                Editar
-              </Button>
-            )}
+              <CardTitle>Información del Análisis</CardTitle>
+            </div>
+            <div className="flex items-center gap-2">
+              <TablaToleranciasButton
+                pdfPath="/tablas-tolerancias/tabla-germinacion.pdf"
+                title="Tabla de Tolerancias"
+              />
+              {!editandoGerminacion && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleEditarGerminacion}
+                  className="min-w-fit"
+                >
+                  <Edit className="h-4 w-4 mr-1" />
+                  Editar
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -491,58 +518,37 @@ export default function GerminacionDetailPage() {
                 <p className="text-sm font-medium text-muted-foreground">Estado</p>
                 <p className="font-semibold">{germinacion.estado}</p>
               </div>
-              {germinacion.fechaInicioGerm && (
+              {germinacion.fechaInicio && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Fecha de Inicio</p>
+                  <p className="text-sm font-medium text-muted-foreground">Fecha de Creación</p>
                   <p className="font-semibold flex items-center gap-1">
                     <CalendarDays className="h-4 w-4" />
-                    {formatearFechaLocal(germinacion.fechaInicioGerm)}
+                    {formatearFechaHora(germinacion.fechaInicio)}
                   </p>
                 </div>
               )}
-              {germinacion.numDias && (
+              {germinacion.fechaFin && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Días de Análisis</p>
-                  <p className="font-semibold">{germinacion.numDias}</p>
-                </div>
-              )}
-              {germinacion.numeroRepeticiones && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Repeticiones</p>
-                  <p className="font-semibold">{germinacion.numeroRepeticiones}</p>
-                </div>
-              )}
-              {germinacion.numeroConteos && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Conteos</p>
-                  <p className="font-semibold">{germinacion.numeroConteos}</p>
-                </div>
-              )}
-              {germinacion.fechaUltConteo && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Fecha Último Conteo</p>
+                  <p className="text-sm font-medium text-muted-foreground">Fecha de Fin</p>
                   <p className="font-semibold flex items-center gap-1">
                     <CalendarDays className="h-4 w-4" />
-                    {formatearFechaLocal(germinacion.fechaUltConteo)}
+                    {formatearFechaHora(germinacion.fechaFin)}
                   </p>
                 </div>
               )}
               {germinacion.comentarios && (
-                <div className="md:col-span-2">
+                <div className="md:col-span-3">
                   <p className="text-sm font-medium text-muted-foreground">Comentarios</p>
                   <p className="font-semibold">{germinacion.comentarios}</p>
                 </div>
               )}
-              {germinacion.fechaConteos && germinacion.fechaConteos.length > 0 && (
+              {tablas.length > 0 && (
                 <div className="md:col-span-3">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">Fechas de Conteos</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                    {germinacion.fechaConteos.map((fecha, index) => (
-                      <div key={index} className="text-sm">
-                        <span className="text-gray-600">Conteo {index + 1}:</span> {formatearFechaLocal(fecha)}
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Tablas de Germinación</p>
+                  <p className="text-sm text-muted-foreground">
+                    Este análisis tiene {tablas.length} tabla{tablas.length !== 1 ? 's' : ''} de germinación. 
+                    Los detalles de cada tabla se muestran en la sección inferior.
+                  </p>
                 </div>
               )}
             </div>

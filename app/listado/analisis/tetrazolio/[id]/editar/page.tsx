@@ -22,6 +22,7 @@ import { toast } from "sonner"
 import TetrazolioFields from "@/app/registro/analisis/tetrazolio/form-tetrazolio"
 import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
@@ -697,12 +698,18 @@ export default function EditarTetrazolioPage() {
           <form onSubmit={handleSubmit}>
             <Card className="border-0 shadow-sm">
               <CardHeader className="border-b bg-muted/50">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <div className="p-2 rounded-lg bg-orange-500/10">
-                    <TestTube className="h-5 w-5 text-orange-600" />
-                  </div>
-                  Formulario de Edición
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <div className="p-2 rounded-lg bg-orange-500/10">
+                      <TestTube className="h-5 w-5 text-orange-600" />
+                    </div>
+                    Formulario de Edición
+                  </CardTitle>
+                  <TablaToleranciasButton 
+                    pdfPath="/tablas-tolerancias/tabla-tetrazolio.pdf" 
+                    title="Tabla de Tolerancias"
+                  />
+                </div>
               </CardHeader>
               <CardContent className="p-6">
                 <TetrazolioFields

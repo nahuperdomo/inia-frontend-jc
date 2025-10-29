@@ -11,6 +11,7 @@ import {
   Sprout,
   Info,
 } from "lucide-react"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 
 type Props = {
   formData: any;
@@ -21,18 +22,26 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
   return (
     <Card className="border-0 shadow-sm bg-card">
       <CardHeader className="pb-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100">
-            <Sprout className="h-6 w-6 text-green-600" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100">
+              <Sprout className="h-6 w-6 text-green-600" />
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-xl font-semibold text-foreground">
+                Análisis de Germinación
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Ensayo de germinación estándar
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <CardTitle className="text-xl font-semibold text-foreground">
-              Análisis de Germinación
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              Ensayo de germinación estándar
-            </p>
-          </div>
+          <TablaToleranciasButton
+            pdfPath="/tablas-tolerancias/tabla-germinacion.pdf"
+            title="Ver Tabla de Tolerancias"
+            variant="outline"
+            size="sm"
+          />
         </div>
       </CardHeader>
       

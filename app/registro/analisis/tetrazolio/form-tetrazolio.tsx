@@ -30,6 +30,7 @@ import {
   Info,
 } from "lucide-react"
 import { toast } from "react-toastify"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 
 type Props = {
   formData: any
@@ -140,18 +141,24 @@ const validarViabilidadInase = () => {
   return (
     <Card className="border-0 shadow-sm bg-card">
       <CardHeader className="pb-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100">
-            <TestTube className="h-6 w-6 text-orange-600" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100">
+              <TestTube className="h-6 w-6 text-orange-600" />
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-xl font-semibold text-foreground">
+                Análisis de Tetrazolio
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Configura los parámetros para el ensayo de viabilidad con tetrazolio.
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <CardTitle className="text-xl font-semibold text-foreground">
-              Análisis de Tetrazolio
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              Configura los parámetros para el ensayo de viabilidad con tetrazolio.
-            </p>
-          </div>
+          <TablaToleranciasButton 
+            pdfPath="/tablas-tolerancias/tabla-tetrazolio.pdf" 
+            title="Tabla de Tolerancias"
+          />
         </div>
       </CardHeader>
 
