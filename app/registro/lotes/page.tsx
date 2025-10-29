@@ -2,10 +2,11 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Package, Loader2 } from "lucide-react"
+import { ArrowLeft, Package, Loader2, AlertCircle } from "lucide-react"
+import { validarFichaUnica, validarNombreLoteUnico } from "@/lib/validations/lotes-async-validation"
 import Link from "next/link"
 import { Toaster, toast } from 'sonner'
 
@@ -86,12 +87,55 @@ export default function RegistroLotesPage() {
     }
   };
 
-  const handleInputChange = (field: keyof LoteFormData, value: any) => {
+  const handleInputChange = useCallback(async (field: keyof LoteFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+
+    // Validar ficha y nombre de lote cuando cambian
+    if (field === 'ficha' && value) {
+      const esValido = await validarFichaUnica(value);
+      if (!esValido) {
+        toast.error('Esta ficha ya está registrada', {
+          description: 'Por favor, utiliza una ficha diferente',
+          icon: <AlertCircle className="h-5 w-5" />,
+        });
+      }
+    }
+
+    if (field === 'nomLote' && value) {
+      const esValido = await validarNombreLoteUnico(value);
+      if (!esValido) {
+        toast.error('Este nombre de lote ya está registrado', {
+          description: 'Por favor, utiliza un nombre diferente',
+          icon: <AlertCircle className="h-5 w-5" />,
+        });
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validar campos únicos antes de enviar
+    const [fichaValida, nombreValido] = await Promise.all([
+      validarFichaUnica(formData.ficha),
+      validarNombreLoteUnico(formData.nomLote)
+    ]);
+
+    if (!fichaValida) {
+      toast.error('Esta ficha ya está registrada', {
+        description: 'Por favor, utiliza una ficha diferente',
+        icon: <AlertCircle className="h-5 w-5" />,
+      });
+      return;
+    }
+
+    if (!nombreValido) {
+      toast.error('Este nombre de lote ya está registrado', {
+        description: 'Por favor, utiliza un nombre diferente',
+        icon: <AlertCircle className="h-5 w-5" />,
+      });
+      return;
+    }
 
     // Validar todos los campos y marcarlos como tocados
     touchAll(formData);
@@ -219,10 +263,6 @@ export default function RegistroLotesPage() {
             onInputChange={handleInputChange}
             activeTab={activeTab}
             onTabChange={setActiveTab}
-            handleBlur={(field) => handleBlur(field, formData[field as keyof LoteFormData], formData)}
-            hasError={hasError}
-            getErrorMessage={getErrorMessage}
-            // Loading state
             isLoading={isLoading}
           />
 
