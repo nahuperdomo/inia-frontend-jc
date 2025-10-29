@@ -46,6 +46,7 @@ import MalezaFields from "@/components/malezas-u-otros-cultivos/fields-maleza";
 import OtrosCultivosFields from "@/components/malezas-u-otros-cultivos/fields-otros-cultivos";
 import CumplimientoEstandarFields from "@/app/registro/analisis/dosn/fields/fields-cumplio-estandar";
 import { Separator } from "@/components/ui/separator";
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button";
 // ❌ NO incluir BrassicaFields ni CuscutaFields en PUREZA
 
 type Props = {
@@ -240,14 +241,22 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                     <TabsContent value="generales" className="space-y-6">
                         {/* SECCIÓN INIA */}
                         <div className="space-y-4">
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50">
-                                    <Building2 className="h-5 w-5 text-emerald-600" />
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50">
+                                        <Building2 className="h-5 w-5 text-emerald-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold">INIA</h3>
+                                        <p className="text-sm text-muted-foreground">Instituto Nacional de Investigación Agropecuaria</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold">INIA</h3>
-                                    <p className="text-sm text-muted-foreground">Instituto Nacional de Investigación Agropecuaria</p>
-                                </div>
+                                <TablaToleranciasButton
+                                    pdfPath="/tablas-tolerancias/tabla-pureza.pdf"
+                                    title="Ver Tabla de Tolerancias"
+                                    variant="outline"
+                                    size="sm"
+                                />
                             </div>
 
                             {/* Card 1: Fecha y Datos en Gramos */}

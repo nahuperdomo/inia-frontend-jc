@@ -27,6 +27,7 @@ import type { DosnDTO, DosnRequestDTO, MalezasCatalogoDTO, TipoListado, Institut
 import { toast } from "sonner"
 import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -665,12 +666,18 @@ export default function EditarDosnPage() {
         {/* Análisis INIA */}
         <Card className="border-blue-200 dark:border-blue-900/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-blue-100 dark:bg-blue-900/30">
-                <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <span className="text-xl">Análisis INIA</span>
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-blue-100 dark:bg-blue-900/30">
+                  <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <span className="text-xl">Análisis INIA</span>
+              </CardTitle>
+              <TablaToleranciasButton 
+                pdfPath="/tablas-tolerancias/tabla-dosn.pdf" 
+                title="Tabla de Tolerancias"
+              />
+            </div>
           </CardHeader>
 
           <CardContent className="pt-6 space-y-6">

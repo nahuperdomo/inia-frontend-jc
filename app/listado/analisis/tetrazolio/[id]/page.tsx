@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 
 // Función utilitaria para formatear fechas
 const formatearFechaLocal = (fechaString: string): string => {
@@ -217,6 +218,12 @@ export default function TetrazolioDetailPage() {
       {/* Compensar altura del header sticky */}
       <div className="pt-4">
         <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex justify-end mb-6">
+            <TablaToleranciasButton 
+              pdfPath="/tablas-tolerancias/tabla-tetrazolio.pdf" 
+              title="Tabla de Tolerancias"
+            />
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             <div className="lg:col-span-2 space-y-6">
               {/* Información del análisis */}

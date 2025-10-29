@@ -123,18 +123,28 @@ export default function DosnFields({
     return (
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${color}`}>
-              {icon}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${color}`}>
+                {icon}
+              </div>
+              <div>
+                <CardTitle className="text-lg font-semibold">{institution}</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {institution === "INIA"
+                    ? "Instituto Nacional de Investigación Agropecuaria"
+                    : "Instituto Nacional de Semillas"}
+                </p>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-lg font-semibold">{institution}</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {institution === "INIA"
-                  ? "Instituto Nacional de Investigación Agropecuaria"
-                  : "Instituto Nacional de Semillas"}
-              </p>
-            </div>
+            {institution === "INIA" && (
+              <TablaToleranciasButton
+                pdfPath="/tablas-tolerancias/tabla-dosn.pdf"
+                title="Ver Tabla de Tolerancias"
+                variant="outline"
+                size="sm"
+              />
+            )}
           </div>
         </CardHeader>
 

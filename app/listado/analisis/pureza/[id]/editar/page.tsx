@@ -26,6 +26,7 @@ import type { PurezaDTO, PurezaRequestDTO, MalezasCatalogoDTO, EspecieDTO, TipoL
 import { toast } from "sonner"
 import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -539,14 +540,22 @@ export default function EditarPurezaPage() {
         <div className="space-y-6">
           {/* SECCIÓN INIA */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50">
-                <Building2 className="h-5 w-5 text-emerald-600" />
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50">
+                  <Building2 className="h-5 w-5 text-emerald-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">INIA</h3>
+                  <p className="text-sm text-muted-foreground">Instituto Nacional de Investigación Agropecuaria</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold">INIA</h3>
-                <p className="text-sm text-muted-foreground">Instituto Nacional de Investigación Agropecuaria</p>
-              </div>
+              <TablaToleranciasButton
+                pdfPath="/tablas-tolerancias/tabla-pureza.pdf"
+                title="Ver Tabla de Tolerancias"
+                variant="outline"
+                size="sm"
+              />
             </div>
 
             {/* Card 1: Fecha y Datos en Gramos */}
