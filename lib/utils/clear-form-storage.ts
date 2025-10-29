@@ -4,17 +4,19 @@
 
 /**
  * Limpia todos los datos persistidos del formulario DOSN
+ * ⚠️ IMPORTANTE: Solo limpia los datos de REGISTROS (pestaña "Registros")
+ * NO limpia datos generales (fechas, gramos, tipos de análisis)
  */
 export function clearDosnStorage() {
   if (typeof window === "undefined") return
 
   const dosnKeys = [
-    "dosn-datos-generales",
+    // Solo limpiar datos de la pestaña "Registros"
     "dosn-brassicas",
     "dosn-otros-cultivos",
     "dosn-malezas-Malezas", // Debe coincidir con el título
     "dosn-cuscuta",
-    "dosn-cumple-estandar",
+    // NO incluir "dosn-datos-generales" ni "dosn-cumple-estandar"
   ]
 
   dosnKeys.forEach((key) => {
@@ -22,7 +24,7 @@ export function clearDosnStorage() {
     localStorage.removeItem(key)
   })
 
-  console.log("✅ Storage de DOSN limpiado exitosamente")
+  console.log("✅ Storage de registros DOSN limpiado exitosamente")
 }
 
 /**

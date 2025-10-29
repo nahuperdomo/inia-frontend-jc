@@ -33,7 +33,6 @@ import BrassicaFields from "@/app/registro/analisis/dosn/fields/fields-brassica"
 import CuscutaFields from "@/app/registro/analisis/dosn/fields/fileds-cuscuta"
 import CumplimientoEstandarFields from "@/app/registro/analisis/dosn/fields/fields-cumplio-estandar"
 import OtrosCultivosFields from "../../../../components/malezas-u-otros-cultivos/fields-otros-cultivos"
-import { usePersistentForm } from "@/lib/hooks/use-form-persistence"
 
 type Props = {
   formData: any
@@ -84,45 +83,13 @@ export default function DosnFields({
   const isReadOnly = !!modoDetalle
   const [activeTab, setActiveTab] = useState("generales")
 
-  // ✅ Persistencia de datos generales DOSN
-  const { formState: persistedDosn, updateField: updatePersistedField } = usePersistentForm({
-    storageKey: "dosn-datos-generales",
-    initialData: {
-      iniaFecha: data.iniaFecha || "",
-      iniaGramos: data.iniaGramos || "",
-      iniaCompleto: data.iniaCompleto || false,
-      iniaReducido: data.iniaReducido || false,
-      iniaLimitado: data.iniaLimitado || false,
-      iniaReducidoLimitado: data.iniaReducidoLimitado || false,
-      inaseFecha: data.inaseFecha || "",
-      inaseGramos: data.inaseGramos || "",
-      inaseCompleto: data.inaseCompleto || false,
-      inaseReducido: data.inaseReducido || false,
-      inaseLimitado: data.inaseLimitado || false,
-      inaseReducidoLimitado: data.inaseReducidoLimitado || false,
-      cumpleEstandar: data.cumpleEstandar || "",
-    }
-  })
-
-  // Sincronizar formData con persistencia (solo si no es modo detalle)
-  useEffect(() => {
-    if (!isReadOnly && handleInputChange) {
-      // Restaurar datos persistidos al formData del padre si están vacíos
-      Object.keys(persistedDosn).forEach((key) => {
-        if (!data[key] && persistedDosn[key]) {
-          handleInputChange(key, persistedDosn[key])
-        }
-      })
-    }
-  }, [])
-
-  // Función mejorada para manejar cambios con persistencia
+  // ❌ NO persistir datos generales - solo usar el estado del formulario padre
+  // Los datos generales (fechas, gramos, tipos de análisis) NO deben guardarse en sessionStorage
+  
+  // Función simple para manejar cambios - sin persistencia
   const handleFieldChange = (field: string, value: any) => {
     if (handleInputChange) {
       handleInputChange(field, value)
-    }
-    if (!isReadOnly) {
-      updatePersistedField(field, value)
     }
   }
 
