@@ -1443,7 +1443,7 @@ export default function EditarPurezaPage() {
             router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
           }}
           onFinalizarYAprobar={async () => {
-            await aprobarAnalisis(pureza.analisisID)
+            await finalizarAnalisis(pureza.analisisID)
             toast.success("Análisis finalizado y aprobado")
             router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
           }}
