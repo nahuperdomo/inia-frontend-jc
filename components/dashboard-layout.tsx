@@ -65,7 +65,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
       try {
-        await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
+        await fetch(`${API_BASE_URL}/v1/auth/logout`, {
           method: "POST",
           credentials: "include" // Importante para enviar cookies HttpOnly
         });

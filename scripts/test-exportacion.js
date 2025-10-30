@@ -22,9 +22,9 @@ if (!token) {
 // Test 2: Probar exportación simple
 async function testExportacionSimple() {
   console.log('\n2️⃣ Probando exportación simple (todos los lotes)...');
-  
+
   try {
-    const response = await fetch(`${API_BASE_URL}/api/exportaciones/excel`, {
+    const response = await fetch(`${API_BASE_URL}/exportaciones/excel`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -35,11 +35,11 @@ async function testExportacionSimple() {
       console.log('✅ Respuesta exitosa:', response.status);
       console.log('   Content-Type:', response.headers.get('Content-Type'));
       console.log('   Content-Length:', response.headers.get('Content-Length'), 'bytes');
-      
+
       const blob = await response.blob();
       console.log('   Blob size:', blob.size, 'bytes');
       console.log('   Blob type:', blob.type);
-      
+
       return blob;
     } else {
       console.error('❌ Error en respuesta:', response.status, response.statusText);
@@ -54,7 +54,7 @@ async function testExportacionSimple() {
 // Test 3: Probar exportación con filtros
 async function testExportacionConFiltros() {
   console.log('\n3️⃣ Probando exportación con filtros avanzados...');
-  
+
   const filtros = {
     incluirInactivos: false,
     tiposAnalisis: ['PUREZA', 'GERMINACION'],
@@ -62,11 +62,11 @@ async function testExportacionConFiltros() {
     incluirColoresEstilo: true,
     formatoFecha: 'dd/MM/yyyy'
   };
-  
+
   console.log('   Filtros aplicados:', JSON.stringify(filtros, null, 2));
-  
+
   try {
-    const response = await fetch(`${API_BASE_URL}/api/exportaciones/excel/avanzado`, {
+    const response = await fetch(`${API_BASE_URL}/exportaciones/excel/avanzado`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -79,11 +79,11 @@ async function testExportacionConFiltros() {
       console.log('✅ Respuesta exitosa:', response.status);
       console.log('   Content-Type:', response.headers.get('Content-Type'));
       console.log('   Content-Length:', response.headers.get('Content-Length'), 'bytes');
-      
+
       const blob = await response.blob();
       console.log('   Blob size:', blob.size, 'bytes');
       console.log('   Blob type:', blob.type);
-      
+
       return blob;
     } else {
       console.error('❌ Error en respuesta:', response.status, response.statusText);
@@ -98,7 +98,7 @@ async function testExportacionConFiltros() {
 // Test 4: Verificar conectividad con el backend
 async function testConectividad() {
   console.log('\n4️⃣ Verificando conectividad con el backend...');
-  
+
   try {
     const response = await fetch(`${API_BASE_URL}/actuator/health`, {
       method: 'GET',
@@ -134,27 +134,27 @@ async function ejecutarTodasLasPruebas() {
   console.log('╔════════════════════════════════════════════════════════╗');
   console.log('║   PRUEBA DE EXPORTACIÓN EXCEL - INIA SYSTEM           ║');
   console.log('╚════════════════════════════════════════════════════════╝\n');
-  
+
   await testConectividad();
-  
+
   if (!token) {
     console.log('\n⚠️ No se pueden ejecutar más pruebas sin token de autenticación.');
     console.log('   Por favor inicia sesión en la aplicación y vuelve a ejecutar este script.');
     return;
   }
-  
+
   const blobSimple = await testExportacionSimple();
   if (blobSimple) {
     console.log('   💾 Descargando archivo de prueba...');
     descargarBlob(blobSimple, 'prueba_exportacion_simple.xlsx');
   }
-  
+
   const blobFiltros = await testExportacionConFiltros();
   if (blobFiltros) {
     console.log('   💾 Descargando archivo de prueba...');
     descargarBlob(blobFiltros, 'prueba_exportacion_filtros.xlsx');
   }
-  
+
   console.log('\n╔════════════════════════════════════════════════════════╗');
   console.log('║   PRUEBAS COMPLETADAS                                  ║');
   console.log('╚════════════════════════════════════════════════════════╝');
