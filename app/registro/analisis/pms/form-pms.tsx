@@ -19,6 +19,7 @@ import {
   Info,
   BarChart3,
 } from "lucide-react"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 
 type Props = {
   formData: any;
@@ -27,7 +28,7 @@ type Props = {
 
 // Función para validar número de repeticiones
 const validarNumeroRepeticiones = (numero: number): boolean => {
-  return numero != null && numero > 0 && numero <= 20; // Límite razonable
+  return numero != null && numero >= 4 && numero <= 20; // Mínimo 4, máximo 20
 }
 
 // Función para validar semilla brozosa (opcional)
@@ -39,43 +40,46 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
   const data = formData || {}
   
   // Validaciones
-  const repeticionesValidas = validarNumeroRepeticiones(data.numRepeticionesEsperadas)
+  // Usar el mismo nombre de campo que el formulario padre (`numRepeticionesEsperadasPms`)
+  const repeticionesValidas = validarNumeroRepeticiones(data.numRepeticionesEsperadasPms)
   const semillaBrozosaValida = validarSemillaBrozosa()
   
   const esFormularioValido = repeticionesValidas && semillaBrozosaValida
 
-  // Calcular el número de tandas - siempre inicia con 1 tanda
+  // Establecer valores por defecto SOLO UNA VEZ al montar el componente
   React.useEffect(() => {
     if (data.numTandas !== 1) {
       handleInputChange("numTandas", 1)
     }
-  }, [data.numRepeticionesEsperadas, data.esSemillaBrozosa])
-
-  // Establecer valores por defecto
-  React.useEffect(() => {
-    if (data.numRepeticionesEsperadas === undefined) {
-      handleInputChange("numRepeticionesEsperadas", 8) // Valor típico para PMS
-    }
-    if (data.esSemillaBrozosa === undefined) {
+    if (data.esSemillaBrozosa === undefined || data.esSemillaBrozosa === null) {
       handleInputChange("esSemillaBrozosa", false)
     }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Array vacío = solo se ejecuta una vez al montar
 
   return (
     <Card className="border-0 shadow-sm bg-card">
       <CardHeader className="pb-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
-            <Scale className="h-6 w-6 text-blue-600" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
+              <Scale className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-xl font-semibold text-foreground">
+                Análisis de Peso de Mil Semillas (PMS)
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Configura los parámetros para el análisis de peso de mil semillas
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <CardTitle className="text-xl font-semibold text-foreground">
-              Análisis de Peso de Mil Semillas (PMS)
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              Configura los parámetros para el análisis de peso de mil semillas
-            </p>
-          </div>
+          <TablaToleranciasButton
+            pdfPath="/tablas-tolerancias/tabla-pms.pdf"
+            title="Ver Tabla de Tolerancias"
+            variant="outline"
+            size="sm"
+          />
         </div>
       </CardHeader>
 
@@ -94,14 +98,22 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
                 Número de Repeticiones Esperadas *
               </Label>
               <Input
-                id="numRepeticionesEsperadas"
+                id="numRepeticionesEsperadasPms"
                 type="number"
-                min="1"
+                min="4"
                 max="20"
-                value={data.numRepeticionesEsperadas || ""}
+                value={data.numRepeticionesEsperadasPms || ""}
                 onChange={(e) => {
-                  const value = parseInt(e.target.value) || 1
-                  handleInputChange("numRepeticionesEsperadas", Math.min(20, Math.max(1, value)))
+                  // parseInt puede devolver NaN cuando el campo está vacío; en ese caso no sobrescribimos con 4 aquí
+                  const raw = e.target.value
+                  const parsed = parseInt(raw, 10)
+                  const value = Number.isNaN(parsed) ? raw === "" ? "" : 4 : parsed
+                  // Solo enviar números válidos al estado padre; el padre mantiene el estado completo
+                  if (value === "") {
+                    handleInputChange("numRepeticionesEsperadasPms", undefined)
+                  } else {
+                    handleInputChange("numRepeticionesEsperadasPms", Math.min(20, Math.max(4, Number(value))))
+                  }
                 }}
                 className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-200 ${
                   !repeticionesValidas ? 'border-red-500 bg-red-50' : ''
@@ -110,7 +122,7 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
               />
               {!repeticionesValidas && (
                 <p className="text-xs text-red-600">
-                  Debe especificar un número válido de repeticiones (1-20)
+                  Debe especificar un número válido de repeticiones (4-20)
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
@@ -190,7 +202,7 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
                 <div className={`space-y-1 text-sm ${
                   esFormularioValido ? 'text-blue-700' : 'text-red-700'
                 }`}>
-                  <p>• Se crearán <strong>{data.numRepeticionesEsperadas || 0} repeticiones</strong></p>
+                  <p>• Se crearán <strong>{data.numRepeticionesEsperadasPms || 0} repeticiones</strong></p>
                   <p>• Iniciará con <strong>1 tanda</strong></p>
                   <p>• Tipo de semilla: <strong>{data.esSemillaBrozosa ? 'Brozosa' : 'Normal'}</strong></p>
                   <p>• Umbral CV: <strong>{data.esSemillaBrozosa ? '≤ 6%' : '≤ 4%'}</strong></p>

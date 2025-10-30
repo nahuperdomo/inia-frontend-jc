@@ -1,38 +1,74 @@
 "use client"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
+import { useAsyncValidation } from "@/lib/hooks/useAsyncValidation"
+import { LotFormTabsProps } from "./types"
+import { AlertCircle } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import FormField from "@/components/ui/form-field"
 import FormSelect from "@/components/ui/form-select"
-import { LoteFormData } from "@/lib/validations/lotes-validation"
+import { LoteFormData, loteValidationSchema } from "@/lib/validations/lotes-validation"
 import { DatosHumedadManager } from "./datos-humedad-manager"
 import { TiposAnalisisSelector } from "./tipos-analisis-selector"
 import { useAllCatalogs } from "@/lib/hooks/useCatalogs"
 import { TipoAnalisis } from "@/app/models/types/enums"
-
-interface LotFormTabsProps {
-  formData: LoteFormData
-  onInputChange: (field: keyof LoteFormData, value: any) => void
-  activeTab: string
-  onTabChange: (tab: string) => void
-  handleBlur: (field: string) => void
-  hasError: (field: string) => boolean
-  getErrorMessage: (field: string) => string
-  // Loading states
-  isLoading?: boolean
-}
 
 export function LotFormTabs({
   formData,
   onInputChange,
   activeTab,
   onTabChange,
-  handleBlur,
-  hasError,
-  getErrorMessage,
-  // Loading state
-  isLoading = false
+  isLoading = false,
+  loteId
 }: LotFormTabsProps) {
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
+  const [isValidating, setIsValidating] = useState(false);
+
+  const {
+    fichaError,
+    nomLoteError,
+    validateFicha,
+    validateNomLote,
+    clearValidation
+  } = useAsyncValidation(loteId);
+
+  const validateSyncField = (field: keyof LoteFormData, value: any, allData: LoteFormData): string | null => {
+    const validator = loteValidationSchema[field];
+    if (!validator) return null;
+    
+    if (typeof validator === 'function') {
+      return validator(value, allData);
+    }
+    return null;
+  };
+
+  const validateField = async (field: string, value: any) => {
+    // Validaciones asíncronas
+    if (field === "ficha") {
+      return await validateFicha(value);
+    } else if (field === "nomLote") {
+      return await validateNomLote(value);
+    }
+    
+    // Validaciones síncronas
+    const syncError = validateSyncField(field as keyof LoteFormData, value, formData);
+    if (syncError) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [field]: syncError
+      }));
+      return syncError;
+    } else {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+    
+    return null;
+  };
   // Use React Query hook for all catalogs - centralized caching
   const { data: catalogsData, isLoading: catalogsLoading, isError } = useAllCatalogs()
 
@@ -43,9 +79,30 @@ export function LotFormTabs({
     { id: "EXTERNOS", nombre: "Externos" }
   ], [])
 
-  // Función para manejar cambios sin validación automática
-  const handleInputChange = (field: keyof LoteFormData, value: any) => {
-    onInputChange(field, value)
+  // Función para manejar cambios y validación
+  const handleFieldChange = async (field: keyof LoteFormData, value: any) => {
+    onInputChange(field, value);
+    
+    // Marcar el campo como tocado
+    setTouchedFields(prev => ({ ...prev, [field]: true }));
+    
+    // Validar el campo (asíncrono para ficha/nomLote, síncrono para otros)
+    setIsValidating(true);
+    await validateField(field, value);
+    setIsValidating(false);
+  }
+
+  const getError = (field: keyof LoteFormData) => {
+    // Solo mostrar errores si el campo ha sido tocado
+    if (!touchedFields[field]) return undefined;
+    
+    if (field === "ficha") return fichaError;
+    if (field === "nomLote") return nomLoteError;
+    return fieldErrors[field];
+  }
+
+  const hasFieldError = (field: string) => {
+    return !!getError(field as keyof LoteFormData);
   }
 
   // Memoized options to avoid recalculating on every render
@@ -151,11 +208,11 @@ export function LotFormTabs({
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="datos">Datos</TabsTrigger>
-            <TabsTrigger value="empresa">Empresa</TabsTrigger>
-            <TabsTrigger value="recepcion">Recepción y almacenamiento</TabsTrigger>
-            <TabsTrigger value="calidad">Calidad y producción</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1">
+            <TabsTrigger value="datos" className="text-xs sm:text-sm">Datos</TabsTrigger>
+            <TabsTrigger value="empresa" className="text-xs sm:text-sm">Empresa</TabsTrigger>
+            <TabsTrigger value="recepcion" className="text-xs sm:text-sm">Recepción y almacenamiento</TabsTrigger>
+            <TabsTrigger value="calidad" className="text-xs sm:text-sm">Calidad</TabsTrigger>
           </TabsList>
 
           {/* Datos Tab */}
@@ -165,20 +222,18 @@ export function LotFormTabs({
                 id="ficha"
                 label="Ficha"
                 value={formData.ficha}
-                onChange={(e) => handleInputChange("ficha", e.target.value)}
-                onBlur={() => handleBlur("ficha")}
-                error={hasError("ficha") ? getErrorMessage("ficha") : undefined}
-                required={true}
+                onChange={(e) => handleFieldChange("ficha", e.target.value)}
+                onBlur={() => handleFieldChange("ficha", formData.ficha)}
+                error={getError("ficha")}
               />
 
               <FormField
                 id="nomLote"
-                label="Nombre del Lote"
+                label="Lote"
                 value={formData.nomLote}
-                onChange={(e) => handleInputChange("nomLote", e.target.value)}
-                onBlur={() => handleBlur("nomLote")}
-                error={hasError("nomLote") ? getErrorMessage("nomLote") : undefined}
-                required={true}
+                onChange={(e) => handleFieldChange("nomLote", e.target.value)}
+                onBlur={() => handleFieldChange("nomLote", formData.nomLote)}
+                error={getError("nomLote")}
                 placeholder="Ingrese un nombre único para el lote"
               />
 
@@ -186,10 +241,10 @@ export function LotFormTabs({
                 id="cultivarID"
                 label="Cultivar"
                 value={formData.cultivarID}
-                onChange={(value) => handleInputChange("cultivarID", value === "" ? "" : Number(value))}
-                onBlur={() => handleBlur("cultivarID")}
+                onChange={(value) => handleFieldChange("cultivarID", value === "" ? "" : Number(value))}
+                onBlur={() => handleFieldChange("cultivarID", formData.cultivarID)}
                 options={cultivaresOptions}
-                error={hasError("cultivarID") ? getErrorMessage("cultivarID") : undefined}
+                error={getError("cultivarID")}
                 required={true}
                 placeholder="Seleccionar cultivar"
               />
@@ -198,10 +253,10 @@ export function LotFormTabs({
                 id="tipo"
                 label="Tipo"
                 value={formData.tipo}
-                onChange={(value) => handleInputChange("tipo", value)}
-                onBlur={() => handleBlur("tipo")}
+                onChange={(value) => handleFieldChange("tipo", value)}
+                onBlur={() => handleFieldChange("tipo", formData.tipo)}
                 options={tipoOptions}
-                error={hasError("tipo") ? getErrorMessage("tipo") : undefined}
+                error={getError("tipo")}
                 required={true}
                 placeholder="Seleccionar tipo"
               />
@@ -215,10 +270,10 @@ export function LotFormTabs({
                 id="empresaID"
                 label="Empresa"
                 value={formData.empresaID}
-                onChange={(value) => handleInputChange("empresaID", value === "" ? "" : Number(value))}
-                onBlur={() => handleBlur("empresaID")}
+                onChange={(value) => handleFieldChange("empresaID", value === "" ? "" : Number(value))}
+                onBlur={() => handleFieldChange("empresaID", formData.empresaID)}
                 options={empresasOptions}
-                error={hasError("empresaID") ? getErrorMessage("empresaID") : undefined}
+                error={getError("empresaID")}
                 required={true}
                 placeholder="Seleccionar empresa"
               />
@@ -227,10 +282,10 @@ export function LotFormTabs({
                 id="clienteID"
                 label="Cliente"
                 value={formData.clienteID}
-                onChange={(value) => handleInputChange("clienteID", value === "" ? "" : Number(value))}
-                onBlur={() => handleBlur("clienteID")}
+                onChange={(value) => handleFieldChange("clienteID", value === "" ? "" : Number(value))}
+                onBlur={() => handleFieldChange("clienteID", formData.clienteID)}
                 options={clientesOptions}
-                error={hasError("clienteID") ? getErrorMessage("clienteID") : undefined}
+                error={getError("clienteID")}
                 required={true}
                 placeholder="Seleccionar cliente"
               />
@@ -239,18 +294,18 @@ export function LotFormTabs({
                 id="codigoCC"
                 label="Código CC"
                 value={formData.codigoCC}
-                onChange={(e) => handleInputChange("codigoCC", e.target.value)}
-                onBlur={() => handleBlur("codigoCC")}
-                error={hasError("codigoCC") ? getErrorMessage("codigoCC") : undefined}
+                onChange={(e) => handleFieldChange("codigoCC", e.target.value)}
+                onBlur={() => handleFieldChange("codigoCC", formData.codigoCC)}
+                error={getError("codigoCC")}
               />
 
               <FormField
                 id="codigoFF"
                 label="Código FF"
                 value={formData.codigoFF}
-                onChange={(e) => handleInputChange("codigoFF", e.target.value)}
-                onBlur={() => handleBlur("codigoFF")}
-                error={hasError("codigoFF") ? getErrorMessage("codigoFF") : undefined}
+                onChange={(e) => handleFieldChange("codigoFF", e.target.value)}
+                onBlur={() => handleFieldChange("codigoFF", formData.codigoFF)}
+                error={getError("codigoFF")}
               />
             </div>
           </TabsContent>
@@ -263,10 +318,9 @@ export function LotFormTabs({
                 label="Fecha de entrega"
                 type="date"
                 value={formData.fechaEntrega}
-                onChange={(e) => handleInputChange("fechaEntrega", e.target.value)}
-                onBlur={() => handleBlur("fechaEntrega")}
-                error={hasError("fechaEntrega") ? getErrorMessage("fechaEntrega") : undefined}
-                required={true}
+                onChange={(e) => handleFieldChange("fechaEntrega", e.target.value)}
+                onBlur={() => handleFieldChange("fechaEntrega", formData.fechaEntrega)}
+                error={getError("fechaEntrega")}
               />
 
               <FormField
@@ -274,9 +328,9 @@ export function LotFormTabs({
                 label="Fecha de recibo"
                 type="date"
                 value={formData.fechaRecibo}
-                onChange={(e) => handleInputChange("fechaRecibo", e.target.value)}
-                onBlur={() => handleBlur("fechaRecibo")}
-                error={hasError("fechaRecibo") ? getErrorMessage("fechaRecibo") : undefined}
+                onChange={(e) => handleFieldChange("fechaRecibo", e.target.value)}
+                onBlur={() => handleFieldChange("fechaRecibo", formData.fechaRecibo)}
+                error={getError("fechaRecibo")}
                 required={true}
               />
 
@@ -284,11 +338,10 @@ export function LotFormTabs({
                 id="depositoID"
                 label="Depósito"
                 value={formData.depositoID}
-                onChange={(value) => handleInputChange("depositoID", value === "" ? "" : Number(value))}
-                onBlur={() => handleBlur("depositoID")}
+                onChange={(value) => handleFieldChange("depositoID", value === "" ? "" : Number(value))}
+                onBlur={() => handleFieldChange("depositoID", formData.depositoID)}
                 options={depositosOptions}
-                error={hasError("depositoID") ? getErrorMessage("depositoID") : undefined}
-                required={true}
+                error={getError("depositoID")}
                 placeholder="Seleccionar depósito"
               />
 
@@ -296,11 +349,10 @@ export function LotFormTabs({
                 id="unidadEmbolsado"
                 label="Unidad de embolsado"
                 value={formData.unidadEmbolsado}
-                onChange={(value) => handleInputChange("unidadEmbolsado", value)}
-                onBlur={() => handleBlur("unidadEmbolsado")}
+                onChange={(value) => handleFieldChange("unidadEmbolsado", value)}
+                onBlur={() => handleFieldChange("unidadEmbolsado", formData.unidadEmbolsado)}
                 options={unidadesEmbolsadoOptions}
-                error={hasError("unidadEmbolsado") ? getErrorMessage("unidadEmbolsado") : undefined}
-                required={true}
+                error={getError("unidadEmbolsado")}
                 placeholder="Seleccionar unidad"
               />
 
@@ -308,19 +360,18 @@ export function LotFormTabs({
                 id="remitente"
                 label="Remitente"
                 value={formData.remitente}
-                onChange={(e) => handleInputChange("remitente", e.target.value)}
-                onBlur={() => handleBlur("remitente")}
-                error={hasError("remitente") ? getErrorMessage("remitente") : undefined}
-                required={true}
+                onChange={(e) => handleFieldChange("remitente", e.target.value)}
+                onBlur={() => handleFieldChange("remitente", formData.remitente)}
+                error={getError("remitente")}
               />
 
               <FormField
                 id="observaciones"
                 label="Observaciones"
                 value={formData.observaciones}
-                onChange={(e) => handleInputChange("observaciones", e.target.value)}
-                onBlur={() => handleBlur("observaciones")}
-                error={hasError("observaciones") ? getErrorMessage("observaciones") : undefined}
+                onChange={(e) => handleFieldChange("observaciones", e.target.value)}
+                onBlur={() => handleFieldChange("observaciones", formData.observaciones)}
+                error={getError("observaciones")}
               />
             </div>
           </TabsContent>
@@ -334,9 +385,9 @@ export function LotFormTabs({
                   label="Kilos limpios"
                   type="number"
                   value={formData.kilosLimpios}
-                  onChange={(e) => handleInputChange("kilosLimpios", e.target.value === "" ? "" : Number(e.target.value))}
-                  onBlur={() => handleBlur("kilosLimpios")}
-                  error={hasError("kilosLimpios") ? getErrorMessage("kilosLimpios") : undefined}
+                  onChange={(e) => handleFieldChange("kilosLimpios", e.target.value === "" ? "" : Number(e.target.value))}
+                  onBlur={() => handleFieldChange("kilosLimpios", formData.kilosLimpios)}
+                  error={getError("kilosLimpios")}
                   required={true}
                 />
 
@@ -344,34 +395,21 @@ export function LotFormTabs({
                   id="numeroArticuloID"
                   label="Número Artículo"
                   value={formData.numeroArticuloID}
-                  onChange={(value) => handleInputChange("numeroArticuloID", value)}
-                  onBlur={() => handleBlur("numeroArticuloID")}
+                  onChange={(value) => handleFieldChange("numeroArticuloID", value)}
+                  onBlur={() => handleFieldChange("numeroArticuloID", formData.numeroArticuloID)}
                   options={articulosOptions}
-                  error={hasError("numeroArticuloID") ? getErrorMessage("numeroArticuloID") : undefined}
-                  required={true}
+                  error={getError("numeroArticuloID")}
                   placeholder="Seleccionar artículo"
-                />
-
-                <FormField
-                  id="cantidad"
-                  label="Cantidad"
-                  type="number"
-                  step="0.01"
-                  value={formData.cantidad}
-                  onChange={(e) => handleInputChange("cantidad", e.target.value === "" ? "" : Number(e.target.value))}
-                  onBlur={() => handleBlur("cantidad")}
-                  error={hasError("cantidad") ? getErrorMessage("cantidad") : undefined}
-                  required={true}
                 />
 
                 <FormSelect
                   id="origenID"
                   label="Origen"
                   value={formData.origenID}
-                  onChange={(value) => handleInputChange("origenID", value === "" ? "" : Number(value))}
-                  onBlur={() => handleBlur("origenID")}
+                  onChange={(value) => handleFieldChange("origenID", value === "" ? "" : Number(value))}
+                  onBlur={() => handleFieldChange("origenID", formData.origenID)}
                   options={origenesOptions}
-                  error={hasError("origenID") ? getErrorMessage("origenID") : undefined}
+                  error={getError("origenID")}
                   required={true}
                   placeholder="Seleccionar origen"
                 />
@@ -380,10 +418,10 @@ export function LotFormTabs({
                   id="estadoID"
                   label="Estado"
                   value={formData.estadoID}
-                  onChange={(value) => handleInputChange("estadoID", value === "" ? "" : Number(value))}
-                  onBlur={() => handleBlur("estadoID")}
+                  onChange={(value) => handleFieldChange("estadoID", value === "" ? "" : Number(value))}
+                  onBlur={() => handleFieldChange("estadoID", formData.estadoID)}
                   options={estadosOptions}
-                  error={hasError("estadoID") ? getErrorMessage("estadoID") : undefined}
+                  error={getError("estadoID")}
                   required={true}
                   placeholder="Seleccionar estado"
                 />
@@ -393,10 +431,9 @@ export function LotFormTabs({
                   label="Fecha de cosecha"
                   type="date"
                   value={formData.fechaCosecha}
-                  onChange={(e) => handleInputChange("fechaCosecha", e.target.value)}
-                  onBlur={() => handleBlur("fechaCosecha")}
-                  error={hasError("fechaCosecha") ? getErrorMessage("fechaCosecha") : undefined}
-                  required={true}
+                  onChange={(e) => handleFieldChange("fechaCosecha", e.target.value)}
+                  onBlur={() => handleFieldChange("fechaCosecha", formData.fechaCosecha)}
+                  error={getError("fechaCosecha")}
                 />
               </div>
 
@@ -407,18 +444,18 @@ export function LotFormTabs({
                 </label>
                 <TiposAnalisisSelector
                   tiposSeleccionados={formData.tiposAnalisisAsignados || []}
-                  onChange={(tipos) => handleInputChange("tiposAnalisisAsignados", tipos)}
-                  error={hasError("tiposAnalisisAsignados") ? getErrorMessage("tiposAnalisisAsignados") : undefined}
+                onChange={(tipos) => handleFieldChange("tiposAnalisisAsignados", tipos)}
+                error={getError("tiposAnalisisAsignados")}
                 />
               </div>
 
               {/* Componente para gestionar datos de humedad */}
               <DatosHumedadManager
                 datos={formData.datosHumedad}
-                onChange={(datos) => handleInputChange("datosHumedad", datos)}
+                onChange={(datos) => handleFieldChange("datosHumedad", datos)}
                 tiposHumedad={catalogsData.tiposHumedad}
-                hasError={hasError}
-                getErrorMessage={getErrorMessage}
+                hasError={field => !!getError(field as keyof LoteFormData)}
+                getErrorMessage={(field) => getError(field as keyof LoteFormData) || ""}
               />
             </>
           </TabsContent>

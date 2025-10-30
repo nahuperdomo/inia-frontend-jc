@@ -2,10 +2,11 @@ import { EstadoAnalisis } from '../types/enums';
 
 export interface AnalisisHistorialDTO {
   id: number;
-  fechaCambio: string; // LocalDateTime as string
-  estadoAnterior: EstadoAnalisis;
-  estadoNuevo: EstadoAnalisis;
+  fechaHora: string; // LocalDateTime as string (el backend lo envía así, no fechaCambio)
+  accion: string; // Tipo de acción realizada
   usuario: string;
+  estadoAnterior?: EstadoAnalisis; // Opcional por si algunos registros no lo tienen
+  estadoNuevo?: EstadoAnalisis; // Opcional por si algunos registros no lo tienen
 }
 
 // Base DTO for all analysis responses

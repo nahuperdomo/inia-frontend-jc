@@ -6,13 +6,28 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { FlaskConical, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react"
+import { FlaskConical, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { obtenerPurezasPaginadas, desactivarPureza, activarPureza } from "@/app/services/pureza-service"
-import { obtenerPerfil } from "@/app/services/auth-service"
 import Pagination from "@/components/pagination"
 import { PurezaDTO, EstadoAnalisis } from "@/app/models"
+
+interface PurezaListadoDTO {
+  analisisID: number
+  estado: EstadoAnalisis
+  fechaInicio: string
+  fechaFin?: string
+  lote: string
+  idLote?: number
+  especie?: string
+  activo?: boolean
+  redonSemillaPura?: number
+  inasePura?: number
+  usuarioCreador?: string
+  usuarioModificador?: string
+}
 import { toast } from "sonner"
+import { useAuth } from "@/components/auth-provider"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -44,11 +59,11 @@ const formatearFechaLocal = (fechaString: string): string => {
 }
 
 export default function ListadoPurezaPage() {
+  const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [filtroActivo, setFiltroActivo] = useState("todos")
-  const [purezas, setPurezas] = useState<PurezaDTO[]>([])
+  const [purezas, setPurezas] = useState<PurezaListadoDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
@@ -56,80 +71,67 @@ export default function ListadoPurezaPage() {
   const [totalElements, setTotalElements] = useState(0)
   const [isLast, setIsLast] = useState(false)
   const [isFirst, setIsFirst] = useState(true)
-  const [userRole, setUserRole] = useState<string | null>(null)
   const pageSize = 10
 
-  // Debounce searchTerm para evitar múltiples requests mientras el usuario escribe
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-    }, 500) // 500ms de delay
+    setCurrentPage(0)
+    fetchPurezas(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtroActivo, selectedStatus]) // Recargar cuando cambien los filtros (sin searchTerm)
 
-    return () => {
-      clearTimeout(handler)
+  // Handler para búsqueda con Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      setCurrentPage(0)
+      fetchPurezas(0)
     }
-  }, [searchTerm])
+  }
 
-  // Fetch user profile to get role
-  useEffect(() => {
-    const fetchUserRole = async () => {
-      try {
-        const perfil = await obtenerPerfil()
-        const role = perfil?.roles?.[0] || ''
-        const cleanRole = role.replace('ROLE_', '')
-        setUserRole(cleanRole)
-      } catch (error) {
-        console.error("Error obteniendo rol de usuario:", error)
-      }
-    }
-    fetchUserRole()
-  }, [])
+  // Handler para botón de búsqueda
+  const handleSearchClick = () => {
+    setCurrentPage(0)
+    fetchPurezas(0)
+  }
 
   const fetchPurezas = async (page: number = 0) => {
     try {
-      setLoading(true);
-  // Convert filtroActivo string to boolean
-  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
-  
-  const data = await obtenerPurezasPaginadas(
-    page, 
-    pageSize, 
-    debouncedSearchTerm || undefined,
-    activoFilter,
-    selectedStatus !== "all" ? selectedStatus : undefined,
-    undefined
-  );
-  console.log("DEBUG obtenerPurezasPaginadas response:", data);
+      setLoading(true)
+      // Convert filtroActivo string to boolean
+      const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos"
+      
+      const data = await obtenerPurezasPaginadas(
+        page, 
+        pageSize, 
+        searchTerm,
+        activoFilter,
+        selectedStatus !== "all" ? selectedStatus : undefined,
+        undefined
+      )
+      console.log("DEBUG obtenerPurezasPaginadas response:", data)
 
-  // Datos principales
-  const content = data.content || [];
-  setPurezas(content);
+      // Datos principales
+      const content = data.content || []
+      setPurezas(content)
 
-  // Metadata: soportar dos formas que puede devolver el backend
-  // 1) { content: [...], page: { totalPages, totalElements, number, ... } }
-  // 2) Página Spring Data directamente: { content: [...], totalPages, totalElements, number, ... }
-  const pageMeta = (data as any).page ? (data as any).page : (data as any);
-  const totalPagesFrom = pageMeta.totalPages ?? 1;
-  const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0);
-  const numberFrom = pageMeta.number ?? page;
+      // Metadata: soportar dos formas que puede devolver el backend
+      const pageMeta = (data as any).page ? (data as any).page : (data as any)
+      const totalPagesFrom = pageMeta.totalPages ?? 1
+      const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0)
+      const numberFrom = pageMeta.number ?? page
 
-  setTotalPages(totalPagesFrom);
-  setTotalElements(totalElementsFrom);
-  setCurrentPage(numberFrom);
-  setIsFirst(numberFrom === 0);
-  setIsLast(numberFrom >= totalPagesFrom - 1);
+      setTotalPages(totalPagesFrom)
+      setTotalElements(totalElementsFrom)
+      setCurrentPage(numberFrom)
+      setIsFirst(numberFrom === 0)
+      setIsLast(numberFrom >= totalPagesFrom - 1)
     } catch (err) {
-      setError("Error al cargar los análisis de pureza");
-      console.error("Error fetching purezas:", err);
+      setError("Error al cargar los análisis de pureza")
+      console.error("Error fetching purezas:", err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
-
-  useEffect(() => {
-    setCurrentPage(0) // Reset to first page when filters change
-    fetchPurezas(0)
-  }, [filtroActivo, selectedStatus, debouncedSearchTerm])
+  }
 
   // Handlers para desactivar/reactivar
   const handleDesactivar = async (id: number) => {
@@ -162,13 +164,10 @@ export default function ListadoPurezaPage() {
   const inProgressAnalysis = purezas.filter(p => p.estado === "EN_PROCESO").length
   const pendingAnalysis = purezas.filter(p => p.estado === "REGISTRADO" || p.estado === "PENDIENTE_APROBACION").length
   
-  // Calcular promedio de pureza
-  const purezasConDatos = purezas.filter(p => p.semillaPura_g > 0 && p.pesoInicial_g > 0)
+  // Calcular promedio de pureza INIA (con redondeo)
+  const purezasConDatos = purezas.filter(p => p.redonSemillaPura !== undefined && p.redonSemillaPura !== null)
   const promedioPureza = purezasConDatos.length > 0
-    ? purezasConDatos.reduce((sum, p) => {
-        const pureza = (p.semillaPura_g / p.pesoInicial_g) * 100
-        return sum + pureza
-      }, 0) / purezasConDatos.length
+    ? purezasConDatos.reduce((sum, p) => sum + (p.redonSemillaPura || 0), 0) / purezasConDatos.length
     : 0
 
   const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
@@ -203,34 +202,6 @@ export default function ListadoPurezaPage() {
       default:
         return estado
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="space-y-6 p-3 sm:p-4 md:p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Cargando análisis de pureza...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6 p-3 sm:p-4 md:p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <p className="text-lg font-semibold mb-2">Error al cargar</p>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>Reintentar</Button>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -313,17 +284,27 @@ export default function ListadoPurezaPage() {
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSearchClick()
+              }}
+              className="flex-1 flex gap-2"
+            >
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Buscar por ID, lote o comentarios..."
+                  placeholder="Buscar por ID análisis, Lote o Ficha..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   className="pl-10"
                 />
               </div>
-            </div>
+              <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                <Search className="h-4 w-4" />
+              </Button>
+            </form>
             <div className="flex gap-2">
               <select
                 value={selectedStatus}
@@ -364,14 +345,14 @@ export default function ListadoPurezaPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[100px]">ID Análisis</TableHead>
+                  <TableHead className="min-w-[80px]">ID</TableHead>
                   <TableHead className="min-w-[150px]">Lote</TableHead>
+                  <TableHead className="min-w-[150px]">Especie</TableHead>
+                  <TableHead className="min-w-[120px]">Estado</TableHead>
+                  <TableHead className="min-w-[120px]">Pureza INIA (%)</TableHead>
+                  <TableHead className="min-w-[120px]">Pureza INASE (%)</TableHead>
                   <TableHead className="min-w-[120px]">Fecha Inicio</TableHead>
                   <TableHead className="min-w-[120px]">Fecha Fin</TableHead>
-                  <TableHead className="min-w-[100px]">Estado</TableHead>
-                  <TableHead className="min-w-[100px]">Pureza (%)</TableHead>
-                  <TableHead className="min-w-[120px]">Cumple Estándar</TableHead>
-                  <TableHead className="min-w-[150px]">Comentarios</TableHead>
                   <TableHead className="min-w-[120px]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -387,24 +368,24 @@ export default function ListadoPurezaPage() {
                   </TableRow>
                 ) : (
                   filteredAnalysis.map((analysis) => {
-                    const purezaPercent = analysis.pesoInicial_g > 0
-                      ? ((analysis.semillaPura_g / analysis.pesoInicial_g) * 100).toFixed(1)
-                      : "0.0"
+                    // Pureza INIA (con redondeo)
+                    const purezaINIA = analysis.redonSemillaPura !== undefined && analysis.redonSemillaPura !== null
+                      ? analysis.redonSemillaPura.toFixed(1)
+                      : "N/A"
+                    
+                    // Pureza INASE
+                    const purezaINASE = analysis.inasePura !== undefined && analysis.inasePura !== null
+                      ? analysis.inasePura.toFixed(1)
+                      : "N/A"
                     
                     return (
                       <TableRow key={analysis.analisisID}>
-                        <TableCell className="font-medium">PF-{analysis.analisisID}</TableCell>
+                        <TableCell className="font-medium">{analysis.analisisID}</TableCell>
                         <TableCell>
-                          <div>
-                            <div className="font-medium">{analysis.lote}</div>
-                            {analysis.idLote && (
-                              <div className="text-sm text-muted-foreground">ID: {analysis.idLote}</div>
-                            )}
-                          </div>
+                          <div className="font-medium">{analysis.lote}</div>
                         </TableCell>
-                        <TableCell>{formatearFechaLocal(analysis.fechaInicio)}</TableCell>
                         <TableCell>
-                          {analysis.fechaFin ? formatearFechaLocal(analysis.fechaFin) : "-"}
+                          <div className="text-sm">{analysis.especie || "N/A"}</div>
                         </TableCell>
                         <TableCell>
                           <Badge variant={getEstadoBadgeVariant(analysis.estado)}>
@@ -412,28 +393,14 @@ export default function ListadoPurezaPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <span className="font-medium">{purezaPercent}%</span>
+                          <span className="font-medium">{purezaINIA}%</span>
                         </TableCell>
                         <TableCell>
-                          {analysis.cumpleEstandar !== undefined ? (
-                            <Badge
-                              variant={analysis.cumpleEstandar ? "default" : "destructive"}
-                              className="text-xs"
-                            >
-                              {analysis.cumpleEstandar ? "Sí" : "No"}
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">No evaluado</span>
-                          )}
+                          <span className="font-medium">{purezaINASE}%</span>
                         </TableCell>
-                        <TableCell className="max-w-xs">
-                          {analysis.comentarios ? (
-                            <div className="truncate" title={analysis.comentarios}>
-                              {analysis.comentarios}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
+                        <TableCell>{formatearFechaLocal(analysis.fechaInicio)}</TableCell>
+                        <TableCell>
+                          {analysis.fechaFin ? formatearFechaLocal(analysis.fechaFin) : "-"}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
@@ -447,7 +414,7 @@ export default function ListadoPurezaPage() {
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </Link>
-                            {userRole === "ADMIN" && (
+                            {user?.role === "administrador" && (
                               analysis.activo ? (
                                 <Button
                                   variant="ghost"

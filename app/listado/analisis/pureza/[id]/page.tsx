@@ -27,6 +27,8 @@ import { useParams } from "next/navigation"
 import { obtenerPurezaPorId } from "@/app/services/pureza-service"
 import type { PurezaDTO } from "@/app/models"
 import type { EstadoAnalisis, TipoListado } from "@/app/models/types/enums"
+import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -168,13 +170,13 @@ export default function PurezaDetailPage() {
 
   const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
     switch (estado) {
-      case "FINALIZADO":
+      case "REGISTRADO":
         return "default"
       case "EN_PROCESO":
         return "secondary"
       case "APROBADO":
         return "outline"
-      case "PENDIENTE":
+      case "PENDIENTE_APROBACION":
         return "destructive"
       default:
         return "outline"
@@ -298,8 +300,18 @@ export default function PurezaDetailPage() {
       {/* Content */}
       <div className="pt-4">
         <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 gap-6 lg:gap-8">
-            <div className="space-y-6">
+          {/* Botón de Tabla de Tolerancias */}
+          <div className="mb-6 flex justify-end">
+            <TablaToleranciasButton
+              pdfPath="/tablas-tolerancias/tabla-pureza.pdf"
+              title="Ver Tabla de Tolerancias"
+              variant="outline"
+              size="sm"
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="lg:col-span-2 space-y-6">
               {/* Información General */}
               <Card className="overflow-hidden bg-background">
                 <CardHeader className="bg-background border-b sticky top-[20px] z-20">
@@ -676,11 +688,21 @@ export default function PurezaDetailPage() {
                                 Especie
                               </label>
                               <p className="text-base font-semibold">
-                                {listado.catalogo?.nombreComun || "--"}
+                                {/* Mostrar catalogo (malezas) o especie (otros cultivos) */}
+                                {listado.catalogo?.nombreComun || 
+                                 listado.especie?.nombreComun || 
+                                 "--"}
                               </p>
+                              {/* Nombre científico de malezas */}
                               {listado.catalogo?.nombreCientifico && (
                                 <p className="text-sm text-muted-foreground italic">
                                   {listado.catalogo.nombreCientifico}
+                                </p>
+                              )}
+                              {/* Nombre científico de especies/cultivos */}
+                              {listado.especie?.nombreCientifico && (
+                                <p className="text-sm text-muted-foreground italic">
+                                  {listado.especie.nombreCientifico}
                                 </p>
                               )}
                             </div>
@@ -711,6 +733,16 @@ export default function PurezaDetailPage() {
                   </CardContent>
                 </Card>
               )}
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Historial de Actividades */}
+              <AnalysisHistoryCard
+                analisisId={pureza.analisisID}
+                analisisTipo="pureza"
+                historial={pureza.historial}
+              />
             </div>
           </div>
         </div>

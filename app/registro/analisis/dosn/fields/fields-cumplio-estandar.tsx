@@ -2,7 +2,6 @@
 
 import { useEffect } from "react"
 import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectTrigger,
@@ -11,8 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Calendar, CheckCircle2, XCircle } from "lucide-react"
-import { usePersistentForm } from "@/lib/hooks/use-form-persistence"
+import { CheckCircle2, XCircle } from "lucide-react"
 
 type Props = {
   formData: any
@@ -20,24 +18,12 @@ type Props = {
 }
 
 export default function CumplimientoEstandar({ formData, handleInputChange }: Props) {
-  // ✅ Persistir el campo cumpleEstandar
-  const { formState: persistedData, updateField } = usePersistentForm<{ cumpleEstandar: string }>({
-    storageKey: "dosn-cumple-estandar",
-    initialData: {
-      cumpleEstandar: formData.cumpleEstandar || "",
-    }
-  })
-
-  const cumpleEstandar = formData.cumpleEstandar || persistedData.cumpleEstandar
-
-  // Sincronizar con persistencia
-  useEffect(() => {
-    updateField("cumpleEstandar", cumpleEstandar)
-  }, [cumpleEstandar])
+  // ❌ NO usar persistencia - los datos solo deben vivir en la sesión actual
+  const cumpleEstandar = formData.cumpleEstandar || ""
 
   const handleChange = (value: string) => {
+    // Solo actualizar el formData del padre
     handleInputChange("cumpleEstandar", value)
-    updateField("cumpleEstandar", value)
   }
 
   return (

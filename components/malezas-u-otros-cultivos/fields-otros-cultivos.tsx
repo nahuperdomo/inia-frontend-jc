@@ -8,16 +8,15 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Trash2, Plus, Wheat, XCircle } from "lucide-react"
-import { obtenerCultivos } from "@/app/services/malezas-service"
-import { MalezasYCultivosCatalogoDTO } from "@/app/models"
-import { usePersistentArray } from "@/lib/hooks/use-form-persistence"
+import { obtenerTodasEspecies } from "@/app/services/especie-service"
+import { EspecieDTO } from "@/app/models"
 
 type Cultivo = {
   contiene: "si" | "no" | ""
   listado: string
   entidad: string
   numero: string
-  idCatalogo: number | null
+  idEspecie: number | null
 }
 
 type Props = {
@@ -30,47 +29,36 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
   const initialCultivos = registros && registros.length > 0
     ? registros.map((r) => ({
         contiene: "si" as const,
-        listado: r.catalogo?.nombreComun || "",
+        listado: r.especie?.nombreComun || r.especieNombre || "",
         entidad: r.listadoInsti?.toLowerCase() || "",
         numero: r.listadoNum?.toString() || "",
-        idCatalogo: r.catalogo?.catalogoID ?? null,
+        idEspecie: r.especie?.especieID || r.idEspecie || null,
       }))
-    : [{ contiene: "" as const, listado: "", entidad: "", numero: "", idCatalogo: null }]
+    : [{ contiene: "" as const, listado: "", entidad: "", numero: "", idEspecie: null }]
 
-  // ✅ Usar persistencia solo si no hay registros precargados
-  const persistence = usePersistentArray<Cultivo>(
-    `${contexto}-otros-cultivos`,
-    initialCultivos
-  )
+  // NO usar persistencia - los datos solo deben vivir en la sesión actual
+  const [cultivos, setCultivos] = useState<Cultivo[]>(initialCultivos)
 
-  const [cultivos, setCultivos] = useState<Cultivo[]>(
-    registros && registros.length > 0 ? initialCultivos : persistence.array
-  )
+  // ❌ Eliminar sincronización con persistencia
+  // Los datos NO deben guardarse en localStorage durante el registro
 
-  // Sincronizar con persistencia cuando cambie cultivos (solo en modo creación)
-  useEffect(() => {
-    if (!registros || registros.length === 0) {
-      persistence.setArray(cultivos)
-    }
-  }, [cultivos])
-
-  const [opcionesCultivos, setOpcionesCultivos] = useState<MalezasYCultivosCatalogoDTO[]>([])
+  const [opcionesEspecies, setOpcionesEspecies] = useState<EspecieDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // cargar catálogo de cultivos
+  // cargar especies
   useEffect(() => {
-    const fetchCultivos = async () => {
+    const fetchEspecies = async () => {
       try {
-        const data = await obtenerCultivos()
-        setOpcionesCultivos(data)
+        const data = await obtenerTodasEspecies(true)  // Solo especies activas
+        setOpcionesEspecies(data)
       } catch (err) {
-        setError("Error al cargar cultivos")
+        setError("Error al cargar especies")
       } finally {
         setLoading(false)
       }
     }
-    fetchCultivos()
+    fetchEspecies()
   }, [])
 
   // avisar cambios al padre
@@ -78,19 +66,22 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
     if (onChangeListados) {
       const listados = cultivos
         .filter((c) => {
-          const hasRequiredFields =
-            c.contiene === "si" &&
-            c.listado &&
-            c.listado.trim() !== "" &&
-            c.entidad &&
-            c.entidad.trim() !== ""
-          return hasRequiredFields
+          // Enviar registros válidos:
+          // 1. Si contiene "no" y tiene entidad → enviar como NO_CONTIENE
+          if (c.contiene === "no" && c.entidad && c.entidad.trim() !== "") {
+            return true;
+          }
+          // 2. Si contiene "si" y tiene todos los datos → enviar como OTROS
+          if (c.contiene === "si" && c.listado && c.listado.trim() !== "" && c.entidad && c.entidad.trim() !== "") {
+            return true;
+          }
+          return false;
         })
         .map((c) => ({
-          listadoTipo: "OTROS",
+          listadoTipo: c.contiene === "no" ? "NO_CONTIENE" : "OTROS",
           listadoInsti: c.entidad.toUpperCase(),
           listadoNum: c.numero !== "" ? Number(c.numero) : null,
-          idCatalogo: c.idCatalogo ?? null,
+          idEspecie: c.contiene === "no" ? null : (c.idEspecie ?? null),
         }))
 
       onChangeListados(listados)
@@ -98,7 +89,7 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
   }, [cultivos, onChangeListados])
 
   const addCultivo = () =>
-    setCultivos([...cultivos, { contiene: "", listado: "", entidad: "", numero: "", idCatalogo: null }])
+    setCultivos([...cultivos, { contiene: "", listado: "", entidad: "", numero: "", idEspecie: null }])
 
   const removeCultivo = (i: number) => {
     if (cultivos.length > 1) {
@@ -109,18 +100,19 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
   const updateCultivo = (i: number, field: keyof Cultivo, value: any) => {
     const updated = [...cultivos]
     if (field === "contiene" && value === "no") {
-      updated[i] = { contiene: "no", listado: "", entidad: "", numero: "", idCatalogo: null }
+      // Cuando selecciona "No contiene", limpiar campos pero MANTENER entidad
+      updated[i] = { contiene: "no", listado: "", entidad: updated[i].entidad, numero: "", idEspecie: null }
     } else {
       updated[i] = { ...updated[i], [field]: value }
     }
     setCultivos(updated)
   }
 
-  const handleEspecieSelect = (i: number, especie: string) => {
-    const catalogo = opcionesCultivos.find((op) => op.nombreComun === especie)
-    const idCatalogo = catalogo ? catalogo.catalogoID : null
+  const handleEspecieSelect = (i: number, especieNombre: string) => {
+    const especie = opcionesEspecies.find((op) => op.nombreComun === especieNombre)
+    const idEspecie = especie ? especie.especieID : null
     const updated = [...cultivos]
-    updated[i] = { ...updated[i], listado: especie, idCatalogo }
+    updated[i] = { ...updated[i], listado: especieNombre, idEspecie }
     setCultivos(updated)
   }
 
@@ -199,8 +191,8 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
                         {error && <SelectItem value="error" disabled>{error}</SelectItem>}
                         {!loading &&
                           !error &&
-                          opcionesCultivos.map((op) => (
-                            <SelectItem key={op.catalogoID} value={op.nombreComun}>
+                          opcionesEspecies.map((op) => (
+                            <SelectItem key={op.especieID} value={op.nombreComun}>
                               {op.nombreComun}
                             </SelectItem>
                           ))}
@@ -210,11 +202,11 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
 
                   {/* Entidad */}
                   <div className="space-y-2">
-                    <Label className={isDisabled ? "text-muted-foreground" : "text-foreground"}>Entidad</Label>
+                    <Label className="text-foreground">Entidad</Label>
                     <Select
                       value={c.entidad}
                       onValueChange={(val) => updateCultivo(i, "entidad", val)}
-                      disabled={isDisabled}
+                      disabled={false} // Siempre habilitado
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Seleccionar entidad" />
@@ -248,18 +240,11 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
           <Button
             onClick={addCultivo}
             variant="outline"
-            disabled={tieneNoContiene}
-            className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent text-sm px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent text-sm px-2 py-1"
           >
             <Plus className="h-3 w-3 mr-1" />
             Agregar registro
           </Button>
-          {tieneNoContiene && (
-            <p className="text-xs text-muted-foreground ml-3 flex items-center">
-              <XCircle className="h-3 w-3 mr-1" />
-              No se pueden agregar más registros cuando hay "No contiene" seleccionado
-            </p>
-          )}
         </div>
       </CardContent>
     </Card>

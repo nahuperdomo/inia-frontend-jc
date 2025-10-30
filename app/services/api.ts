@@ -45,7 +45,9 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
         // Si no se puede parsear como JSON, usar el texto como está
       }
 
-      throw new Error(`Error ${res.status}: ${errorText}`);
+      throw new Error(
+        errorDetail?.message || `Ocurrió un error inesperado (${res.status}). Por favor, inténtelo nuevamente.`
+      );
     }
 
     const contentType = res.headers.get("content-type");

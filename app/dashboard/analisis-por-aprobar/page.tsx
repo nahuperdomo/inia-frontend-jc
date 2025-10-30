@@ -211,7 +211,7 @@ export default function AnalisisPorAprobarPage() {
                       <TableHead>ID</TableHead>
                       <TableHead>Tipo</TableHead>
                       <TableHead>ID Lote</TableHead>
-                      <TableHead>Nombre Lote</TableHead>
+                      <TableHead>Lote</TableHead>
                       <TableHead>Ficha</TableHead>
                       <TableHead>Fecha Inicio</TableHead>
                       <TableHead>Fecha Fin</TableHead>

@@ -22,6 +22,11 @@ import { useParams } from "next/navigation"
 import { obtenerDosnPorId } from "@/app/services/dosn-service"
 import type { DosnDTO } from "@/app/models"
 import type { EstadoAnalisis, TipoDOSN, TipoListado } from "@/app/models/types/enums"
+import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
+import * as especiesService from "@/app/services/especie-service"
+import type { EspecieDTO } from "@/app/models"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
+
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -116,13 +121,13 @@ export default function DosnDetailPage() {
 
   const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
     switch (estado) {
-      case "FINALIZADO":
+      case "REGISTRADO":
         return "default"
       case "EN_PROCESO":
         return "secondary"
       case "APROBADO":
         return "outline"
-      case "PENDIENTE":
+      case "PENDIENTE_APROBACION":
         return "destructive"
       default:
         return "outline"
@@ -234,7 +239,7 @@ export default function DosnDetailPage() {
                     // Validación cliente (mismos criterios que el servidor)
                     const tieneINIA = !!(dosn.fechaINIA && dosn.gramosAnalizadosINIA && Number(dosn.gramosAnalizadosINIA) > 0)
                     const tieneINASE = !!(dosn.fechaINASE && dosn.gramosAnalizadosINASE && Number(dosn.gramosAnalizadosINASE) > 0)
-                    const tieneCuscuta = !!((dosn.cuscuta_g && Number(dosn.cuscuta_g) > 0) || (dosn.cuscutaNum && Number(dosn.cuscutaNum) > 0))
+                    const tieneCuscuta = !!(dosn.cuscutaRegistros && dosn.cuscutaRegistros.length > 0 && dosn.cuscutaRegistros.some(r => (r.cuscuta_g && Number(r.cuscuta_g) > 0) || (r.cuscutaNum && Number(r.cuscutaNum) > 0)))
                     const tieneListados = !!(dosn.listados && dosn.listados.length > 0)
 
                     if (!tieneINIA && !tieneINASE && !tieneCuscuta && !tieneListados) {
@@ -266,11 +271,19 @@ export default function DosnDetailPage() {
     {/* Compensar altura del header sticky */}
     <div className="pt-4">
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      
-
-        <div className="grid grid-cols-1 gap-6 lg:gap-8">
-          {/* Main Content - Full width now */}
-          <div className="space-y-6">
+        {/* Botón de Tabla de Tolerancias */}
+        <div className="mb-6 flex justify-end">
+          <TablaToleranciasButton
+            pdfPath="/tablas-tolerancias/tabla-dosn.pdf"
+            title="Ver Tabla de Tolerancias"
+            variant="outline"
+            size="sm"
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
             <Card className="overflow-hidden bg-background">
               <CardHeader className="bg-background border-b sticky top-[20px] z-20">
                 <CardTitle className="flex items-center gap-2 text-xl">
@@ -449,7 +462,7 @@ export default function DosnDetailPage() {
               </Card>
             )}
 
-            {(dosn.cuscuta_g || dosn.cuscutaNum) && (
+            {dosn.cuscutaRegistros && dosn.cuscutaRegistros.length > 0 && (
               <Card className="overflow-hidden">
                 <CardHeader className="bg-muted/50 border-b">
                   <CardTitle className="flex items-center gap-2 text-xl">
@@ -457,22 +470,57 @@ export default function DosnDetailPage() {
                       <BarChart3 className="h-5 w-5 text-orange-600" />
                     </div>
                     Análisis de Cuscuta
+                    <Badge variant="secondary" className="ml-auto">
+                      {dosn.cuscutaRegistros.length} registro{dosn.cuscutaRegistros.length > 1 ? 's' : ''}
+                    </Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {dosn.cuscuta_g !== undefined && dosn.cuscuta_g !== null && (
-                      <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-200/50 rounded-lg p-4 text-center space-y-2">
-                        <p className="text-3xl font-bold text-orange-600">{dosn.cuscuta_g}</p>
-                        <p className="text-sm font-medium text-muted-foreground">Gramos de Cuscuta</p>
-                      </div>
-                    )}
-                    {dosn.cuscutaNum !== undefined && dosn.cuscutaNum !== null && (
-                      <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 border border-red-200/50 rounded-lg p-4 text-center space-y-2">
-                        <p className="text-3xl font-bold text-red-600">{dosn.cuscutaNum}</p>
-                        <p className="text-sm font-medium text-muted-foreground">Número de Semillas</p>
-                      </div>
-                    )}
+                  <div className="space-y-4">
+                    {dosn.cuscutaRegistros.map((registro, index) => (
+                      <Card key={registro.id || index} className="border-2">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-semibold text-muted-foreground">
+                              Registro #{index + 1}
+                            </h4>
+                            {registro.instituto && (
+                              <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+                                {registro.instituto}
+                              </Badge>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {registro.instituto && (
+                              <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-200/50 rounded-lg p-4 text-center space-y-2">
+                                <p className="text-2xl font-bold text-blue-600">{registro.instituto}</p>
+                                <p className="text-sm font-medium text-muted-foreground">Instituto Analista</p>
+                              </div>
+                            )}
+                            {registro.cuscuta_g !== undefined && registro.cuscuta_g !== null && (
+                              <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-200/50 rounded-lg p-4 text-center space-y-2">
+                                <p className="text-3xl font-bold text-orange-600">{registro.cuscuta_g}</p>
+                                <p className="text-sm font-medium text-muted-foreground">Gramos de Cuscuta</p>
+                              </div>
+                            )}
+                            {registro.cuscutaNum !== undefined && registro.cuscutaNum !== null && (
+                              <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 border border-red-200/50 rounded-lg p-4 text-center space-y-2">
+                                <p className="text-3xl font-bold text-red-600">{registro.cuscutaNum}</p>
+                                <p className="text-sm font-medium text-muted-foreground">Número de Semillas</p>
+                              </div>
+                            )}
+                            {registro.fechaCuscuta && (
+                              <div className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-200/50 rounded-lg p-4 text-center space-y-2">
+                                <p className="text-lg font-bold text-purple-600">{formatearFechaLocal(registro.fechaCuscuta)}</p>
+                                <p className="text-sm font-medium text-muted-foreground">Fecha de Análisis</p>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -504,15 +552,24 @@ export default function DosnDetailPage() {
                               Especie
                             </label>
                             <p className="text-base font-semibold">
+                              {/* Mostrar catalogo (malezas) o especie (otros cultivos) */}
                               {listado.catalogo?.nombreComun || 
+                               listado.especie?.nombreComun ||
                                (listado.listadoTipo === "BRASSICA" ? "Sin especificación" : "--")}
                             </p>
+                            {/* Nombre científico de malezas */}
                             {listado.catalogo?.nombreCientifico && (
                               <p className="text-sm text-muted-foreground italic">
                                 {listado.catalogo.nombreCientifico}
                               </p>
                             )}
-                            {listado.listadoTipo === "BRASSICA" && !listado.catalogo?.nombreComun && (
+                            {/* Nombre científico de especies/cultivos */}
+                            {listado.especie?.nombreCientifico && (
+                              <p className="text-sm text-muted-foreground italic">
+                                {listado.especie.nombreCientifico}
+                              </p>
+                            )}
+                            {listado.listadoTipo === "BRASSICA" && !listado.catalogo?.nombreComun && !listado.especie?.nombreComun && (
                               <p className="text-sm text-muted-foreground">
                                 Las brassicas no requieren especificación de catálogo
                               </p>
@@ -545,78 +602,16 @@ export default function DosnDetailPage() {
                 </CardContent>
               </Card>
             )}
-          
-            {/* 
-            TODO: Acciones Rápidas - Comentado temporalmente
-            <div className="space-y-6">
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-muted/50 border-b">
-                  <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <Link href={`/registro/analisis/dosn?lote=${dosn.idLote}`} className="block">
-                      <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                        <div className="p-1.5 rounded-md bg-primary/10">
-                          <BarChart3 className="h-4 w-4 text-primary" />
-                        </div>
-                        <span className="font-medium">Nuevo Análisis</span>
-                      </Button>
-                    </Link>
-                    <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                      <div className="p-1.5 rounded-md bg-primary/10">
-                        <Download className="h-4 w-4 text-primary" />
-                      </div>
-                      <span className="font-medium">Descargar Certificado</span>
-                    </Button>
-                    <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                      <div className="p-1.5 rounded-md bg-primary/10">
-                        <Calendar className="h-4 w-4 text-primary" />
-                      </div>
-                      <span className="font-medium">Programar Seguimiento</span>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+          </div>
 
-              {dosn.historial && dosn.historial.length > 0 && (
-                <Card className="overflow-hidden">
-                  <CardHeader className="bg-muted/50 border-b">
-                    <CardTitle className="text-lg">Historial de Actividades</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      {dosn.historial.map((item, index) => (
-                        <div key={index} className="relative pl-6 pb-4 last:pb-0">
-                          <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
-                          {index !== dosn.historial.length - 1 && (
-                            <div className="absolute left-[5px] top-5 bottom-0 w-0.5 bg-border" />
-                          )}
-                          <div className="space-y-1">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="text-sm font-semibold leading-tight">
-                                {item.estadoAnterior} → {item.estadoNuevo}
-                              </p>
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(item.fechaCambio).toLocaleDateString("es-ES", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </p>
-                            <p className="text-xs text-muted-foreground">Por: {item.usuario}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-            */}
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Historial de Actividades */}
+            <AnalysisHistoryCard
+              analisisId={dosn.analisisID}
+              analisisTipo="dosn"
+              historial={dosn.historial}
+            />
           </div>
         </div>
       </div>

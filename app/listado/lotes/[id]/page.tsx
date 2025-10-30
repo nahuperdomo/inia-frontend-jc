@@ -107,276 +107,287 @@ export default function DetalleLotePage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <Toaster position="top-right" richColors closeButton />
-      
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/listado/lotes">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Lotes
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-balance">
-              {lote.nomLote ? lote.nomLote : `Lote ${lote.ficha}`}
-            </h1>
-            <p className="text-muted-foreground">
-              Ficha: {lote.ficha} • ID: {lote.loteID}
-            </p>
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+        <Toaster position="top-right" richColors closeButton />
+        
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <Link href="/listado/lotes">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Volver
+              </Button>
+            </Link>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl sm:text-3xl font-bold text-balance">
+                  {lote.nomLote ? lote.nomLote : `Lote ${lote.ficha}`}
+                </h1>
+                <Badge variant={lote.activo ? "default" : "secondary"} className="text-xs sm:text-sm">
+                  {lote.activo ? "Activo" : "Inactivo"}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Ficha: <span className="font-mono">{lote.ficha}</span> • ID: {lote.loteID}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Link href={`/listado/lotes/${loteId}/editar`} className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto">
+                <Edit className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Editar</span>
+                <span className="sm:hidden">Editar</span>
+              </Button>
+            </Link>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Link href={`/listado/lotes/${loteId}/editar`}>
-            <Button>
-              <Edit className="h-4 w-4 mr-2" />
-              Editar Lote
-            </Button>
-          </Link>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Información Principal */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Datos Básicos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Información Básica
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Ficha</label>
-                  <p className="text-sm font-mono">{lote.ficha}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Nombre del Lote</label>
-                  <p className="text-sm font-medium">{lote.nomLote || "-"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Tipo</label>
-                  <p className="text-sm">{lote.tipo || "-"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Código CC</label>
-                  <p className="text-sm font-mono">{lote.codigoCC || "-"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Código FF</label>
-                  <p className="text-sm font-mono">{lote.codigoFF || "-"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Remitente</label>
-                  <p className="text-sm">{lote.remitente || "-"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Unidad Embolsado</label>
-                  <p className="text-sm">{lote.unidadEmbolsado || "-"}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Información de Empresa y Cliente */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                Empresa y Cliente
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Empresa</label>
-                  <p className="text-sm">{lote.empresaNombre || "-"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Cliente</label>
-                  <p className="text-sm">{lote.clienteNombre || "-"}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Información del Cultivar */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                Información del Cultivar
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Cultivar</label>
-                  <p className="text-sm">{lote.cultivarNombre || "-"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Especie</label>
-                  <p className="text-sm">-</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Fechas Importantes */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Fechas Importantes
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Fecha de Entrega</label>
-                  <p className="text-sm">{formatearFecha(lote.fechaEntrega?.toString())}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Fecha de Recibo</label>
-                  <p className="text-sm">{formatearFecha(lote.fechaRecibo?.toString())}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Fecha de Cosecha</label>
-                  <p className="text-sm">{formatearFecha(lote.fechaCosecha?.toString())}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Información de Cantidad y Peso */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Scale className="h-5 w-5" />
-                Cantidad y Peso
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Kilos Limpios</label>
-                  <p className="text-sm">{lote.kilosLimpios ? `${lote.kilosLimpios} kg` : "-"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Cantidad</label>
-                  <p className="text-sm">{lote.cantidad ? `${lote.cantidad}` : "-"}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Observaciones */}
-          {lote.observaciones && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Información Principal */}
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            {/* Datos Básicos */}
             <Card>
-              <CardHeader>
-                <CardTitle>Observaciones</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Información Básica
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm whitespace-pre-wrap">{lote.observaciones}</p>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Ficha</label>
+                    <p className="text-sm sm:text-base font-mono font-semibold">{lote.ficha}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Nombre del Lote</label>
+                    <p className="text-sm sm:text-base font-semibold">{lote.nomLote || "-"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Tipo</label>
+                    <p className="text-sm sm:text-base">{lote.tipo || "-"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Cultivar</label>
+                    <p className="text-sm sm:text-base">{lote.cultivarNombre || "-"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Especie</label>
+                    <p className="text-sm sm:text-base">{lote.especieNombre || "-"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Unidad Embolsado</label>
+                    <p className="text-sm sm:text-base">{lote.unidadEmbolsado || "-"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Código CC</label>
+                    <p className="text-sm sm:text-base font-mono">{lote.codigoCC || "-"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Código FF</label>
+                    <p className="text-sm sm:text-base font-mono">{lote.codigoFF || "-"}</p>
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Remitente</label>
+                    <p className="text-sm sm:text-base">{lote.remitente || "-"}</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
-          )}
-        </div>
 
-        {/* Panel Lateral */}
-        <div className="space-y-6">
-          {/* Estado del Lote */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                Estado
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Badge variant={lote.activo ? "default" : "secondary"} className="text-sm">
-                {lote.activo ? "Activo" : "Inactivo"}
-              </Badge>
-            </CardContent>
-          </Card>
-
-          {/* Tipos de Análisis Asignados */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TestTube className="h-5 w-5" />
-                Tipos de Análisis Asignados
-              </CardTitle>
-              <CardDescription>
-                Análisis configurados para este lote
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {lote.tiposAnalisisAsignados && lote.tiposAnalisisAsignados.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {lote.tiposAnalisisAsignados.map((tipo) => (
-                    <Badge key={tipo} variant="outline" className="text-xs">
-                      {obtenerLabelTipoAnalisis(tipo)}
-                    </Badge>
-                  ))}
+            {/* Información de Empresa y Cliente */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <Building className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Empresa y Cliente
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Empresa</label>
+                    <p className="text-sm sm:text-base">{lote.empresaNombre || "-"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Cliente</label>
+                    <p className="text-sm sm:text-base">{lote.clienteNombre || "-"}</p>
+                  </div>
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No hay tipos de análisis asignados
-                </p>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Información Adicional */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Ubicación y Estado
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Origen</label>
-                <p className="text-sm">{lote.origenValor || "-"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Depósito</label>
-                <p className="text-sm">{lote.depositoValor || "-"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Estado</label>
-                <p className="text-sm">{lote.estadoValor || "-"}</p>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Fechas Importantes */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Fechas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Entrega</label>
+                    <p className="text-sm sm:text-base">{formatearFecha(lote.fechaEntrega?.toString())}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Recibo</label>
+                    <p className="text-sm sm:text-base">{formatearFecha(lote.fechaRecibo?.toString())}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Cosecha</label>
+                    <p className="text-sm sm:text-base">{formatearFecha(lote.fechaCosecha?.toString())}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Acciones Rápidas */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Acciones</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Link href={`/listado/lotes/${loteId}/editar`} className="w-full">
-                <Button variant="outline" className="w-full">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar Lote
-                </Button>
-              </Link>
-              <Link href="/registro/analisis" className="w-full">
-                <Button variant="outline" className="w-full">
-                  <TestTube className="h-4 w-4 mr-2" />
-                  Crear Análisis
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+            {/* Información de Almacenamiento */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Almacenamiento y Estado
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Origen</label>
+                    <p className="text-sm sm:text-base">{lote.origenValor || "-"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Depósito</label>
+                    <p className="text-sm sm:text-base">{lote.depositoValor || "-"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Estado</label>
+                    <p className="text-sm sm:text-base">{lote.estadoValor || "-"}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Información de Peso y Calidad */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <Scale className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Peso y Artículo
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Kilos Limpios</label>
+                    <p className="text-sm sm:text-base font-semibold">{lote.kilosLimpios ? `${lote.kilosLimpios} kg` : "-"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Número Artículo</label>
+                    <p className="text-sm sm:text-base">{lote.numeroArticuloValor || "-"}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Observaciones */}
+            {lote.observaciones && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg sm:text-xl">Observaciones</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm sm:text-base whitespace-pre-wrap">{lote.observaciones}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Panel Lateral */}
+          <div className="space-y-4 sm:space-y-6">
+            {/* Tipos de Análisis Asignados */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <TestTube className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Análisis Asignados
+                </CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Tipos de análisis configurados
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {lote.tiposAnalisisAsignados && lote.tiposAnalisisAsignados.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {lote.tiposAnalisisAsignados.map((tipo) => (
+                      <Badge key={tipo} variant="outline" className="text-xs">
+                        {obtenerLabelTipoAnalisis(tipo)}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    No hay tipos de análisis asignados
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Datos de Humedad */}
+            {lote.datosHumedad && lote.datosHumedad.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                    <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
+                    Datos de Humedad
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {lote.datosHumedad.map((humedad, index) => (
+                      <div key={index} className="flex justify-between items-center p-2 bg-muted rounded-md">
+                        <span className="text-xs sm:text-sm text-muted-foreground">
+                          Tipo: {humedad.humedadNombre || `ID ${humedad.humedadID}`}
+                        </span>
+                        <span className="text-xs sm:text-sm font-semibold">{humedad.porcentaje}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Acciones Rápidas */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg sm:text-xl">Acciones</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Link href={`/listado/lotes/${loteId}/editar`} className="w-full">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar Lote
+                  </Button>
+                </Link>
+                <Link href="/registro/analisis" className="w-full">
+                  <Button variant="outline" className="w-full justify-start">
+                    <TestTube className="h-4 w-4 mr-2" />
+                    Crear Análisis
+                  </Button>
+                </Link>
+                <Link href="/listado/lotes" className="w-full">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Package className="h-4 w-4 mr-2" />
+                    Ver Todos los Lotes
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

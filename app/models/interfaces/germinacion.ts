@@ -1,23 +1,13 @@
 import { AnalisisDTO, AnalisisRequestDTO } from './analisis';
 
 export interface GerminacionDTO extends AnalisisDTO {
-  // Germinacion specific fields
-  fechaInicioGerm: string; // LocalDate as string
-  fechaConteos: string[]; // List<LocalDate> as string array
-  fechaUltConteo: string; // LocalDate as string
-  numDias?: string;
-  numeroRepeticiones?: number;
-  numeroConteos?: number;
+  // No hay campos específicos aquí, se movieron a TablaGerm
+  // La germinación es solo un contenedor para las tablas
 }
 
 export interface GerminacionRequestDTO extends AnalisisRequestDTO {
-  // Germinacion specific fields
-  fechaInicioGerm: string; // LocalDate as string
-  fechaConteos: string[]; // List<LocalDate> as string array
-  fechaUltConteo: string; // LocalDate as string
-  numDias?: string; // Calculated and sent from frontend
-  numeroRepeticiones?: number;
-  numeroConteos?: number;
+  // No hay campos específicos aquí, se movieron a TablaGerm
+  // La germinación es solo un contenedor para las tablas
 }
 
 export interface GerminacionEditRequestDTO {
@@ -38,9 +28,6 @@ export interface GerminacionListadoDTO {
   fechaFin?: string;
   lote?: string;
   idLote?: number;
-  fechaInicioGerm: string;
-  fechaUltConteo: string;
-  numDias?: string;
   usuarioCreador?: string;
   usuarioModificador?: string;
   cumpleNorma: boolean; // true si NO está "A REPETIR"

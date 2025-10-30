@@ -1,10 +1,11 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Package, Loader2 } from "lucide-react"
+import { ArrowLeft, Package, Loader2, AlertCircle } from "lucide-react"
+import { validarFichaUnica, validarNombreLoteUnico } from "@/lib/validations/lotes-async-validation"
 import Link from "next/link"
 import { Toaster, toast } from 'sonner'
 import { LotFormTabs } from "@/components/lotes/lot-form-tabs"
@@ -45,7 +46,6 @@ export default function EditarLotePage() {
       valor: "",
     }],
     numeroArticuloID: "",
-    cantidad: "",
     origenID: "",
     estadoID: "",
     fechaCosecha: "",
@@ -56,9 +56,6 @@ export default function EditarLotePage() {
 
   const {
     isValid,
-    handleBlur,
-    hasError,
-    getErrorMessage,
     touchAll,
   } = useValidation<LoteFormData>(formData, loteValidationSchema);
 
@@ -122,7 +119,6 @@ export default function EditarLotePage() {
                 valor: "",
               }],
           numeroArticuloID: data.numeroArticuloID || "",
-          cantidad: data.cantidad || "",
           origenID: data.origenID || "",
           estadoID: data.estadoID || "",
           fechaCosecha: data.fechaCosecha || "",
@@ -145,7 +141,28 @@ export default function EditarLotePage() {
     loadLote();
   }, [loteId, router]);
 
-  const handleInputChange = (field: keyof LoteFormData, value: any) => {
+  const handleInputChange = useCallback(async (field: keyof LoteFormData, value: any) => {
+    // Validar ficha y nombre de lote cuando cambian
+    if (field === 'ficha' && value) {
+      const esValido = await validarFichaUnica(value, parseInt(loteId));
+      if (!esValido) {
+        toast.error('Esta ficha ya está registrada', {
+          description: 'Por favor, utiliza una ficha diferente',
+          icon: <AlertCircle className="h-5 w-5" />,
+        });
+      }
+    }
+
+    if (field === 'nomLote' && value) {
+      const esValido = await validarNombreLoteUnico(value, parseInt(loteId));
+      if (!esValido) {
+        toast.error('Este nombre de lote ya está registrado', {
+          description: 'Por favor, utiliza un nombre diferente',
+          icon: <AlertCircle className="h-5 w-5" />,
+        });
+      }
+    }
+
     // Si se están modificando los tipos de análisis, validar que no se remuevan tipos no removibles
     if (field === 'tiposAnalisisAsignados') {
       const nuevosTipos = value as TipoAnalisis[]
@@ -175,7 +192,7 @@ export default function EditarLotePage() {
     }
     
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  }, [loteId, tiposOriginales, tiposNoRemovibles]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,7 +220,6 @@ export default function EditarLotePage() {
         depositoID: Number(formData.depositoID),
         kilosLimpios: Number(formData.kilosLimpios),
         numeroArticuloID: Number(formData.numeroArticuloID),
-        cantidad: Number(formData.cantidad),
         origenID: Number(formData.origenID),
         estadoID: Number(formData.estadoID),
         fechaEntrega: formData.fechaEntrega,
@@ -276,9 +292,8 @@ export default function EditarLotePage() {
           onInputChange={handleInputChange}
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          handleBlur={(field: string) => handleBlur(field, formData[field as keyof LoteFormData], formData)}
-          hasError={hasError}
-          getErrorMessage={getErrorMessage}
+          isLoading={isLoading}
+          loteId={parseInt(loteId)}
         />
 
         <div className="mt-6 flex justify-end gap-3">

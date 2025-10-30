@@ -1,6 +1,21 @@
 import { AnalisisDTO, AnalisisRequestDTO } from './analisis';
 import { ListadoDTO, ListadoRequestDTO } from './common';
-import { TipoDOSN } from '../types/enums';
+import { TipoDOSN, Instituto } from '../types/enums';
+
+export interface CuscutaRegistroDTO {
+  id?: number;
+  instituto?: Instituto;
+  cuscuta_g?: number; // BigDecimal as number
+  cuscutaNum?: number;
+  fechaCuscuta?: string; // LocalDate as string
+}
+
+export interface CuscutaRegistroRequestDTO {
+  instituto?: Instituto;
+  cuscuta_g?: number; // BigDecimal as number
+  cuscutaNum?: number;
+  fechaCuscuta?: string; // LocalDate as string
+}
 
 export interface DosnDTO extends AnalisisDTO {
   // DOSN specific fields
@@ -13,9 +28,7 @@ export interface DosnDTO extends AnalisisDTO {
   gramosAnalizadosINASE?: number; // BigDecimal as number
   tipoINASE?: TipoDOSN[];
   
-  cuscuta_g?: number; // BigDecimal as number
-  cuscutaNum?: number;
-  fechaCuscuta?: string; // LocalDate as string
+  cuscutaRegistros?: CuscutaRegistroDTO[];
   
   listados?: ListadoDTO[];
 }
@@ -31,9 +44,7 @@ export interface DosnRequestDTO extends AnalisisRequestDTO {
   gramosAnalizadosINASE?: number; // BigDecimal as number
   tipoINASE?: TipoDOSN[];
   
-  cuscuta_g?: number; // BigDecimal as number
-  cuscutaNum?: number;
-  fechaCuscuta?: string; // LocalDate as string
+  cuscutaRegistros?: CuscutaRegistroRequestDTO[];
   
   listados?: ListadoRequestDTO[];
 }

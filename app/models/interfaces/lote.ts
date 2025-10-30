@@ -10,6 +10,7 @@ export interface LoteDTO {
   nomLote?: string;
   cultivarID: number;
   cultivarNombre?: string;
+  especieNombre?: string; // Nombre de la especie del cultivar
   tipo?: string;
   empresaID: number;
   empresaNombre?: string;
@@ -33,7 +34,6 @@ export interface LoteDTO {
   numeroArticuloID?: number;
   numeroArticuloValor?: string;
   
-  cantidad?: number;
   origenID?: number;
   origenValor?: string;
   estadoID?: number;
@@ -67,7 +67,6 @@ export interface LoteRequestDTO {
     valor: number;
   }>;
   numeroArticuloID: number;
-  cantidad: number;
   origenID: number;
   estadoID: number;
   fechaCosecha: string;

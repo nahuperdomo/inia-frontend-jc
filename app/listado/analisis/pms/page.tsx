@@ -7,41 +7,35 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
-import { Scale, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react"
+import { Scale, Search, Filter, Plus, Eye, Edit, Trash2, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
-import { Toaster, toast } from "sonner"
+import { toast, Toaster } from "sonner"
 import Pagination from "@/components/pagination"
-import { obtenerPmsPaginadas, eliminarPms, desactivarPms, activarPms } from "@/app/services/pms-service"
-import { PmsDTO } from "@/app/models"
+import { obtenerPmsPaginadas, desactivarPms, activarPms } from "@/app/services/pms-service"
+import { EstadoAnalisis } from "@/app/models"
+import { useAuth } from "@/components/auth-provider"
 
-interface AnalisisPMS {
-  id: string
-  loteId: string
-  loteName: string
-  analyst: string
+interface PmsListadoDTO {
+  analisisID: number
+  estado: EstadoAnalisis
   fechaInicio: string
-  fechaFin: string | null
-  estado: "Completado" | "En Proceso" | "Pendiente"
-  prioridad: "Alta" | "Media" | "Baja"
-  repeticiones: number
-  semillasPorRep: number
-  humedad: string
-  pesoPromedio: number
-  desviacionEstandar: number
-  coeficienteVariacion: number
-  pesoCorregido: number
+  fechaFin?: string
+  lote: string
+  idLote?: number
+  especie?: string
   activo?: boolean
+  pms_g?: number
+  coeficienteVariacion?: number
+  usuarioCreador?: string
+  usuarioModificador?: string
 }
 
 export default function ListadoPMSPage() {
+  const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
-  const [filterEstado, setFilterEstado] = useState<string>("todos")
-  const [filterPrioridad, setFilterPrioridad] = useState<string>("todos")
+  const [selectedStatus, setSelectedStatus] = useState("all")
   const [filtroActivo, setFiltroActivo] = useState("todos")
-  const [userRole, setUserRole] = useState<string | null>(null)
-  const [analisis, setAnalisis] = useState<AnalisisPMS[]>([])
+  const [pms, setPms] = useState<PmsListadoDTO[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
@@ -49,62 +43,45 @@ export default function ListadoPMSPage() {
   const [totalElements, setTotalElements] = useState(0)
   const pageSize = 10
 
-  // Debounce searchTerm
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-    }, 500)
-    return () => clearTimeout(handler)
-  }, [searchTerm])
+    setCurrentPage(0)
+    fetchPms(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtroActivo, selectedStatus]) // Recargar cuando cambien los filtros (sin searchTerm)
 
-  // Obtener rol del usuario
-  useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]))
-        setUserRole(payload.rol)
-      } catch (error) {
-        console.error("Error al decodificar el token:", error)
-      }
+  // Handler para búsqueda con Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      setCurrentPage(0)
+      fetchPms(0)
     }
-  }, [])
+  }
+
+  // Handler para botón de búsqueda
+  const handleSearchClick = () => {
+    setCurrentPage(0)
+    fetchPms(0)
+  }
 
   // Fetch paginated PMS
   const fetchPms = async (page: number = 0) => {
     try {
       setLoading(true)
-  // Convert filtroActivo string to boolean
-  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
-  
+      // Convert filtroActivo string to boolean
+      const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos"
+      
       const data = await obtenerPmsPaginadas(
         page,
         pageSize,
-        debouncedSearchTerm || undefined,
+        searchTerm,
         activoFilter,
-        undefined,
+        selectedStatus !== "all" ? selectedStatus : undefined,
         undefined
       )
-      // data.content expected
-      const content = (data.content || [])
-      setAnalisis(content.map((p: any) => ({
-        id: `PMS${p.analisisID}`,
-        loteId: p.lote || `#${p.analisisID}`,
-        loteName: p.lote || "No especificado",
-        analyst: p.analista || "-",
-        fechaInicio: p.fecha || new Date().toISOString(),
-        fechaFin: p.fechaFin || null,
-        estado: p.estado === 'FINALIZADO' || p.estado === 'APROBADO' ? 'Completado' : (p.estado === 'EN_PROCESO' ? 'En Proceso' : 'Pendiente'),
-        prioridad: 'Media',
-        repeticiones: p.repeticiones || 0,
-        semillasPorRep: p.semillasPorRepeticion || 100,
-        humedad: p.humedad || "-",
-        pesoPromedio: p.pesoPromedio || 0,
-        desviacionEstandar: p.desviacionEstandar || 0,
-        coeficienteVariacion: p.coeficienteVariacion || 0,
-        pesoCorregido: p.pesoCorregido || 0,
-        activo: p.activo ?? true,
-      })))
+      
+      const content = data.content || []
+      setPms(content)
 
       const pageMeta = (data as any).page ? (data as any).page : (data as any)
       const totalPagesFrom = pageMeta.totalPages ?? 1
@@ -121,11 +98,6 @@ export default function ListadoPMSPage() {
       setLoading(false)
     }
   }
-
-  useEffect(() => {
-    setCurrentPage(0)
-    fetchPms(0)
-  }, [filtroActivo, debouncedSearchTerm])
 
   // Handlers para desactivar/reactivar
   const handleDesactivar = async (id: number) => {
@@ -151,17 +123,21 @@ export default function ListadoPMSPage() {
     }
   }
 
-  const filteredAnalisis = analisis.filter((item) => {
-    const matchesSearch =
-      item.id?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.loteId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.loteName?.toLowerCase().includes(searchTerm.toLowerCase())
+  // Estadísticas calculadas
+  const filteredAnalysis = pms
+  const totalAnalysis = totalElements
+  const completedAnalysis = pms.filter(p => p.estado === "APROBADO").length
+  const inProgressAnalysis = pms.filter(p => p.estado === "EN_PROCESO" || p.estado === "REGISTRADO").length
+  
+  const promedioPMS = pms.length > 0 
+    ? pms.reduce((sum, p) => sum + (p.pms_g || 0), 0) / pms.length 
+    : 0
 
-    const matchesEstado = filterEstado === "todos" || item.estado === filterEstado
+  const promedioCV = pms.length > 0
+    ? pms.reduce((sum, p) => sum + (p.coeficienteVariacion || 0), 0) / pms.length
+    : 0
 
-    return matchesSearch && matchesEstado
-  })
-
+  // Helper functions
   const getEstadoBadgeVariant = (estado: string) => {
     switch (estado) {
       case "APROBADO":
@@ -178,7 +154,7 @@ export default function ListadoPMSPage() {
     }
   }
 
-  const getEstadoDisplay = (estado: string) => {
+  const formatEstado = (estado: string) => {
     switch (estado) {
       case "APROBADO":
         return "Aprobado"
@@ -195,41 +171,13 @@ export default function ListadoPMSPage() {
     }
   }
 
-  const handleEliminar = async (id: number) => {
-    if (!confirm("¿Estás seguro de que deseas eliminar este análisis?")) {
-      return
-    }
-
-    try {
-      await eliminarPms(id)
-      toast.success('Análisis eliminado exitosamente')
-      // Recargar la lista
-      await fetchPms(currentPage)
-    } catch (err: any) {
-      toast.error('Error al eliminar análisis', {
-        description: err?.message || "No se pudo eliminar el análisis",
-      })
-    }
-  }
-
-  // Estadísticas calculadas
-  const totalAnalisis = analisis.length
-  const completados = analisis.filter((a) => a.estado === "Completado").length
-  const enProceso = analisis.filter((a) => a.estado === "En Proceso").length
-  const promedioGeneral = analisis.filter((a) => a.pesoPromedio && a.pesoPromedio > 0)
-    .reduce((sum, a, _, arr) => sum + (a.pesoPromedio || 0) / arr.length, 0)
-
-  if (loading) {
-    return (
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <Scale className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">Cargando análisis de PMS...</p>
-          </div>
-        </div>
-      </div>
-    )
+  const formatearFechaLocal = (fechaStr: string | undefined) => {
+    if (!fechaStr) return "-"
+    const fecha = new Date(fechaStr)
+    const year = fecha.getFullYear()
+    const month = String(fecha.getMonth() + 1).padStart(2, "0")
+    const day = String(fecha.getDate()).padStart(2, "0")
+    return `${day}/${month}/${year}`
   }
 
   return (
@@ -271,7 +219,7 @@ export default function ListadoPMSPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Análisis</p>
-                <p className="text-2xl font-bold">{totalAnalisis}</p>
+                <p className="text-2xl font-bold">{totalAnalysis}</p>
               </div>
               <Scale className="h-8 w-8 text-primary" />
             </div>
@@ -282,7 +230,7 @@ export default function ListadoPMSPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Aprobados</p>
-                <p className="text-2xl font-bold">{completados}</p>
+                <p className="text-2xl font-bold">{completedAnalysis}</p>
               </div>
               <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
                 <div className="h-4 w-4 rounded-full bg-green-500"></div>
@@ -295,7 +243,7 @@ export default function ListadoPMSPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">En Proceso</p>
-                <p className="text-2xl font-bold">{enProceso}</p>
+                <p className="text-2xl font-bold">{inProgressAnalysis}</p>
               </div>
               <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
                 <div className="h-4 w-4 rounded-full bg-yellow-500"></div>
@@ -309,7 +257,7 @@ export default function ListadoPMSPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">PMS Promedio</p>
                 <p className="text-2xl font-bold">
-                  {promedioGeneral > 0 ? promedioGeneral.toFixed(1) : "0"}g
+                  {promedioPMS > 0 ? promedioPMS.toFixed(2) : "0"} g
                 </p>
               </div>
               <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
@@ -346,23 +294,33 @@ export default function ListadoPMSPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSearchClick()
+              }}
+              className="flex-1 flex gap-2"
+            >
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por ID de análisis, lote o ID de lote..."
+                  placeholder="Buscar por ID análisis, Lote o Ficha..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   className="pl-10"
                 />
               </div>
-            </div>
-            <Select value={filterEstado} onValueChange={setFilterEstado}>
+              <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                <Search className="h-4 w-4" />
+              </Button>
+            </form>
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Filtrar por estado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">Todos los estados</SelectItem>
+                <SelectItem value="all">Todos los estados</SelectItem>
                 <SelectItem value="REGISTRADO">Registrado</SelectItem>
                 <SelectItem value="EN_PROCESO">En Proceso</SelectItem>
                 <SelectItem value="PENDIENTE_APROBACION">Pendiente Aprobación</SelectItem>
@@ -396,76 +354,73 @@ export default function ListadoPMSPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="whitespace-nowrap">ID Análisis</TableHead>
+                  <TableHead className="whitespace-nowrap">ID</TableHead>
                   <TableHead className="whitespace-nowrap">Lote</TableHead>
-                  <TableHead className="whitespace-nowrap">ID Lote</TableHead>
-                  <TableHead className="whitespace-nowrap">Fecha Inicio</TableHead>
+                  <TableHead className="whitespace-nowrap">Especie</TableHead>
                   <TableHead className="whitespace-nowrap">Estado</TableHead>
-                  <TableHead className="whitespace-nowrap">Repeticiones</TableHead>
                   <TableHead className="whitespace-nowrap">PMS (g)</TableHead>
-                  <TableHead className="whitespace-nowrap">Coef. Variación</TableHead>
+                  <TableHead className="whitespace-nowrap">Coef. Variación (%)</TableHead>
                   <TableHead className="whitespace-nowrap">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAnalisis.length === 0 ? (
+                {loading ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                      {searchTerm || filterEstado !== "todos" 
-                        ? "No se encontraron análisis que coincidan con los filtros."
-                        : "No hay análisis de PMS registrados aún."
-                      }
+                    <TableCell colSpan={7} className="text-center py-8">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                        <span className="text-muted-foreground">Cargando análisis...</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : pms.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      No se encontraron análisis de PMS.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredAnalisis.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium whitespace-nowrap">{item.id}</TableCell>
-                      <TableCell className="whitespace-nowrap">{item.loteName || "-"}</TableCell>
-                      <TableCell className="whitespace-nowrap">{item.loteId || "-"}</TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {item.fechaInicio 
-                          ? new Date(item.fechaInicio).toLocaleDateString("es-ES")
-                          : "-"
-                        }
+                  pms.map((item) => (
+                    <TableRow key={item.analisisID}>
+                      <TableCell className="font-medium whitespace-nowrap">
+                        {item.analisisID}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        <Badge variant={getEstadoBadgeVariant(item.estado || "")}>
-                          {getEstadoDisplay(item.estado || "")}
+                        {item.lote || "-"}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {item.especie || "-"}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <Badge variant={getEstadoBadgeVariant(item.estado)}>
+                          {formatEstado(item.estado)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="whitespace-nowrap">{item.repeticiones || "-"}</TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {item.pesoPromedio && item.pesoPromedio > 0 
-                          ? `${item.pesoPromedio.toFixed(2)}g` 
-                          : "-"
-                        }
+                      <TableCell className="whitespace-nowrap text-right">
+                        {item.pms_g ? item.pms_g.toFixed(2) : "-"}
                       </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {item.coeficienteVariacion && item.coeficienteVariacion > 0 
-                          ? `${item.coeficienteVariacion.toFixed(2)}%` 
-                          : "-"
-                        }
+                      <TableCell className="whitespace-nowrap text-right">
+                        {item.coeficienteVariacion ? item.coeficienteVariacion.toFixed(2) : "-"}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <Link href={`/listado/analisis/pms/${item.id.replace('PMS', '')}`}>
+                          <Link href={`/listado/analisis/pms/${item.analisisID}`}>
                             <Button variant="ghost" size="sm" title="Ver detalles">
                               <Eye className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <Link href={`/listado/analisis/pms/${item.id.replace('PMS', '')}/editar`}>
+                          <Link href={`/listado/analisis/pms/${item.analisisID}/editar`}>
                             <Button variant="ghost" size="sm" title="Editar">
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Link>
-                          {userRole === "ADMIN" && (
+                          {user?.role === "administrador" && (
                             item.activo ? (
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
                                 title="Desactivar"
-                                onClick={() => handleDesactivar(parseInt(item.id.replace('PMS', '')))}
+                                onClick={() => handleDesactivar(item.analisisID)}
                                 className="text-red-600 hover:text-red-700"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -475,7 +430,7 @@ export default function ListadoPMSPage() {
                                 variant="ghost" 
                                 size="sm" 
                                 title="Reactivar"
-                                onClick={() => handleReactivar(parseInt(item.id.replace('PMS', '')))}
+                                onClick={() => handleReactivar(item.analisisID)}
                                 className="text-green-600 hover:text-green-700"
                               >
                                 <RefreshCw className="h-4 w-4" />

@@ -3,7 +3,7 @@ import {
   DosnDTO,
   DosnRequestDTO,
   ResponseListadoDosn,
-  MalezasYCultivosCatalogoDTO
+  MalezasCatalogoDTO 
 } from "../models";
 
 // DOSN functions
@@ -73,7 +73,7 @@ export async function obtenerDosnPaginadas(
   return apiFetch(`/dosn/listado?${params.toString()}`);
 }
 
-export async function obtenerTodosCatalogos(): Promise<MalezasYCultivosCatalogoDTO[]> {
+export async function obtenerTodosCatalogos(): Promise<MalezasCatalogoDTO[]> {
   return apiFetch("/dosn/catalogos");
 }
 

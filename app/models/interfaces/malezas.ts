@@ -1,10 +1,7 @@
-import { TipoMYCCatalogo } from '../types/enums';
+export type { MalezasCatalogoDTO } from './common';
 
-export type { MalezasYCultivosCatalogoDTO } from './common';
-
-// Request DTO para crear o actualizar una maleza o cultivo
-export interface MalezasYCultivosCatalogoRequestDTO {
+// Request DTO para crear o actualizar una maleza
+export interface MalezasCatalogoRequestDTO {
   nombreComun: string;
   nombreCientifico: string;
-  tipoMYCCatalogo: TipoMYCCatalogo;
 }

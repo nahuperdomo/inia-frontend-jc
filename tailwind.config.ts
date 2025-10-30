@@ -69,6 +69,11 @@ const config: Config = {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        inase: {
+          DEFAULT: "#4CAF50",
+          light: "#81C784",
+          dark: "#388E3C",
+        },
       },
     },
   },

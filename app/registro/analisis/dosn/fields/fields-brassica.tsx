@@ -8,7 +8,6 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Trash2, Plus, Sprout, XCircle } from "lucide-react"
-import { usePersistentArray } from "@/lib/hooks/use-form-persistence"
 
 type Brassica = {
   contiene: "si" | "no" | ""
@@ -31,36 +30,29 @@ export default function BrassicaSection({ registros, onChangeListados, contexto 
       }))
     : [{ contiene: "" as const, entidad: "", numero: "" }]
 
-  // ✅ Usar persistencia solo si no hay registros precargados
-  const persistence = usePersistentArray<Brassica>(
-    `${contexto}-brassicas`,
-    initialBrassicas
-  )
+  // NO usar persistencia - los datos solo deben vivir en la sesión actual
+  const [brassicas, setBrassicas] = useState<Brassica[]>(initialBrassicas)
 
-  // Si hay registros precargados (modo edición), usar esos. Si no, usar persistencia
-  const [brassicas, setBrassicas] = useState<Brassica[]>(
-    registros && registros.length > 0 ? initialBrassicas : persistence.array
-  )
-
-  // Sincronizar con persistencia cuando cambie brassicas (solo en modo creación)
-  useEffect(() => {
-    if (!registros || registros.length === 0) {
-      persistence.setArray(brassicas)
-    }
-  }, [brassicas])
+  // ❌ Eliminar sincronización con persistencia
+  // Los datos NO deben guardarse en localStorage durante el registro
 
   // notificar cambios al padre
   useEffect(() => {
     if (onChangeListados) {
       const listados = brassicas
         .filter((b) => {
-          // Solo cuando contiene y tiene los campos requeridos
-          const hasRequiredFields = b.contiene === "si" &&
-            b.entidad && b.entidad.trim() !== "";
-          return hasRequiredFields;
+          // Si contiene "si" y tiene datos requeridos
+          if (b.contiene === "si" && b.entidad && b.entidad.trim() !== "") {
+            return true
+          }
+          // Si NO contiene y tiene entidad (para guardar el "no contiene" con entidad)
+          if (b.contiene === "no" && b.entidad && b.entidad.trim() !== "") {
+            return true
+          }
+          return false
         })
         .map((b) => ({
-          listadoTipo: "BRASSICA",
+          listadoTipo: b.contiene === "no" ? "NO_CONTIENE" : "BRASSICA",
           listadoInsti: b.entidad.toUpperCase(),
           listadoNum: b.numero !== "" ? Number(b.numero) : null,
           idCatalogo: null, // Las brassicas no tienen catálogo
@@ -82,7 +74,8 @@ export default function BrassicaSection({ registros, onChangeListados, contexto 
   const updateBrassica = (index: number, field: keyof Brassica, value: any) => {
     const updated = [...brassicas]
     if (field === "contiene" && value === "no") {
-      updated[index] = { contiene: "no", entidad: "", numero: "" }
+      // Cuando selecciona "No contiene", limpiar numero pero MANTENER entidad
+      updated[index] = { contiene: "no", entidad: updated[index].entidad, numero: "" }
     } else {
       updated[index] = { ...updated[index], [field]: value }
     }
@@ -158,13 +151,13 @@ export default function BrassicaSection({ registros, onChangeListados, contexto 
 
                   {/* INIA / INASE */}
                   <div className="space-y-2">
-                    <Label className={`text-sm font-medium ${isDisabled ? "text-muted-foreground" : "text-foreground"}`}>
+                    <Label className="text-sm font-medium text-foreground">
                       Entidad
                     </Label>
                     <Select
                       value={brassica.entidad}
                       onValueChange={(val) => updateBrassica(index, "entidad", val)}
-                      disabled={isDisabled}
+                      disabled={false} // Siempre habilitado
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Seleccionar entidad" />
@@ -200,19 +193,11 @@ export default function BrassicaSection({ registros, onChangeListados, contexto 
           <Button
             onClick={addBrassica}
             variant="outline"
-            disabled={tieneNoContiene}
-            className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent 
-               text-sm px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors bg-transparent text-sm px-2 py-1"
           >
             <Plus className="h-3 w-3 mr-1" />
             Agregar registro
           </Button>
-          {tieneNoContiene && (
-            <p className="text-xs text-muted-foreground ml-3 flex items-center">
-              <XCircle className="h-3 w-3 mr-1" />
-              No se pueden agregar más registros cuando hay "No contiene" seleccionado
-            </p>
-          )}
         </div>
       </CardContent>
     </Card>

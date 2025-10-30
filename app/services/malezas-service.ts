@@ -1,74 +1,65 @@
 import { apiFetch } from "./api";
-import {
-  MalezasYCultivosCatalogoDTO,
-  MalezasYCultivosCatalogoRequestDTO,
-  TipoMYCCatalogo
+import { 
+  MalezasCatalogoDTO,
+  MalezasCatalogoRequestDTO
 } from "../models";
 
 // ========================
-// MALEZAS Y CULTIVOS SERVICE
+// MALEZAS SERVICE
 // ========================
 
-// Obtener activos
-export async function obtenerTodosActivosMalezasCultivos(): Promise<MalezasYCultivosCatalogoDTO[]> {
-  return apiFetch("/malezas-cultivos");
+// Obtener todas las malezas activas
+export async function obtenerTodasMalezas(): Promise<MalezasCatalogoDTO[]> {
+  return apiFetch("/malezas");
 }
 
-// Obtener inactivos
-export async function obtenerInactivosMalezasCultivos(): Promise<MalezasYCultivosCatalogoDTO[]> {
-  return apiFetch("/malezas-cultivos/inactivos");
+// Obtener malezas inactivas
+export async function obtenerMalezasInactivas(): Promise<MalezasCatalogoDTO[]> {
+  return apiFetch("/malezas/inactivos");
 }
 
-// Obtener por tipos
-export async function obtenerMalezas(): Promise<MalezasYCultivosCatalogoDTO[]> {
-  return apiFetch("/malezas-cultivos/malezas");
-}
-
-export async function obtenerCultivos(): Promise<MalezasYCultivosCatalogoDTO[]> {
-  return apiFetch("/malezas-cultivos/cultivos");
-}
-
-export async function obtenerPorTipo(tipo: 'MALEZA' | 'CULTIVO'): Promise<MalezasYCultivosCatalogoDTO[]> {
-  return apiFetch(`/malezas-cultivos/tipo/${tipo}`);
+// Alias para compatibilidad con código existente
+export async function obtenerMalezas(): Promise<MalezasCatalogoDTO[]> {
+  return apiFetch("/malezas");
 }
 
 // Funciones de busqueda
-export async function buscarPorNombreComun(nombre: string): Promise<MalezasYCultivosCatalogoDTO[]> {
-  return apiFetch(`/malezas-cultivos/buscar/comun?nombre=${encodeURIComponent(nombre)}`);
+export async function buscarPorNombreComun(nombre: string): Promise<MalezasCatalogoDTO[]> {
+  return apiFetch(`/malezas/buscar/comun?nombre=${encodeURIComponent(nombre)}`);
 }
 
-export async function buscarPorNombreCientifico(nombre: string): Promise<MalezasYCultivosCatalogoDTO[]> {
-  return apiFetch(`/malezas-cultivos/buscar/cientifico?nombre=${encodeURIComponent(nombre)}`);
+export async function buscarPorNombreCientifico(nombre: string): Promise<MalezasCatalogoDTO[]> {
+  return apiFetch(`/malezas/buscar/cientifico?nombre=${encodeURIComponent(nombre)}`);
 }
 
 // Obtener por ID
-export async function obtenerPorId(id: number): Promise<MalezasYCultivosCatalogoDTO> {
-  return apiFetch(`/malezas-cultivos/${id}`);
+export async function obtenerPorId(id: number): Promise<MalezasCatalogoDTO> {
+  return apiFetch(`/malezas/${id}`);
 }
 
 // CRUD (solo admin)
-export async function crearMalezaCultivo(solicitud: MalezasYCultivosCatalogoRequestDTO): Promise<MalezasYCultivosCatalogoDTO> {
-  return apiFetch("/malezas-cultivos", {
+export async function crearMaleza(solicitud: MalezasCatalogoRequestDTO): Promise<MalezasCatalogoDTO> {
+  return apiFetch("/malezas", {
     method: "POST",
     body: JSON.stringify(solicitud),
   });
 }
 
-export async function actualizarMalezaCultivo(id: number, solicitud: MalezasYCultivosCatalogoRequestDTO): Promise<MalezasYCultivosCatalogoDTO> {
-  return apiFetch(`/malezas-cultivos/${id}`, {
+export async function actualizarMaleza(id: number, solicitud: MalezasCatalogoRequestDTO): Promise<MalezasCatalogoDTO> {
+  return apiFetch(`/malezas/${id}`, {
     method: "PUT",
     body: JSON.stringify(solicitud),
   });
 }
 
-export async function eliminarMalezaCultivo(id: number): Promise<void> {
-  return apiFetch(`/malezas-cultivos/${id}`, {
+export async function eliminarMaleza(id: number): Promise<void> {
+  return apiFetch(`/malezas/${id}`, {
     method: "DELETE",
   });
 }
 
-export async function reactivarMalezaCultivo(id: number): Promise<MalezasYCultivosCatalogoDTO> {
-  return apiFetch(`/malezas-cultivos/${id}/reactivar`, {
+export async function reactivarMaleza(id: number): Promise<MalezasCatalogoDTO> {
+  return apiFetch(`/malezas/${id}/reactivar`, {
     method: "PUT",
   });
 }

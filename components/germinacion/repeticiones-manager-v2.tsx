@@ -41,7 +41,17 @@ export function RepeticionesManager({
       setLoading(true)
       setError("")
       
+      console.log(`🔄 Cargando repeticiones para tabla ${tabla.tablaGermID}...`)
       const data = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
+      console.log(`✅ Repeticiones cargadas para tabla ${tabla.tablaGermID}:`, data.length, "repeticiones")
+      console.log("📝 Detalles de repeticiones:", data.map(r => ({
+        numRep: r.numRep,
+        normales: r.normales,
+        anormales: r.anormales,
+        duras: r.duras,
+        frescas: r.frescas,
+        muertas: r.muertas
+      })))
       setRepeticiones(data)
       onRepeticionesUpdated(data)
     } catch (err: any) {
@@ -58,17 +68,22 @@ export function RepeticionesManager({
 
   const handleGuardarRepeticion = async (numeroRep: number, datos: RepGermRequestDTO) => {
     try {
+      console.log(`💾 Intentando guardar repetición ${numeroRep} para tabla ${tabla.tablaGermID}`)
+      console.log("📝 Datos a guardar:", datos)
+      
       const repeticionExistente = repeticiones.find(r => r.numRep === numeroRep)
       let repeticionesActualizadas: RepGermDTO[]
       
       if (repeticionExistente) {
         // Actualizar existente
+        console.log(`🔄 Actualizando repetición existente con ID ${repeticionExistente.repGermID}`)
         const repeticionActualizada = await actualizarRepeticion(
           germinacionId, 
           tabla.tablaGermID, 
           repeticionExistente.repGermID, 
           datos
         )
+        console.log("✅ Repetición actualizada exitosamente:", repeticionActualizada)
         
         repeticionesActualizadas = repeticiones.map(r => 
           r.repGermID === repeticionExistente.repGermID ? repeticionActualizada : r
@@ -76,16 +91,26 @@ export function RepeticionesManager({
         setRepeticiones(repeticionesActualizadas)
       } else {
         // Crear nueva
+        console.log(`➕ Creando nueva repetición ${numeroRep}`)
         const nuevaRepeticion = await crearRepeticion(germinacionId, tabla.tablaGermID, datos)
+        console.log("✅ Repetición creada exitosamente:", nuevaRepeticion)
+        
         repeticionesActualizadas = [...repeticiones, nuevaRepeticion]
         setRepeticiones(repeticionesActualizadas)
       }
       
+      console.log(`📊 Total de repeticiones ahora: ${repeticionesActualizadas.length}`)
+      
       // Actualizar callback con las repeticiones realmente actualizadas
       onRepeticionesUpdated(repeticionesActualizadas)
       
-    } catch (error) {
-      console.error("Error guardando repetición:", error)
+      console.log("✅ Repetición guardada y estado actualizado correctamente")
+      
+    } catch (error: any) {
+      console.error("❌ Error guardando repetición:", error)
+      console.error("❌ Mensaje de error:", error?.message || error)
+      console.error("❌ Detalles completos:", error)
+      alert(`Error al guardar la repetición: ${error?.message || 'Error desconocido'}`)
       throw error
     }
   }
@@ -128,7 +153,7 @@ export function RepeticionesManager({
           
           return (
             <RepeticionRow
-              key={numeroRep}
+              key={repeticionExistente ? `rep-${repeticionExistente.repGermID}` : `nuevo-rep-${numeroRep}`}
               repeticion={repeticionExistente}
               numeroRepeticion={numeroRep}
               numeroConteos={numeroConteos}

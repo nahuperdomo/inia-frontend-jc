@@ -118,7 +118,9 @@ export async function obtenerLotesPaginadas(
   const params = new URLSearchParams();
   params.append('page', page.toString());
   params.append('size', size.toString());
-
+  // Ordenar por ID descendente (más reciente primero)
+  params.append('sort', 'loteID,desc');
+  
   if (searchTerm && searchTerm.trim()) {
     params.append('search', searchTerm.trim());
   }

@@ -17,14 +17,15 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  Plus,
-  Trash2
+  Calculator
 } from "lucide-react"
 import { Toaster, toast } from "sonner"
 import Link from "next/link"
 import { PmsDTO, RepPmsDTO } from "@/app/models"
 import { obtenerPmsPorId, finalizarAnalisis, aprobarAnalisis, marcarParaRepetir } from "@/app/services/pms-service"
 import { obtenerRepeticionesPorPms, eliminarRepPms } from "@/app/services/repeticiones-service"
+import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 
 export default function DetallePMSPage() {
   const params = useParams()
@@ -299,17 +300,24 @@ export default function DetallePMSPage() {
       </div>
 
       <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
-
-      {/* Información General */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Scale className="h-5 w-5" />
-              Información del Análisis
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <div className="flex justify-end mb-6">
+          <TablaToleranciasButton 
+            pdfPath="/tablas-tolerancias/tabla-pms.pdf" 
+            title="Tabla de Tolerancias"
+          />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content - 2 columns */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Información General */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Scale className="h-5 w-5" />
+                  Información del Análisis
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex justify-between">
@@ -379,7 +387,7 @@ export default function DetallePMSPage() {
           </CardContent>
         </Card>
 
-        {/* Resultados */}
+        {/* Repeticiones */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -452,32 +460,19 @@ export default function DetallePMSPage() {
             )}
           </CardContent>
         </Card>
-      </div>
 
-      {/* Repeticiones */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Hash className="h-5 w-5" />
-                Repeticiones ({repeticiones.length})
-              </CardTitle>
-              <CardDescription>
-                Datos de pesaje por repetición y tanda
-              </CardDescription>
-            </div>
-            {analisis.estado !== "APROBADO" && (
-              <Link href={`/listado/analisis/pms/${id}/editar`}>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Agregar Repetición
-                </Button>
-              </Link>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
+        {/* Repeticiones */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Hash className="h-5 w-5" />
+              Repeticiones ({repeticiones.length})
+            </CardTitle>
+            <CardDescription>
+              Datos de pesaje por repetición y tanda
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
           {repeticiones.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Hash className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -496,8 +491,7 @@ export default function DetallePMSPage() {
                     <TableHead className="whitespace-nowrap">Repetición</TableHead>
                     <TableHead className="whitespace-nowrap">Tanda</TableHead>
                     <TableHead className="whitespace-nowrap">Peso (g)</TableHead>
-                    <TableHead className="whitespace-nowrap">Válido</TableHead>
-                    {analisis.estado !== "APROBADO" && <TableHead className="whitespace-nowrap">Acciones</TableHead>}
+                    <TableHead className="whitespace-nowrap">Estado</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -507,22 +501,10 @@ export default function DetallePMSPage() {
                       <TableCell className="whitespace-nowrap">{rep.numTanda}</TableCell>
                       <TableCell className="whitespace-nowrap">{rep.peso ? `${rep.peso.toFixed(3)}g` : "-"}</TableCell>
                       <TableCell className="whitespace-nowrap">
-                        <Badge variant={rep.valido ? "default" : "destructive"}>
-                          {rep.valido ? "Válido" : "Inválido"}
+                        <Badge variant={rep.valido ? "default" : rep.valido === false ? "destructive" : "secondary"}>
+                          {rep.valido === true ? "✓ Válido" : rep.valido === false ? "✗ Inválido" : "Pendiente"}
                         </Badge>
                       </TableCell>
-                      {analisis.estado !== "APROBADO" && (
-                        <TableCell className="whitespace-nowrap">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => handleEliminarRepeticion(rep.repPMSID)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -530,8 +512,20 @@ export default function DetallePMSPage() {
             </div>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </div>
+
+      {/* Sidebar */}
+      <div className="space-y-6">
+        {/* Historial de Actividades */}
+        <AnalysisHistoryCard
+          analisisId={analisis.analisisID}
+          analisisTipo="pms"
+          historial={analisis.historial}
+        />
       </div>
     </div>
+    </div>
+  </div>
   )
 }

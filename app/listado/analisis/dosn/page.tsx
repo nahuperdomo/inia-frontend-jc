@@ -1,166 +1,105 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Activity, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { obtenerTodasDosnActivas, obtenerDosnPaginadas, desactivarDosn, activarDosn } from "@/app/services/dosn-service"
+import { obtenerDosnPaginadas, desactivarDosn, activarDosn } from "@/app/services/dosn-service"
 import Pagination from "@/components/pagination"
-import { DosnDTO } from "@/app/models"
-import { EstadoAnalisis, TipoListado } from "@/app/models/types/enums"
-import { toast } from "sonner"
+import { EstadoAnalisis } from "@/app/models"
+import { toast, Toaster } from "sonner"
+import { useAuth } from "@/components/auth-provider"
 
-// Función helper para mostrar nombres legibles de tipos de listado
-const getTipoListadoDisplay = (tipo: TipoListado) => {
-  switch (tipo) {
-    case "MAL_TOLERANCIA_CERO":
-      return "Maleza Tolerancia Cero"
-    case "MAL_TOLERANCIA":
-      return "Maleza Tolerancia"
-    case "MAL_COMUNES":
-      return "Malezas Comunes"
-    case "BRASSICA":
-      return "Brassica"
-    case "OTROS":
-      return "Otros Cultivos"
-    default:
-      return tipo
-  }
-}
-
-// Función helper para obtener el color del badge según el tipo
-const getTipoListadoBadgeColor = (tipo: TipoListado) => {
-  switch (tipo) {
-    case "MAL_TOLERANCIA_CERO":
-      return "bg-red-100 text-red-700 border-red-200"
-    case "MAL_TOLERANCIA":
-      return "bg-orange-100 text-orange-700 border-orange-200"
-    case "MAL_COMUNES":
-      return "bg-yellow-100 text-yellow-700 border-yellow-200"
-    case "BRASSICA":
-      return "bg-purple-100 text-purple-700 border-purple-200"
-    case "OTROS":
-      return "bg-green-100 text-green-700 border-green-200"
-    default:
-      return "bg-gray-100 text-gray-700 border-gray-200"
-  }
-}
-
-// Función utilitaria para formatear fechas correctamente
-const formatearFechaLocal = (fechaString: string): string => {
-  if (!fechaString) return ''
-
-  try {
-    // Si la fecha ya está en formato YYYY-MM-DD, usarla directamente
-    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
-      const [year, month, day] = fechaString.split('-').map(Number)
-      const fecha = new Date(year, month - 1, day) // month - 1 porque los meses son 0-indexed
-      return fecha.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      })
-    }
-
-    // Si viene en otro formato, parsearlo de manera segura
-    const fecha = new Date(fechaString)
-    return fecha.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    })
-  } catch (error) {
-    console.warn("Error al formatear fecha:", fechaString, error)
-    return fechaString
-  }
+interface DosnListadoDTO {
+  analisisID: number
+  estado: EstadoAnalisis
+  fechaInicio: string
+  fechaFin?: string
+  lote: string
+  idLote?: number
+  especie?: string
+  activo?: boolean
+  cumpleEstandar?: boolean
+  comentarios?: string
+  usuarioCreador?: string
+  usuarioModificador?: string
 }
 
 export default function ListadoDOSNPage() {
+  const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [filtroActivo, setFiltroActivo] = useState("todos")
-  const [userRole, setUserRole] = useState<string | null>(null)
-  const [dosns, setDosns] = useState<DosnDTO[]>([])
+  const [dosns, setDosns] = useState<DosnListadoDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
-  const [isLast, setIsLast] = useState(false)
-  const [isFirst, setIsFirst] = useState(true)
   const pageSize = 10
-  const [lastResponse, setLastResponse] = useState<any>(null)
-
-  // Debounce searchTerm
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-    }, 500)
-    return () => clearTimeout(handler)
-  }, [searchTerm])
-
-  // Obtener rol del usuario
-  useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]))
-        setUserRole(payload.rol)
-      } catch (error) {
-        console.error("Error al decodificar el token:", error)
-      }
-    }
-  }, [])
-
-
-  const fetchDosns = async (page: number = 0) => {
-    try {
-      setLoading(true);
-  // Convert filtroActivo string to boolean
-  const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos";
-  
-  const data = await obtenerDosnPaginadas(
-    page,
-    pageSize,
-    debouncedSearchTerm || undefined,
-    activoFilter,
-    selectedStatus !== "all" ? selectedStatus : undefined,
-    undefined
-  );
-  console.log("DEBUG obtenerDosnPaginadas response:", data);
-
-  // Datos principales
-  const content = data.content || [];
-  setDosns(content);
-
-  // Extract pagination metadata supporting both shapes
-  const pageMeta = (data as any).page ? (data as any).page : (data as any);
-  const totalPagesFrom = pageMeta.totalPages ?? 1;
-  const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0);
-  const numberFrom = pageMeta.number ?? page;
-
-  setTotalPages(totalPagesFrom);
-  setTotalElements(totalElementsFrom);
-  setCurrentPage(numberFrom);
-  setIsFirst(numberFrom === 0);
-  setIsLast(numberFrom >= totalPagesFrom - 1);
-    } catch (err) {
-      setError("Error al cargar los análisis DOSN");
-      console.error("Error fetching DOSNs:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     setCurrentPage(0)
     fetchDosns(0)
-  }, [filtroActivo, selectedStatus, debouncedSearchTerm])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtroActivo, selectedStatus]) // Recargar cuando cambien los filtros (sin searchTerm)
+
+  // Handler para búsqueda con Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      setCurrentPage(0)
+      fetchDosns(0)
+    }
+  }
+
+  // Handler para botón de búsqueda
+  const handleSearchClick = () => {
+    setCurrentPage(0)
+    fetchDosns(0)
+  }
+
+  const fetchDosns = async (page: number = 0) => {
+    try {
+      setLoading(true)
+      // Convert filtroActivo string to boolean
+      const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos"
+
+      const data = await obtenerDosnPaginadas(
+        page,
+        pageSize,
+        searchTerm,
+        activoFilter,
+        selectedStatus !== "all" ? selectedStatus : undefined,
+        undefined
+      )
+      console.log("DEBUG obtenerDosnPaginadas response:", data)
+
+      // Datos principales
+      const content = data.content || []
+      setDosns(content)
+
+      // Extract pagination metadata supporting both shapes
+      const pageMeta = (data as any).page ? (data as any).page : (data as any)
+      const totalPagesFrom = pageMeta.totalPages ?? 1
+      const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0)
+      const numberFrom = pageMeta.number ?? page
+
+      setTotalPages(totalPagesFrom)
+      setTotalElements(totalElementsFrom)
+      setCurrentPage(numberFrom)
+    } catch (err) {
+      setError("Error al cargar los análisis DOSN")
+      console.error("Error fetching DOSNs:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Handlers para desactivar/reactivar
   const handleDesactivar = async (id: number) => {
@@ -186,26 +125,24 @@ export default function ListadoDOSNPage() {
     }
   }
 
-  // No client-side filtering - all filtering done on backend
+  // Estadísticas calculadas
   const filteredAnalysis = dosns
-
-  // Calculate stats from current page data and total
   const totalAnalysis = totalElements
   const completedAnalysis = dosns.filter(d => d.estado === "APROBADO").length
-  const inProgressAnalysis = dosns.filter(d => d.estado === "EN_PROCESO").length
-  const pendingAnalysis = dosns.filter(d => d.estado === "REGISTRADO" || d.estado === "PENDIENTE_APROBACION").length
-  const complianceRate = dosns.length > 0 ? Math.round((dosns.filter(d => d.cumpleEstandar === true).length / dosns.length) * 100) : 0
+  const inProgressAnalysis = dosns.filter(d => d.estado === "EN_PROCESO" || d.estado === "REGISTRADO").length
+  const complianceAnalysis = dosns.filter(d => d.cumpleEstandar === true).length
+  const complianceRate = dosns.length > 0 ? Math.round((complianceAnalysis / dosns.length) * 100) : 0
 
+  // Helper functions
   const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
     switch (estado) {
       case "APROBADO":
         return "default"
       case "EN_PROCESO":
-        return "secondary"
       case "REGISTRADO":
-        return "outline"
+        return "secondary"
       case "PENDIENTE_APROBACION":
-        return "destructive"
+        return "outline"
       case "A_REPETIR":
         return "destructive"
       default:
@@ -215,14 +152,14 @@ export default function ListadoDOSNPage() {
 
   const formatEstado = (estado: EstadoAnalisis) => {
     switch (estado) {
-      case "REGISTRADO":
-        return "Registrado"
-      case "EN_PROCESO":
-        return "En Proceso"
       case "APROBADO":
         return "Aprobado"
+      case "EN_PROCESO":
+        return "En Proceso"
+      case "REGISTRADO":
+        return "Registrado"
       case "PENDIENTE_APROBACION":
-        return "Pend. Aprobación"
+        return "Pendiente Aprobación"
       case "A_REPETIR":
         return "A Repetir"
       default:
@@ -230,37 +167,19 @@ export default function ListadoDOSNPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="space-y-6 p-3 sm:p-4 md:p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Cargando análisis DOSN...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6 p-3 sm:p-4 md:p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <p className="text-lg font-semibold mb-2">Error al cargar</p>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>Reintentar</Button>
-          </div>
-        </div>
-      </div>
-    )
+  const formatearFechaLocal = (fechaStr: string | undefined) => {
+    if (!fechaStr) return "-"
+    const fecha = new Date(fechaStr)
+    const year = fecha.getFullYear()
+    const month = String(fecha.getMonth() + 1).padStart(2, "0")
+    const day = String(fecha.getDate()).padStart(2, "0")
+    return `${day}/${month}/${year}`
   }
 
   return (
     <div className="w-full max-w-full overflow-x-hidden">
       <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto">
+        <Toaster position="top-right" richColors closeButton />
         {/* Header */}
         <div className="flex flex-col gap-3 sm:gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -336,76 +255,95 @@ export default function ListadoDOSNPage() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-4">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filtros y Búsqueda
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSearchClick()
+              }}
+              className="flex-1 flex gap-2"
+            >
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Buscar por ID, lote o comentarios..."
+                  placeholder="Buscar por ID análisis, Lote o Ficha..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   className="pl-10"
                 />
               </div>
-            </div>
-            <div className="flex gap-2">
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
-              >
-                <option value="all">Todos los estados</option>
-                <option value="REGISTRADO">Registrado</option>
-                <option value="EN_PROCESO">En Proceso</option>
-                <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
-                <option value="APROBADO">Aprobado</option>
-                <option value="A_REPETIR">A Repetir</option>
-              </select>
-              <select
-                value={filtroActivo}
-                onChange={(e) => setFiltroActivo(e.target.value)}
-                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
-              >
-                <option value="todos">Todos</option>
-                <option value="activos">Activos</option>
-                <option value="inactivos">Inactivos</option>
-              </select>
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                Filtros
+              <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                <Search className="h-4 w-4" />
               </Button>
-            </div>
+            </form>
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="w-full md:w-48">
+                <SelectValue placeholder="Filtrar por estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="REGISTRADO">Registrado</SelectItem>
+                <SelectItem value="EN_PROCESO">En Proceso</SelectItem>
+                <SelectItem value="PENDIENTE_APROBACION">Pendiente Aprobación</SelectItem>
+                <SelectItem value="APROBADO">Aprobado</SelectItem>
+                <SelectItem value="A_REPETIR">A Repetir</SelectItem>
+              </SelectContent>
+            </Select>
+            <select
+              value={filtroActivo}
+              onChange={(e) => setFiltroActivo(e.target.value)}
+              className="px-3 py-2 border border-input bg-background rounded-md text-sm w-full md:w-48"
+            >
+              <option value="todos">Todos</option>
+              <option value="activos">Activos</option>
+              <option value="inactivos">Inactivos</option>
+            </select>
           </div>
-
-
         </CardContent>
       </Card>
 
+      {/* Analysis Table */}
       <Card>
         <CardHeader>
           <CardTitle>Lista de Análisis DOSN</CardTitle>
+          <CardDescription>
+            {totalElements} análisis
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-0 sm:p-6">
-          <div className="overflow-x-auto max-w-full">
+          <div className="overflow-x-auto max-w-full rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[100px]">ID Análisis</TableHead>
-                  <TableHead className="min-w-[150px]">Lote</TableHead>
-                  <TableHead className="min-w-[120px]">Fecha Inicio</TableHead>
-                  <TableHead className="min-w-[120px]">Fecha Fin</TableHead>
-                  <TableHead className="min-w-[100px]">Estado</TableHead>
-                  <TableHead className="min-w-[120px]">Cumple Estándar</TableHead>
-                  {/* <TableHead className="min-w-[200px]">Listados</TableHead> */}
-                  <TableHead className="min-w-[150px]">Comentarios</TableHead>
-                  <TableHead className="min-w-[120px]">Acciones</TableHead>
+                  <TableHead className="whitespace-nowrap">ID</TableHead>
+                  <TableHead className="whitespace-nowrap">Lote</TableHead>
+                  <TableHead className="whitespace-nowrap">Especie</TableHead>
+                  <TableHead className="whitespace-nowrap">Estado</TableHead>
+                  <TableHead className="whitespace-nowrap">Cumple Estándar</TableHead>
+                  <TableHead className="whitespace-nowrap">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAnalysis.length === 0 ? (
+                {loading ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8">
+                    <TableCell colSpan={6} className="text-center py-8">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                        <span className="text-muted-foreground">Cargando análisis...</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredAnalysis.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <AlertTriangle className="h-8 w-8 text-muted-foreground" />
                         <p className="text-muted-foreground">No se encontraron análisis DOSN</p>
@@ -415,25 +353,21 @@ export default function ListadoDOSNPage() {
                 ) : (
                   filteredAnalysis.map((analysis) => (
                     <TableRow key={analysis.analisisID}>
-                      <TableCell className="font-medium">DOSN-{analysis.analisisID}</TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{analysis.lote}</div>
-                          {analysis.idLote && (
-                            <div className="text-sm text-muted-foreground">ID: {analysis.idLote}</div>
-                          )}
-                        </div>
+                      <TableCell className="font-medium whitespace-nowrap">
+                        {analysis.analisisID}
                       </TableCell>
-                      <TableCell>{formatearFechaLocal(analysis.fechaInicio)}</TableCell>
-                      <TableCell>
-                        {analysis.fechaFin ? formatearFechaLocal(analysis.fechaFin) : "-"}
+                      <TableCell className="whitespace-nowrap">
+                        {analysis.lote || "-"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {analysis.especie || "-"}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
                         <Badge variant={getEstadoBadgeVariant(analysis.estado)}>
                           {formatEstado(analysis.estado)}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap">
                         {analysis.cumpleEstandar !== undefined ? (
                           <Badge
                             variant={analysis.cumpleEstandar ? "default" : "destructive"}
@@ -442,37 +376,11 @@ export default function ListadoDOSNPage() {
                             {analysis.cumpleEstandar ? "Sí" : "No"}
                           </Badge>
                         ) : (
-                          <span className="text-muted-foreground text-sm">No evaluado</span>
+                          <span className="text-muted-foreground text-sm">-</span>
                         )}
                       </TableCell>
-                      {/* <TableCell className="max-w-xs">
-                        {analysis.listados && analysis.listados.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {analysis.listados.map((listado, index) => (
-                              <Badge 
-                                key={index}
-                                variant="outline" 
-                                className={`text-xs ${getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}`}
-                              >
-                                {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
-                              </Badge>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">Sin listados</span>
-                        )}
-                      </TableCell>*/}
-                      <TableCell className="max-w-xs">
-                        {analysis.comentarios ? (
-                          <div className="truncate" title={analysis.comentarios}>
-                            {analysis.comentarios}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
+                      <TableCell className="whitespace-nowrap">
+                        <div className="flex items-center gap-2">
                           <Link href={`/listado/analisis/dosn/${analysis.analisisID}`}>
                             <Button variant="ghost" size="sm" title="Ver detalles">
                               <Eye className="h-4 w-4" />
@@ -483,7 +391,7 @@ export default function ListadoDOSNPage() {
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Link>
-                          {userRole === "ADMIN" && (
+                          {user?.role === "administrador" && (
                             analysis.activo ? (
                               <Button 
                                 variant="ghost" 

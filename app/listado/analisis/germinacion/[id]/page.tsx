@@ -29,6 +29,8 @@ import { obtenerGerminacionPorId, obtenerTablasGerminacion } from "@/app/service
 import type { GerminacionDTO } from "@/app/models/interfaces/germinacion"
 import type { TablaGermDTO } from "@/app/models/interfaces/repeticiones"
 import type { EstadoAnalisis } from "@/app/models/types/enums"
+import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
+import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -95,13 +97,13 @@ export default function GerminacionDetailPage() {
 
   const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
     switch (estado) {
-      case "FINALIZADO":
+      case "REGISTRADO":
         return "default"
       case "EN_PROCESO":
         return "secondary"
       case "APROBADO":
         return "outline"
-      case "PENDIENTE":
+      case "PENDIENTE_APROBACION":
         return "destructive"
       default:
         return "outline"
@@ -189,6 +191,16 @@ export default function GerminacionDetailPage() {
       </div>
 
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Botón de Tabla de Tolerancias */}
+        <div className="mb-6 flex justify-end">
+          <TablaToleranciasButton
+            pdfPath="/tablas-tolerancias/tabla-germinacion.pdf"
+            title="Ver Tabla de Tolerancias"
+            variant="outline"
+            size="sm"
+          />
+        </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -222,19 +234,7 @@ export default function GerminacionDetailPage() {
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <p className="text-lg font-medium">
-                        {formatearFechaLocal(germinacion.fechaInicioGerm)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Fecha Último Conteo
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-lg font-medium">
-                        {formatearFechaLocal(germinacion.fechaUltConteo)}
+                        {formatearFechaLocal(germinacion.fechaInicio)}
                       </p>
                     </div>
                   </div>
@@ -253,32 +253,19 @@ export default function GerminacionDetailPage() {
                     </div>
                   )}
 
-                  {germinacion.numDias && (
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Días de Análisis
-                      </label>
-                      <p className="text-lg font-semibold">{germinacion.numDias}</p>
-                    </div>
-                  )}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Total de Tablas
+                    </label>
+                    <p className="text-lg font-semibold">{tablas.length}</p>
+                  </div>
 
-                  {germinacion.numeroRepeticiones && (
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Repeticiones
-                      </label>
-                      <p className="text-lg font-semibold">{germinacion.numeroRepeticiones}</p>
-                    </div>
-                  )}
-
-                  {germinacion.numeroConteos && (
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Número de Conteos
-                      </label>
-                      <p className="text-lg font-semibold">{germinacion.numeroConteos}</p>
-                    </div>
-                  )}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Tablas Finalizadas
+                    </label>
+                    <p className="text-lg font-semibold">{tablasFinalizadas}</p>
+                  </div>
                 </div>
 
                 {germinacion.comentarios && (
@@ -294,38 +281,6 @@ export default function GerminacionDetailPage() {
                 )}
               </CardContent>
             </Card>
-
-            {/* Fechas de Conteo */}
-            {germinacion.fechaConteos && germinacion.fechaConteos.length > 0 && (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-muted/50 border-b">
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <div className="p-2 rounded-lg bg-blue-500/10">
-                      <Calendar className="h-5 w-5 text-blue-600" />
-                    </div>
-                    Cronograma de Conteos
-                    <Badge variant="secondary" className="ml-auto">
-                      {germinacion.fechaConteos.length} conteos
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {germinacion.fechaConteos.map((fecha, index) => (
-                      <div
-                        key={index}
-                        className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-200/50 rounded-xl p-4 text-center space-y-2"
-                      >
-                        <p className="text-sm font-medium text-muted-foreground">Conteo {index + 1}</p>
-                        <p className="text-lg font-bold text-blue-600">
-                          {formatearFechaLocal(fecha)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Resumen de Tablas de Germinación */}
             <Card className="overflow-hidden">
@@ -397,6 +352,53 @@ export default function GerminacionDetailPage() {
                           </CardHeader>
                           
                           <CardContent className="p-6">
+                            {/* Información de Fechas de la Tabla */}
+                            {(tabla.fechaInicioGerm || tabla.fechaUltConteo || tabla.numDias) && (
+                              <div className="mb-6 bg-blue-50/50 border border-blue-200 rounded-lg p-4">
+                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                  <Calendar className="h-4 w-4 text-blue-600" />
+                                  Fechas y Duración
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                  {tabla.fechaInicioGerm && (
+                                    <div>
+                                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Fecha Inicio</label>
+                                      <p className="text-sm font-medium mt-1">{formatearFechaLocal(tabla.fechaInicioGerm)}</p>
+                                    </div>
+                                  )}
+                                  {tabla.fechaUltConteo && (
+                                    <div>
+                                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Fecha Último Conteo</label>
+                                      <p className="text-sm font-medium mt-1">{formatearFechaLocal(tabla.fechaUltConteo)}</p>
+                                    </div>
+                                  )}
+                                  {tabla.numDias && (
+                                    <div>
+                                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Días de Análisis</label>
+                                      <p className="text-sm font-medium mt-1">{tabla.numDias} días</p>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Fechas de Conteos */}
+                                {tabla.fechaConteos && tabla.fechaConteos.length > 0 && (
+                                  <div className="mt-4">
+                                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 block">
+                                      Cronograma de Conteos ({tabla.fechaConteos.length})
+                                    </label>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                                      {tabla.fechaConteos.map((fecha, idx) => (
+                                        <div key={idx} className="bg-white border border-blue-200 rounded px-2 py-1.5 text-center">
+                                          <p className="text-xs text-muted-foreground">C{idx + 1}</p>
+                                          <p className="text-xs font-medium">{new Date(fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
                             {/* Información General de la Tabla */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                               <div>
@@ -420,11 +422,31 @@ export default function GerminacionDetailPage() {
                               </div>
                               <div>
                                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Prefrío</label>
-                                <p className="text-sm font-medium break-words">{tabla.prefrio}</p>
+                                <p className="text-sm font-medium break-words">
+                                  {tabla.tienePrefrio ? (
+                                    <>
+                                      <span className="text-green-600 font-semibold">Sí</span>
+                                      {tabla.descripcionPrefrio && <span className="block text-xs mt-1">{tabla.descripcionPrefrio}</span>}
+                                      {tabla.diasPrefrio > 0 && <span className="text-xs text-muted-foreground">({tabla.diasPrefrio} días)</span>}
+                                    </>
+                                  ) : (
+                                    <span className="text-gray-500">No</span>
+                                  )}
+                                </p>
                               </div>
                               <div>
                                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pretratamiento</label>
-                                <p className="text-sm font-medium break-words">{tabla.pretratamiento}</p>
+                                <p className="text-sm font-medium break-words">
+                                  {tabla.tienePretratamiento ? (
+                                    <>
+                                      <span className="text-green-600 font-semibold">Sí</span>
+                                      {tabla.descripcionPretratamiento && <span className="block text-xs mt-1">{tabla.descripcionPretratamiento}</span>}
+                                      {tabla.diasPretratamiento > 0 && <span className="text-xs text-muted-foreground">({tabla.diasPretratamiento} días)</span>}
+                                    </>
+                                  ) : (
+                                    <span className="text-gray-500">No</span>
+                                  )}
+                                </p>
                               </div>
                               {tabla.productoYDosis && (
                                 <div className="sm:col-span-2">
@@ -435,14 +457,14 @@ export default function GerminacionDetailPage() {
                             </div>
 
                             {/* Promedios por Conteo (Calculados desde repeticiones) */}
-                            {tabla.repGerm && tabla.repGerm.length > 0 && germinacion?.numeroConteos && (
+                            {tabla.repGerm && tabla.repGerm.length > 0 && tabla.numeroConteos && (
                               <div className="mb-6">
                                 <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
                                   <BarChart3 className="h-4 w-4" />
                                   Promedios de Normales por Conteo (Calculados)
                                 </h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-                                  {Array.from({ length: germinacion.numeroConteos }, (_, conteoIndex) => {
+                                  {Array.from({ length: tabla.numeroConteos }, (_, conteoIndex) => {
                                     const totalConteo = tabla.repGerm?.reduce((sum, rep) => {
                                       return sum + (rep.normales && rep.normales[conteoIndex] ? rep.normales[conteoIndex] : 0)
                                     }, 0) || 0
@@ -751,105 +773,12 @@ export default function GerminacionDetailPage() {
           </div>
 
           <div className="space-y-6">
-            {/* Quick Actions */}
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-muted/50 border-b">
-                <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <Link href={`/registro/analisis?tipo=germinacion&lote=${germinacion.idLote}`} className="block">
-                    <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                      <div className="p-1.5 rounded-md bg-primary/10">
-                        <Sprout className="h-4 w-4 text-primary" />
-                      </div>
-                      <span className="font-medium">Nuevo Análisis</span>
-                    </Button>
-                  </Link>
-                  <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                    <div className="p-1.5 rounded-md bg-primary/10">
-                      <Download className="h-4 w-4 text-primary" />
-                    </div>
-                    <span className="font-medium">Descargar Certificado</span>
-                  </Button>
-                  <Button className="w-full justify-start gap-3 h-auto py-3 bg-transparent" variant="outline">
-                    <div className="p-1.5 rounded-md bg-primary/10">
-                      <Calendar className="h-4 w-4 text-primary" />
-                    </div>
-                    <span className="font-medium">Programar Seguimiento</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Estado del Análisis */}
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-muted/50 border-b">
-                <CardTitle className="text-lg">Estado del Análisis</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Progreso general</span>
-                    <span className="text-sm text-muted-foreground">{tablasFinalizadas}/{tablas.length}</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full transition-all" 
-                      style={{ width: `${tablas.length > 0 ? (tablasFinalizadas / tablas.length) * 100 : 0}%` }}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Estado</p>
-                      <p className="font-medium">{germinacion.estado}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Completado</p>
-                      <p className="font-medium">{tablas.length > 0 ? Math.round((tablasFinalizadas / tablas.length) * 100) : 0}%</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Historial de Actividades */}
-            {germinacion.historial && germinacion.historial.length > 0 && (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-muted/50 border-b">
-                  <CardTitle className="text-lg">Historial de Actividades</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {germinacion.historial.map((item, index) => (
-                      <div key={index} className="relative pl-6 pb-4 last:pb-0">
-                        <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
-                        {index !== germinacion.historial.length - 1 && (
-                          <div className="absolute left-[5px] top-5 bottom-0 w-0.5 bg-border" />
-                        )}
-                        <div className="space-y-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="text-sm font-semibold leading-tight">
-                              {item.estadoAnterior} → {item.estadoNuevo}
-                            </p>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(item.fechaCambio).toLocaleDateString("es-ES", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Por: {item.usuario}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <AnalysisHistoryCard
+              analisisId={germinacion.analisisID}
+              analisisTipo="germinacion"
+              historial={germinacion.historial}
+            />
           </div>
         </div>
       </div>

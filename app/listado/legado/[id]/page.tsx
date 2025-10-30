@@ -154,7 +154,7 @@ export default function LegadoDetailPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Nombre del Lote
+                      Lote
                     </label>
                     <p className="text-lg font-semibold">{displayValue(legado.lote.nomLote)}</p>
                   </div>
@@ -436,40 +436,8 @@ export default function LegadoDetailPage() {
                     <p className="text-base font-medium">{legado.ctaMov || "-"}</p>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">CA/CC</label>
-                    <p className="text-base font-medium">{legado.caCC || "-"}</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">FF</label>
-                    <p className="text-base font-medium">{legado.ff || "-"}</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Titular</label>
-                    <p className="text-base font-medium">{legado.titular || "-"}</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cta. Art.</label>
-                    <p className="text-base font-medium">{legado.ctaArt || "-"}</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Proveedor</label>
-                    <p className="text-base font-medium">{legado.proveedor || "-"}</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Doc. Afect.</label>
-                    <p className="text-base font-medium">{legado.docAfect || "-"}</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Nro. Afect.</label>
-                    <p className="text-base font-medium">{legado.nroAfect || "-"}</p>
-                  </div>
-                  <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">STK</label>
                     <p className="text-base font-medium">{legado.stk || "-"}</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Referencia</label>
-                    <p className="text-base font-medium">{legado.referencia || "-"}</p>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Peso HEC</label>
@@ -542,7 +510,7 @@ export default function LegadoDetailPage() {
             )}
 
             {/* Observaciones */}
-            {(legado.obsTrans || legado.otrasSemillasObser) && (
+            {legado.otrasSemillasObser && (
               <Card className="overflow-hidden">
                 <CardHeader className="bg-muted/50 border-b">
                   <CardTitle className="flex items-center gap-2 text-xl">
@@ -553,26 +521,14 @@ export default function LegadoDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
-                  {legado.obsTrans && (
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Observaciones Trans
-                      </label>
-                      <p className="text-base leading-relaxed bg-muted/50 p-4 rounded-lg">
-                        {legado.obsTrans}
-                      </p>
-                    </div>
-                  )}
-                  {legado.otrasSemillasObser && (
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Otras Semillas Obser
-                      </label>
-                      <p className="text-base leading-relaxed bg-muted/50 p-4 rounded-lg">
-                        {legado.otrasSemillasObser}
-                      </p>
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Otras Semillas Obser
+                    </label>
+                    <p className="text-base leading-relaxed bg-muted/50 p-4 rounded-lg">
+                      {legado.otrasSemillasObser}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -594,14 +550,6 @@ export default function LegadoDetailPage() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Tratada
-                  </label>
-                  <Badge variant={legado.tratada ? "default" : "secondary"}>
-                    {legado.tratada || "-"}
-                  </Badge>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                     Tipo Trat. Germ
                   </label>
                   <p className="text-base font-medium">{legado.tipoTratGerm || "-"}</p>
@@ -609,54 +557,6 @@ export default function LegadoDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Precios y Montos */}
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-muted/50 border-b">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <div className="p-2 rounded-lg bg-emerald-500/10">
-                    <DollarSign className="h-5 w-5 text-emerald-600" />
-                  </div>
-                  Precios y Montos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Precio Unitario
-                  </label>
-                  <p className="text-base font-medium">{legado.precioUnit || "-"}</p>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Unidad
-                  </label>
-                  <p className="text-base font-medium">{legado.unidad || "-"}</p>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Moneda
-                  </label>
-                  <Badge variant="outline">{legado.moneda || "-"}</Badge>
-                </div>
-                <Separator />
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Importe MN
-                  </label>
-                  <p className="text-lg font-semibold text-emerald-600">
-                    {legado.importeMN || "-"}
-                  </p>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Importe MO
-                  </label>
-                  <p className="text-lg font-semibold text-emerald-600">
-                    {legado.importeMO || "-"}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Metadatos de Importación */}
             <Card className="overflow-hidden">

@@ -106,18 +106,12 @@ export type AnalysisFormData = {
   cuscutaNumero: string
   cuscutaFecha: string
   cuscutaCumple: string
+  institutoCuscuta: string
+  cuscutaRegistros: any[] // Array de registros de cuscuta
 
   // Cumple estándar
   cumpleEstandar: string
   cumpleFecha: string
-
-  // Germinación
-  fechaInicioGerm: string
-  fechaConteos: string[]
-  fechaUltConteo: string
-  numDias: string
-  numeroRepeticiones: number
-  numeroConteos: number
 
   // PMS
   numRepeticionesEsperadasPms: number
@@ -136,6 +130,7 @@ export type AnalysisFormData = {
   tincionTemp: number
   tincionTempOtro: string
   comentarios: string
+  viabilidadInase: number | string
 }
 
 const analysisTypes = [
@@ -273,16 +268,11 @@ export default function RegistroAnalisisPage() {
     cuscutaNumero: "",
     cuscutaFecha: "",
     cuscutaCumple: "",
+    institutoCuscuta: "",
+    cuscutaRegistros: [],
     // Cumple estándar
     cumpleEstandar: "",
     cumpleFecha: "",
-    // Germinación
-    fechaInicioGerm: "",
-    fechaConteos: [],
-    fechaUltConteo: "",
-    numDias: "",
-    numeroRepeticiones: 1,
-    numeroConteos: 0,
     // PMS
     numRepeticionesEsperadasPms: 8,
     numTandas: 1,
@@ -300,6 +290,7 @@ export default function RegistroAnalisisPage() {
     tincionTempOtro: "",
     comentarios: "",
     numRepeticionesEsperadasTetrazolio: 2,
+    viabilidadInase: "",
   });
   const [loading, setLoading] = useState(false)
   const getAnalysisTypeName = (typeId: string | TipoAnalisis): string => {
@@ -345,6 +336,27 @@ export default function RegistroAnalisisPage() {
     }
   }
 
+  // Funciones para limpiar localStorage
+  const clearDosnStorage = () => {
+    localStorage.removeItem('dosn-malezas-Malezas')
+    localStorage.removeItem('dosn-otros-cultivos')
+    localStorage.removeItem('dosn-brassicas')
+    localStorage.removeItem('dosn-cuscuta-registros')
+  }
+
+  const clearPurezaStorage = () => {
+    localStorage.removeItem('pureza-malezas-Malezas')
+    localStorage.removeItem('pureza-otros-cultivos')
+    localStorage.removeItem('pureza-brassicas')
+  }
+
+  const clearGerminacionStorage = () => {
+    // Agregar keys específicas de germinación si existen
+  }
+
+  const clearTetrazolioStorage = () => {
+    // Agregar keys específicas de tetrazolio si existen
+  }
 
   const handleSubmit = async () => {
     setLoading(true)
@@ -430,12 +442,8 @@ export default function RegistroAnalisisPage() {
         fechaINASE: formData.inaseFecha || null,
         gramosAnalizadosINASE: toNum(formData.inaseGramos),
         tipoINASE: mapTipoDosn(formData, "inase"),
-        // Cuscuta - usar fecha actual si hay datos de cuscuta y no se especificó fecha
-        cuscuta_g: toNum(formData.cuscutaGramos),
-        cuscutaNum: toNum(formData.cuscutaNumero),
-        fechaCuscuta: ((toNum(formData.cuscutaGramos) || 0) > 0 || (toNum(formData.cuscutaNumero) || 0) > 0)
-          ? new Date().toISOString().split('T')[0] // Fecha actual en formato YYYY-MM-DD
-          : null,
+        // Cuscuta - enviar array de registros
+        cuscutaRegistros: formData.cuscutaRegistros || [],
         // Listados
         listados,
       };
@@ -502,95 +510,15 @@ export default function RegistroAnalisisPage() {
         otrasSemillas,
       };
     } else if (selectedAnalysisType === "GERMINACION") {
-      // Validaciones específicas para germinación
-      if (!formData.fechaInicioGerm) {
-        toast.error('Fecha de inicio requerida', {
-          description: 'La fecha de inicio de germinación es obligatoria.'
-        });
-        setLoading(false);
-        return;
-      }
-      if (!formData.fechaUltConteo) {
-        toast.error('Fecha de último conteo requerida', {
-          description: 'La fecha del último conteo es obligatoria.'
-        });
-        setLoading(false);
-        return;
-      }
-      if (!formData.numeroRepeticiones || formData.numeroRepeticiones < 1) {
-        toast.error('Número de repeticiones inválido', {
-          description: 'El número de repeticiones debe ser mayor a 0.'
-        });
-        setLoading(false);
-        return;
-      }
-      if (!formData.numeroConteos || formData.numeroConteos < 1) {
-        toast.error('Número de conteos inválido', {
-          description: 'El número de conteos debe ser mayor a 0.'
-        });
-        setLoading(false);
-        return;
-      }
-      if (!formData.fechaConteos || formData.fechaConteos.length === 0) {
-        toast.error('Fechas de conteo requeridas', {
-          description: 'Debe especificar al menos una fecha de conteo.'
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Filtrar fechas vacías
-      const fechasValidas = formData.fechaConteos.filter((fecha: string) => fecha && fecha.trim() !== "");
-      if (fechasValidas.length === 0) {
-        toast.error('Fechas de conteo incompletas', {
-          description: 'Debe completar al menos una fecha de conteo válida.'
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Validar que la fecha de inicio sea anterior a la fecha de último conteo
-      if (formData.fechaInicioGerm && formData.fechaUltConteo) {
-        const fechaInicio = new Date(formData.fechaInicioGerm);
-        const fechaFin = new Date(formData.fechaUltConteo);
-
-        if (fechaInicio >= fechaFin) {
-          toast.error("La fecha de inicio debe ser anterior a la fecha de último conteo");
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Validar que todas las fechas de conteo estén entre la fecha de inicio y fin
-      if (formData.fechaInicioGerm && formData.fechaUltConteo) {
-        const fechaInicio = new Date(formData.fechaInicioGerm);
-        const fechaFin = new Date(formData.fechaUltConteo);
-
-        for (const fecha of fechasValidas) {
-          const fechaConteo = new Date(fecha);
-          if (fechaConteo < fechaInicio || fechaConteo > fechaFin) {
-            toast.error(`Todas las fechas de conteo deben estar entre ${fechaInicio.toLocaleDateString()} y ${fechaFin.toLocaleDateString()}`);
-            setLoading(false);
-            return;
-          }
-        }
-      }
-
       payload = {
-        idLote: parseInt(formData.loteid), // Convertir a número
-        comentarios: formData.observaciones || "",
-        fechaInicioGerm: formData.fechaInicioGerm,
-        fechaConteos: fechasValidas,
-        fechaUltConteo: formData.fechaUltConteo,
-        numDias: formData.numDias || "",
-        numeroRepeticiones: formData.numeroRepeticiones || 1,
-        numeroConteos: formData.numeroConteos || 1,
+        idLote: parseInt(formData.loteid),
+        comentarios: formData.comentarios || "",
       };
     } else if (selectedAnalysisType === "PMS") {
       // Validaciones específicas para PMS
-      if (!formData.numRepeticionesEsperadasPms || formData.numRepeticionesEsperadasPms < 1) {
+      if (!formData.numRepeticionesEsperadasPms || formData.numRepeticionesEsperadasPms < 4 || formData.numRepeticionesEsperadasPms > 20) {
         toast.error('Número de repeticiones inválido', {
-          description: 'El número de repeticiones esperadas debe ser mayor a 0.'
+          description: 'El número de repeticiones esperadas debe estar entre 4 y 20.'
         });
         setLoading(false);
         return;
@@ -599,7 +527,7 @@ export default function RegistroAnalisisPage() {
       payload = {
         idLote: parseInt(formData.loteid), // Convertir a número
         comentarios: formData.observaciones || "",
-        numRepeticionesEsperadas: formData.numRepeticionesEsperadasPms || 8,
+        numRepeticionesEsperadas: formData.numRepeticionesEsperadasPms,
         esSemillaBrozosa: formData.esSemillaBrozosa || false,
       };
     } else if (selectedAnalysisType === "TETRAZOLIO") {
@@ -684,6 +612,7 @@ export default function RegistroAnalisisPage() {
         tincionHs: tincionHsFinal,
         tincionTemp: tincionTempFinal,
         numRepeticionesEsperadas: formData.numRepeticionesEsperadasTetrazolio,
+        viabilidadInase: formData.viabilidadInase ? Number(formData.viabilidadInase) : undefined,
       };
     }
 
@@ -717,7 +646,7 @@ export default function RegistroAnalisisPage() {
         clearGerminacionStorage()
 
         setTimeout(() => {
-          router.push(`/listado/analisis/germinacion/${result.analisisID}`);
+          router.push(`/listado/analisis/germinacion/${result.analisisID}/editar`);
         }, 1500);
       } else if (selectedAnalysisType === "PMS") {
         console.log("🚀 Intentando crear PMS...");
