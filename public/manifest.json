@@ -1,14 +1,12 @@
 {
-    "name": "INIA - Sistema de Análisis de Semillas",
+    "name": "INIA - Sistema de Análisis",
     "short_name": "INIA",
-    "description": "Sistema de gestión y análisis de calidad de semillas del INIA",
+    "description": "Sistema de análisis y notificaciones INIA",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#0066cc",
+    "theme_color": "#667eea",
     "orientation": "portrait-primary",
-    "scope": "/",
-    "lang": "es",
     "icons": [
         {
             "src": "/icons/icon-72x72.png",
@@ -60,46 +58,8 @@
         }
     ],
     "categories": [
-        "business",
         "productivity",
-        "utilities"
+        "business"
     ],
-    "shortcuts": [
-        {
-            "name": "Nuevo Análisis",
-            "short_name": "Análisis",
-            "description": "Crear un nuevo análisis de semillas",
-            "url": "/registro/analisis",
-            "icons": [
-                {
-                    "src": "/icons/icon-96x96.png",
-                    "sizes": "96x96"
-                }
-            ]
-        },
-        {
-            "name": "Listado de Lotes",
-            "short_name": "Lotes",
-            "description": "Ver todos los lotes registrados",
-            "url": "/listado/lotes",
-            "icons": [
-                {
-                    "src": "/icons/icon-96x96.png",
-                    "sizes": "96x96"
-                }
-            ]
-        },
-        {
-            "name": "Dashboard",
-            "short_name": "Dashboard",
-            "description": "Ver resumen y estadísticas",
-            "url": "/dashboard",
-            "icons": [
-                {
-                    "src": "/icons/icon-96x96.png",
-                    "sizes": "96x96"
-                }
-            ]
-        }
-    ]
+    "prefer_related_applications": false
 }

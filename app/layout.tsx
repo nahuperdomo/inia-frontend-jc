@@ -11,6 +11,8 @@ import { NetworkStatusIndicator } from "@/components/network-status"
 import { Suspense } from "react"
 import "./globals.css"
 
+import { PWACustomSWRegister } from "@/components/pwa-custom-sw-register"
+
 export const metadata: Metadata = {
   title: "Sistema INIA - Gestión Agropecuaria",
   description: "Sistema de gestión para el Instituto Nacional de Innovación Agropecuaria",
@@ -66,7 +68,7 @@ export default function RootLayout({
         {/* PWA Meta Tags */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0066cc" />
-  <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="INIA" />
@@ -86,6 +88,7 @@ export default function RootLayout({
                   {children}
                   <PWAInstallPrompt />
                   <NetworkStatusIndicator />
+                  <PWACustomSWRegister />
                 </NotificationProvider>
               </AuthProvider>
             </LoadingProvider>

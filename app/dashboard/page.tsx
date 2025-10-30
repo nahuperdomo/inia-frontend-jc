@@ -32,7 +32,7 @@ export default function DashboardPage() {
         console.log("🔄 Dashboard - Obteniendo perfil del usuario desde backend...")
         const perfil = await obtenerPerfil()
         console.log("✅ Dashboard - Perfil obtenido del backend:", perfil)
-        
+
         // Extraer rol soportando varias formas que el backend pueda devolver:
         // - perfil.roles: string[]
         // - perfil.rol o perfil.role: string
@@ -96,7 +96,7 @@ export default function DashboardPage() {
   const quickStats = useMemo(() => {
     const isAdmin = userRole?.trim().toUpperCase() === "ADMIN"
     console.log("🔍 Dashboard - userRole:", userRole, "| isAdmin:", isAdmin)
-    
+
     const stats_array = [
       {
         label: "Lotes Activos",
@@ -226,7 +226,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             )
-            
+
             return stat.href ? (
               <Link key={index} href={stat.href}>
                 {content}

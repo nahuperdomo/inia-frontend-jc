@@ -19,6 +19,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { NotificationDropdown, useNotificationBadge } from "@/components/notificaciones"
+import { PushNotificationSetup } from '@/components/push-notification-setup'
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -41,6 +42,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Hook para badge de notificaciones en el sidebar
   const { unreadCount } = useNotificationBadge()
+
+  // Registrar Service Worker para notificaciones push
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/custom-sw.js')
+        .then(registration => {
+          console.log('✅ Service Worker registrado:', registration.scope);
+        })
+        .catch(error => {
+          console.error('❌ Error registrando Service Worker:', error);
+        });
+    }
+  }, []);
 
   // Cerrar menú móvil cuando cambia la ruta
   useEffect(() => {
@@ -108,7 +123,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Overlay para menú móvil */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-opacity-90 z-40 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-90 z-40 lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -297,6 +312,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Componente de notificaciones push - flotante */}
+      <div className="fixed bottom-4 right-4 z-50 max-w-sm">
+        <PushNotificationSetup compact={false} autoRequest={true} />
+      </div>
     </div>
   )
 }

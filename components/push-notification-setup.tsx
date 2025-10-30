@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react';
-import { Bell, BellOff, BellRing } from 'lucide-react';
+import { Bell, BellOff, BellRing, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -36,6 +36,7 @@ interface PushNotificationSetupProps {
  * - Activa/desactiva suscripción push
  * - Muestra estado actual
  * - Versión compacta y completa
+ * - Se oculta automáticamente cuando está activo
  */
 export function PushNotificationSetup({
     compact = false,
@@ -53,6 +54,7 @@ export function PushNotificationSetup({
     } = usePushNotifications();
 
     const [showPrompt, setShowPrompt] = useState(false);
+    const [isDismissed, setIsDismissed] = useState(false);
 
     useEffect(() => {
         // Auto-solicitar permisos si está habilitado y es soportado
@@ -60,6 +62,18 @@ export function PushNotificationSetup({
             setShowPrompt(true);
         }
     }, [autoRequest, isSupported, permission]);
+
+    // Ocultar automáticamente cuando esté suscrito
+    useEffect(() => {
+        if (isSubscribed && !compact) {
+            // Ocultar después de 3 segundos
+            const timer = setTimeout(() => {
+                setIsDismissed(true);
+            }, 3000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [isSubscribed, compact]);
 
     // No mostrar nada si no está soportado
     if (!isSupported) {
@@ -72,6 +86,11 @@ export function PushNotificationSetup({
                 </AlertDescription>
             </Alert>
         );
+    }
+
+    // No mostrar si fue cerrado manualmente o está suscrito (después del delay)
+    if (isDismissed) {
+        return null;
     }
 
     // Versión compacta (para usar en settings o toolbar)
@@ -109,7 +128,17 @@ export function PushNotificationSetup({
 
     // Versión completa (para página de configuración)
     return (
-        <Card>
+        <Card className="relative">
+            {/* Botón de cerrar */}
+            <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 h-8 w-8"
+                onClick={() => setIsDismissed(true)}
+            >
+                <X className="h-4 w-4" />
+            </Button>
+
             <CardHeader>
                 <div className="flex items-center gap-2">
                     {isSubscribed ? (
@@ -145,75 +174,88 @@ export function PushNotificationSetup({
                     </Alert>
                 )}
 
+                {/* Mostrar mensaje de éxito si está suscrito */}
+                {isSubscribed && (
+                    <Alert className="border-green-500 bg-green-50">
+                        <BellRing className="h-4 w-4 text-green-600" />
+                        <AlertTitle className="text-green-900">¡Notificaciones activadas!</AlertTitle>
+                        <AlertDescription className="text-green-800">
+                            Recibirás notificaciones push en tiempo real. Este mensaje se cerrará automáticamente.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 {/* Estado de suscripción */}
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                            <Label className="text-base">Estado</Label>
-                            <p className="text-sm text-muted-foreground">
-                                {isSubscribed
-                                    ? 'Las notificaciones push están activas'
-                                    : 'Las notificaciones push están desactivadas'}
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {loading && <LoadingSpinner size={20} />}
-                            <div
-                                className={`h-3 w-3 rounded-full ${isSubscribed ? 'bg-green-500' : 'bg-gray-300'
-                                    }`}
-                            />
+                {!isSubscribed && (
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                                <Label className="text-base">Estado</Label>
+                                <p className="text-sm text-muted-foreground">
+                                    Las notificaciones push están desactivadas
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {loading && <LoadingSpinner size={20} />}
+                                <div className="h-3 w-3 rounded-full bg-gray-300" />
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Acciones */}
-                <div className="flex flex-col gap-2">
-                    {!isPermissionGranted && permission !== 'denied' && (
-                        <Button
-                            onClick={requestPermission}
-                            disabled={loading}
-                            className="w-full"
-                        >
-                            <Bell className="mr-2 h-4 w-4" />
-                            Solicitar Permisos
-                        </Button>
-                    )}
+                {!isSubscribed && (
+                    <div className="flex flex-col gap-2">
+                        {!isPermissionGranted && permission !== 'denied' && (
+                            <Button
+                                onClick={requestPermission}
+                                disabled={loading}
+                                className="w-full"
+                            >
+                                <Bell className="mr-2 h-4 w-4" />
+                                Solicitar Permisos
+                            </Button>
+                        )}
 
-                    {isPermissionGranted && !isSubscribed && (
-                        <Button
-                            onClick={subscribe}
-                            disabled={loading}
-                            className="w-full"
-                            variant="default"
-                        >
-                            <BellRing className="mr-2 h-4 w-4" />
-                            Activar Notificaciones
-                        </Button>
-                    )}
+                        {isPermissionGranted && (
+                            <Button
+                                onClick={subscribe}
+                                disabled={loading}
+                                className="w-full"
+                                variant="default"
+                            >
+                                <BellRing className="mr-2 h-4 w-4" />
+                                Activar Notificaciones
+                            </Button>
+                        )}
+                    </div>
+                )}
 
-                    {isSubscribed && (
-                        <Button
-                            onClick={unsubscribe}
-                            disabled={loading}
-                            className="w-full"
-                            variant="outline"
-                        >
-                            <BellOff className="mr-2 h-4 w-4" />
-                            Desactivar Notificaciones
-                        </Button>
-                    )}
-                </div>
+                {/* Botón de desactivar (solo si está suscrito) */}
+                {isSubscribed && (
+                    <Button
+                        onClick={unsubscribe}
+                        disabled={loading}
+                        className="w-full"
+                        variant="outline"
+                    >
+                        <BellOff className="mr-2 h-4 w-4" />
+                        Desactivar Notificaciones
+                    </Button>
+                )}
 
-                {/* Información adicional */}
-                <div className="rounded-lg bg-muted p-3 text-sm">
-                    <p className="font-medium mb-1">Ventajas:</p>
-                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                        <li>Recibe actualizaciones en tiempo real</li>
-                        <li>Notificaciones incluso con la app cerrada</li>
-                        <li>No te pierdas análisis completados</li>
-                        <li>Alertas de tareas urgentes</li>
-                    </ul>
-                </div>
+                {/* Información adicional - solo si no está suscrito */}
+                {!isSubscribed && (
+                    <div className="rounded-lg bg-muted p-3 text-sm">
+                        <p className="font-medium mb-1">Ventajas:</p>
+                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                            <li>Recibe actualizaciones en tiempo real</li>
+                            <li>Notificaciones incluso con la app cerrada</li>
+                            <li>No te pierdas análisis completados</li>
+                            <li>Alertas de tareas urgentes</li>
+                        </ul>
+                    </div>
+                )}
 
                 {/* Test notification button (solo en desarrollo) */}
                 {process.env.NODE_ENV === 'development' && isSubscribed && (
