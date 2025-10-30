@@ -13,7 +13,7 @@ interface ValidacionLoteResponseDTO {
 }
 
 export async function validarCamposUnicos(data: ValidacionLoteDTO): Promise<ValidacionLoteResponseDTO> {
-  return await apiFetch<ValidacionLoteResponseDTO>('/api/lotes/validar-campos', {
+  return await apiFetch<ValidacionLoteResponseDTO>('/lotes/validar-campos', {
     method: 'POST',
     body: JSON.stringify(data)
   });

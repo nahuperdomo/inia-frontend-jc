@@ -12,7 +12,7 @@ export async function exportarLotesExcel(loteIds?: number[]): Promise<Blob> {
     ? `?loteIds=${loteIds.join(',')}` 
     : '';
 
-  const response = await fetch(`${API_BASE_URL}/api/exportaciones/excel${params}`, {
+  const response = await fetch(`${API_BASE_URL}/exportaciones/excel${params}`, {
     method: 'GET',
     credentials: 'include', // Envía cookies HttpOnly automáticamente
   });
@@ -29,7 +29,7 @@ export async function exportarLotesExcel(loteIds?: number[]): Promise<Blob> {
  * Exporta un lote específico a Excel
  */
 export async function exportarLoteEspecificoExcel(loteId: number): Promise<Blob> {
-  const response = await fetch(`${API_BASE_URL}/api/exportaciones/excel/lote/${loteId}`, {
+  const response = await fetch(`${API_BASE_URL}/exportaciones/excel/lote/${loteId}`, {
     method: 'GET',
     credentials: 'include', // Envía cookies HttpOnly automáticamente
   });
@@ -46,7 +46,7 @@ export async function exportarLoteEspecificoExcel(loteId: number): Promise<Blob>
  * Exporta lotes con filtros avanzados
  */
 export async function exportarLotesConFiltros(filtros: ExportacionFiltrosDTO): Promise<Blob> {
-  const response = await fetch(`${API_BASE_URL}/api/exportaciones/excel/avanzado`, {
+  const response = await fetch(`${API_BASE_URL}/exportaciones/excel/avanzado`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

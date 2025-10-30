@@ -46,7 +46,7 @@ export interface AnalisisPorAprobar {
 }
 
 export async function obtenerEstadisticasDashboard(): Promise<DashboardStats> {
-  return await apiFetch<DashboardStats>("/api/dashboard/stats")
+  return await apiFetch<DashboardStats>("/dashboard/stats")
 }
 
 export async function obtenerAnalisisPendientes(
@@ -54,7 +54,7 @@ export async function obtenerAnalisisPendientes(
   size: number = 10
 ): Promise<PaginatedResponse<AnalisisPendiente>> {
   return await apiFetch<PaginatedResponse<AnalisisPendiente>>(
-    `/api/dashboard/analisis-pendientes?page=${page}&size=${size}`
+    `/dashboard/analisis-pendientes?page=${page}&size=${size}`
   )
 }
 
@@ -63,7 +63,7 @@ export async function obtenerAnalisisPorAprobar(
   size: number = 10
 ): Promise<PaginatedResponse<AnalisisPorAprobar>> {
   return await apiFetch<PaginatedResponse<AnalisisPorAprobar>>(
-    `/api/dashboard/analisis-por-aprobar?page=${page}&size=${size}`
+    `/dashboard/analisis-por-aprobar?page=${page}&size=${size}`
   )
 }
 
@@ -82,7 +82,7 @@ export async function obtenerAnalisisPendientesKeyset(
   if (cursor) params.append("cursor", cursor)
   
   return await apiFetch<CursorPageResponse<AnalisisPendiente>>(
-    `/api/dashboard/analisis-pendientes/keyset?${params.toString()}`
+    `/dashboard/analisis-pendientes/keyset?${params.toString()}`
   )
 }
 
@@ -101,6 +101,6 @@ export async function obtenerAnalisisPorAprobarKeyset(
   if (cursor) params.append("cursor", cursor)
   
   return await apiFetch<CursorPageResponse<AnalisisPorAprobar>>(
-    `/api/dashboard/analisis-por-aprobar/keyset?${params.toString()}`
+    `/dashboard/analisis-por-aprobar/keyset?${params.toString()}`
   )
 }
