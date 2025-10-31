@@ -2,19 +2,19 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-    // Obtenemos el accessToken de las cookies HttpOnly
-    const accessToken = request.cookies.get('accessToken')?.value
+    // El backend usa JSESSIONID (no JWT), así que verificamos esa cookie
+    const jsessionid = request.cookies.get('JSESSIONID')?.value
 
-    // Si la ruta es /login y hay accessToken, redirigimos al dashboard
-    if (request.nextUrl.pathname === '/login' && accessToken) {
+    // Si la ruta es /login y hay JSESSIONID, redirigimos al dashboard
+    if (request.nextUrl.pathname === '/login' && jsessionid) {
         return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
     // Lista de rutas públicas que no requieren autenticación
     const publicRoutes = ['/login', '/registro/usuario'];
 
-    // Si no hay accessToken y no estamos en una ruta pública, redirigimos a /login
-    if (!accessToken && !publicRoutes.includes(request.nextUrl.pathname)) {
+    // Si no hay JSESSIONID y no estamos en una ruta pública, redirigimos a /login
+    if (!jsessionid && !publicRoutes.includes(request.nextUrl.pathname)) {
         return NextResponse.redirect(new URL('/login', request.url))
     }
 

@@ -23,6 +23,19 @@ export function PushNotificationManager() {
     const [showPrompt, setShowPrompt] = useState(false);
     const [dismissed, setDismissed] = useState(false);
 
+    // Debug: Ver estados
+    useEffect(() => {
+        console.log('🔔 PushNotificationManager Debug:', {
+            user: !!user,
+            isSupported,
+            isSubscribed,
+            isLoading,
+            permission,
+            dismissed,
+            showPrompt
+        });
+    }, [user, isSupported, isSubscribed, isLoading, permission, dismissed, showPrompt]);
+
     useEffect(() => {
         // Mostrar el prompt solo si:
         // 1. Hay un usuario autenticado
@@ -82,8 +95,12 @@ export function PushNotificationManager() {
 
     // No mostrar nada si no está soportado o no hay usuario
     if (!isSupported || !user) {
+        console.log('🔔 No se muestra: isSupported=', isSupported, 'user=', !!user);
         return null;
     }
+
+    // SIEMPRE mostrar el botón flotante si hay usuario (para debug)
+    console.log('🔔 Mostrando componente push');
 
     // Prompt flotante para solicitar suscripción
     if (showPrompt && !isSubscribed) {
@@ -133,33 +150,49 @@ export function PushNotificationManager() {
     }
 
     // Botón flotante para gestionar suscripción (cuando ya está suscrito o rechazado)
-    if (permission !== 'default' && !showPrompt) {
-        return (
-            <div className="fixed bottom-4 right-4 z-40">
-                {isSubscribed ? (
-                    <Button
-                        onClick={handleUnsubscribe}
-                        variant="outline"
-                        size="icon"
-                        className="h-12 w-12 rounded-full shadow-lg"
-                        title="Desactivar notificaciones push"
-                    >
-                        <Bell className="h-5 w-5" />
-                    </Button>
-                ) : permission === 'denied' ? (
-                    <Button
-                        onClick={handleEnableFromSettings}
-                        variant="outline"
-                        size="icon"
-                        className="h-12 w-12 rounded-full shadow-lg opacity-50"
-                        title="Notificaciones desactivadas - Habilitar en configuración del navegador"
-                    >
-                        <BellOff className="h-5 w-5" />
-                    </Button>
-                ) : null}
-            </div>
-        );
-    }
-
-    return null;
+    // TEMPORALMENTE: Siempre mostrar algo para debug
+    return (
+        <div className="fixed bottom-4 right-4 z-40">
+            {isLoading ? (
+                <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-12 w-12 rounded-full shadow-lg"
+                    disabled
+                >
+                    <Bell className="h-5 w-5 animate-pulse" />
+                </Button>
+            ) : isSubscribed ? (
+                <Button
+                    onClick={handleUnsubscribe}
+                    variant="outline"
+                    size="icon"
+                    className="h-12 w-12 rounded-full shadow-lg"
+                    title="Desactivar notificaciones push"
+                >
+                    <Bell className="h-5 w-5 text-green-600" />
+                </Button>
+            ) : permission === 'denied' ? (
+                <Button
+                    onClick={handleEnableFromSettings}
+                    variant="outline"
+                    size="icon"
+                    className="h-12 w-12 rounded-full shadow-lg opacity-50"
+                    title="Notificaciones desactivadas - Habilitar en configuración del navegador"
+                >
+                    <BellOff className="h-5 w-5 text-red-600" />
+                </Button>
+            ) : (
+                <Button
+                    onClick={handleSubscribe}
+                    variant="outline"
+                    size="icon"
+                    className="h-12 w-12 rounded-full shadow-lg"
+                    title="Activar notificaciones push"
+                >
+                    <Bell className="h-5 w-5 text-blue-600" />
+                </Button>
+            )}
+        </div>
+    );
 }

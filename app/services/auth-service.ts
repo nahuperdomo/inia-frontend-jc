@@ -31,12 +31,22 @@ export async function validateToken(): Promise<{ valido: boolean; usuario?: stri
   return await res.json();
 }
 
+// Logout - invalida la sesión en el backend
+export async function logout(): Promise<{ mensaje: string }> {
+  const res = await fetch(`${API_URL}/v1/auth/logout`, {
+    method: "POST",
+    credentials: "include", // Enviar JSESSIONID para invalidar
+    headers: { "Content-Type": "application/json" }
+  });
+  return await res.json();
+}
+
 // Registro y gestión de usuarios
 export async function registrarUsuario(solicitud: RegistroUsuarioRequest): Promise<{ mensaje: string; usuario: AuthUsuarioDTO }> {
   const res = await fetch(`${API_URL}/v1/auth/register`, {
     method: "POST",
     body: JSON.stringify(solicitud),
-    credentials: "include",
+    // NO enviar credentials en register - no necesita sesión
     headers: { "Content-Type": "application/json" }
   });
   return await res.json();
@@ -118,7 +128,7 @@ export async function actualizarPerfil(solicitud: ActualizarPerfilRequest): Prom
 export async function crearAdminPredeterminado(): Promise<{ mensaje: string; usuario: AuthUsuarioDTO }> {
   const res = await fetch(`${API_URL}/v1/auth/init-admin`, {
     method: "POST",
-    credentials: "include",
+    // NO enviar credentials en init-admin - no necesita sesión
     headers: { "Content-Type": "application/json" }
   });
   return await res.json();

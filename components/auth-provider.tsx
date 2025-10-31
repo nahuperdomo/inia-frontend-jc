@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { obtenerPerfil } from "@/app/services/auth-service"
+import { obtenerPerfil, logout as logoutService } from "@/app/services/auth-service"
 
 interface User {
   id: string
@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const savedUserData = localStorage.getItem("usuario") || localStorage.getItem("inia-user")
       if (savedUserData) {
         const parsedUser = JSON.parse(savedUserData)
-        
+
         // Si viene del login real (tiene roles array)
         if (parsedUser.roles && Array.isArray(parsedUser.roles)) {
           let userRole: "analista" | "administrador" | "observador" = "analista"
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               userRole = "observador"
             }
           }
-          
+
           const mappedUser: User = {
             id: parsedUser.id?.toString() || "1",
             email: parsedUser.email || "",
@@ -124,10 +124,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      // Llamar al backend para invalidar la sesión (JSESSIONID)
+      await logoutService()
+      console.log("✅ Sesión invalidada en el backend")
+    } catch (error) {
+      console.error("❌ Error al invalidar sesión en el backend:", error)
+      // Continuar con el logout del frontend aunque falle el backend
+    }
+
+    // Limpiar estado local
     setUser(null)
     if (typeof window !== "undefined") {
       localStorage.removeItem("inia-user")
+      localStorage.removeItem("usuario")
     }
   }
 
