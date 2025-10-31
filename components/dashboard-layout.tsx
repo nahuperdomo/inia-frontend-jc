@@ -61,23 +61,31 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleLogout = async () => {
     try {
-      // Llamar al endpoint de logout del backend para limpiar cookies HttpOnly
+      // Llamar al endpoint de logout del backend para invalidar la sesión
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
       try {
         await fetch(`${API_BASE_URL}/v1/auth/logout`, {
           method: "POST",
-          credentials: "include" // Importante para enviar cookies HttpOnly
+          credentials: "include" // Enviar JSESSIONID para invalidarla
         });
+        console.log("✅ Sesión invalidada en el backend");
       } catch (error) {
-        console.error('Error al llamar a logout del backend:', error);
+        console.error('❌ Error al llamar a logout del backend:', error);
         // Continuar con el logout del frontend aunque falle el backend
       }
 
-      // Limpiar datos locales (no sensibles)
+      // Limpiar datos locales
       if (typeof window !== 'undefined') {
         localStorage.removeItem('usuario');
+        localStorage.removeItem('inia-user');
         sessionStorage.clear();
+
+        // Intentar eliminar la cookie JSESSIONID del lado del cliente
+        // Nota: Las cookies HttpOnly no se pueden eliminar desde JS, 
+        // pero el backend ya la invalidó
+        document.cookie = 'JSESSIONID=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        console.log("🧹 Cookies y storage limpiados");
       }
 
       // Mostrar mensaje de confirmación
@@ -86,9 +94,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       })
 
       // Redirigir al login
+      console.log("🚪 Redirigiendo a /login...");
       router.push('/login')
     } catch (error) {
-      console.error('Error al cerrar sesión:', error)
+      console.error('❌ Error al cerrar sesión:', error)
       toast.error("Error al cerrar sesión", {
         description: "Hubo un problema al cerrar la sesión"
       })
