@@ -2,12 +2,12 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
-import { Analytics } from "@vercel/analytics/next"
 import { AuthProvider } from "@/components/auth-provider"
 import { LoadingProvider } from "@/components/loading-provider"
 import { NotificationProvider } from "@/components/notificaciones"
 import { QueryProvider } from "@/components/providers/query-provider"
 import { PWAInstallPrompt } from "@/components/pwa-install"
+import { PushNotificationManager } from "@/components/push-notification-manager"
 import { NetworkStatusIndicator } from "@/components/network-status"
 import { ToastContainer } from "@/components/ui/toast-container"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
@@ -69,7 +69,7 @@ export default function RootLayout({
         {/* PWA Meta Tags */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0066cc" />
-  <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="INIA" />
@@ -88,6 +88,7 @@ export default function RootLayout({
                 >
                   {children}
                   <PWAInstallPrompt />
+                  <PushNotificationManager />
                   <NetworkStatusIndicator />
                   <ToastContainer />
                   <ConfirmDialog />
@@ -96,7 +97,6 @@ export default function RootLayout({
             </LoadingProvider>
           </QueryProvider>
         </Suspense>
-        <Analytics />
       </body>
     </html>
   )
