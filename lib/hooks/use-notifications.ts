@@ -93,19 +93,18 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
         }
     }, [currentPage, showToasts]);
 
-    // Conectar a SSE si está habilitado
-    useNotificationStream(
-        enableRealtime ? {
-            onNotification: handleRealtimeNotification,
-            onConnected: () => {
-                console.log('✅ Conectado a notificaciones en tiempo real');
-            },
-            onError: (error) => {
-                console.error('❌ Error en conexión de tiempo real:', error);
-            },
-            autoReconnect: true
-        } : {}
-    );
+    // 🔥 CRÍTICO: Conectar a SSE solo si está habilitado
+    useNotificationStream({
+        enabled: enableRealtime, // Solo conectar si está habilitado explícitamente
+        onNotification: handleRealtimeNotification,
+        onConnected: () => {
+            console.log('✅ Conectado a notificaciones en tiempo real');
+        },
+        onError: (error) => {
+            console.error('❌ Error en conexión de tiempo real:', error);
+        },
+        autoReconnect: true
+    });
 
     // Función para cargar notificaciones paginadas
     const loadNotifications = useCallback(async (page: number = 0, append: boolean = false) => {
@@ -274,10 +273,17 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
         }
     }, [totalPages, loadNotifications]);
 
-    // Cargar datos iniciales
+    // Cargar datos iniciales solo si está habilitado
     useEffect(() => {
+        // 🔥 CRÍTICO: No cargar si autoRefresh y realtime están deshabilitados
+        if (!autoRefresh && !enableRealtime) {
+            console.log('🚫 Notificaciones deshabilitadas, no se cargarán datos iniciales');
+            return;
+        }
+
+        console.log('📥 Cargando notificaciones iniciales...');
         refreshNotifications();
-    }, []);
+    }, []); // Solo ejecutar al montar
 
     // Detectar visibilidad del tab para optimizar polling
     useEffect(() => {

@@ -4,6 +4,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import type { NotificacionDTO } from '@/app/models';
 
 interface UseNotificationStreamOptions {
+    enabled?: boolean; // 🔥 NUEVO: Habilitar/deshabilitar el hook
     onNotification?: (notification: NotificacionDTO) => void;
     onConnected?: () => void;
     onError?: (error: Event) => void;
@@ -24,6 +25,7 @@ export function useNotificationStream(
     options: UseNotificationStreamOptions = {}
 ): UseNotificationStreamReturn {
     const {
+        enabled = true, // 🔥 NUEVO: Por defecto habilitado
         onNotification,
         onConnected,
         onError,
@@ -128,18 +130,27 @@ export function useNotificationStream(
         }
     }, [API_BASE_URL, onNotification, onConnected, onError, autoReconnect, reconnectDelay, disconnect]);
 
-    // Conectar al montar el componente
+    // Conectar al montar el componente solo si está habilitado
     useEffect(() => {
+        // 🔥 CRÍTICO: No conectar si el hook está deshabilitado
+        if (!enabled) {
+            console.log('🚫 SSE deshabilitado, no se conectará');
+            return;
+        }
+
         connect();
 
         // Cleanup al desmontar
         return () => {
             disconnect();
         };
-    }, [connect, disconnect]);
+    }, [enabled, connect, disconnect]);
 
-    // Detectar visibilidad del tab para reconectar
+    // Detectar visibilidad del tab para reconectar (solo si está habilitado)
     useEffect(() => {
+        // 🔥 CRÍTICO: No configurar listener si está deshabilitado
+        if (!enabled) return;
+
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
                 // Si el tab vuelve a estar visible y no hay conexión, reconectar
@@ -153,7 +164,7 @@ export function useNotificationStream(
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, [connect]);
+    }, [enabled, connect]);
 
     return {
         isConnected: isConnectedRef.current,

@@ -16,7 +16,7 @@ interface RouteGuardProps {
 export function RouteGuard({ children }: RouteGuardProps) {
     const router = useRouter();
     const pathname = usePathname();
-    const { canAccessRoute, isLoading } = usePermissions();
+    const { canAccessRoute, isLoading, user } = usePermissions();
 
     // Verificar si la ruta actual es pública
     const isPublicRoute = PUBLIC_ROUTES.some(publicRoute =>
@@ -27,25 +27,32 @@ export function RouteGuard({ children }: RouteGuardProps) {
         // Las rutas públicas siempre son accesibles
         if (isPublicRoute) return;
 
-        // No hacer nada mientras carga la información del usuario
+        // ⚠️ CRÍTICO: Esperar a que termine de cargar ANTES de verificar permisos
         if (isLoading) return;
+
+        // ⚠️ CRÍTICO: Si no hay usuario después de cargar, redirigir a login
+        if (!user) {
+            console.warn(`🚫 No hay usuario autenticado, redirigiendo a login`);
+            router.replace('/login');
+            return;
+        }
 
         // Verificar si el usuario puede acceder a la ruta actual
         const hasAccess = canAccessRoute(pathname);
 
         if (!hasAccess) {
-            console.warn(`🚫 Acceso denegado a la ruta: ${pathname}`);
+            console.warn(`🚫 Acceso denegado a la ruta: ${pathname} para usuario: ${user.name} (${user.role})`);
             router.replace('/acceso-denegado');
         }
-    }, [pathname, canAccessRoute, isLoading, router, isPublicRoute]);
+    }, [pathname, canAccessRoute, isLoading, router, isPublicRoute, user]);
 
     // Las rutas públicas se renderizan inmediatamente
     if (isPublicRoute) {
         return <>{children}</>;
     }
 
-    // Mostrar loading mientras se verifica el acceso
-    if (isLoading) {
+    // ⚠️ CRÍTICO: Mostrar loading mientras carga O mientras no hay usuario
+    if (isLoading || !user) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
@@ -56,8 +63,11 @@ export function RouteGuard({ children }: RouteGuardProps) {
         );
     }
 
-    // Si no tiene acceso, no renderizar nada (el useEffect redirigirá)
-    if (!canAccessRoute(pathname)) {
+    // ⚠️ CRÍTICO: Solo verificar acceso DESPUÉS de confirmar que user está cargado
+    const hasAccess = canAccessRoute(pathname);
+
+    if (!hasAccess) {
+        // No renderizar nada, el useEffect ya redirigió
         return null;
     }
 
