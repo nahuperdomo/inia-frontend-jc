@@ -39,7 +39,7 @@ export default function LoginPage() {
 
     if (!response.ok) {
       let errorMessage = "Error de autenticación";
-      
+
       try {
         const errorData = await response.json();
         if (errorData.error) {
@@ -53,7 +53,7 @@ export default function LoginPage() {
           // Usar mensaje por defecto
         }
       }
-      
+
       console.error("❌ Error:", errorMessage);
       throw new Error(errorMessage);
     }
@@ -73,7 +73,7 @@ export default function LoginPage() {
 
       // SOLUCIÓN SEGURA: NO guardar token en localStorage ni cookies client-side
       // El token está en cookies HttpOnly (accessToken, refreshToken) manejadas automáticamente por el navegador
-      
+
       // Opcionalmente, guardar datos de usuario para UX (no sensibles)
       if (data.usuario) {
         localStorage.setItem("usuario", JSON.stringify({
@@ -87,12 +87,12 @@ export default function LoginPage() {
       }
 
       console.log("🚀 Redirigiendo a /dashboard...");
-      
+
       // Usar setTimeout para asegurar que las cookies se establezcan antes de redirigir
       setTimeout(() => {
         console.log("⏰ Ejecutando redirección después de timeout...");
         router.push("/dashboard");
-        
+
         // Fallback: si router.push no funciona en 1 segundo, usar window.location
         setTimeout(() => {
           if (window.location.pathname === "/login") {
@@ -101,20 +101,15 @@ export default function LoginPage() {
           }
         }, 1000);
       }, 100);
-      
+
       console.log("✅ router.push ejecutado");
     } catch (error: any) {
       console.error("❌ Error en handleSubmit:", error);
-      
       // Intentar extraer el mensaje de error del backend
       let errorMessage = 'Credenciales incorrectas';
       let errorDescription = 'Por favor verifica tu usuario y contraseña';
-      
       try {
-        // El error puede venir como string o en error.message
         const errorText = error.message || error.toString();
-        
-        // Mensajes específicos del backend
         if (errorText.includes('Usuario sin rol asignado')) {
           errorMessage = 'Usuario sin rol';
           errorDescription = 'El administrador debe asignarte un rol antes de que puedas iniciar sesión. Contacta al administrador.';
@@ -134,11 +129,10 @@ export default function LoginPage() {
       } catch (parseError) {
         console.error("Error parsing error message:", parseError);
       }
-      
-      toast.error(errorMessage, {
-        description: errorDescription,
-        duration: 5000
-      })
+      toast.error(
+        errorMessage + (errorDescription ? `: ${errorDescription}` : ''),
+        { duration: 5000 }
+      );
     } finally {
       setIsLoading(false)
     }
