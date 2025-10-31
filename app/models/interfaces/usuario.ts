@@ -80,11 +80,12 @@ export interface GestionarUsuarioRequest {
 }
 
 export interface ActualizarPerfilRequest {
-  nombres: string;
-  apellidos: string;
-  email: string;
-  passwordActual?: string;
-  passwordNueva?: string;
+  nombre?: string; // username - debe ser único
+  nombres?: string;
+  apellidos?: string;
+  email?: string;
+  contraseniaActual?: string;
+  contraseniaNueva?: string;
 }
 
 export type { RolUsuario };
