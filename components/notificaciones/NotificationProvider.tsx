@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useNotifications } from '@/lib/hooks/use-notifications';
 import type { NotificacionDTO, TipoNotificacion } from '@/app/models';
+import { useAuth } from '@/components/auth-provider';
 
 // Tipos para el contexto
 interface NotificationContextType {
@@ -52,18 +53,26 @@ interface NotificationProviderProps {
     children: ReactNode;
     autoRefreshInterval?: number; // en milisegundos
     enableAutoRefresh?: boolean;
+    enableSmartPolling?: boolean; // Nueva prop para polling inteligente
+    enableRealtime?: boolean; // 🔥 NUEVO: Habilitar SSE para tiempo real
 }
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({
     children,
-    autoRefreshInterval = 30000, // 30 segundos por defecto
-    enableAutoRefresh = true
+    autoRefreshInterval = 60000, // 60 segundos (cambiado de 30)
+    enableAutoRefresh = true,
+    enableSmartPolling = true, // Habilitado por defecto
+    enableRealtime = true // 🔥 NUEVO: SSE habilitado por defecto
 }) => {
     // Estado del dropdown
     const [isDropdownOpen, setDropdownOpen] = React.useState(false);
     const [autoRefresh, setAutoRefresh] = React.useState(enableAutoRefresh);
 
-    // Hook de notificaciones
+    // 🔥 NUEVO: Verificar rol del usuario
+    const { user, isLoading: authLoading } = useAuth();
+    const shouldLoadNotifications = !!(!authLoading && user && user.role !== 'observador');
+
+    // Hook de notificaciones - solo se activa si el usuario puede recibir notificaciones
     const {
         notifications,
         unreadCount,
@@ -78,25 +87,25 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
         refreshNotifications: refresh,
         goToPage
     } = useNotifications({
-        autoRefresh: enableAutoRefresh,
+        autoRefresh: shouldLoadNotifications && enableAutoRefresh,
         refreshInterval: autoRefreshInterval,
-        showToasts: true
+        showToasts: shouldLoadNotifications,
+        enableSmartPolling: shouldLoadNotifications && enableSmartPolling,
+        enableRealtime: shouldLoadNotifications && enableRealtime
     });
 
     // Estado local para filtros
     const [typeFilter, setTypeFilter] = React.useState<TipoNotificacion | 'all'>('all');
     const [statusFilter, setStatusFilter] = React.useState<'all' | 'read' | 'unread'>('all');
 
-    // Auto-refresh con intervalo
-    useEffect(() => {
-        if (!autoRefresh) return;
-
-        const interval = setInterval(() => {
-            refresh();
-        }, autoRefreshInterval);
-
-        return () => clearInterval(interval);
-    }, [autoRefresh, autoRefreshInterval, refresh]);
+    // Ya no necesitamos auto-refresh manual aquí porque el hook lo maneja
+    // useEffect(() => {
+    //     if (!autoRefresh) return;
+    //     const interval = setInterval(() => {
+    //         refresh();
+    //     }, autoRefreshInterval);
+    //     return () => clearInterval(interval);
+    // }, [autoRefresh, autoRefreshInterval, refresh]);
 
     // Refresh cuando se abre el dropdown
     useEffect(() => {

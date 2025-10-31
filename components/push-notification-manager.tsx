@@ -95,12 +95,8 @@ export function PushNotificationManager() {
 
     // No mostrar nada si no está soportado o no hay usuario
     if (!isSupported || !user) {
-        console.log('🔔 No se muestra: isSupported=', isSupported, 'user=', !!user);
         return null;
     }
-
-    // SIEMPRE mostrar el botón flotante si hay usuario (para debug)
-    console.log('🔔 Mostrando componente push');
 
     // Prompt flotante para solicitar suscripción
     if (showPrompt && !isSubscribed) {

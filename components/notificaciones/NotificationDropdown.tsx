@@ -23,6 +23,7 @@ import NotificationItem from './NotificationItem';
 import { NotificationCountBadge } from './NotificationBadge';
 import { InteractiveNotificationIcon } from './NotificationIcon';
 import type { NotificacionDTO } from '@/app/models';
+import { useAuth } from '@/components/auth-provider';
 
 interface NotificationDropdownProps {
     className?: string;
@@ -56,6 +57,15 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         actions,
         dropdown
     } = useNotificationDropdown();
+
+    // 🔥 NUEVO: Hook de autenticación para verificar rol
+    const { user, isLoading: authLoading } = useAuth();
+
+    // 🚫 No mostrar notificaciones para usuarios observadores (solo lectura)
+    // o mientras se está cargando la información del usuario
+    if (authLoading || !user || user.role === 'observador') {
+        return null;
+    }
 
     // Cerrar dropdown al hacer clic fuera
     useEffect(() => {

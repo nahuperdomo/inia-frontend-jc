@@ -19,18 +19,20 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { NotificationDropdown, useNotificationBadge } from "@/components/notificaciones"
+import { useAuth } from "@/components/auth-provider"
+import { RouteGuard } from "@/components/route-guard"
 
 interface DashboardLayoutProps {
   children: ReactNode
 }
 
 const navigation = [
-  { name: "Inicio", href: "/dashboard", icon: Home },
-  { name: "Registro", href: "/registro", icon: Plus },
-  { name: "Listado", href: "/listado", icon: List },
-  { name: "Reportes", href: "/reportes", icon: BarChart3 },
-  { name: "Notificaciones", href: "/notificaciones", icon: Bell },
-  { name: "Administración", href: "/administracion", icon: Shield },
+  { name: "Inicio", href: "/dashboard", icon: Home, roles: ["analista", "administrador", "observador"] },
+  { name: "Registro", href: "/registro", icon: Plus, roles: ["analista", "administrador"] },
+  { name: "Listado", href: "/listado", icon: List, roles: ["analista", "administrador", "observador"] },
+  { name: "Reportes", href: "/reportes", icon: BarChart3, roles: ["analista", "administrador", "observador"] },
+  { name: "Notificaciones", href: "/notificaciones", icon: Bell, roles: ["analista", "administrador"] }, // 🚫 Oculto para observadores
+  { name: "Administración", href: "/administracion", icon: Shield, roles: ["administrador"] },
 ]
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -39,8 +41,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  // Hook para badge de notificaciones en el sidebar
+  // Hooks de autenticación y notificaciones
+  const { user } = useAuth()
   const { unreadCount } = useNotificationBadge()
+
+  // Filtrar navegación según el rol del usuario
+  const filteredNavigation = navigation.filter(item =>
+    !item.roles || (user && item.roles.includes(user.role))
+  )
 
   // Cerrar menú móvil cuando cambia la ruta
   useEffect(() => {
@@ -133,7 +141,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
           <div className="mt-8 flex-grow flex flex-col">
             <nav className="flex-1 px-2 space-y-1">
-              {navigation.map((item) => (
+              {filteredNavigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
@@ -198,7 +206,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
           <div className="flex-grow flex flex-col">
             <nav className="flex-1 px-2 space-y-1">
-              {navigation.map((item) => (
+              {filteredNavigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
@@ -252,7 +260,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Title/Breadcrumb area */}
             <div className="flex-1">
               <h2 className="text-lg font-semibold text-gray-900">
-                {navigation.find(item => pathname === item.href || pathname.startsWith(item.href + "/"))?.name || "Dashboard"}
+                {filteredNavigation.find(item => pathname === item.href || pathname.startsWith(item.href + "/"))?.name || "Dashboard"}
               </h2>
             </div>
 
@@ -277,9 +285,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </header>
 
-        {/* Content area */}
+        {/* Content area with route protection */}
         <main className="flex-1 overflow-x-hidden">
-          {children}
+          <RouteGuard>
+            {children}
+          </RouteGuard>
         </main>
       </div>
 
