@@ -150,7 +150,7 @@ export async function actualizarRepTetrazolioViabilidad(
   repeticionId: number,
   solicitud: RepTetrazolioViabilidadRequestDTO
 ): Promise<RepTetrazolioViabilidadDTO> {
-  return apiFetch(`/tetrazolio/${tetrazolioId}/repeticiones/${repeticionId}`, {
+  return apiFetch(`/tetrazolios/${tetrazolioId}/repeticiones/${repeticionId}`, {
     method: "PUT",
     body: JSON.stringify(solicitud),
   });
