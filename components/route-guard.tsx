@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { usePermissions } from '@/lib/hooks/usePermissions';
+import { usePermissions, PUBLIC_ROUTES } from '@/lib/hooks/usePermissions';
 
 interface RouteGuardProps {
     children: React.ReactNode;
@@ -11,13 +11,22 @@ interface RouteGuardProps {
 /**
  * Componente que protege rutas según el rol del usuario
  * Redirige a /acceso-denegado si el usuario no tiene permisos
+ * Las rutas públicas (PUBLIC_ROUTES) no requieren autenticación
  */
 export function RouteGuard({ children }: RouteGuardProps) {
     const router = useRouter();
     const pathname = usePathname();
     const { canAccessRoute, isLoading } = usePermissions();
 
+    // Verificar si la ruta actual es pública
+    const isPublicRoute = PUBLIC_ROUTES.some(publicRoute =>
+        pathname === publicRoute || pathname.startsWith(publicRoute + '/')
+    );
+
     useEffect(() => {
+        // Las rutas públicas siempre son accesibles
+        if (isPublicRoute) return;
+
         // No hacer nada mientras carga la información del usuario
         if (isLoading) return;
 
@@ -28,7 +37,12 @@ export function RouteGuard({ children }: RouteGuardProps) {
             console.warn(`🚫 Acceso denegado a la ruta: ${pathname}`);
             router.replace('/acceso-denegado');
         }
-    }, [pathname, canAccessRoute, isLoading, router]);
+    }, [pathname, canAccessRoute, isLoading, router, isPublicRoute]);
+
+    // Las rutas públicas se renderizan inmediatamente
+    if (isPublicRoute) {
+        return <>{children}</>;
+    }
 
     // Mostrar loading mientras se verifica el acceso
     if (isLoading) {
@@ -50,3 +64,4 @@ export function RouteGuard({ children }: RouteGuardProps) {
     // Si tiene acceso, renderizar el contenido
     return <>{children}</>;
 }
+

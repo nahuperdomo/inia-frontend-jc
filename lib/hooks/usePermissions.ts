@@ -3,6 +3,13 @@
 import { useAuth } from '@/components/auth-provider';
 
 /**
+ * Rutas públicas que no requieren autenticación
+ */
+export const PUBLIC_ROUTES = [
+    '/registro/usuario', // Registro de usuario público
+] as const;
+
+/**
  * Mapeo de rutas a roles permitidos
  */
 export const ROUTE_PERMISSIONS = {
@@ -70,6 +77,16 @@ export function usePermissions() {
      * Verifica si el usuario tiene acceso a una ruta específica
      */
     const canAccessRoute = (route: string): boolean => {
+        // Verificar si es una ruta pública
+        const isPublicRoute = PUBLIC_ROUTES.some(publicRoute =>
+            route === publicRoute || route.startsWith(publicRoute + '/')
+        );
+
+        if (isPublicRoute) {
+            return true; // Rutas públicas son accesibles sin autenticación
+        }
+
+        // Para rutas protegidas, requiere usuario autenticado
         if (isLoading || !user) return false;
 
         // Buscar la ruta exacta o la ruta padre
