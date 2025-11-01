@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono"
 import { AuthProvider } from "@/components/auth-provider"
 import { LoadingProvider } from "@/components/loading-provider"
 import { QueryProvider } from "@/components/providers/query-provider"
+import { SafeNotificationWrapper } from "@/components/safe-notification-wrapper"
 import { PWAInstallPrompt } from "@/components/pwa-install"
 import { PushNotificationManager } from "@/components/push-notification-manager"
 import { NetworkStatusIndicator } from "@/components/network-status"
@@ -81,12 +82,14 @@ export default function RootLayout({
           <QueryProvider>
             <LoadingProvider>
               <AuthProvider>
-                {children}
-                <PWAInstallPrompt />
-                <PushNotificationManager />
-                <NetworkStatusIndicator />
-                <ToastContainer />
-                <ConfirmDialog />
+                <SafeNotificationWrapper>
+                  {children}
+                  <PWAInstallPrompt />
+                  <PushNotificationManager />
+                  <NetworkStatusIndicator />
+                  <ToastContainer />
+                  <ConfirmDialog />
+                </SafeNotificationWrapper>
               </AuthProvider>
             </LoadingProvider>
           </QueryProvider>
