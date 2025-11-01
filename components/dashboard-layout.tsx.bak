@@ -13,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Leaf, Plus, List, BarChart3, LogOut, Shield, Bell, Menu, X, Home } from "lucide-react"
+import { Leaf, Plus, List, BarChart3, Settings, LogOut, Shield, Bell, Menu, X, Home } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -153,6 +153,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 >
                   <item.icon className="mr-3 h-5 w-5" />
                   {item.name}
+                  {/* Badge para notificaciones no leídas */}
+                  {item.href === "/notificaciones" && unreadCount > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
                 </Link>
               ))}
             </nav>
@@ -212,6 +218,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 >
                   <item.icon className="mr-3 h-5 w-5" />
                   {item.name}
+                  {/* Badge para notificaciones no leídas */}
+                  {item.href === "/notificaciones" && unreadCount > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
                 </Link>
               ))}
             </nav>
@@ -259,7 +271,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* User info/avatar placeholder */}
               <div className="text-sm text-gray-600">
-                Usuario INIA
+                {user?.nombre || 'Usuario INIA'}
               </div>
             </div>
           </div>
