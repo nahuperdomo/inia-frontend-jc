@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useConfirm } from '@/lib/hooks/useConfirm'
 import { 
   obtenerGerminacionPorId, 
   obtenerTablasGerminacion,
@@ -83,6 +84,7 @@ const convertirFechaParaInput = (fechaString: string): string => {
 export default function GerminacionDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const { confirm } = useConfirm()
   const germinacionId = params.id as string
 
   const [germinacion, setGerminacion] = useState<GerminacionDTO | null>(null)
@@ -174,7 +176,15 @@ export default function GerminacionDetailPage() {
   }
 
   const handleReabrirAnalisis = async () => {
-    if (!window.confirm("¿Está seguro que desea editar este análisis? Podrá volver a modificarlo y sus tablas.")) {
+    const confirmed = await confirm({
+      title: "Editar análisis",
+      message: "¿Está seguro que desea editar este análisis? Podrá volver a modificarlo y sus tablas.",
+      confirmText: "Editar",
+      cancelText: "Cancelar",
+      variant: "warning"
+    })
+
+    if (!confirmed) {
       return
     }
 
@@ -588,7 +598,15 @@ export default function GerminacionDetailPage() {
           router.push(`/listado/analisis/germinacion/${germinacion.analisisID}`)
         }}
         onFinalizar={async () => {
-          if (!window.confirm("¿Está seguro que desea finalizar este análisis? Esta acción no se puede deshacer.")) {
+          const confirmed = await confirm({
+            title: "Finalizar análisis",
+            message: "¿Está seguro que desea finalizar este análisis? Esta acción no se puede deshacer.",
+            confirmText: "Finalizar",
+            cancelText: "Cancelar",
+            variant: "danger"
+          })
+
+          if (!confirmed) {
             return
           }
           await finalizarGerminacion(parseInt(germinacionId))

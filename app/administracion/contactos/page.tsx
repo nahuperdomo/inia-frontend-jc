@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +24,7 @@ import {
   Mail,
   RefreshCw
 } from "lucide-react"
+import Pagination from "@/components/pagination"
 import Link from "next/link"
 import { toast, Toaster } from "sonner"
 import {
@@ -47,6 +48,7 @@ import {
   obtenerTodosLosContactos,
   obtenerEmpresas,
   obtenerClientes,
+  obtenerContactosPaginados,
   crearContacto,
   actualizarContacto,
   eliminarContacto,
@@ -70,8 +72,15 @@ export default function ContactosPage() {
   // Estados de contactos
   const [empresas, setEmpresas] = useState<ContactoDTO[]>([])
   const [clientes, setClientes] = useState<ContactoDTO[]>([])
-  const [empresasFiltradas, setEmpresasFiltradas] = useState<ContactoDTO[]>([])
-  const [clientesFiltrados, setClientesFiltrados] = useState<ContactoDTO[]>([])
+
+  // Estados de paginación
+  const [empresaPagina, setEmpresaPagina] = useState(0)
+  const [empresaTotalPages, setEmpresaTotalPages] = useState(0)
+  const [empresaTotalElements, setEmpresaTotalElements] = useState(0)
+
+  const [clientePagina, setClientePagina] = useState(0)
+  const [clienteTotalPages, setClienteTotalPages] = useState(0)
+  const [clienteTotalElements, setClienteTotalElements] = useState(0)
 
   // Estados de diálogos
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -86,60 +95,109 @@ export default function ContactosPage() {
     contacto: ""
   })
 
-  // Cargar datos iniciales y cuando cambien los filtros
-  useEffect(() => {
-    loadAllData()
-  }, [filtroEmpresa, filtroCliente])
-
-  const loadAllData = async () => {
+  // Cargar empresas paginadas
+  const fetchEmpresas = useCallback(async (page: number = empresaPagina, search?: string) => {
     try {
       setLoading(true)
+      const empresaActivo = filtroEmpresa === "todos" ? undefined : filtroEmpresa === "activos"
+      const searchValue = search !== undefined ? search : searchTerm
       
-      // Determinar el valor de activo para cada filtro
-      const empresaActivo = filtroEmpresa === "todos" ? null : filtroEmpresa === "activos"
-      const clienteActivo = filtroCliente === "todos" ? null : filtroCliente === "activos"
+      const response = await obtenerContactosPaginados(
+        page,
+        10,
+        searchValue || undefined,
+        empresaActivo,
+        "EMPRESA"
+      )
       
-      const [empresasData, clientesData] = await Promise.all([
-        obtenerEmpresas(empresaActivo),
-        obtenerClientes(clienteActivo)
-      ])
-
-      setEmpresas(empresasData)
-      setClientes(clientesData)
-      setEmpresasFiltradas(empresasData)
-      setClientesFiltrados(clientesData)
+      setEmpresas(response.content || [])
+      setEmpresaTotalPages(response.totalPages || 0)
+      setEmpresaTotalElements(response.totalElements || 0)
+      setEmpresaPagina(page)
     } catch (error: any) {
-      toast.error("Error al cargar datos", {
-        description: error?.message || "No se pudieron cargar los contactos"
+      toast.error("Error al cargar empresas", {
+        description: error?.message || "No se pudieron cargar las empresas"
       })
     } finally {
       setLoading(false)
     }
-  }
+  }, [empresaPagina, filtroEmpresa, searchTerm])
 
-  // Filtrar por búsqueda de texto (los datos ya vienen filtrados por estado desde el servidor)
+  // Cargar clientes paginados
+  const fetchClientes = useCallback(async (page: number = clientePagina, search?: string) => {
+    try {
+      setLoading(true)
+      const clienteActivo = filtroCliente === "todos" ? undefined : filtroCliente === "activos"
+      const searchValue = search !== undefined ? search : searchTerm
+      
+      const response = await obtenerContactosPaginados(
+        page,
+        10,
+        searchValue || undefined,
+        clienteActivo,
+        "CLIENTE"
+      )
+      
+      setClientes(response.content)
+      setClienteTotalPages(response.totalPages)
+      setClienteTotalElements(response.totalElements)
+      setClientePagina(page)
+    } catch (error: any) {
+      toast.error("Error al cargar clientes", {
+        description: error?.message || "No se pudieron cargar los clientes"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [clientePagina, filtroCliente, searchTerm])
+
+  // useEffect para cargar empresas - reiniciar a página 0 al cambiar filtros/búsqueda
   useEffect(() => {
     if (activeTab === "empresas") {
-      setEmpresasFiltradas(
-        empresas.filter(e => 
-          e.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          e.contacto?.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      )
+      fetchEmpresas(0)
     }
-  }, [searchTerm, empresas, activeTab])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, filtroEmpresa])
 
-  // Filtrar clientes por búsqueda
+  // useEffect para cargar clientes - reiniciar a página 0 al cambiar filtros/búsqueda
   useEffect(() => {
     if (activeTab === "clientes") {
-      setClientesFiltrados(
-        clientes.filter(c => 
-          c.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          c.contacto?.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      )
+      fetchClientes(0)
     }
-  }, [searchTerm, clientes, activeTab])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, filtroCliente])
+
+  // Handler para búsqueda con Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (activeTab === "empresas") {
+        fetchEmpresas(0)
+      } else {
+        fetchClientes(0)
+      }
+    }
+  }
+
+  // Handler para botón de búsqueda
+  const handleSearchClick = () => {
+    if (activeTab === "empresas") {
+      fetchEmpresas(0)
+    } else {
+      fetchClientes(0)
+    }
+  }
+
+  // Handler para limpiar búsqueda
+  const handleClearSearch = () => {
+    setSearchTerm("")
+    // Pasar string vacío explícitamente para forzar búsqueda sin filtro
+    if (activeTab === "empresas") {
+      fetchEmpresas(0, "")
+    } else {
+      fetchClientes(0, "")
+    }
+  }
 
   // Validaciones
   const esEmail = (valor: string): boolean => {
@@ -200,7 +258,7 @@ export default function ContactosPage() {
     try {
       await eliminarContacto(id)
       toast.success("Empresa desactivada exitosamente")
-      await loadAllData()
+      await fetchEmpresas(empresaPagina)
     } catch (error: any) {
       toast.error("Error al desactivar empresa", {
         description: error?.message
@@ -212,7 +270,7 @@ export default function ContactosPage() {
     try {
       await reactivarContacto(id)
       toast.success("Empresa reactivada exitosamente")
-      await loadAllData()
+      await fetchEmpresas(empresaPagina)
     } catch (error: any) {
       toast.error("Error al reactivar empresa", {
         description: error?.message
@@ -251,7 +309,7 @@ export default function ContactosPage() {
     try {
       await eliminarContacto(id)
       toast.success("Cliente desactivado exitosamente")
-      await loadAllData()
+      await fetchClientes(clientePagina)
     } catch (error: any) {
       toast.error("Error al desactivar cliente", {
         description: error?.message
@@ -263,7 +321,7 @@ export default function ContactosPage() {
     try {
       await reactivarContacto(id)
       toast.success("Cliente reactivado exitosamente")
-      await loadAllData()
+      await fetchClientes(clientePagina)
     } catch (error: any) {
       toast.error("Error al reactivar cliente", {
         description: error?.message
@@ -303,7 +361,11 @@ export default function ContactosPage() {
       }
 
       setDialogOpen(false)
-      await loadAllData()
+      if (tipoContacto === "EMPRESA") {
+        await fetchEmpresas(empresaPagina)
+      } else {
+        await fetchClientes(clientePagina)
+      }
     } catch (error: any) {
       toast.error(`Error al ${dialogMode === "create" ? "crear" : "actualizar"} contacto`, {
         description: error?.message || "Error desconocido"
@@ -366,15 +428,32 @@ export default function ContactosPage() {
                   Crea, edita y gestiona empresas y clientes del sistema
                 </CardDescription>
               </div>
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  handleSearchClick()
+                }}
+                className="flex gap-2 w-full sm:w-auto"
+              >
+                <div className="relative flex-1 sm:w-72">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
+                    className="pl-10"
+                  />
+                </div>
+                <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                  <Search className="h-4 w-4" />
+                </Button>
+                {searchTerm && (
+                  <Button type="button" onClick={handleClearSearch} variant="ghost" size="sm" className="px-4">
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </form>
             </div>
           </CardHeader>
 
@@ -435,7 +514,6 @@ export default function ContactosPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>ID</TableHead>
                       <TableHead>Nombre</TableHead>
                       <TableHead>Contacto</TableHead>
                       <TableHead>Estado</TableHead>
@@ -443,17 +521,16 @@ export default function ContactosPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {empresasFiltradas.length === 0 ? (
+                    {empresas.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                           <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                           <p>No hay empresas registradas</p>
                         </TableCell>
                       </TableRow>
                     ) : (
-                      empresasFiltradas.map((empresa) => (
+                      empresas.map((empresa) => (
                         <TableRow key={empresa.contactoID}>
-                          <TableCell className="font-mono">{empresa.contactoID}</TableCell>
                           <TableCell className="font-medium">{empresa.nombre}</TableCell>
                           <TableCell>
                             {empresa.contacto ? (
@@ -518,6 +595,25 @@ export default function ContactosPage() {
                   </TableBody>
                 </Table>
               </div>
+
+              {/* Paginación para empresas */}
+              <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+                <div className="text-sm text-muted-foreground">
+                  {empresaTotalElements === 0 ? (
+                    <>Mostrando 0 de 0 resultados</>
+                  ) : (
+                    <>Mostrando {empresaPagina * 10 + 1} a {Math.min((empresaPagina + 1) * 10, empresaTotalElements)} de {empresaTotalElements} resultados</>
+                  )}
+                </div>
+
+                <Pagination
+                  currentPage={empresaPagina}
+                  totalPages={Math.max(empresaTotalPages, 1)}
+                  onPageChange={(p) => fetchEmpresas(p)}
+                  showRange={1}
+                  alwaysShow={true}
+                />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -566,7 +662,6 @@ export default function ContactosPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>ID</TableHead>
                       <TableHead>Nombre</TableHead>
                       <TableHead>Contacto</TableHead>
                       <TableHead>Estado</TableHead>
@@ -574,17 +669,16 @@ export default function ContactosPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {clientesFiltrados.length === 0 ? (
+                    {clientes.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                           <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                           <p>No hay clientes registrados</p>
                         </TableCell>
                       </TableRow>
                     ) : (
-                      clientesFiltrados.map((cliente) => (
+                      clientes.map((cliente) => (
                         <TableRow key={cliente.contactoID}>
-                          <TableCell className="font-mono">{cliente.contactoID}</TableCell>
                           <TableCell className="font-medium">{cliente.nombre}</TableCell>
                           <TableCell>
                             {cliente.contacto ? (
@@ -648,6 +742,25 @@ export default function ContactosPage() {
                     )}
                   </TableBody>
                 </Table>
+              </div>
+
+              {/* Paginación para clientes */}
+              <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+                <div className="text-sm text-muted-foreground">
+                  {clienteTotalElements === 0 ? (
+                    <>Mostrando 0 de 0 resultados</>
+                  ) : (
+                    <>Mostrando {clientePagina * 10 + 1} a {Math.min((clientePagina + 1) * 10, clienteTotalElements)} de {clienteTotalElements} resultados</>
+                  )}
+                </div>
+
+                <Pagination
+                  currentPage={clientePagina}
+                  totalPages={Math.max(clienteTotalPages, 1)}
+                  onPageChange={(p) => fetchClientes(p)}
+                  showRange={1}
+                  alwaysShow={true}
+                />
               </div>
             </CardContent>
           </Card>

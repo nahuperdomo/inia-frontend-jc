@@ -103,7 +103,7 @@ export function RepeticionRow({
     console.log(`🔍 RepeticionRow ${numeroRepeticion}: Iniciando validación para guardar`)
     console.log("📝 Datos actuales:", datos)
     
-    const limiteMaximo = Math.ceil(numSemillasPRep * 1.05)
+    const limiteMaximo = Math.floor(numSemillasPRep * 1.05)
     
     // Validación del máximo - siempre se aplica
     if (datos.total > limiteMaximo) {
@@ -217,7 +217,7 @@ export function RepeticionRow({
   }
 
   const limiteMinimo = Math.floor(numSemillasPRep * 0.95)
-  const limiteMaximo = Math.ceil(numSemillasPRep * 1.05)
+  const limiteMaximo = Math.floor(numSemillasPRep * 1.05)
   const tieneFechasFuturas = hayFechasFuturas()
   
   // totalExcedido solo si excede el máximo (el mínimo solo es advertencia)

@@ -113,6 +113,13 @@ export default function ListadoGerminacionPage() {
         undefined
       )
       const content = (data as any).content || []
+      
+      // Log para debug
+      console.log("Datos recibidos del backend:", content)
+      if (content.length > 0) {
+        console.log("Primera germinación:", content[0])
+      }
+      
       setGerminaciones(content)
 
       // support two response shapes: { content, page: { ... } } or Spring page directly { content, totalPages, number, ... }
@@ -347,22 +354,23 @@ export default function ListadoGerminacionPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[100px]">ID Análisis</TableHead>
-                  <TableHead className="min-w-[150px]">Lote</TableHead>
-                  <TableHead className="min-w-[120px]">Fecha Inicio</TableHead>
-                  <TableHead className="min-w-[120px]">Inicio Germ.</TableHead>
-                  <TableHead className="min-w-[120px]">Último Conteo</TableHead>
-                  <TableHead className="min-w-[80px]">Días</TableHead>
+                  <TableHead className="min-w-[80px]">ID</TableHead>
+                  <TableHead className="min-w-[120px]">Lote</TableHead>
+                  <TableHead className="min-w-[150px]">Especie</TableHead>
                   <TableHead className="min-w-[100px]">Estado</TableHead>
-                  <TableHead className="min-w-[120px]">Cumple Norma</TableHead>
-                  <TableHead className="min-w-[150px]">Usuario</TableHead>
+                  <TableHead className="min-w-[100px]">Germ. INIA</TableHead>
+                  <TableHead className="min-w-[100px]">Germ. INASE</TableHead>
+                  <TableHead className="min-w-[120px]">Inicio Germ.</TableHead>
+                  <TableHead className="min-w-[120px]">Fecha Final</TableHead>
+                  <TableHead className="min-w-[80px]">Prefrío</TableHead>
+                  <TableHead className="min-w-[110px]">Pretratamiento</TableHead>
                   <TableHead className="min-w-[120px]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredAnalysis.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8">
+                    <TableCell colSpan={11} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <AlertTriangle className="h-8 w-8 text-muted-foreground" />
                         <p className="text-muted-foreground">No se encontraron análisis de germinación</p>
@@ -372,7 +380,7 @@ export default function ListadoGerminacionPage() {
                 ) : (
                   filteredAnalysis.map((analysis) => (
                     <TableRow key={analysis.analisisID}>
-                      <TableCell className="font-medium">GERM-{analysis.analisisID}</TableCell>
+                      <TableCell className="font-medium">{analysis.analisisID}</TableCell>
                       <TableCell>
                         <div>
                           <div className="font-medium">{analysis.lote || "-"}</div>
@@ -381,11 +389,8 @@ export default function ListadoGerminacionPage() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{formatearFechaHora(analysis.fechaInicio)}</TableCell>
-                      <TableCell>{formatearFechaLocal(analysis.fechaInicioGerm)}</TableCell>
-                      <TableCell>{formatearFechaLocal(analysis.fechaUltConteo)}</TableCell>
                       <TableCell>
-                        {analysis.numDias ? `${analysis.numDias} días` : "-"}
+                        <div className="text-sm">{analysis.especie || "-"}</div>
                       </TableCell>
                       <TableCell>
                         <Badge variant={getEstadoBadgeVariant(analysis.estado)}>
@@ -393,20 +398,26 @@ export default function ListadoGerminacionPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant={analysis.cumpleNorma ? "default" : "destructive"}
-                          className="text-xs"
-                        >
-                          {analysis.cumpleNorma ? "Sí" : "No"}
+                        {analysis.valorGerminacionINIA != null 
+                          ? `${analysis.valorGerminacionINIA.toFixed(1)}%` 
+                          : "-"}
+                      </TableCell>
+                      <TableCell>
+                        {analysis.valorGerminacionINASE != null 
+                          ? `${analysis.valorGerminacionINASE.toFixed(1)}%` 
+                          : "-"}
+                      </TableCell>
+                      <TableCell>{analysis.fechaInicioGerm ? formatearFechaLocal(analysis.fechaInicioGerm) : "-"}</TableCell>
+                      <TableCell>{analysis.fechaFinal ? formatearFechaLocal(analysis.fechaFinal) : "-"}</TableCell>
+                      <TableCell>
+                        <Badge variant={analysis.tienePrefrio ? "default" : "secondary"} className="text-xs">
+                          {analysis.tienePrefrio ? "Sí" : "No"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm">
-                          <div className="font-medium">{analysis.usuarioCreador || "-"}</div>
-                          {analysis.usuarioModificador && analysis.usuarioModificador !== analysis.usuarioCreador && (
-                            <div className="text-muted-foreground">Mod: {analysis.usuarioModificador}</div>
-                          )}
-                        </div>
+                        <Badge variant={analysis.tienePretratamiento ? "default" : "secondary"} className="text-xs">
+                          {analysis.tienePretratamiento ? "Sí" : "No"}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">

@@ -395,11 +395,13 @@ export default function ListadoLotesPage() {
                                   <Eye className="h-4 w-4" />
                                 </Button>
                               </Link>
-                              <Link href={`/listado/lotes/${lote.loteID}/editar`}>
-                                <Button variant="ghost" size="sm" title="Editar">
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              </Link>
+                              {lote.activo && (
+                                <Link href={`/listado/lotes/${lote.loteID}/editar`}>
+                                  <Button variant="ghost" size="sm" title="Editar">
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                              )}
                               {user?.role === "administrador" && (
                                 lote.activo ? (
                                   <Button

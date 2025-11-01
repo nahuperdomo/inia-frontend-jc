@@ -28,8 +28,17 @@ export interface GerminacionListadoDTO {
   fechaFin?: string;
   lote?: string;
   idLote?: number;
+  especie?: string;
   usuarioCreador?: string;
   usuarioModificador?: string;
   cumpleNorma: boolean; // true si NO está "A REPETIR"
   activo?: boolean; // Campo para soft delete
+  
+  // Nuevos campos de TablaGerm
+  valorGerminacionINIA?: number;
+  valorGerminacionINASE?: number;
+  fechaInicioGerm?: string;
+  fechaFinal?: string;
+  tienePrefrio?: boolean;
+  tienePretratamiento?: boolean;
 }

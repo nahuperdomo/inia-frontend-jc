@@ -18,6 +18,7 @@ export default function LoginPage() {
     password: "",
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const router = useRouter()
 
   // Servicio de login
@@ -64,6 +65,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setErrorMessage(null) // Limpiar errores anteriores
 
     try {
       const data = await login(credentials.usuario, credentials.password)
@@ -107,35 +109,32 @@ export default function LoginPage() {
       console.error("❌ Error en handleSubmit:", error);
       
       // Intentar extraer el mensaje de error del backend
-      let errorMessage = 'Credenciales incorrectas';
-      let errorDescription = 'Por favor verifica tu usuario y contraseña';
+      let errorMsg = 'Error de autenticación';
+      let errorDescription = 'Verifica tus credenciales e intenta nuevamente';
       
       try {
         // El error puede venir como string o en error.message
         const errorText = error.message || error.toString();
         
-        // Mensajes específicos del backend
-        if (errorText.includes('Usuario sin rol asignado')) {
-          errorMessage = 'Usuario sin rol';
-          errorDescription = 'El administrador debe asignarte un rol antes de que puedas iniciar sesión. Contacta al administrador.';
+        // Mensajes específicos del backend (ambiguos por seguridad)
+        if (errorText.includes('Credenciales incorrectas')) {
+          errorMsg = 'Credenciales incorrectas';
+          errorDescription = 'El usuario/email o contraseña son incorrectos';
         } else if (errorText.includes('pendiente de aprobación')) {
-          errorMessage = 'Usuario pendiente de aprobación';
-          errorDescription = 'Tu cuenta está pendiente de aprobación por el administrador.';
-        } else if (errorText.includes('Usuario inactivo')) {
-          errorMessage = 'Usuario inactivo';
-          errorDescription = 'Tu cuenta ha sido desactivada. Contacta al administrador.';
-        } else if (errorText.includes('Usuario no encontrado')) {
-          errorMessage = 'Usuario no encontrado';
-          errorDescription = 'El usuario ingresado no existe.';
-        } else if (errorText.includes('Contraseña incorrecta')) {
-          errorMessage = 'Contraseña incorrecta';
-          errorDescription = 'La contraseña ingresada no es correcta.';
+          errorMsg = 'Acceso no disponible';
+          errorDescription = 'Tu cuenta está pendiente de aprobación. Contacta al administrador.';
+        } else if (errorText.includes('No se puede iniciar sesión')) {
+          errorMsg = 'Acceso no disponible';
+          errorDescription = 'No se puede acceder con esta cuenta. Contacta al administrador.';
         }
       } catch (parseError) {
         console.error("Error parsing error message:", parseError);
       }
       
-      toast.error(errorMessage, {
+      // Guardar el error en el estado para mostrarlo en la UI
+      setErrorMessage(`${errorMsg}: ${errorDescription}`);
+      
+      toast.error(errorMsg, {
         description: errorDescription,
         duration: 5000
       })
@@ -159,13 +158,18 @@ export default function LoginPage() {
           </div>
         </CardHeader>
         <CardContent>
+          {errorMessage && (
+            <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200">
+              <p className="text-sm text-red-800">{errorMessage}</p>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="usuario">Usuario</Label>
+              <Label htmlFor="usuario">Usuario o Email</Label>
               <Input
                 id="usuario"
                 type="text"
-                placeholder="usuario"
+                placeholder="Ingresa tu usuario o email"
                 value={credentials.usuario}
                 onChange={(e) => setCredentials((prev) => ({ ...prev, usuario: e.target.value }))}
                 required

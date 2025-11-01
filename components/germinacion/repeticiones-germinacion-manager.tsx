@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { useConfirm } from '@/lib/hooks/useConfirm'
 import { TablaGermDTO, RepGermDTO, RepGermRequestDTO } from '@/app/models/interfaces/repeticiones'
 import { 
   obtenerRepeticionesDeTabla, 
@@ -27,6 +28,7 @@ export function RepeticionesGerminacionManager({
   isFinalized,
   onRepeticionesUpdated
 }: RepeticionesGerminacionManagerProps) {
+  const { confirm } = useConfirm()
   const [repeticiones, setRepeticiones] = useState<RepGermDTO[]>([])
   const [loading, setLoading] = useState(false)
   const [guardando, setGuardando] = useState<number | null>(null)
@@ -119,7 +121,15 @@ export function RepeticionesGerminacionManager({
   }
 
   const handleEliminarRepeticion = async (repId: number) => {
-    if (!window.confirm("¿Está seguro que desea eliminar esta repetición?")) {
+    const confirmed = await confirm({
+      title: "Eliminar repetición",
+      message: "¿Está seguro que desea eliminar esta repetición?",
+      confirmText: "Eliminar",
+      cancelText: "Cancelar",
+      variant: "danger"
+    })
+
+    if (!confirmed) {
       return
     }
 

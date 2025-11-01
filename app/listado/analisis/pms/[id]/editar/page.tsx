@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useConfirm } from "@/lib/hooks/useConfirm"
 import { 
   Scale, 
   ArrowLeft, 
@@ -55,6 +56,7 @@ interface RepeticionEdit extends RepPmsDTO {
 export default function EditarPMSPage() {
   const params = useParams()
   const router = useRouter()
+  const { confirm } = useConfirm()
   const pmsId = params.id as string
 
   const [analisis, setAnalisis] = useState<PmsDTO | null>(null)
@@ -348,7 +350,15 @@ export default function EditarPMSPage() {
     const rep = repeticiones[index]
     if (!analisis) return
 
-    if (!confirm(`¿Estás seguro de que deseas eliminar la repetición #${rep.numRep}?`)) {
+    const confirmed = await confirm({
+      title: "Eliminar repetición",
+      message: `¿Estás seguro de que deseas eliminar la repetición #${rep.numRep}?`,
+      confirmText: "Eliminar",
+      cancelText: "Cancelar",
+      variant: "danger"
+    })
+
+    if (!confirmed) {
       return
     }
 
@@ -407,7 +417,15 @@ export default function EditarPMSPage() {
   const handleFinalizarAnalisis = async () => {
     if (!analisis) return
     
-    if (!window.confirm("¿Está seguro que desea finalizar este análisis? Esta acción no se puede deshacer.")) {
+    const confirmed = await confirm({
+      title: "Finalizar análisis",
+      message: "¿Está seguro que desea finalizar este análisis? Esta acción no se puede deshacer.",
+      confirmText: "Finalizar",
+      cancelText: "Cancelar",
+      variant: "danger"
+    })
+
+    if (!confirmed) {
       return
     }
 

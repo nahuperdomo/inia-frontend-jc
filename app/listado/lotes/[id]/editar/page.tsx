@@ -20,6 +20,7 @@ export default function EditarLotePage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loteInactivo, setLoteInactivo] = useState(false)
   const [activeTab, setActiveTab] = useState("datos")
   const [tiposOriginales, setTiposOriginales] = useState<TipoAnalisis[]>([])
   const [tiposNoRemovibles, setTiposNoRemovibles] = useState<Set<TipoAnalisis>>(new Set())
@@ -66,6 +67,21 @@ export default function EditarLotePage() {
       try {
         setLoading(true)
         const data = await obtenerLotePorId(parseInt(loteId))
+        
+        // Verificar si el lote está inactivo
+        if (!data.activo) {
+          setLoteInactivo(true)
+          toast.error("Lote inactivo", {
+            description: "No se puede editar un lote inactivo",
+            duration: 3000
+          })
+          // Esperar a que el usuario vea el mensaje antes de redirigir
+          setTimeout(() => {
+            router.push("/listado/lotes")
+          }, 2500)
+          setLoading(false)
+          return
+        }
         
         // Guardar tipos originales
         const tiposOriginalesLimpios = (data.tiposAnalisisAsignados || [])
@@ -241,9 +257,10 @@ export default function EditarLotePage() {
       });
 
       router.push(`/listado/lotes/${loteId}`);
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Error desconocido al actualizar el lote';
       toast.error('Error al actualizar el lote', {
-        description: 'Por favor, verifica los datos e intenta nuevamente',
+        description: errorMessage,
       });
       console.error("Error al actualizar lote:", error);
     } finally {
@@ -258,6 +275,21 @@ export default function EditarLotePage() {
           <div className="text-center">
             <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">Cargando información del lote...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // No renderizar el formulario si el lote está inactivo
+  if (loteInactivo) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <p className="text-lg font-semibold">Lote inactivo</p>
+            <p className="text-muted-foreground">No se puede editar un lote inactivo</p>
           </div>
         </div>
       </div>

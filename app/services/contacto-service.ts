@@ -94,3 +94,35 @@ export async function buscarClientes(nombre: string): Promise<ContactoDTO[]> {
 export async function buscarEmpresas(nombre: string): Promise<ContactoDTO[]> {
   return apiFetch(`/api/contactos/empresas/buscar?nombre=${encodeURIComponent(nombre)}`);
 }
+
+// Función de listado paginado
+export async function obtenerContactosPaginados(
+  page: number = 0,
+  size: number = 10,
+  search?: string,
+  activo?: boolean,
+  tipo?: string
+): Promise<{ content: ContactoDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+  
+  if (search) params.append("search", search);
+  if (activo !== undefined) params.append("activo", activo.toString());
+  if (tipo) params.append("tipo", tipo);
+
+  const response = await apiFetch(`/api/contactos/listado?${params.toString()}`);
+  
+  // Manejar ambos formatos de respuesta (con y sin objeto 'page')
+  const content = response.content || [];
+  const pageMeta = response.page ? response.page : response;
+  
+  return {
+    content,
+    totalElements: pageMeta.totalElements || 0,
+    totalPages: pageMeta.totalPages || 0,
+    last: pageMeta.last || false,
+    first: pageMeta.first || true
+  };
+}

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { useConfirm } from "@/lib/hooks/useConfirm"
 
 import {
   ArrowLeft,
@@ -29,6 +30,8 @@ import type { PurezaDTO } from "@/app/models"
 import type { EstadoAnalisis, TipoListado } from "@/app/models/types/enums"
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
+import { AnalisisInfoGeneralCard } from "@/components/analisis/analisis-info-general-card"
+import { formatearEstado } from "@/lib/utils/format-estado"
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -144,6 +147,7 @@ const formatearPorcentajeConRedondeo = (
 
 export default function PurezaDetailPage() {
   const params = useParams()
+  const { confirm } = useConfirm()
   const purezaId = params.id as string
   const [pureza, setPureza] = useState<PurezaDTO | null>(null)
   const [loading, setLoading] = useState(true)
@@ -243,54 +247,39 @@ export default function PurezaDetailPage() {
               </Button>
             </Link>
 
-            <div className="flex flex-col gap-2">
-              <div className="space-y-1 text-center lg:text-left">
-                <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-start">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-balance">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-balance">
                     Análisis de Pureza #{pureza.analisisID}
                   </h1>
                   <Badge
                     variant={getEstadoBadgeVariant(pureza.estado)}
                     className="text-xs px-2 py-0.5"
                   >
-                    {pureza.estado}
+                    {formatearEstado(pureza.estado)}
                   </Badge>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground text-pretty">
-                  Análisis de Pureza de Semillas • Lote {pureza.lote}
-                </p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">Ficha:</span>
+                    <span>{pureza.idLote || pureza.analisisID}</span>
+                  </span>
+                  <span className="hidden sm:inline">•</span>
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">Lote:</span>
+                    <span>{pureza.lote}</span>
+                  </span>
+                </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 justify-center lg:justify-end">
-                <Link href={`/listado/analisis/pureza/${pureza.analisisID}/editar`} className="w-full sm:w-auto">
-                  <Button size="sm" className="gap-1.5 w-full h-9">
+              <div className="flex gap-2">
+                <Link href={`/listado/analisis/pureza/${pureza.analisisID}/editar`}>
+                  <Button size="sm" className="gap-1.5 h-9">
                     <Edit className="h-3.5 w-3.5" />
                     <span className="text-xs sm:text-sm">Editar análisis</span>
                   </Button>
                 </Link>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  className="gap-1.5 w-full sm:w-auto h-9"
-                  onClick={async () => {
-                    try {
-                      // Validación básica
-                      if (!pureza.fecha || !pureza.pesoInicial_g || !pureza.pesoTotal_g) {
-                        if (!window.confirm('Faltan datos básicos. ¿Desea intentar finalizar de todas formas?')) {
-                          return
-                        }
-                      }
-
-                      const { finalizarAnalisis } = await import('@/app/services/pureza-service')
-                      await finalizarAnalisis(Number.parseInt(pureza.analisisID.toString()))
-                      window.location.reload()
-                    } catch (err: any) {
-                      alert(err?.message || 'Error al finalizar el análisis')
-                    }
-                  }}
-                >
-                  <span className="text-xs sm:text-sm">Finalizar Análisis</span>
-                </Button>
               </div>
             </div>
           </div>
@@ -313,109 +302,18 @@ export default function PurezaDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             <div className="lg:col-span-2 space-y-6">
               {/* Información General */}
-              <Card className="overflow-hidden bg-background">
-                <CardHeader className="bg-background border-b sticky top-[20px] z-20">
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <FileText className="h-5 w-5 text-primary" />
-                    </div>
-                    Información General
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        ID Análisis
-                      </label>
-                      <p className="text-2xl font-bold">{pureza.analisisID}</p>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Lote</label>
-                      <p className="text-2xl font-semibold">{pureza.lote}</p>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Fecha del Análisis
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <p className="text-lg font-medium">
-                          {formatearFechaLocal(pureza.fecha)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Fecha de Inicio
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <p className="text-lg font-medium">
-                          {formatearFechaLocal(pureza.fechaInicio)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {pureza.fechaFin && (
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Fecha de Finalización
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <p className="text-lg font-medium">
-                            {formatearFechaLocal(pureza.fechaFin)}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-1.5 sm:col-span-2">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Cumple Estándar
-                      </label>
-                      <div className="flex items-center gap-3">
-                        {pureza.cumpleEstandar !== undefined ? (
-                          <>
-                            <div
-                              className={`p-2 rounded-lg ${pureza.cumpleEstandar ? "bg-green-500/10" : "bg-destructive/10"}`}
-                            >
-                              {pureza.cumpleEstandar ? (
-                                <CheckCircle className="h-5 w-5 text-green-600" />
-                              ) : (
-                                <AlertTriangle className="h-5 w-5 text-destructive" />
-                              )}
-                            </div>
-                            <span
-                              className={`text-lg font-semibold ${pureza.cumpleEstandar ? "text-green-600" : "text-destructive"}`}
-                            >
-                              {pureza.cumpleEstandar ? "Cumple con el estándar" : "No cumple con el estándar"}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-lg text-muted-foreground">Pendiente de evaluación</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {pureza.comentarios && (
-                    <>
-                      <Separator className="my-6" />
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Comentarios
-                        </label>
-                        <p className="text-base leading-relaxed bg-muted/50 p-4 rounded-lg">{pureza.comentarios}</p>
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
+              <AnalisisInfoGeneralCard
+                analisisID={pureza.analisisID}
+                estado={pureza.estado}
+                lote={pureza.lote}
+                ficha={pureza.ficha}
+                cultivarNombre={pureza.cultivarNombre}
+                especieNombre={pureza.especieNombre}
+                fechaInicio={pureza.fechaInicio}
+                fechaFin={pureza.fechaFin}
+                cumpleEstandar={pureza.cumpleEstandar}
+                comentarios={pureza.comentarios}
+              />
 
               {/* Valores en Gramos */}
               <Card className="overflow-hidden">
@@ -428,6 +326,17 @@ export default function PurezaDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
+                  {pureza.fecha && (
+                    <div className="mb-6 pb-4 border-b">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Fecha del Análisis
+                      </label>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <p className="text-lg font-semibold">{formatearFechaLocal(pureza.fecha)}</p>
+                      </div>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                     <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-200/50 rounded-lg p-4 text-center space-y-2">
                       <p className="text-2xl font-bold text-blue-600">{Number(pureza.pesoInicial_g).toFixed(3)}</p>

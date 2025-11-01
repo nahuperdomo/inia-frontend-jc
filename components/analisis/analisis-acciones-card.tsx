@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { CheckCircle, RefreshCw } from "lucide-react"
 import { useState } from "react"
 import { useAuth } from "@/components/auth-provider"
+import { useConfirm } from "@/lib/hooks/useConfirm"
 
 interface AnalisisAccionesCardProps {
   // Datos del análisis
@@ -29,6 +30,7 @@ export function AnalisisAccionesCard({
   onFinalizar
 }: AnalisisAccionesCardProps) {
   const { isRole } = useAuth()
+  const { confirm } = useConfirm()
   const [ejecutandoAccion, setEjecutandoAccion] = useState(false)
 
   // Determinar roles
@@ -52,16 +54,25 @@ export function AnalisisAccionesCard({
   }
 
   const handleAccion = async (accion: () => Promise<void>, nombreAccion: string) => {
-    if (!window.confirm(`¿Está seguro que desea ${nombreAccion}?`)) {
+    const confirmed = await confirm({
+      title: "Confirmar acción",
+      message: `¿Está seguro que desea ${nombreAccion}?`,
+      confirmText: "Confirmar",
+      cancelText: "Cancelar",
+      variant: "warning"
+    })
+
+    if (!confirmed) {
       return
     }
 
     try {
       setEjecutandoAccion(true)
       await accion()
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error al ${nombreAccion}:`, error)
-      alert(`Error al ${nombreAccion}. Por favor, intente nuevamente.`)
+      const errorMessage = error?.message || `Error al ${nombreAccion}. Por favor, intente nuevamente.`
+      alert(errorMessage)
     } finally {
       setEjecutandoAccion(false)
     }

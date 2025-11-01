@@ -31,6 +31,8 @@ import type { TablaGermDTO } from "@/app/models/interfaces/repeticiones"
 import type { EstadoAnalisis } from "@/app/models/types/enums"
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
+import { AnalisisInfoGeneralCard } from "@/components/analisis/analisis-info-general-card"
+import { formatearEstado } from "@/lib/utils/format-estado"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -148,9 +150,6 @@ export default function GerminacionDetailPage() {
 
   // Calcular estadísticas de las tablas
   const tablasFinalizadas = tablas.filter(tabla => tabla.finalizada).length
-  const promedioGerminacion = tablas.length > 0 ? 
-    (tablas.reduce((sum, tabla) => sum + (tabla.porcentajeNormalesConRedondeo || 0), 0) / tablas.length).toFixed(1) : 
-    null
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -164,22 +163,30 @@ export default function GerminacionDetailPage() {
               </Button>
             </Link>
 
-            <div className="flex flex-col gap-2">
-              <div className="space-y-1 text-center lg:text-left">
-                <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-start">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-balance">Análisis de Germinación #{germinacion.analisisID}</h1>
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-balance">Análisis de Germinación #{germinacion.analisisID}</h1>
                   <Badge variant={getEstadoBadgeVariant(germinacion.estado)} className="text-xs px-2 py-0.5">
-                    {germinacion.estado}
+                    {formatearEstado(germinacion.estado)}
                   </Badge>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground text-pretty">
-                  Ensayo de germinación estándar • Lote {germinacion.lote}
-                </p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">Ficha:</span>
+                    <span>{germinacion.idLote || germinacion.analisisID}</span>
+                  </span>
+                  <span className="hidden sm:inline">•</span>
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">Lote:</span>
+                    <span>{germinacion.lote}</span>
+                  </span>
+                </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 justify-center lg:justify-end">
-                <Link href={`/listado/analisis/germinacion/${germinacion.analisisID}/editar`} className="w-full sm:w-auto">
-                  <Button size="sm" className="gap-1.5 w-full h-9">
+              <div className="flex gap-2">
+                <Link href={`/listado/analisis/germinacion/${germinacion.analisisID}/editar`}>
+                  <Button size="sm" className="gap-1.5 h-9">
                     <Edit className="h-3.5 w-3.5" />
                     <span className="text-xs sm:text-sm">Editar análisis</span>
                   </Button>
@@ -204,83 +211,17 @@ export default function GerminacionDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-muted/50 border-b">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <FileText className="h-5 w-5 text-primary" />
-                  </div>
-                  Información General
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      ID Análisis
-                    </label>
-                    <p className="text-2xl font-bold">{germinacion.analisisID}</p>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Lote</label>
-                    <p className="text-2xl font-semibold">{germinacion.lote}</p>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Fecha de Inicio
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-lg font-medium">
-                        {formatearFechaLocal(germinacion.fechaInicio)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {germinacion.fechaFin && (
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Fecha de Finalización
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <p className="text-lg font-medium">
-                          {formatearFechaLocal(germinacion.fechaFin)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Total de Tablas
-                    </label>
-                    <p className="text-lg font-semibold">{tablas.length}</p>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Tablas Finalizadas
-                    </label>
-                    <p className="text-lg font-semibold">{tablasFinalizadas}</p>
-                  </div>
-                </div>
-
-                {germinacion.comentarios && (
-                  <>
-                    <Separator className="my-6" />
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Comentarios
-                      </label>
-                      <p className="text-base leading-relaxed bg-muted/50 p-4 rounded-lg">{germinacion.comentarios}</p>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            <AnalisisInfoGeneralCard
+              analisisID={germinacion.analisisID}
+              estado={germinacion.estado}
+              lote={germinacion.lote}
+              ficha={germinacion.ficha}
+              cultivarNombre={germinacion.cultivarNombre}
+              especieNombre={germinacion.especieNombre}
+              fechaInicio={germinacion.fechaInicio}
+              fechaFin={germinacion.fechaFin}
+              comentarios={germinacion.comentarios}
+            />
 
             {/* Resumen de Tablas de Germinación */}
             <Card className="overflow-hidden">
@@ -304,7 +245,7 @@ export default function GerminacionDetailPage() {
                 ) : (
                   <div className="space-y-6">
                     {/* Estadísticas generales */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 border border-green-200/50 rounded-xl p-4 text-center">
                         <p className="text-2xl font-bold text-green-600">{tablasFinalizadas}</p>
                         <p className="text-sm text-muted-foreground">Tablas Finalizadas</p>
@@ -313,12 +254,6 @@ export default function GerminacionDetailPage() {
                         <p className="text-2xl font-bold text-blue-600">{tablas.length}</p>
                         <p className="text-sm text-muted-foreground">Total de Tablas</p>
                       </div>
-                      {promedioGerminacion && (
-                        <div className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-200/50 rounded-xl p-4 text-center">
-                          <p className="text-2xl font-bold text-purple-600">{promedioGerminacion}%</p>
-                          <p className="text-sm text-muted-foreground">Promedio Germinación</p>
-                        </div>
-                      )}
                     </div>
 
                     {/* Lista detallada de tablas */}
