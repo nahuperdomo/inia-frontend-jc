@@ -126,14 +126,6 @@ export default function ReportesPage() {
             Métricas y estadísticas del sistema INIA
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/reportes/validacion" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full sm:w-auto">
-              <FileText className="h-4 w-4 mr-2" />
-              Validación
-            </Button>
-          </Link>
-        </div>
       </div>
 
       {/* Sección de Prueba de Exportación Excel */}
