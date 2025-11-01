@@ -7,7 +7,7 @@ import { useAuth } from '@/components/auth-provider'
 
 /**
  * Badge simple de notificaciones sin dependencias complejas.
- * Solo muestra el contador, sin SSE ni polling.
+ * Solo muestra el contador con polling cada 30 segundos.
  */
 export function SimpleNotificationBadge() {
     const { user, isLoading } = useAuth()

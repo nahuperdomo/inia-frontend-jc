@@ -70,6 +70,14 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
     const { user, isLoading: authLoading } = useAuth();
     const shouldLoadNotifications = !!(!authLoading && user && user.role !== 'observador');
 
+    // Memoizar opciones para evitar recreación en cada render
+    const notificationOptions = React.useMemo(() => ({
+        autoRefresh: shouldLoadNotifications && enableAutoRefresh,
+        refreshInterval: autoRefreshInterval,
+        showToasts: shouldLoadNotifications,
+        enableSmartPolling: shouldLoadNotifications && enableSmartPolling
+    }), [shouldLoadNotifications, enableAutoRefresh, autoRefreshInterval, enableSmartPolling]);
+
     // Hook de notificaciones - solo se activa si el usuario puede recibir notificaciones
     const {
         notifications,
@@ -84,12 +92,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
         deleteNotification,
         refreshNotifications: refresh,
         goToPage
-    } = useNotifications({
-        autoRefresh: shouldLoadNotifications && enableAutoRefresh,
-        refreshInterval: autoRefreshInterval,
-        showToasts: shouldLoadNotifications,
-        enableSmartPolling: shouldLoadNotifications && enableSmartPolling
-    });
+    } = useNotifications(notificationOptions);
 
     // Estado local para filtros
     const [typeFilter, setTypeFilter] = React.useState<TipoNotificacion | 'all'>('all');
