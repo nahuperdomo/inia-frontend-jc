@@ -1,27 +1,19 @@
 "use client"
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import {
-    useNotificationContext,
-    NotificationItem,
-    filterNotifications,
-    sortNotifications,
-    getNotificationStats
-} from '@/components/notificaciones';
+    obtenerMisNotificaciones,
+    marcarComoLeida,
+    marcarTodasMisNotificacionesComoLeidas,
+    eliminarNotificacion
+} from '@/app/services/notificacion-service';
+import type { NotificacionDTO } from '@/app/models/interfaces/notificacion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
     Card,
     CardContent,
-    CardDescription,
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
@@ -30,102 +22,140 @@ import {
     CheckCircle,
     RefreshCw,
     Trash2,
-    Filter,
-    Calendar,
-    User,
-    FileText
+    Eye,
+    X
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export default function NotificationsPage() {
-    const {
-        notifications,
-        unreadCount,
-        totalCount,
-        loading,
-        error,
-        markAsRead,
-        markAllAsRead,
-        deleteNotification,
-        refreshNotifications,
-        currentPage,
-        totalPages,
-        goToPage
-    } = useNotificationContext();
+    const router = useRouter();
+    const [notifications, setNotifications] = useState<NotificacionDTO[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // Filtros locales
-    const [statusFilter, setStatusFilter] = useState<'all' | 'unread' | 'read'>('all');
-    const [typeFilter, setTypeFilter] = useState<string>('all');
-    const [sortBy, setSortBy] = useState<'date' | 'type' | 'readStatus'>('date');
+    useEffect(() => {
+        loadNotifications();
+    }, []);
 
-    // Aplicar filtros y ordenamiento
-    const filteredAndSortedNotifications = useMemo(() => {
-        let filtered = notifications;
-
-        // Filtrar por estado de lectura
-        if (statusFilter !== 'all') {
-            filtered = filterNotifications[statusFilter](filtered);
+    const loadNotifications = async () => {
+        try {
+            setLoading(true);
+            const data = await obtenerMisNotificaciones(0, 1000); // Página 0, 1000 elementos máximo
+            setNotifications(data.content);
+        } catch (error) {
+            console.error('Error cargando notificaciones:', error);
+            toast.error('Error al cargar notificaciones');
+        } finally {
+            setLoading(false);
         }
+    };
 
-        // Filtrar por tipo
-        if (typeFilter !== 'all') {
-            filtered = filterNotifications.byType(filtered, typeFilter as any);
+    const handleMarkAsRead = async (id: number) => {
+        try {
+            await marcarComoLeida(id);
+            setNotifications(prev =>
+                prev.map(n => n.id === id ? { ...n, leido: true } : n)
+            );
+            toast.success('Notificación marcada como leída');
+        } catch (error) {
+            console.error('Error marcando como leída:', error);
+            toast.error('Error al marcar como leída');
         }
-
-        // Ordenar
-        switch (sortBy) {
-            case 'date':
-                return sortNotifications.byDate(filtered, false);
-            case 'type':
-                return sortNotifications.byType(filtered);
-            case 'readStatus':
-                return sortNotifications.byReadStatus(filtered);
-            default:
-                return filtered;
-        }
-    }, [notifications, statusFilter, typeFilter, sortBy]);
-
-    // Estadísticas
-    const stats = getNotificationStats(notifications);
-
-    // Tipos únicos para el filtro
-    const uniqueTypes = useMemo(() => {
-        return Array.from(new Set(notifications.map(n => n.tipo)));
-    }, [notifications]);
+    };
 
     const handleMarkAllAsRead = async () => {
-        await markAllAsRead();
+        try {
+            await marcarTodasMisNotificacionesComoLeidas();
+            setNotifications(prev => prev.map(n => ({ ...n, leido: true })));
+            toast.success('Todas las notificaciones marcadas como leídas');
+        } catch (error) {
+            console.error('Error marcando todas como leídas:', error);
+            toast.error('Error al marcar todas como leídas');
+        }
     };
 
-    const handleRefresh = async () => {
-        await refreshNotifications();
+    const handleDelete = async (id: number) => {
+        try {
+            await eliminarNotificacion(id);
+            setNotifications(prev => prev.filter(n => n.id !== id));
+            toast.success('Notificación eliminada');
+        } catch (error) {
+            console.error('Error eliminando notificación:', error);
+            toast.error('Error al eliminar notificación');
+        }
     };
+
+    const handleNavigate = async (notification: NotificacionDTO) => {
+        // Marcar como leída al navegar
+        if (!notification.leido) {
+            await handleMarkAsRead(notification.id);
+        }
+
+        // Navegar si tiene analisisId (construir URL manualmente)
+        if (notification.analisisId) {
+            // Aquí puedes construir la URL según el tipo de análisis
+            router.push(`/listado/analisis/${notification.analisisId}`);
+        }
+    };
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('es-UY', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
+    };
+
+    const getTipoBadgeVariant = (tipo: string) => {
+        switch (tipo.toLowerCase()) {
+            case 'aprobacion':
+            case 'aprobado':
+                return 'default';
+            case 'revision':
+            case 'pendiente':
+                return 'secondary';
+            case 'rechazo':
+            case 'rechazado':
+                return 'destructive';
+            default:
+                return 'outline';
+        }
+    };
+
+    const unreadCount = notifications.filter(n => !n.leido).length;
 
     return (
         <DashboardLayout>
-            <div className="p-6 max-w-7xl mx-auto">
+            <div className="p-6 max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                            <h1 className="text-2xl font-bold flex items-center gap-2">
                                 <Bell className="w-6 h-6" />
                                 Notificaciones
+                                {unreadCount > 0 && (
+                                    <Badge variant="destructive" className="ml-2">
+                                        {unreadCount} no leídas
+                                    </Badge>
+                                )}
                             </h1>
-                            <p className="text-gray-600">
-                                Gestiona todas tus notificaciones del sistema
+                            <p className="text-muted-foreground">
+                                Gestiona tus notificaciones del sistema
                             </p>
                         </div>
 
                         <div className="flex items-center gap-2">
                             <Button
-                                onClick={handleRefresh}
+                                onClick={loadNotifications}
                                 variant="outline"
                                 size="sm"
                                 disabled={loading}
-                                className={cn(loading && "animate-spin")}
                             >
-                                <RefreshCw className="w-4 h-4 mr-2" />
+                                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                                 Actualizar
                             </Button>
 
@@ -141,212 +171,99 @@ export default function NotificationsPage() {
                             )}
                         </div>
                     </div>
-
-                    {/* Estadísticas */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">
-                                    Total
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{stats.total}</div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">
-                                    No Leídas
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-red-600">{stats.unread}</div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">
-                                    Leídas
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-green-600">{stats.read}</div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">
-                                    Hoy
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-blue-600">{stats.todayCount}</div>
-                            </CardContent>
-                        </Card>
-                    </div>
                 </div>
-
-                {/* Filtros */}
-                <Card className="mb-6">
-                    <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <Filter className="w-5 h-5" />
-                            Filtros
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex flex-wrap gap-4">
-                            <div className="flex-1 min-w-[200px]">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Estado
-                                </label>
-                                <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">Todas</SelectItem>
-                                        <SelectItem value="unread">No leídas</SelectItem>
-                                        <SelectItem value="read">Leídas</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="flex-1 min-w-[200px]">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Tipo
-                                </label>
-                                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">Todos</SelectItem>
-                                        {uniqueTypes.map((type) => (
-                                            <SelectItem key={type} value={type}>
-                                                {type.replace(/_/g, ' ')}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="flex-1 min-w-[200px]">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Ordenar por
-                                </label>
-                                <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="date">Fecha</SelectItem>
-                                        <SelectItem value="type">Tipo</SelectItem>
-                                        <SelectItem value="readStatus">Estado de lectura</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
 
                 {/* Lista de notificaciones */}
                 <Card>
                     <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg">
-                                Notificaciones ({filteredAndSortedNotifications.length})
-                            </CardTitle>
-
-                            {/* Paginación info */}
-                            {totalPages > 1 && (
-                                <div className="text-sm text-gray-600">
-                                    Página {currentPage + 1} de {totalPages}
-                                </div>
-                            )}
-                        </div>
+                        <CardTitle>
+                            Todas las notificaciones ({notifications.length})
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        {error && (
-                            <div className="p-4 mb-4 text-red-700 bg-red-50 border border-red-200 rounded-md">
-                                {error}
-                            </div>
-                        )}
-
                         {loading && notifications.length === 0 ? (
                             <div className="text-center py-8">
                                 <RefreshCw className="w-8 h-8 mx-auto mb-2 text-gray-400 animate-spin" />
-                                <p className="text-gray-500">Cargando notificaciones...</p>
+                                <p className="text-muted-foreground">Cargando notificaciones...</p>
                             </div>
-                        ) : filteredAndSortedNotifications.length === 0 ? (
+                        ) : notifications.length === 0 ? (
                             <div className="text-center py-8">
                                 <Bell className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                                <p className="text-gray-500 mb-1">No se encontraron notificaciones</p>
-                                <p className="text-gray-400 text-sm">
-                                    Prueba ajustando los filtros
-                                </p>
+                                <p className="text-muted-foreground">No tienes notificaciones</p>
                             </div>
                         ) : (
-                            <div className="space-y-3">
-                                {filteredAndSortedNotifications.map((notification) => (
-                                    <NotificationItem
+                            <div className="space-y-2">
+                                {notifications.map((notification) => (
+                                    <div
                                         key={notification.id}
-                                        notification={notification}
-                                        onMarkAsRead={markAsRead}
-                                        onDelete={deleteNotification}
-                                        onViewDetails={(notif) => {
-                                            // Aquí puedes implementar navegación a detalles específicos
-                                            console.log('Ver detalles:', notif);
-                                        }}
-                                        className="border rounded-lg hover:shadow-md transition-shadow"
-                                    />
+                                        className={`p-4 border rounded-lg transition-colors ${!notification.leido
+                                                ? 'bg-blue-50 border-blue-200'
+                                                : 'bg-background hover:bg-muted/50'
+                                            }`}
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            {/* Icono */}
+                                            <div className={`mt-1 ${!notification.leido ? 'text-blue-600' : 'text-muted-foreground'}`}>
+                                                <Bell className="w-5 h-5" />
+                                            </div>
+
+                                            {/* Contenido */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-start justify-between gap-2 mb-1">
+                                                    <p className={`text-sm ${!notification.leido ? 'font-semibold' : ''}`}>
+                                                        {notification.mensaje}
+                                                    </p>
+                                                    {!notification.leido && (
+                                                        <div className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-1.5" />
+                                                    )}
+                                                </div>
+
+                                                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                                                    <Badge variant={getTipoBadgeVariant(notification.tipo)} className="text-xs">
+                                                        {notification.tipo}
+                                                    </Badge>
+                                                    <span>•</span>
+                                                    <span>{formatDate(notification.fechaCreacion)}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Acciones */}
+                                            <div className="flex items-center gap-1">
+                                                {notification.analisisId && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleNavigate(notification)}
+                                                        title="Ver detalles"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </Button>
+                                                )}
+
+                                                {!notification.leido && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleMarkAsRead(notification.id)}
+                                                        title="Marcar como leída"
+                                                    >
+                                                        <CheckCircle className="w-4 h-4" />
+                                                    </Button>
+                                                )}
+
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleDelete(notification.id)}
+                                                    title="Eliminar"
+                                                    className="text-red-600 hover:text-red-700"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 ))}
-                            </div>
-                        )}
-
-                        {/* Paginación */}
-                        {totalPages > 1 && (
-                            <div className="flex items-center justify-center gap-2 mt-6">
-                                <Button
-                                    onClick={() => goToPage(currentPage - 1)}
-                                    disabled={currentPage === 0}
-                                    variant="outline"
-                                    size="sm"
-                                >
-                                    Anterior
-                                </Button>
-
-                                <div className="flex items-center gap-1">
-                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                        const page = currentPage < 3 ? i : currentPage - 2 + i;
-                                        if (page >= totalPages) return null;
-
-                                        return (
-                                            <Button
-                                                key={page}
-                                                onClick={() => goToPage(page)}
-                                                variant={page === currentPage ? "default" : "outline"}
-                                                size="sm"
-                                                className="w-8 h-8"
-                                            >
-                                                {page + 1}
-                                            </Button>
-                                        );
-                                    })}
-                                </div>
-
-                                <Button
-                                    onClick={() => goToPage(currentPage + 1)}
-                                    disabled={currentPage >= totalPages - 1}
-                                    variant="outline"
-                                    size="sm"
-                                >
-                                    Siguiente
-                                </Button>
                             </div>
                         )}
                     </CardContent>

@@ -17,6 +17,13 @@ export function SimpleNotificationBadge() {
         // Solo cargar si hay usuario autenticado y no es observador
         if (!isLoading && user && user.role !== 'observador') {
             loadUnreadCount()
+
+            // Polling cada 30 segundos
+            const interval = setInterval(() => {
+                loadUnreadCount()
+            }, 30000)
+
+            return () => clearInterval(interval)
         }
     }, [user, isLoading])
 
