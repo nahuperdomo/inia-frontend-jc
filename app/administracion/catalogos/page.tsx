@@ -112,8 +112,7 @@ const TIPOS_CATALOGO = [
 export default function CatalogosPage() {
   // Estados generales
   const [loading, setLoading] = useState(true)
-  const [searchInput, setSearchInput] = useState("") // Lo que se escribe en el input
-  const [searchTerm, setSearchTerm] = useState("") // Lo que se usa para buscar
+  const [searchTerm, setSearchTerm] = useState("") // Búsqueda unificada
   const [activeTab, setActiveTab] = useState("catalogos")
 
   // Estados de paginación
@@ -190,7 +189,7 @@ export default function CatalogosPage() {
       fetchCatalogos(0)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, tipoSeleccionado, filtroCatalogo, searchTerm])
+  }, [activeTab, tipoSeleccionado, filtroCatalogo]) // searchTerm NO debe estar aquí
 
   // Cargar especies paginadas
   useEffect(() => {
@@ -199,7 +198,7 @@ export default function CatalogosPage() {
       loadEspeciesActivas() // Para el selector de cultivares
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, filtroEspecie, searchTerm])
+  }, [activeTab, filtroEspecie]) // searchTerm NO debe estar aquí
 
   // Cargar cultivares paginados
   useEffect(() => {
@@ -207,7 +206,7 @@ export default function CatalogosPage() {
       fetchCultivares(0)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, filtroCultivar, searchTerm])
+  }, [activeTab, filtroCultivar]) // searchTerm NO debe estar aquí
 
   // Cargar malezas paginadas
   useEffect(() => {
@@ -215,17 +214,64 @@ export default function CatalogosPage() {
       fetchMalezas(0)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, filtroMalezas, searchTerm])
+  }, [activeTab, filtroMalezas]) // searchTerm NO debe estar aquí
 
-  const fetchCatalogos = useCallback(async (page: number) => {
+  // Handler para búsqueda con Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSearchClick()
+    }
+  }
+
+  // Handler para botón de búsqueda
+  const handleSearchClick = () => {
+    switch (activeTab) {
+      case "catalogos":
+        fetchCatalogos(0)
+        break
+      case "especies":
+        fetchEspecies(0)
+        break
+      case "cultivares":
+        fetchCultivares(0)
+        break
+      case "malezas":
+        fetchMalezas(0)
+        break
+    }
+  }
+
+  // Handler para limpiar búsqueda
+  const handleClearSearch = () => {
+    setSearchTerm("")
+    // Pasar string vacío explícitamente para forzar búsqueda sin filtro
+    switch (activeTab) {
+      case "catalogos":
+        fetchCatalogos(0, "")
+        break
+      case "especies":
+        fetchEspecies(0, "")
+        break
+      case "cultivares":
+        fetchCultivares(0, "")
+        break
+      case "malezas":
+        fetchMalezas(0, "")
+        break
+    }
+  }
+
+  const fetchCatalogos = useCallback(async (page: number, search?: string) => {
     try {
       setLoading(true)
       const activoValue = filtroCatalogo === "todos" ? undefined : filtroCatalogo === "activos"
+      const searchValue = search !== undefined ? search : searchTerm
       
       const data = await obtenerCatalogosPaginados(
         page,
         pageSize,
-        searchTerm || undefined,
+        searchValue || undefined,
         activoValue,
         tipoSeleccionado
       )
@@ -244,15 +290,16 @@ export default function CatalogosPage() {
     }
   }, [filtroCatalogo, searchTerm, tipoSeleccionado])
 
-  const fetchEspecies = useCallback(async (page: number) => {
+  const fetchEspecies = useCallback(async (page: number, search?: string) => {
     try {
       setLoading(true)
       const activoValue = filtroEspecie === "todos" ? undefined : filtroEspecie === "activos"
+      const searchValue = search !== undefined ? search : searchTerm
       
       const data = await obtenerEspeciesPaginadas(
         page,
         pageSize,
-        searchTerm || undefined,
+        searchValue || undefined,
         activoValue
       )
 
@@ -280,15 +327,16 @@ export default function CatalogosPage() {
     }
   }
 
-  const fetchCultivares = useCallback(async (page: number) => {
+  const fetchCultivares = useCallback(async (page: number, search?: string) => {
     try {
       setLoading(true)
       const activoValue = filtroCultivar === "todos" ? undefined : filtroCultivar === "activos"
+      const searchValue = search !== undefined ? search : searchTerm
       
       const data = await obtenerCultivaresPaginados(
         page,
         pageSize,
-        searchTerm || undefined,
+        searchValue || undefined,
         activoValue
       )
 
@@ -306,15 +354,16 @@ export default function CatalogosPage() {
     }
   }, [filtroCultivar, searchTerm])
 
-  const fetchMalezas = useCallback(async (page: number) => {
+  const fetchMalezas = useCallback(async (page: number, search?: string) => {
     try {
       setLoading(true)
       const activoValue = filtroMalezas === "todos" ? undefined : filtroMalezas === "activos"
+      const searchValue = search !== undefined ? search : searchTerm
       
       const data = await obtenerMalezasPaginadas(
         page,
         pageSize,
-        searchTerm || undefined,
+        searchValue || undefined,
         activoValue
       )
 
@@ -331,25 +380,6 @@ export default function CatalogosPage() {
       setLoading(false)
     }
   }, [filtroMalezas, searchTerm])
-
-  // Handler para búsqueda con Enter
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      setSearchTerm(searchInput)
-    }
-  }
-
-  // Handler para botón de búsqueda
-  const handleSearchClick = () => {
-    setSearchTerm(searchInput)
-  }
-
-  // Handler para limpiar búsqueda
-  const handleClearSearch = () => {
-    setSearchInput("")
-    setSearchTerm("")
-  }
 
   const loadAllData = async () => {
     // Esta función ahora solo se usa para recargar después de crear/editar/eliminar
@@ -784,8 +814,8 @@ export default function CatalogosPage() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Buscar..."
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={handleSearchKeyDown}
                     className="pl-10"
                   />
@@ -866,7 +896,6 @@ export default function CatalogosPage() {
                   <Table>
                     <TableHeader>
                         <TableRow>
-                        <TableHead>ID</TableHead>
                         <TableHead>Valor</TableHead>
                         <TableHead>Estado</TableHead>
                         <TableHead className="text-right">Acciones</TableHead>
@@ -875,7 +904,7 @@ export default function CatalogosPage() {
                     <TableBody>
                       {catalogos.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
                             <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                             <p>No hay catálogos registrados de este tipo</p>
                           </TableCell>
@@ -883,7 +912,6 @@ export default function CatalogosPage() {
                       ) : (
                         catalogos.map((catalogo) => (
                           <TableRow key={catalogo.id}>
-                            <TableCell className="font-mono">{catalogo.id}</TableCell>
                             <TableCell className="font-medium">{catalogo.valor}</TableCell>
                             <TableCell>
                               <Badge variant={catalogo.activo ? "default" : "secondary"}>
@@ -973,7 +1001,6 @@ export default function CatalogosPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>ID</TableHead>
                         <TableHead>Nombre Común</TableHead>
                         <TableHead>Nombre Científico</TableHead>
                         <TableHead>Estado</TableHead>
@@ -983,7 +1010,7 @@ export default function CatalogosPage() {
                     <TableBody>
                       {especies.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                             <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                             <p>No hay especies registradas</p>
                           </TableCell>
@@ -991,7 +1018,6 @@ export default function CatalogosPage() {
                       ) : (
                         especies.map((especie) => (
                           <TableRow key={especie.especieID}>
-                            <TableCell className="font-mono">{especie.especieID}</TableCell>
                             <TableCell className="font-medium">{especie.nombreComun}</TableCell>
                             <TableCell className="italic text-muted-foreground">
                               {especie.nombreCientifico}
@@ -1098,7 +1124,6 @@ export default function CatalogosPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>ID</TableHead>
                         <TableHead>Nombre</TableHead>
                         <TableHead>Especie</TableHead>
                         <TableHead>Estado</TableHead>
@@ -1108,7 +1133,7 @@ export default function CatalogosPage() {
                     <TableBody>
                       {cultivares.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                             <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                             <p>No hay cultivares registrados</p>
                           </TableCell>
@@ -1118,7 +1143,6 @@ export default function CatalogosPage() {
                           const especie = especies.find(e => e.especieID === cultivar.especieID)
                           return (
                             <TableRow key={cultivar.cultivarID}>
-                              <TableCell className="font-mono">{cultivar.cultivarID}</TableCell>
                               <TableCell className="font-medium">{cultivar.nombre}</TableCell>
                               <TableCell>
                                 {cultivar.especieNombre ? (
@@ -1225,7 +1249,6 @@ export default function CatalogosPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>ID</TableHead>
                         <TableHead>Nombre Común</TableHead>
                         <TableHead>Nombre Científico</TableHead>
                         <TableHead>Estado</TableHead>
@@ -1235,7 +1258,7 @@ export default function CatalogosPage() {
                     <TableBody>
                       {malezas.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                             <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                             <p>No hay malezas registradas</p>
                           </TableCell>
@@ -1243,7 +1266,6 @@ export default function CatalogosPage() {
                       ) : (
                         malezas.map((maleza) => (
                           <TableRow key={maleza.catalogoID}>
-                            <TableCell className="font-mono">{maleza.catalogoID}</TableCell>
                             <TableCell className="font-medium">{maleza.nombreComun}</TableCell>
                             <TableCell className="italic text-muted-foreground">
                               {maleza.nombreCientifico}

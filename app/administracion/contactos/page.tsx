@@ -62,8 +62,7 @@ import type { TipoContacto } from "@/app/models/types/enums"
 export default function ContactosPage() {
   // Estados generales
   const [loading, setLoading] = useState(true)
-  const [searchInput, setSearchInput] = useState("") // Lo que se escribe en el input
-  const [searchTerm, setSearchTerm] = useState("") // Lo que se usa para buscar
+  const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("empresas")
 
   // Estados de filtros
@@ -97,15 +96,16 @@ export default function ContactosPage() {
   })
 
   // Cargar empresas paginadas
-  const fetchEmpresas = useCallback(async (page: number = empresaPagina) => {
+  const fetchEmpresas = useCallback(async (page: number = empresaPagina, search?: string) => {
     try {
       setLoading(true)
       const empresaActivo = filtroEmpresa === "todos" ? undefined : filtroEmpresa === "activos"
+      const searchValue = search !== undefined ? search : searchTerm
       
       const response = await obtenerContactosPaginados(
         page,
         10,
-        searchTerm || undefined,
+        searchValue || undefined,
         empresaActivo,
         "EMPRESA"
       )
@@ -124,15 +124,16 @@ export default function ContactosPage() {
   }, [empresaPagina, filtroEmpresa, searchTerm])
 
   // Cargar clientes paginados
-  const fetchClientes = useCallback(async (page: number = clientePagina) => {
+  const fetchClientes = useCallback(async (page: number = clientePagina, search?: string) => {
     try {
       setLoading(true)
       const clienteActivo = filtroCliente === "todos" ? undefined : filtroCliente === "activos"
+      const searchValue = search !== undefined ? search : searchTerm
       
       const response = await obtenerContactosPaginados(
         page,
         10,
-        searchTerm || undefined,
+        searchValue || undefined,
         clienteActivo,
         "CLIENTE"
       )
@@ -156,7 +157,7 @@ export default function ContactosPage() {
       fetchEmpresas(0)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, filtroEmpresa, searchTerm])
+  }, [activeTab, filtroEmpresa])
 
   // useEffect para cargar clientes - reiniciar a página 0 al cambiar filtros/búsqueda
   useEffect(() => {
@@ -164,25 +165,38 @@ export default function ContactosPage() {
       fetchClientes(0)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, filtroCliente, searchTerm])
+  }, [activeTab, filtroCliente])
 
   // Handler para búsqueda con Enter
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault()
-      setSearchTerm(searchInput)
+      if (activeTab === "empresas") {
+        fetchEmpresas(0)
+      } else {
+        fetchClientes(0)
+      }
     }
   }
 
   // Handler para botón de búsqueda
   const handleSearchClick = () => {
-    setSearchTerm(searchInput)
+    if (activeTab === "empresas") {
+      fetchEmpresas(0)
+    } else {
+      fetchClientes(0)
+    }
   }
 
   // Handler para limpiar búsqueda
   const handleClearSearch = () => {
-    setSearchInput("")
     setSearchTerm("")
+    // Pasar string vacío explícitamente para forzar búsqueda sin filtro
+    if (activeTab === "empresas") {
+      fetchEmpresas(0, "")
+    } else {
+      fetchClientes(0, "")
+    }
   }
 
   // Validaciones
@@ -425,8 +439,8 @@ export default function ContactosPage() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Buscar..."
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={handleSearchKeyDown}
                     className="pl-10"
                   />
@@ -444,7 +458,7 @@ export default function ContactosPage() {
           </CardHeader>
 
           <CardContent>
-            <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setSearchInput(""); setSearchTerm("") }} className="w-full">{/* Limpiar ambos estados */}
+            <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setSearchTerm("") }} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="empresas" className="text-sm sm:text-base">
                   <Building2 className="h-4 w-4 mr-2" />
@@ -500,7 +514,6 @@ export default function ContactosPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>ID</TableHead>
                       <TableHead>Nombre</TableHead>
                       <TableHead>Contacto</TableHead>
                       <TableHead>Estado</TableHead>
@@ -510,7 +523,7 @@ export default function ContactosPage() {
                   <TableBody>
                     {empresas.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                           <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                           <p>No hay empresas registradas</p>
                         </TableCell>
@@ -518,7 +531,6 @@ export default function ContactosPage() {
                     ) : (
                       empresas.map((empresa) => (
                         <TableRow key={empresa.contactoID}>
-                          <TableCell className="font-mono">{empresa.contactoID}</TableCell>
                           <TableCell className="font-medium">{empresa.nombre}</TableCell>
                           <TableCell>
                             {empresa.contacto ? (
@@ -585,18 +597,23 @@ export default function ContactosPage() {
               </div>
 
               {/* Paginación para empresas */}
-              {empresaTotalPages > 0 && (
-                <div className="mt-4">
-                  <Pagination
-                    currentPage={empresaPagina}
-                    totalPages={empresaTotalPages}
-                    onPageChange={(page) => fetchEmpresas(page)}
-                  />
-                  <p className="text-sm text-muted-foreground text-center mt-2">
-                    Mostrando {empresas.length} de {empresaTotalElements} empresas
-                  </p>
+              <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+                <div className="text-sm text-muted-foreground">
+                  {empresaTotalElements === 0 ? (
+                    <>Mostrando 0 de 0 resultados</>
+                  ) : (
+                    <>Mostrando {empresaPagina * 10 + 1} a {Math.min((empresaPagina + 1) * 10, empresaTotalElements)} de {empresaTotalElements} resultados</>
+                  )}
                 </div>
-              )}
+
+                <Pagination
+                  currentPage={empresaPagina}
+                  totalPages={Math.max(empresaTotalPages, 1)}
+                  onPageChange={(p) => fetchEmpresas(p)}
+                  showRange={1}
+                  alwaysShow={true}
+                />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -645,7 +662,6 @@ export default function ContactosPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>ID</TableHead>
                       <TableHead>Nombre</TableHead>
                       <TableHead>Contacto</TableHead>
                       <TableHead>Estado</TableHead>
@@ -655,7 +671,7 @@ export default function ContactosPage() {
                   <TableBody>
                     {clientes.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                           <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                           <p>No hay clientes registrados</p>
                         </TableCell>
@@ -663,7 +679,6 @@ export default function ContactosPage() {
                     ) : (
                       clientes.map((cliente) => (
                         <TableRow key={cliente.contactoID}>
-                          <TableCell className="font-mono">{cliente.contactoID}</TableCell>
                           <TableCell className="font-medium">{cliente.nombre}</TableCell>
                           <TableCell>
                             {cliente.contacto ? (
@@ -730,18 +745,23 @@ export default function ContactosPage() {
               </div>
 
               {/* Paginación para clientes */}
-              {clienteTotalPages > 0 && (
-                <div className="mt-4">
-                  <Pagination
-                    currentPage={clientePagina}
-                    totalPages={clienteTotalPages}
-                    onPageChange={(page) => fetchClientes(page)}
-                  />
-                  <p className="text-sm text-muted-foreground text-center mt-2">
-                    Mostrando {clientes.length} de {clienteTotalElements} clientes
-                  </p>
+              <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+                <div className="text-sm text-muted-foreground">
+                  {clienteTotalElements === 0 ? (
+                    <>Mostrando 0 de 0 resultados</>
+                  ) : (
+                    <>Mostrando {clientePagina * 10 + 1} a {Math.min((clientePagina + 1) * 10, clienteTotalElements)} de {clienteTotalElements} resultados</>
+                  )}
                 </div>
-              )}
+
+                <Pagination
+                  currentPage={clientePagina}
+                  totalPages={Math.max(clienteTotalPages, 1)}
+                  onPageChange={(p) => fetchClientes(p)}
+                  showRange={1}
+                  alwaysShow={true}
+                />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
