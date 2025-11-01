@@ -241,9 +241,10 @@ export default function EditarLotePage() {
       });
 
       router.push(`/listado/lotes/${loteId}`);
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Error desconocido al actualizar el lote';
       toast.error('Error al actualizar el lote', {
-        description: 'Por favor, verifica los datos e intenta nuevamente',
+        description: errorMessage,
       });
       console.error("Error al actualizar lote:", error);
     } finally {

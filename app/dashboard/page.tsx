@@ -97,15 +97,14 @@ export default function DashboardPage() {
     const isAdmin = userRole?.trim().toUpperCase() === "ADMIN"
     console.log("🔍 Dashboard - userRole:", userRole, "| isAdmin:", isAdmin)
     
-    const stats_array = [
-      {
-        label: "Lotes Activos",
-        value: loading ? "..." : stats?.lotesActivos.toString() || "0",
-        icon: TestTube,
-        color: "text-emerald-600",
-        bgColor: "bg-emerald-50",
-        href: "/listado/lotes",
-      },
+    const stats_array: Array<{
+      label: string
+      value: string
+      icon: any
+      color: string
+      bgColor: string
+      href?: string
+    }> = [
       {
         label: "Análisis Pendientes",
         value: loading ? "..." : stats?.analisisPendientes.toString() || "0",
@@ -114,17 +113,9 @@ export default function DashboardPage() {
         bgColor: "bg-orange-50",
         href: "/dashboard/analisis-pendientes",
       },
-      {
-        label: "Completados Hoy",
-        value: loading ? "..." : stats?.completadosHoy.toString() || "0",
-        icon: CheckCircle,
-        color: "text-green-600",
-        bgColor: "bg-green-50",
-        href: undefined, // No tiene link
-      },
     ]
 
-    // Solo agregar "Análisis por aprobar" si es ADMIN
+    // Solo agregar "Análisis por aprobar" si es ADMIN (segunda posición, a la izquierda)
     if (isAdmin) {
       console.log("✅ Dashboard - Agregando card de Análisis por Aprobar")
       stats_array.push({
@@ -138,6 +129,24 @@ export default function DashboardPage() {
     } else {
       console.log("❌ Dashboard - No se muestra card de Análisis por Aprobar")
     }
+
+    // Agregar los no clicables al final (a la derecha)
+    stats_array.push(
+      {
+        label: "Lotes Activos",
+        value: loading ? "..." : stats?.lotesActivos.toString() || "0",
+        icon: TestTube,
+        color: "text-emerald-600",
+        bgColor: "bg-emerald-50",
+      },
+      {
+        label: "Completados Hoy",
+        value: loading ? "..." : stats?.completadosHoy.toString() || "0",
+        icon: CheckCircle,
+        color: "text-green-600",
+        bgColor: "bg-green-50",
+      }
+    )
 
     return stats_array
   }, [userRole, loading, stats])
@@ -212,14 +221,21 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {quickStats.map((stat, index) => {
             const content = (
-              <Card className={`hover:shadow-md transition-all ${stat.href ? 'cursor-pointer hover:scale-105' : ''}`}>
+              <Card className={`transition-all ${
+                stat.href 
+                  ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:border-primary/50 border-2' 
+                  : 'opacity-90'
+              }`}>
                 <CardContent className="p-4 md:p-6">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex-1">
-                      <p className="text-xs md:text-sm font-medium text-muted-foreground mb-1">{stat.label}</p>
+                      <p className="text-xs md:text-sm font-medium text-muted-foreground mb-1">
+                        {stat.label}
+                        {stat.href && <span className="ml-1 text-primary">→</span>}
+                      </p>
                       <p className="text-2xl md:text-3xl font-bold">{stat.value}</p>
                     </div>
-                    <div className={`${stat.bgColor} p-2 md:p-3 rounded-full`}>
+                    <div className={`${stat.bgColor} p-2 md:p-3 rounded-full ${stat.href ? 'group-hover:scale-110' : ''}`}>
                       <stat.icon className={`h-5 w-5 md:h-6 md:w-6 ${stat.color}`} />
                     </div>
                   </div>
@@ -228,7 +244,7 @@ export default function DashboardPage() {
             )
             
             return stat.href ? (
-              <Link key={index} href={stat.href}>
+              <Link key={index} href={stat.href} className="group">
                 {content}
               </Link>
             ) : (

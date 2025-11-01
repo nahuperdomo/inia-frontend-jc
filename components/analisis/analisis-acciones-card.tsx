@@ -59,9 +59,10 @@ export function AnalisisAccionesCard({
     try {
       setEjecutandoAccion(true)
       await accion()
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error al ${nombreAccion}:`, error)
-      alert(`Error al ${nombreAccion}. Por favor, intente nuevamente.`)
+      const errorMessage = error?.message || `Error al ${nombreAccion}. Por favor, intente nuevamente.`
+      alert(errorMessage)
     } finally {
       setEjecutandoAccion(false)
     }
