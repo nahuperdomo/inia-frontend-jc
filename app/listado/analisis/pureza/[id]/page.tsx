@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { useConfirm } from "@/lib/hooks/useConfirm"
 
 import {
   ArrowLeft,
@@ -144,6 +145,7 @@ const formatearPorcentajeConRedondeo = (
 
 export default function PurezaDetailPage() {
   const params = useParams()
+  const { confirm } = useConfirm()
   const purezaId = params.id as string
   const [pureza, setPureza] = useState<PurezaDTO | null>(null)
   const [loading, setLoading] = useState(true)
@@ -276,7 +278,15 @@ export default function PurezaDetailPage() {
                     try {
                       // Validación básica
                       if (!pureza.fecha || !pureza.pesoInicial_g || !pureza.pesoTotal_g) {
-                        if (!window.confirm('Faltan datos básicos. ¿Desea intentar finalizar de todas formas?')) {
+                        const confirmed = await confirm({
+                          title: "Finalizar sin datos completos",
+                          message: "Faltan datos básicos. ¿Desea intentar finalizar de todas formas?",
+                          confirmText: "Finalizar",
+                          cancelText: "Cancelar",
+                          variant: "warning"
+                        })
+                        
+                        if (!confirmed) {
                           return
                         }
                       }

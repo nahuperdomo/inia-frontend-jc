@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { useConfirm } from "@/lib/hooks/useConfirm"
 
 import {
   ArrowLeft,
@@ -95,6 +96,7 @@ const formatearFechaLocal = (fechaString: string): string => {
 
 export default function DosnDetailPage() {
   const params = useParams()
+  const { confirm } = useConfirm()
   const dosnId = params.id as string
   const [dosn, setDosn] = useState<DosnDTO | null>(null)
   const [loading, setLoading] = useState(true)
@@ -244,7 +246,15 @@ export default function DosnDetailPage() {
 
                     if (!tieneINIA && !tieneINASE && !tieneCuscuta && !tieneListados) {
                       // Mostrar un modal sencillo con confirmación del usuario
-                      if (!window.confirm('No hay evidencia (INIA/INASE/listados/cuscuta). ¿Desea intentar finalizar de todas formas?')) {
+                      const confirmed = await confirm({
+                        title: "Finalizar sin evidencia",
+                        message: "No hay evidencia (INIA/INASE/listados/cuscuta). ¿Desea intentar finalizar de todas formas?",
+                        confirmText: "Finalizar",
+                        cancelText: "Cancelar",
+                        variant: "warning"
+                      })
+                      
+                      if (!confirmed) {
                         return
                       }
                     }
