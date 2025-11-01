@@ -80,7 +80,7 @@ export interface GestionarUsuarioRequest {
 }
 
 export interface ActualizarPerfilRequest {
-  nombre?: string; // username - debe ser único
+  nombre?: string; 
   nombres?: string;
   apellidos?: string;
   email?: string;

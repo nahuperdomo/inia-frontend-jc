@@ -53,3 +53,33 @@ export async function reactivarEspecie(id: number): Promise<EspecieDTO> {
     method: "PUT",
   });
 }
+
+// Función de listado paginado
+export async function obtenerEspeciesPaginadas(
+  page: number = 0,
+  size: number = 10,
+  search?: string,
+  activo?: boolean
+): Promise<{ content: EspecieDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+  
+  if (search) params.append("search", search);
+  if (activo !== undefined) params.append("activo", activo.toString());
+
+  const response = await apiFetch(`/api/especie/listado?${params.toString()}`);
+  
+  // Manejar ambos formatos de respuesta (con y sin objeto 'page')
+  const content = response.content || [];
+  const pageMeta = response.page ? response.page : response;
+  
+  return {
+    content,
+    totalElements: pageMeta.totalElements || 0,
+    totalPages: pageMeta.totalPages || 0,
+    last: pageMeta.last || false,
+    first: pageMeta.first || true
+  };
+}
