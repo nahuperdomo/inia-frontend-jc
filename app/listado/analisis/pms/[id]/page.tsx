@@ -26,6 +26,7 @@ import { obtenerPmsPorId, finalizarAnalisis, aprobarAnalisis, marcarParaRepetir 
 import { obtenerRepeticionesPorPms, eliminarRepPms } from "@/app/services/repeticiones-service"
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
+import { AnalisisInfoGeneralCard } from "@/components/analisis/analisis-info-general-card"
 import { formatearEstado } from "@/lib/utils/format-estado"
 
 export default function DetallePMSPage() {
@@ -273,82 +274,16 @@ export default function DetallePMSPage() {
           {/* Main Content - 2 columns */}
           <div className="lg:col-span-2 space-y-6">
             {/* Información General */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Scale className="h-5 w-5" />
-                  Información del Análisis
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">ID:</span>
-                  <span className="font-medium">PMS-{analisis.analisisID}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Lote:</span>
-                  <span className="font-medium">{analisis.lote || "-"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">ID Lote:</span>
-                  <span className="font-medium">{analisis.idLote || "-"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Cultivar:</span>
-                  <span className="font-medium">-</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Especie:</span>
-                  <span className="font-medium">-</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Estado:</span>
-                  <Badge variant={getEstadoBadgeVariant(analisis.estado || "")}>
-                    <div className="flex items-center gap-1">
-                      {getEstadoIcon(analisis.estado || "")}
-                      {getEstadoDisplay(analisis.estado || "")}
-                    </div>
-                  </Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Fecha Inicio:</span>
-                  <span className="font-medium">
-                    {analisis.fechaInicio 
-                      ? new Date(analisis.fechaInicio).toLocaleDateString("es-ES")
-                      : "-"
-                    }
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Fecha Fin:</span>
-                  <span className="font-medium">
-                    {analisis.fechaFin 
-                      ? new Date(analisis.fechaFin).toLocaleDateString("es-ES")
-                      : "-"
-                    }
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Semilla Brozosa:</span>
-                  <Badge variant={analisis.esSemillaBrozosa ? "destructive" : "default"}>
-                    {analisis.esSemillaBrozosa ? "Sí" : "No"}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-
-            {analisis.comentarios && (
-              <div className="space-y-2">
-                <span className="text-sm text-muted-foreground">Observaciones:</span>
-                <p className="text-sm bg-gray-50 p-3 rounded">{analisis.comentarios}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            <AnalisisInfoGeneralCard
+              analisisID={analisis.analisisID}
+              lote={analisis.lote}
+              ficha={analisis.ficha}
+              cultivarNombre={analisis.cultivarNombre}
+              especieNombre={analisis.especieNombre}
+              fechaInicio={analisis.fechaInicio}
+              fechaFin={analisis.fechaFin}
+              comentarios={analisis.comentarios}
+            />
 
         {/* Repeticiones */}
         <Card>

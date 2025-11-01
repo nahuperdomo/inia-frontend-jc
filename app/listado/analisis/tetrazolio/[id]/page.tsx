@@ -30,6 +30,7 @@ import {
 import Link from 'next/link'
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
+import { AnalisisInfoGeneralCard } from "@/components/analisis/analisis-info-general-card"
 import { formatearEstado } from "@/lib/utils/format-estado"
 
 // Función utilitaria para formatear fechas
@@ -233,6 +234,18 @@ export default function TetrazolioDetailPage() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             <div className="lg:col-span-2 space-y-6">
+              {/* Información General */}
+              <AnalisisInfoGeneralCard
+                analisisID={tetrazolio.analisisID}
+                lote={tetrazolio.lote}
+                ficha={tetrazolio.ficha}
+                cultivarNombre={tetrazolio.cultivarNombre}
+                especieNombre={tetrazolio.especieNombre}
+                fechaInicio={tetrazolio.fechaInicio}
+                fechaFin={tetrazolio.fechaFin}
+                comentarios={tetrazolio.comentarios}
+              />
+
               {/* Información del análisis */}
           <Card>
             <CardHeader>
