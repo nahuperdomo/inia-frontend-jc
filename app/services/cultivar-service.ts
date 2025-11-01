@@ -73,15 +73,15 @@ export async function obtenerCultivaresPaginados(
     page: page.toString(),
     size: size.toString(),
   });
-  
+
   if (search) params.append("search", search);
   if (activo !== undefined) params.append("activo", activo.toString());
 
-  const data = await apiFetch(`/api/cultivar/listado?${params.toString()}`);
-  
+  const data = await apiFetch(`/cultivar/listado?${params.toString()}`);
+
   // Manejar ambos formatos de respuesta
   const pageMeta = (data as any).page ? (data as any).page : (data as any);
-  
+
   return {
     content: data.content || [],
     totalElements: pageMeta.totalElements || 0,

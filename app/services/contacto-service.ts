@@ -103,17 +103,17 @@ export async function obtenerContactosPaginados(
     page: page.toString(),
     size: size.toString(),
   });
-  
+
   if (search) params.append("search", search);
   if (activo !== undefined) params.append("activo", activo.toString());
   if (tipo) params.append("tipo", tipo);
 
-  const response = await apiFetch(`/api/contactos/listado?${params.toString()}`);
-  
+  const response = await apiFetch(`/contactos/listado?${params.toString()}`);
+
   // Manejar ambos formatos de respuesta (con y sin objeto 'page')
   const content = response.content || [];
   const pageMeta = response.page ? response.page : response;
-  
+
   return {
     content,
     totalElements: pageMeta.totalElements || 0,

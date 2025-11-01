@@ -65,16 +65,16 @@ export async function obtenerEspeciesPaginadas(
     page: page.toString(),
     size: size.toString(),
   });
-  
+
   if (search) params.append("search", search);
   if (activo !== undefined) params.append("activo", activo.toString());
 
-  const response = await apiFetch(`/api/especie/listado?${params.toString()}`);
-  
+  const response = await apiFetch(`/especie/listado?${params.toString()}`);
+
   // Manejar ambos formatos de respuesta (con y sin objeto 'page')
   const content = response.content || [];
   const pageMeta = response.page ? response.page : response;
-  
+
   return {
     content,
     totalElements: pageMeta.totalElements || 0,
