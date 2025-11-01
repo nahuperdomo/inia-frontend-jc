@@ -67,6 +67,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
     const lastFetchTime = useRef<number>(Date.now());
     const consecutiveErrors = useRef<number>(0);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const hasLoadedInitial = useRef<boolean>(false);
 
     // Función para cargar notificaciones paginadas
     const loadNotifications = useCallback(async (page: number = 0, append: boolean = false) => {
@@ -237,6 +238,9 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
 
     // Cargar datos iniciales solo si está habilitado
     useEffect(() => {
+        // Solo cargar una vez al montar
+        if (hasLoadedInitial.current) return;
+
         // No cargar si autoRefresh está deshabilitado
         if (!autoRefresh) {
             console.log('🚫 Notificaciones deshabilitadas, no se cargarán datos iniciales');
@@ -244,7 +248,9 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
         }
 
         console.log('📥 Cargando notificaciones iniciales...');
+        hasLoadedInitial.current = true;
         refreshNotifications();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Solo ejecutar al montar
 
     // Detectar visibilidad del tab para optimizar polling

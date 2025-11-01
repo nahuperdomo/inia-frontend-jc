@@ -68,7 +68,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
 
     // Verificar rol del usuario
     const { user, isLoading: authLoading } = useAuth();
-    const shouldLoadNotifications = !!(!authLoading && user && user.role !== 'observador');
+    const shouldLoadNotifications = !authLoading && !!user && user.role !== 'observador';
 
     // Memoizar opciones para evitar recreación en cada render
     const notificationOptions = React.useMemo(() => ({
