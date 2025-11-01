@@ -60,7 +60,7 @@ export default function AdministracionPage() {
                                             <span>Activar/desactivar cuentas</span>
                                         </div>
                                     </div>
-                                    <Button className="w-full">
+                                    <Button className="w-full" variant="outline">
                                         Gestionar Usuarios
                                         <ArrowRight className="ml-2 h-4 w-4" />
                                     </Button>

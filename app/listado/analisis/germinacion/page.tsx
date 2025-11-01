@@ -125,6 +125,13 @@ export default function ListadoGerminacionPage() {
         undefined
       )
       const content = (data as any).content || []
+
+      // Log para debug
+      console.log("Datos recibidos del backend:", content)
+      if (content.length > 0) {
+        console.log("Primera germinación:", content[0])
+      }
+
       setGerminaciones(content)
 
       // support two response shapes: { content, page: { ... } } or Spring page directly { content, totalPages, number, ... }
@@ -246,110 +253,6 @@ export default function ListadoGerminacionPage() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Análisis</p>
-                  <p className="text-2xl font-bold">{totalAnalysis}</p>
-                </div>
-                <Activity className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Completados</p>
-                  <p className="text-2xl font-bold">{completedAnalysis}</p>
-                </div>
-                <Activity className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">En Proceso</p>
-                  <p className="text-2xl font-bold">{inProgressAnalysis}</p>
-                </div>
-                <Activity className="h-8 w-8 text-orange-600" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Cumplen Norma</p>
-                  <p className="text-2xl font-bold">{complianceRate}%</p>
-                </div>
-                <AlertTriangle className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  handleSearchClick()
-                }}
-                className="flex-1 flex gap-2"
-              >
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    placeholder="Buscar por ID análisis, Lote o Ficha..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyDown={handleSearchKeyDown}
-                    className="pl-10"
-                  />
-                </div>
-                <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
-                  <Search className="h-4 w-4" />
-                </Button>
-              </form>
-              <div className="flex gap-2">
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="px-3 py-2 border border-input bg-background rounded-md text-sm"
-                >
-                  <option value="all">Todos los estados</option>
-                  <option value="REGISTRADO">Registrado</option>
-                  <option value="EN_PROCESO">En Proceso</option>
-                  <option value="PENDIENTE_APROBACION">Pend. Aprobación</option>
-                  <option value="APROBADO">Aprobado</option>
-                  <option value="A_REPETIR">A Repetir</option>
-                </select>
-                <select
-                  value={filtroActivo}
-                  onChange={(e) => setFiltroActivo(e.target.value)}
-                  className="px-3 py-2 border border-input bg-background rounded-md text-sm"
-                >
-                  <option value="todos">Todos</option>
-                  <option value="activos">Activos</option>
-                  <option value="inactivos">Inactivos</option>
-                </select>
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filtros
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader>
             <CardTitle>Lista de Análisis de Germinación</CardTitle>
@@ -359,22 +262,23 @@ export default function ListadoGerminacionPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[100px]">ID Análisis</TableHead>
-                    <TableHead className="min-w-[150px]">Lote</TableHead>
-                    <TableHead className="min-w-[120px]">Fecha Inicio</TableHead>
-                    <TableHead className="min-w-[120px]">Inicio Germ.</TableHead>
-                    <TableHead className="min-w-[120px]">Último Conteo</TableHead>
-                    <TableHead className="min-w-[80px]">Días</TableHead>
+                    <TableHead className="min-w-[80px]">ID</TableHead>
+                    <TableHead className="min-w-[120px]">Lote</TableHead>
+                    <TableHead className="min-w-[150px]">Especie</TableHead>
                     <TableHead className="min-w-[100px]">Estado</TableHead>
-                    <TableHead className="min-w-[120px]">Cumple Norma</TableHead>
-                    <TableHead className="min-w-[150px]">Usuario</TableHead>
+                    <TableHead className="min-w-[100px]">Germ. INIA</TableHead>
+                    <TableHead className="min-w-[100px]">Germ. INASE</TableHead>
+                    <TableHead className="min-w-[120px]">Inicio Germ.</TableHead>
+                    <TableHead className="min-w-[120px]">Fecha Final</TableHead>
+                    <TableHead className="min-w-[80px]">Prefrío</TableHead>
+                    <TableHead className="min-w-[110px]">Pretratamiento</TableHead>
                     <TableHead className="min-w-[120px]">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredAnalysis.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8">
+                      <TableCell colSpan={11} className="text-center py-8">
                         <div className="flex flex-col items-center gap-2">
                           <AlertTriangle className="h-8 w-8 text-muted-foreground" />
                           <p className="text-muted-foreground">No se encontraron análisis de germinación</p>
@@ -384,7 +288,7 @@ export default function ListadoGerminacionPage() {
                   ) : (
                     filteredAnalysis.map((analysis) => (
                       <TableRow key={analysis.analisisID}>
-                        <TableCell className="font-medium">GERM-{analysis.analisisID}</TableCell>
+                        <TableCell className="font-medium">{analysis.analisisID}</TableCell>
                         <TableCell>
                           <div>
                             <div className="font-medium">{analysis.lote || "-"}</div>
@@ -393,14 +297,8 @@ export default function ListadoGerminacionPage() {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>{formatearFechaHora(analysis.fechaInicio)}</TableCell>
-                        <TableCell>{formatearFechaLocal(analysis.fechaInicio)}</TableCell>
-                        <TableCell>{analysis.fechaFin ? formatearFechaLocal(analysis.fechaFin) : "-"}</TableCell>
                         <TableCell>
-                          {/* Calcular días entre fechaInicio y fechaFin */}
-                          {analysis.fechaInicio && analysis.fechaFin ? (
-                            `${Math.ceil((new Date(analysis.fechaFin).getTime() - new Date(analysis.fechaInicio).getTime()) / (1000 * 60 * 60 * 24))} días`
-                          ) : "-"}
+                          <div className="text-sm">{analysis.especie || "-"}</div>
                         </TableCell>
                         <TableCell>
                           <Badge variant={getEstadoBadgeVariant(analysis.estado)}>
@@ -408,20 +306,26 @@ export default function ListadoGerminacionPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant={analysis.cumpleNorma ? "default" : "destructive"}
-                            className="text-xs"
-                          >
-                            {analysis.cumpleNorma ? "Sí" : "No"}
+                          {analysis.valorGerminacionINIA != null
+                            ? `${analysis.valorGerminacionINIA.toFixed(1)}%`
+                            : "-"}
+                        </TableCell>
+                        <TableCell>
+                          {analysis.valorGerminacionINASE != null
+                            ? `${analysis.valorGerminacionINASE.toFixed(1)}%`
+                            : "-"}
+                        </TableCell>
+                        <TableCell>{analysis.fechaInicioGerm ? formatearFechaLocal(analysis.fechaInicioGerm) : "-"}</TableCell>
+                        <TableCell>{analysis.fechaFinal ? formatearFechaLocal(analysis.fechaFinal) : "-"}</TableCell>
+                        <TableCell>
+                          <Badge variant={analysis.tienePrefrio ? "default" : "secondary"} className="text-xs">
+                            {analysis.tienePrefrio ? "Sí" : "No"}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm">
-                            <div className="font-medium">{analysis.usuarioCreador || "-"}</div>
-                            {analysis.usuarioModificador && analysis.usuarioModificador !== analysis.usuarioCreador && (
-                              <div className="text-muted-foreground">Mod: {analysis.usuarioModificador}</div>
-                            )}
-                          </div>
+                          <Badge variant={analysis.tienePretratamiento ? "default" : "secondary"} className="text-xs">
+                            {analysis.tienePretratamiento ? "Sí" : "No"}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">

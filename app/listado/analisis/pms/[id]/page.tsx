@@ -26,6 +26,8 @@ import { obtenerPmsPorId, finalizarAnalisis, aprobarAnalisis, marcarParaRepetir 
 import { obtenerRepeticionesPorPms, eliminarRepPms } from "@/app/services/repeticiones-service"
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
+import { AnalisisInfoGeneralCard } from "@/components/analisis/analisis-info-general-card"
+import { formatearEstado } from "@/lib/utils/format-estado"
 
 export default function DetallePMSPage() {
   const params = useParams()
@@ -155,22 +157,7 @@ export default function DetallePMSPage() {
   }
 
   const getEstadoDisplay = (estado: string) => {
-    switch (estado) {
-      case "APROBADO":
-        return "Aprobado"
-      case "EN_PROCESO":
-        return "En Proceso"
-      case "FINALIZADO":
-        return "Finalizado"
-      case "PENDIENTE_APROBACION":
-        return "Pendiente Aprobación"
-      case "PENDIENTE":
-        return "Pendiente"
-      case "PARA_REPETIR":
-        return "Para Repetir"
-      default:
-        return estado
-    }
+    return formatearEstado(estado)
   }
 
   const getEstadoIcon = (estado: string) => {
@@ -238,61 +225,38 @@ export default function DetallePMSPage() {
             <Link href="/listado/analisis/pms">
               <Button variant="ghost" size="sm" className="gap-1 -ml-2 h-8">
                 <ArrowLeft className="h-3 w-3" />
-                <span className="text-xs sm:text-sm">Volver al Listado</span>
+                <span className="text-xs sm:text-sm">Volver</span>
               </Button>
             </Link>
 
-            <div className="flex flex-col gap-2">
-              <div className="space-y-1 text-center lg:text-left">
-                <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-start">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Análisis PMS #{analisis.analisisID}</h1>
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-2xl sm:text-3xl font-bold">Análisis PMS #{analisis.analisisID}</h1>
                   <Badge variant={getEstadoBadgeVariant(analisis.estado)} className="text-xs px-2 py-0.5">
-                    {getEstadoDisplay(analisis.estado)}
+                    {formatearEstado(analisis.estado)}
                   </Badge>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Detalle del análisis de peso de mil semillas • Lote {analisis.lote || 'N/A'}
-                </p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">Ficha:</span>
+                    <span>{analisis.idLote || analisis.analisisID}</span>
+                  </span>
+                  <span className="hidden sm:inline">•</span>
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">Lote:</span>
+                    <span>{analisis.lote || 'N/A'}</span>
+                  </span>
+                </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 justify-center lg:justify-end flex-wrap">
-                <Link href={`/listado/analisis/pms/${id}/editar`} className="w-full sm:w-auto">
-                  <Button variant="outline" size="sm" className="w-full h-9">
-                    <Edit className="h-3.5 w-3.5 mr-1.5" />
-                    <span className="text-xs sm:text-sm">Editar</span>
+              <div className="flex gap-2">
+                <Link href={`/listado/analisis/pms/${id}/editar`}>
+                  <Button size="sm" className="gap-1.5 h-9">
+                    <Edit className="h-3.5 w-3.5" />
+                    <span className="text-xs sm:text-sm">Editar análisis</span>
                   </Button>
                 </Link>
-                {analisis.estado === "PENDIENTE_APROBACION" && (
-                  <Button 
-                    onClick={handleFinalizarAnalisis}
-                    disabled={actionLoading === "finalizar"}
-                    size="sm"
-                    className="h-9"
-                  >
-                    <span className="text-xs sm:text-sm">{actionLoading === "finalizar" ? "Finalizando..." : "Finalizar"}</span>
-                  </Button>
-                )}
-                {(analisis.estado === "EN_PROCESO" || analisis.estado === "APROBADO") && (
-                  <>
-                    <Button 
-                      variant="outline"
-                      onClick={handleMarcarParaRepetir}
-                      disabled={actionLoading === "repetir"}
-                      size="sm"
-                      className="h-9"
-                    >
-                      <span className="text-xs sm:text-sm">{actionLoading === "repetir" ? "Marcando..." : "Marcar para Repetir"}</span>
-                    </Button>
-                    <Button 
-                      onClick={handleAprobarAnalisis}
-                      disabled={actionLoading === "aprobar"}
-                      size="sm"
-                      className="h-9"
-                    >
-                      <span className="text-xs sm:text-sm">{actionLoading === "aprobar" ? "Aprobando..." : "Aprobar"}</span>
-                    </Button>
-                  </>
-                )}
               </div>
             </div>
           </div>
@@ -310,82 +274,17 @@ export default function DetallePMSPage() {
           {/* Main Content - 2 columns */}
           <div className="lg:col-span-2 space-y-6">
             {/* Información General */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Scale className="h-5 w-5" />
-                  Información del Análisis
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">ID:</span>
-                  <span className="font-medium">PMS-{analisis.analisisID}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Lote:</span>
-                  <span className="font-medium">{analisis.lote || "-"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">ID Lote:</span>
-                  <span className="font-medium">{analisis.idLote || "-"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Cultivar:</span>
-                  <span className="font-medium">-</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Especie:</span>
-                  <span className="font-medium">-</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Estado:</span>
-                  <Badge variant={getEstadoBadgeVariant(analisis.estado || "")}>
-                    <div className="flex items-center gap-1">
-                      {getEstadoIcon(analisis.estado || "")}
-                      {getEstadoDisplay(analisis.estado || "")}
-                    </div>
-                  </Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Fecha Inicio:</span>
-                  <span className="font-medium">
-                    {analisis.fechaInicio 
-                      ? new Date(analisis.fechaInicio).toLocaleDateString("es-ES")
-                      : "-"
-                    }
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Fecha Fin:</span>
-                  <span className="font-medium">
-                    {analisis.fechaFin 
-                      ? new Date(analisis.fechaFin).toLocaleDateString("es-ES")
-                      : "-"
-                    }
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Semilla Brozosa:</span>
-                  <Badge variant={analisis.esSemillaBrozosa ? "destructive" : "default"}>
-                    {analisis.esSemillaBrozosa ? "Sí" : "No"}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-
-            {analisis.comentarios && (
-              <div className="space-y-2">
-                <span className="text-sm text-muted-foreground">Observaciones:</span>
-                <p className="text-sm bg-gray-50 p-3 rounded">{analisis.comentarios}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            <AnalisisInfoGeneralCard
+              analisisID={analisis.analisisID}
+              estado={analisis.estado}
+              lote={analisis.lote}
+              ficha={analisis.ficha}
+              cultivarNombre={analisis.cultivarNombre}
+              especieNombre={analisis.especieNombre}
+              fechaInicio={analisis.fechaInicio}
+              fechaFin={analisis.fechaFin}
+              comentarios={analisis.comentarios}
+            />
 
         {/* Repeticiones */}
         <Card>

@@ -13,7 +13,10 @@ export interface AnalisisHistorialDTO {
 export interface AnalisisDTO {
   analisisID: number;
   idLote?: number; // ID del lote
-  lote: string; // Nombre del lote
+  lote: string; // Nombre del lote (nomLote)
+  ficha?: string; // Ficha del lote
+  cultivarNombre?: string; // Nombre del cultivar
+  especieNombre?: string; // Nombre de la especie
   estado: EstadoAnalisis;
   fechaInicio: string; // LocalDateTime as string
   fechaFin?: string; // LocalDateTime as string

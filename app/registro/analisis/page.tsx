@@ -681,7 +681,7 @@ export default function RegistroAnalisisPage() {
 
         setTimeout(() => {
           // Ruta de detalle existente; la ruta /editar no existe para tetrazolio
-          router.push(`/listado/analisis/tetrazolio/${result.analisisID}`);
+          router.push(`/listado/analisis/tetrazolio/${result.analisisID}/editar`);
         }, 1500);
       } else {
         // Registrar otros tipos (DOSN, Pureza, etc.)

@@ -13,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Leaf, Plus, List, BarChart3, LogOut, Shield, Bell, Menu, X, Home } from "lucide-react"
+import { Leaf, Plus, List, BarChart3, Settings, LogOut, Shield, Bell, Menu, X, Home, User } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -257,10 +257,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <SimpleNotificationBadge />
               </Link>
 
-              {/* User info/avatar placeholder */}
-              <div className="text-sm text-gray-600">
-                Usuario INIA
-              </div>
+              {/* User info/avatar - Link to profile */}
+              <Link 
+                href="/administracion/perfil"
+                className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Mi Usuario</span>
+              </Link>
             </div>
           </div>
         </header>

@@ -373,16 +373,7 @@ export default function ListadoLotesPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {isLoading ? (
-                        <TableRow key="loading-row">
-                          <TableCell colSpan={6} className="text-center py-8">
-                            <div className="flex flex-col items-center justify-center">
-                              <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-                              <p className="text-muted-foreground">Cargando datos de lotes...</p>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ) : lotes.length === 0 ? (
+                      {lotes.length === 0 ? (
                         <TableRow key="no-data-row">
                           <TableCell colSpan={6} className="text-center py-8">
                             <p className="text-muted-foreground">No se encontraron lotes que coincidan con los criterios de búsqueda.</p>
@@ -407,11 +398,13 @@ export default function ListadoLotesPage() {
                                     <Eye className="h-4 w-4" />
                                   </Button>
                                 </Link>
-                                <Link href={`/listado/lotes/${lote.loteID}/editar`}>
-                                  <Button variant="ghost" size="sm" title="Editar">
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                </Link>
+                                {lote.activo && (
+                                  <Link href={`/listado/lotes/${lote.loteID}/editar`}>
+                                    <Button variant="ghost" size="sm" title="Editar">
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                  </Link>
+                                )}
                                 {user?.role === "administrador" && (
                                   lote.activo ? (
                                     <Button

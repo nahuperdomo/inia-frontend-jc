@@ -194,9 +194,10 @@ export default function RegistroLotesPage() {
 
       // Recargamos la lista de lotes
       await loadRecentLots();
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Error desconocido al registrar el lote';
       toast.error('Error al registrar el lote', {
-        description: 'Por favor, verifica los datos e intenta nuevamente',
+        description: errorMessage,
       });
       console.error("Error al registrar lote:", error);
     } finally {

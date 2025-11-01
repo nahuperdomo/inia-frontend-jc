@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { useConfirm } from "@/lib/hooks/useConfirm"
 
 import {
   ArrowLeft,
@@ -26,6 +27,8 @@ import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card
 import * as especiesService from "@/app/services/especie-service"
 import type { EspecieDTO } from "@/app/models"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
+import { AnalisisInfoGeneralCard } from "@/components/analisis/analisis-info-general-card"
+import { formatearEstado } from "@/lib/utils/format-estado"
 
 
 // Función helper para mostrar nombres legibles de tipos de listado
@@ -95,6 +98,7 @@ const formatearFechaLocal = (fechaString: string): string => {
 
 export default function DosnDetailPage() {
   const params = useParams()
+  const { confirm } = useConfirm()
   const dosnId = params.id as string
   const [dosn, setDosn] = useState<DosnDTO | null>(null)
   const [loading, setLoading] = useState(true)
@@ -204,64 +208,39 @@ export default function DosnDetailPage() {
             </Button>
           </Link>
 
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-3xl lg:text-4xl font-bold text-balance">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl sm:text-3xl font-bold text-balance">
                   Análisis DOSN #{dosn.analisisID}
                 </h1>
                 <Badge
                   variant={getEstadoBadgeVariant(dosn.estado)}
                   className="text-sm px-3 py-1"
                 >
-                  {dosn.estado}
+                  {formatearEstado(dosn.estado)}
                 </Badge>
               </div>
-              <p className="text-base text-muted-foreground text-pretty">
-                Determinación de otras semillas nocivas • Lote {dosn.lote}
-              </p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <span className="font-medium">Ficha:</span>
+                  <span>{dosn.idLote || dosn.analisisID}</span>
+                </span>
+                <span className="hidden sm:inline">•</span>
+                <span className="flex items-center gap-1">
+                  <span className="font-medium">Lote:</span>
+                  <span>{dosn.lote}</span>
+                </span>
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex gap-2">
               <Link href={`/listado/analisis/dosn/${dosn.analisisID}/editar`}>
-                <Button size="lg" className="gap-2 w-full sm:w-auto">
-                  <Edit className="h-4 w-4" />
-                  Editar análisis
+                <Button size="sm" className="gap-1.5 h-9">
+                  <Edit className="h-3.5 w-3.5" />
+                  <span className="text-xs sm:text-sm">Editar análisis</span>
                 </Button>
               </Link>
-              {/* Botón Finalizar: muestra confirmación y realiza validación cliente */}
-              <Button
-                size="lg"
-                variant="destructive"
-                className="gap-2 w-full sm:w-auto"
-                onClick={async () => {
-                  try {
-                    // Validación cliente (mismos criterios que el servidor)
-                    const tieneINIA = !!(dosn.fechaINIA && dosn.gramosAnalizadosINIA && Number(dosn.gramosAnalizadosINIA) > 0)
-                    const tieneINASE = !!(dosn.fechaINASE && dosn.gramosAnalizadosINASE && Number(dosn.gramosAnalizadosINASE) > 0)
-                    const tieneCuscuta = !!(dosn.cuscutaRegistros && dosn.cuscutaRegistros.length > 0 && dosn.cuscutaRegistros.some(r => (r.cuscuta_g && Number(r.cuscuta_g) > 0) || (r.cuscutaNum && Number(r.cuscutaNum) > 0)))
-                    const tieneListados = !!(dosn.listados && dosn.listados.length > 0)
-
-                    if (!tieneINIA && !tieneINASE && !tieneCuscuta && !tieneListados) {
-                      // Mostrar un modal sencillo con confirmación del usuario
-                      if (!window.confirm('No hay evidencia (INIA/INASE/listados/cuscuta). ¿Desea intentar finalizar de todas formas?')) {
-                        return
-                      }
-                    }
-
-                    // Llamada al servicio
-                    // Importar dinamicamente para evitar ciclos si no existe
-                    const { finalizarAnalisis } = await import('@/app/services/dosn-service')
-                    await finalizarAnalisis(Number.parseInt(dosn.analisisID.toString()))
-                    // Refrescar la página para mostrar el nuevo estado
-                    window.location.reload()
-                  } catch (err: any) {
-                    alert(err?.message || 'Error al finalizar el análisis')
-                  }
-                }}
-              >
-                Finalizar Análisis
-              </Button>
             </div>
           </div>
         </div>
@@ -284,97 +263,19 @@ export default function DosnDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="overflow-hidden bg-background">
-              <CardHeader className="bg-background border-b sticky top-[20px] z-20">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <FileText className="h-5 w-5 text-primary" />
-                  </div>
-                  Información General
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      ID Análisis
-                    </label>
-                    <p className="text-2xl font-bold">{dosn.analisisID}</p>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Lote</label>
-                    <p className="text-2xl font-semibold">{dosn.lote}</p>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Fecha de Inicio
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-lg font-medium">
-                        {formatearFechaLocal(dosn.fechaInicio)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {dosn.fechaFin && (
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Fecha de Finalización
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <p className="text-lg font-medium">
-                          {formatearFechaLocal(dosn.fechaFin)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Cumple Estándar
-                    </label>
-                    <div className="flex items-center gap-3">
-                      {dosn.cumpleEstandar !== undefined ? (
-                        <>
-                          <div
-                            className={`p-2 rounded-lg ${dosn.cumpleEstandar ? "bg-green-500/10" : "bg-destructive/10"}`}
-                          >
-                            {dosn.cumpleEstandar ? (
-                              <CheckCircle className="h-5 w-5 text-green-600" />
-                            ) : (
-                              <AlertTriangle className="h-5 w-5 text-destructive" />
-                            )}
-                          </div>
-                          <span
-                            className={`text-lg font-semibold ${dosn.cumpleEstandar ? "text-green-600" : "text-destructive"}`}
-                          >
-                            {dosn.cumpleEstandar ? "Cumple con el estándar" : "No cumple con el estándar"}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-lg text-muted-foreground">Pendiente de evaluación</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {dosn.comentarios && (
-                  <>
-                    <Separator className="my-6" />
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Comentarios
-                      </label>
-                      <p className="text-base leading-relaxed bg-muted/50 p-4 rounded-lg">{dosn.comentarios}</p>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            {/* Información General */}
+            <AnalisisInfoGeneralCard
+              analisisID={dosn.analisisID}
+              estado={dosn.estado}
+              lote={dosn.lote}
+              ficha={dosn.ficha}
+              cultivarNombre={dosn.cultivarNombre}
+              especieNombre={dosn.especieNombre}
+              fechaInicio={dosn.fechaInicio}
+              fechaFin={dosn.fechaFin}
+              cumpleEstandar={dosn.cumpleEstandar}
+              comentarios={dosn.comentarios}
+            />
 
             {(dosn.fechaINIA || dosn.gramosAnalizadosINIA || dosn.tipoINIA) && (
               <Card className="overflow-hidden">

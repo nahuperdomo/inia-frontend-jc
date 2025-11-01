@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,6 +34,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { toast, Toaster } from "sonner"
+import Pagination from "@/components/pagination"
 import {
   Dialog,
   DialogContent,
@@ -55,6 +56,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { 
   obtenerTodosCatalogos, 
   obtenerCatalogoPorTipo,
+  obtenerCatalogosPaginados,
   crearCatalogo,
   actualizarCatalogo,
   eliminarCatalogo,
@@ -62,6 +64,7 @@ import {
 } from "@/app/services/catalogo-service"
 import {
   obtenerTodasEspecies,
+  obtenerEspeciesPaginadas,
   crearEspecie,
   actualizarEspecie,
   eliminarEspecie,
@@ -69,6 +72,7 @@ import {
 } from "@/app/services/especie-service"
 import {
   obtenerTodosCultivares,
+  obtenerCultivaresPaginados,
   crearCultivar,
   actualizarCultivar,
   eliminarCultivar,
@@ -77,6 +81,7 @@ import {
 import {
   obtenerTodasMalezas,
   obtenerMalezasInactivas,
+  obtenerMalezasPaginadas,
   crearMaleza,
   actualizarMaleza,
   eliminarMaleza,
@@ -107,8 +112,27 @@ const TIPOS_CATALOGO = [
 export default function CatalogosPage() {
   // Estados generales
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState("") // Búsqueda unificada
   const [activeTab, setActiveTab] = useState("catalogos")
+
+  // Estados de paginación
+  const [catalogoPagina, setCatalogoPagina] = useState(0)
+  const [catalogoTotalPages, setCatalogoTotalPages] = useState(0)
+  const [catalogoTotalElements, setCatalogoTotalElements] = useState(0)
+  
+  const [especiePagina, setEspeciePagina] = useState(0)
+  const [especieTotalPages, setEspecieTotalPages] = useState(0)
+  const [especieTotalElements, setEspecieTotalElements] = useState(0)
+  
+  const [cultivarPagina, setCultivarPagina] = useState(0)
+  const [cultivarTotalPages, setCultivarTotalPages] = useState(0)
+  const [cultivarTotalElements, setCultivarTotalElements] = useState(0)
+  
+  const [malezasPagina, setMalezasPagina] = useState(0)
+  const [malezasTotalPages, setMalezasTotalPages] = useState(0)
+  const [malezasTotalElements, setMalezasTotalElements] = useState(0)
+  
+  const pageSize = 10
 
   // Estados de filtros
   const [filtroCatalogo, setFiltroCatalogo] = useState<"activos" | "inactivos" | "todos">("activos")
@@ -118,22 +142,18 @@ export default function CatalogosPage() {
 
   // Estados de catálogos
   const [catalogos, setCatalogos] = useState<CatalogoDTO[]>([])
-  const [catalogosFiltrados, setCatalogosFiltrados] = useState<CatalogoDTO[]>([])
   const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoCatalogo>("HUMEDAD")
 
   // Estados de especies
   const [especies, setEspecies] = useState<EspecieDTO[]>([])
-  const [especiesFiltradas, setEspeciesFiltradas] = useState<EspecieDTO[]>([])
   const [especiesActivas, setEspeciesActivas] = useState<EspecieDTO[]>([])
   const [hayEspeciesActivas, setHayEspeciesActivas] = useState<boolean>(true)
 
   // Estados de cultivares
   const [cultivares, setCultivares] = useState<CultivarDTO[]>([])
-  const [cultivaresFiltrados, setCultivaresFiltrados] = useState<CultivarDTO[]>([])
 
   // Estados de malezas
   const [malezas, setMalezas] = useState<MalezasCatalogoDTO[]>([])
-  const [malezasFiltradas, setMalezasFiltradas] = useState<MalezasCatalogoDTO[]>([])
 
   // Estados de diálogos
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -163,112 +183,222 @@ export default function CatalogosPage() {
     nombreCientifico: ""
   })
 
-  // Cargar datos iniciales y cuando cambien los filtros
+  // Cargar catálogos paginados
   useEffect(() => {
-    loadAllData()
-  }, [tipoSeleccionado, filtroCatalogo, filtroEspecie, filtroCultivar, filtroMalezas])
+    if (activeTab === "catalogos") {
+      fetchCatalogos(0)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, tipoSeleccionado, filtroCatalogo]) // searchTerm NO debe estar aquí
 
-  const loadAllData = async () => {
-    try {
-      setLoading(true)
-      
-      // Determinar el valor de activo para cada filtro
-      const catalogoActivo = filtroCatalogo === "todos" ? null : filtroCatalogo === "activos"
-      const especieActivo = filtroEspecie === "todos" ? null : filtroEspecie === "activos"
-      const cultivarActivo = filtroCultivar === "todos" ? null : filtroCultivar === "activos"
-      
-      // Para malezas, obtener según filtro y etiquetar 'activo' según la fuente
-      let malezasConActivo: MalezasCatalogoDTO[] = []
-      if (filtroMalezas === "activos") {
-        const activos = await obtenerTodasMalezas()
-        malezasConActivo = activos.map((m) => ({ ...m, activo: true }))
-      } else if (filtroMalezas === "inactivos") {
-        const inactivos = await obtenerMalezasInactivas()
-        malezasConActivo = inactivos.map((m) => ({ ...m, activo: false }))
-      } else {
-        // Para "todos", combinar activos e inactivos
-        const [activos, inactivos] = await Promise.all([
-          obtenerTodasMalezas(),
-          obtenerMalezasInactivas(),
-        ])
-        malezasConActivo = [
-          ...activos.map((m) => ({ ...m, activo: true })),
-          ...inactivos.map((m) => ({ ...m, activo: false })),
-        ]
-      }
-      
-      const [catalogosData, especiesData, cultivaresData, especiesActivasData] = await Promise.all([
-        obtenerCatalogoPorTipo(tipoSeleccionado, catalogoActivo),
-        obtenerTodasEspecies(especieActivo),
-        obtenerTodosCultivares(cultivarActivo),
-        obtenerTodasEspecies(true) // Verificar si hay especies activas
-      ])
+  // Cargar especies paginadas
+  useEffect(() => {
+    if (activeTab === "especies") {
+      fetchEspecies(0)
+      loadEspeciesActivas() // Para el selector de cultivares
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, filtroEspecie]) // searchTerm NO debe estar aquí
 
-      setCatalogos(catalogosData)
-      setEspecies(especiesData)
-      setCultivares(cultivaresData)
-      setMalezas(malezasConActivo)
-      setEspeciesActivas(especiesActivasData)
-      setHayEspeciesActivas(especiesActivasData.length > 0)
-      
-      setCatalogosFiltrados(catalogosData)
-      setEspeciesFiltradas(especiesData)
-      setCultivaresFiltrados(cultivaresData)
-      setMalezasFiltradas(malezasConActivo)
-    } catch (error: any) {
-      toast.error("Error al cargar datos", {
-        description: error?.message || "No se pudieron cargar los catálogos"
-      })
-    } finally {
-      setLoading(false)
+  // Cargar cultivares paginados
+  useEffect(() => {
+    if (activeTab === "cultivares") {
+      fetchCultivares(0)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, filtroCultivar]) // searchTerm NO debe estar aquí
+
+  // Cargar malezas paginadas
+  useEffect(() => {
+    if (activeTab === "malezas") {
+      fetchMalezas(0)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, filtroMalezas]) // searchTerm NO debe estar aquí
+
+  // Handler para búsqueda con Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSearchClick()
     }
   }
 
-  // Filtrar por búsqueda de texto (los datos ya vienen filtrados por estado desde el servidor)
-  useEffect(() => {
-    if (activeTab === "catalogos") {
-      setCatalogosFiltrados(
-        catalogos.filter(c => 
-          c.valor?.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      )
+  // Handler para botón de búsqueda
+  const handleSearchClick = () => {
+    switch (activeTab) {
+      case "catalogos":
+        fetchCatalogos(0)
+        break
+      case "especies":
+        fetchEspecies(0)
+        break
+      case "cultivares":
+        fetchCultivares(0)
+        break
+      case "malezas":
+        fetchMalezas(0)
+        break
     }
-  }, [searchTerm, catalogos, activeTab])
+  }
 
-  // Filtrar especies por búsqueda
-  useEffect(() => {
-    if (activeTab === "especies") {
-      setEspeciesFiltradas(
-        especies.filter(e => 
-          e.nombreComun?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          e.nombreCientifico?.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      )
+  // Handler para limpiar búsqueda
+  const handleClearSearch = () => {
+    setSearchTerm("")
+    // Pasar string vacío explícitamente para forzar búsqueda sin filtro
+    switch (activeTab) {
+      case "catalogos":
+        fetchCatalogos(0, "")
+        break
+      case "especies":
+        fetchEspecies(0, "")
+        break
+      case "cultivares":
+        fetchCultivares(0, "")
+        break
+      case "malezas":
+        fetchMalezas(0, "")
+        break
     }
-  }, [searchTerm, especies, activeTab])
+  }
 
-  // Filtrar cultivares por búsqueda
-  useEffect(() => {
-    if (activeTab === "cultivares") {
-      setCultivaresFiltrados(
-        cultivares.filter(c => 
-          c.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+  const fetchCatalogos = useCallback(async (page: number, search?: string) => {
+    try {
+      setLoading(true)
+      const activoValue = filtroCatalogo === "todos" ? undefined : filtroCatalogo === "activos"
+      const searchValue = search !== undefined ? search : searchTerm
+      
+      const data = await obtenerCatalogosPaginados(
+        page,
+        pageSize,
+        searchValue || undefined,
+        activoValue,
+        tipoSeleccionado
       )
-    }
-  }, [searchTerm, cultivares, activeTab])
 
-  // Filtrar malezas por búsqueda
-  useEffect(() => {
-    if (activeTab === "malezas") {
-      setMalezasFiltradas(
-        malezas.filter(m => 
-          m.nombreComun?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          m.nombreCientifico?.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      )
+      setCatalogos(data.content || [])
+      setCatalogoTotalPages(data.totalPages || 0)
+      setCatalogoTotalElements(data.totalElements || 0)
+      setCatalogoPagina(page)
+    } catch (error: any) {
+      toast.error("Error al cargar catálogos", {
+        description: error?.message || "No se pudieron cargar los catálogos"
+      })
+      setCatalogos([])
+    } finally {
+      setLoading(false)
     }
-  }, [searchTerm, malezas, activeTab])
+  }, [filtroCatalogo, searchTerm, tipoSeleccionado])
+
+  const fetchEspecies = useCallback(async (page: number, search?: string) => {
+    try {
+      setLoading(true)
+      const activoValue = filtroEspecie === "todos" ? undefined : filtroEspecie === "activos"
+      const searchValue = search !== undefined ? search : searchTerm
+      
+      const data = await obtenerEspeciesPaginadas(
+        page,
+        pageSize,
+        searchValue || undefined,
+        activoValue
+      )
+
+      setEspecies(data.content || [])
+      setEspecieTotalPages(data.totalPages || 0)
+      setEspecieTotalElements(data.totalElements || 0)
+      setEspeciePagina(page)
+    } catch (error: any) {
+      toast.error("Error al cargar especies", {
+        description: error?.message
+      })
+      setEspecies([])
+    } finally {
+      setLoading(false)
+    }
+  }, [filtroEspecie, searchTerm])
+
+  const loadEspeciesActivas = async () => {
+    try {
+      const especiesActivasData = await obtenerTodasEspecies(true)
+      setEspeciesActivas(especiesActivasData)
+      setHayEspeciesActivas(especiesActivasData.length > 0)
+    } catch (error: any) {
+      console.error("Error cargando especies activas:", error)
+    }
+  }
+
+  const fetchCultivares = useCallback(async (page: number, search?: string) => {
+    try {
+      setLoading(true)
+      const activoValue = filtroCultivar === "todos" ? undefined : filtroCultivar === "activos"
+      const searchValue = search !== undefined ? search : searchTerm
+      
+      const data = await obtenerCultivaresPaginados(
+        page,
+        pageSize,
+        searchValue || undefined,
+        activoValue
+      )
+
+      setCultivares(data.content || [])
+      setCultivarTotalPages(data.totalPages || 0)
+      setCultivarTotalElements(data.totalElements || 0)
+      setCultivarPagina(page)
+    } catch (error: any) {
+      toast.error("Error al cargar cultivares", {
+        description: error?.message
+      })
+      setCultivares([])
+    } finally {
+      setLoading(false)
+    }
+  }, [filtroCultivar, searchTerm])
+
+  const fetchMalezas = useCallback(async (page: number, search?: string) => {
+    try {
+      setLoading(true)
+      const activoValue = filtroMalezas === "todos" ? undefined : filtroMalezas === "activos"
+      const searchValue = search !== undefined ? search : searchTerm
+      
+      const data = await obtenerMalezasPaginadas(
+        page,
+        pageSize,
+        searchValue || undefined,
+        activoValue
+      )
+
+      setMalezas(data.content || [])
+      setMalezasTotalPages(data.totalPages || 0)
+      setMalezasTotalElements(data.totalElements || 0)
+      setMalezasPagina(page)
+    } catch (error: any) {
+      toast.error("Error al cargar malezas", {
+        description: error?.message
+      })
+      setMalezas([])
+    } finally {
+      setLoading(false)
+    }
+  }, [filtroMalezas, searchTerm])
+
+  const loadAllData = async () => {
+    // Esta función ahora solo se usa para recargar después de crear/editar/eliminar
+    switch (activeTab) {
+      case "catalogos":
+        await fetchCatalogos(catalogoPagina)
+        break
+      case "especies":
+        await fetchEspecies(especiePagina)
+        await loadEspeciesActivas()
+        break
+      case "cultivares":
+        await fetchCultivares(cultivarPagina)
+        break
+      case "malezas":
+        await fetchMalezas(malezasPagina)
+        break
+    }
+  }
 
   // Handlers para Catálogos
   const handleCreateCatalogo = () => {
@@ -673,15 +803,32 @@ export default function CatalogosPage() {
                   Crea, edita y gestiona los catálogos maestros del sistema
                 </CardDescription>
               </div>
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  handleSearchClick()
+                }}
+                className="flex gap-2 w-full sm:w-auto"
+              >
+                <div className="relative flex-1 sm:w-72">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
+                    className="pl-10"
+                  />
+                </div>
+                <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                  <Search className="h-4 w-4" />
+                </Button>
+                {searchTerm && (
+                  <Button type="button" onClick={handleClearSearch} variant="ghost" size="sm" className="px-4">
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </form>
             </div>
           </CardHeader>
 
@@ -749,24 +896,22 @@ export default function CatalogosPage() {
                   <Table>
                     <TableHeader>
                         <TableRow>
-                        <TableHead>ID</TableHead>
                         <TableHead>Valor</TableHead>
                         <TableHead>Estado</TableHead>
                         <TableHead className="text-right">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {catalogosFiltrados.length === 0 ? (
+                      {catalogos.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
                             <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                             <p>No hay catálogos registrados de este tipo</p>
                           </TableCell>
                         </TableRow>
                       ) : (
-                        catalogosFiltrados.map((catalogo) => (
+                        catalogos.map((catalogo) => (
                           <TableRow key={catalogo.id}>
-                            <TableCell className="font-mono">{catalogo.id}</TableCell>
                             <TableCell className="font-medium">{catalogo.valor}</TableCell>
                             <TableCell>
                               <Badge variant={catalogo.activo ? "default" : "secondary"}>
@@ -812,6 +957,25 @@ export default function CatalogosPage() {
                     </TableBody>
                   </Table>
                 </div>
+
+                {/* Paginación de catálogos */}
+                <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+                  <div className="text-sm text-muted-foreground">
+                    {catalogoTotalElements === 0 ? (
+                      <>Mostrando 0 de 0 resultados</>
+                    ) : (
+                      <>Mostrando {catalogoPagina * pageSize + 1} a {Math.min((catalogoPagina + 1) * pageSize, catalogoTotalElements)} de {catalogoTotalElements} resultados</>
+                    )}
+                  </div>
+
+                  <Pagination
+                    currentPage={catalogoPagina}
+                    totalPages={Math.max(catalogoTotalPages, 1)}
+                    onPageChange={(p) => fetchCatalogos(p)}
+                    showRange={1}
+                    alwaysShow={true}
+                  />
+                </div>
               </TabsContent>
 
               {/* Tab Especies */}
@@ -837,7 +1001,6 @@ export default function CatalogosPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>ID</TableHead>
                         <TableHead>Nombre Común</TableHead>
                         <TableHead>Nombre Científico</TableHead>
                         <TableHead>Estado</TableHead>
@@ -845,17 +1008,16 @@ export default function CatalogosPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {especiesFiltradas.length === 0 ? (
+                      {especies.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                             <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                             <p>No hay especies registradas</p>
                           </TableCell>
                         </TableRow>
                       ) : (
-                        especiesFiltradas.map((especie) => (
+                        especies.map((especie) => (
                           <TableRow key={especie.especieID}>
-                            <TableCell className="font-mono">{especie.especieID}</TableCell>
                             <TableCell className="font-medium">{especie.nombreComun}</TableCell>
                             <TableCell className="italic text-muted-foreground">
                               {especie.nombreCientifico}
@@ -904,6 +1066,25 @@ export default function CatalogosPage() {
                     </TableBody>
                   </Table>
                 </div>
+
+                {/* Paginación de especies */}
+                <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+                  <div className="text-sm text-muted-foreground">
+                    {especieTotalElements === 0 ? (
+                      <>Mostrando 0 de 0 resultados</>
+                    ) : (
+                      <>Mostrando {especiePagina * pageSize + 1} a {Math.min((especiePagina + 1) * pageSize, especieTotalElements)} de {especieTotalElements} resultados</>
+                    )}
+                  </div>
+
+                  <Pagination
+                    currentPage={especiePagina}
+                    totalPages={Math.max(especieTotalPages, 1)}
+                    onPageChange={(p) => fetchEspecies(p)}
+                    showRange={1}
+                    alwaysShow={true}
+                  />
+                </div>
               </TabsContent>
 
               {/* Tab Cultivares */}
@@ -943,7 +1124,6 @@ export default function CatalogosPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>ID</TableHead>
                         <TableHead>Nombre</TableHead>
                         <TableHead>Especie</TableHead>
                         <TableHead>Estado</TableHead>
@@ -951,19 +1131,18 @@ export default function CatalogosPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {cultivaresFiltrados.length === 0 ? (
+                      {cultivares.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                             <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                             <p>No hay cultivares registrados</p>
                           </TableCell>
                         </TableRow>
                       ) : (
-                        cultivaresFiltrados.map((cultivar) => {
+                        cultivares.map((cultivar) => {
                           const especie = especies.find(e => e.especieID === cultivar.especieID)
                           return (
                             <TableRow key={cultivar.cultivarID}>
-                              <TableCell className="font-mono">{cultivar.cultivarID}</TableCell>
                               <TableCell className="font-medium">{cultivar.nombre}</TableCell>
                               <TableCell>
                                 {cultivar.especieNombre ? (
@@ -1024,6 +1203,27 @@ export default function CatalogosPage() {
                     </TableBody>
                   </Table>
                 </div>
+
+                {/* Paginación para cultivares */}
+                {cultivarTotalPages > 0 && (
+                  <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+                    <div className="text-sm text-muted-foreground">
+                      {cultivarTotalElements === 0 ? (
+                        <>Mostrando 0 de 0 resultados</>
+                      ) : (
+                        <>Mostrando {cultivarPagina * pageSize + 1} a {Math.min((cultivarPagina + 1) * pageSize, cultivarTotalElements)} de {cultivarTotalElements} resultados</>
+                      )}
+                    </div>
+
+                    <Pagination
+                      currentPage={cultivarPagina}
+                      totalPages={Math.max(cultivarTotalPages, 1)}
+                      onPageChange={(p) => fetchCultivares(p)}
+                      showRange={1}
+                      alwaysShow={true}
+                    />
+                  </div>
+                )}
               </TabsContent>
 
               {/* Tab Malezas */}
@@ -1049,7 +1249,6 @@ export default function CatalogosPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>ID</TableHead>
                         <TableHead>Nombre Común</TableHead>
                         <TableHead>Nombre Científico</TableHead>
                         <TableHead>Estado</TableHead>
@@ -1057,17 +1256,16 @@ export default function CatalogosPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {malezasFiltradas.length === 0 ? (
+                      {malezas.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                             <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                             <p>No hay malezas registradas</p>
                           </TableCell>
                         </TableRow>
                       ) : (
-                        malezasFiltradas.map((maleza) => (
+                        malezas.map((maleza) => (
                           <TableRow key={maleza.catalogoID}>
-                            <TableCell className="font-mono">{maleza.catalogoID}</TableCell>
                             <TableCell className="font-medium">{maleza.nombreComun}</TableCell>
                             <TableCell className="italic text-muted-foreground">
                               {maleza.nombreCientifico}
@@ -1115,6 +1313,25 @@ export default function CatalogosPage() {
                       )}
                     </TableBody>
                   </Table>
+                </div>
+
+                {/* Paginación de malezas */}
+                <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+                  <div className="text-sm text-muted-foreground">
+                    {malezasTotalElements === 0 ? (
+                      <>Mostrando 0 de 0 resultados</>
+                    ) : (
+                      <>Mostrando {malezasPagina * pageSize + 1} a {Math.min((malezasPagina + 1) * pageSize, malezasTotalElements)} de {malezasTotalElements} resultados</>
+                    )}
+                  </div>
+
+                  <Pagination
+                    currentPage={malezasPagina}
+                    totalPages={Math.max(malezasTotalPages, 1)}
+                    onPageChange={(p) => fetchMalezas(p)}
+                    showRange={1}
+                    alwaysShow={true}
+                  />
                 </div>
               </TabsContent>
             </Tabs>
