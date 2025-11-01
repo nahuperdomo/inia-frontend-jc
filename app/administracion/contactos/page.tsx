@@ -62,7 +62,8 @@ import type { TipoContacto } from "@/app/models/types/enums"
 export default function ContactosPage() {
   // Estados generales
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchInput, setSearchInput] = useState("") // Lo que se escribe en el input
+  const [searchTerm, setSearchTerm] = useState("") // Lo que se usa para buscar
   const [activeTab, setActiveTab] = useState("empresas")
 
   // Estados de filtros
@@ -164,6 +165,25 @@ export default function ContactosPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filtroCliente, searchTerm])
+
+  // Handler para búsqueda con Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      setSearchTerm(searchInput)
+    }
+  }
+
+  // Handler para botón de búsqueda
+  const handleSearchClick = () => {
+    setSearchTerm(searchInput)
+  }
+
+  // Handler para limpiar búsqueda
+  const handleClearSearch = () => {
+    setSearchInput("")
+    setSearchTerm("")
+  }
 
   // Validaciones
   const esEmail = (valor: string): boolean => {
@@ -394,20 +414,37 @@ export default function ContactosPage() {
                   Crea, edita y gestiona empresas y clientes del sistema
                 </CardDescription>
               </div>
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  handleSearchClick()
+                }}
+                className="flex gap-2 w-full sm:w-auto"
+              >
+                <div className="relative flex-1 sm:w-72">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
+                    className="pl-10"
+                  />
+                </div>
+                <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                  <Search className="h-4 w-4" />
+                </Button>
+                {searchTerm && (
+                  <Button type="button" onClick={handleClearSearch} variant="ghost" size="sm" className="px-4">
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </form>
             </div>
           </CardHeader>
 
           <CardContent>
-            <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setSearchTerm("") }} className="w-full">
+            <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setSearchInput(""); setSearchTerm("") }} className="w-full">{/* Limpiar ambos estados */}
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="empresas" className="text-sm sm:text-base">
                   <Building2 className="h-4 w-4 mr-2" />

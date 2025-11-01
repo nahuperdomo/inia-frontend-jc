@@ -72,6 +72,7 @@ import {
 } from "@/app/services/especie-service"
 import {
   obtenerTodosCultivares,
+  obtenerCultivaresPaginados,
   crearCultivar,
   actualizarCultivar,
   eliminarCultivar,
@@ -111,7 +112,8 @@ const TIPOS_CATALOGO = [
 export default function CatalogosPage() {
   // Estados generales
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchInput, setSearchInput] = useState("") // Lo que se escribe en el input
+  const [searchTerm, setSearchTerm] = useState("") // Lo que se usa para buscar
   const [activeTab, setActiveTab] = useState("catalogos")
 
   // Estados de paginación
@@ -199,11 +201,12 @@ export default function CatalogosPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filtroEspecie, searchTerm])
 
-  // Cargar cultivares (sin paginación por ahora, mantener lógica original)
+  // Cargar cultivares paginados
   useEffect(() => {
     if (activeTab === "cultivares") {
-      fetchCultivares()
+      fetchCultivares(0)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filtroCultivar, searchTerm])
 
   // Cargar malezas paginadas
@@ -277,19 +280,22 @@ export default function CatalogosPage() {
     }
   }
 
-  const fetchCultivares = async () => {
+  const fetchCultivares = useCallback(async (page: number) => {
     try {
       setLoading(true)
-      const cultivarActivo = filtroCultivar === "todos" ? null : filtroCultivar === "activos"
+      const activoValue = filtroCultivar === "todos" ? undefined : filtroCultivar === "activos"
       
-      const cultivaresData = await obtenerTodosCultivares(cultivarActivo)
-      const filtrados = searchTerm 
-        ? cultivaresData.filter(c => 
-            c.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-        : cultivaresData
+      const data = await obtenerCultivaresPaginados(
+        page,
+        pageSize,
+        searchTerm || undefined,
+        activoValue
+      )
 
-      setCultivares(filtrados)
+      setCultivares(data.content || [])
+      setCultivarTotalPages(data.totalPages || 0)
+      setCultivarTotalElements(data.totalElements || 0)
+      setCultivarPagina(page)
     } catch (error: any) {
       toast.error("Error al cargar cultivares", {
         description: error?.message
@@ -298,7 +304,7 @@ export default function CatalogosPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filtroCultivar, searchTerm])
 
   const fetchMalezas = useCallback(async (page: number) => {
     try {
@@ -326,6 +332,25 @@ export default function CatalogosPage() {
     }
   }, [filtroMalezas, searchTerm])
 
+  // Handler para búsqueda con Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      setSearchTerm(searchInput)
+    }
+  }
+
+  // Handler para botón de búsqueda
+  const handleSearchClick = () => {
+    setSearchTerm(searchInput)
+  }
+
+  // Handler para limpiar búsqueda
+  const handleClearSearch = () => {
+    setSearchInput("")
+    setSearchTerm("")
+  }
+
   const loadAllData = async () => {
     // Esta función ahora solo se usa para recargar después de crear/editar/eliminar
     switch (activeTab) {
@@ -337,7 +362,7 @@ export default function CatalogosPage() {
         await loadEspeciesActivas()
         break
       case "cultivares":
-        await fetchCultivares()
+        await fetchCultivares(cultivarPagina)
         break
       case "malezas":
         await fetchMalezas(malezasPagina)
@@ -748,15 +773,32 @@ export default function CatalogosPage() {
                   Crea, edita y gestiona los catálogos maestros del sistema
                 </CardDescription>
               </div>
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  handleSearchClick()
+                }}
+                className="flex gap-2 w-full sm:w-auto"
+              >
+                <div className="relative flex-1 sm:w-72">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
+                    className="pl-10"
+                  />
+                </div>
+                <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                  <Search className="h-4 w-4" />
+                </Button>
+                {searchTerm && (
+                  <Button type="button" onClick={handleClearSearch} variant="ghost" size="sm" className="px-4">
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </form>
             </div>
           </CardHeader>
 
@@ -1137,6 +1179,27 @@ export default function CatalogosPage() {
                     </TableBody>
                   </Table>
                 </div>
+
+                {/* Paginación para cultivares */}
+                {cultivarTotalPages > 0 && (
+                  <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+                    <div className="text-sm text-muted-foreground">
+                      {cultivarTotalElements === 0 ? (
+                        <>Mostrando 0 de 0 resultados</>
+                      ) : (
+                        <>Mostrando {cultivarPagina * pageSize + 1} a {Math.min((cultivarPagina + 1) * pageSize, cultivarTotalElements)} de {cultivarTotalElements} resultados</>
+                      )}
+                    </div>
+
+                    <Pagination
+                      currentPage={cultivarPagina}
+                      totalPages={Math.max(cultivarTotalPages, 1)}
+                      onPageChange={(p) => fetchCultivares(p)}
+                      showRange={1}
+                      alwaysShow={true}
+                    />
+                  </div>
+                )}
               </TabsContent>
 
               {/* Tab Malezas */}

@@ -63,3 +63,32 @@ export async function reactivarCultivar(id: number): Promise<CultivarDTO> {
     method: "PUT",
   });
 }
+
+// Función de listado paginado
+export async function obtenerCultivaresPaginados(
+  page: number = 0,
+  size: number = 10,
+  search?: string,
+  activo?: boolean
+): Promise<{ content: CultivarDTO[]; totalElements: number; totalPages: number; last: boolean; first: boolean }> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+  
+  if (search) params.append("search", search);
+  if (activo !== undefined) params.append("activo", activo.toString());
+
+  const data = await apiFetch(`/api/cultivar/listado?${params.toString()}`);
+  
+  // Manejar ambos formatos de respuesta
+  const pageMeta = (data as any).page ? (data as any).page : (data as any);
+  
+  return {
+    content: data.content || [],
+    totalElements: pageMeta.totalElements || 0,
+    totalPages: pageMeta.totalPages || 0,
+    last: pageMeta.last !== undefined ? pageMeta.last : true,
+    first: pageMeta.first !== undefined ? pageMeta.first : true
+  };
+}
