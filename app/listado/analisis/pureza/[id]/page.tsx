@@ -30,6 +30,7 @@ import type { PurezaDTO } from "@/app/models"
 import type { EstadoAnalisis, TipoListado } from "@/app/models/types/enums"
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
+import { formatearEstado } from "@/lib/utils/format-estado"
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -245,62 +246,39 @@ export default function PurezaDetailPage() {
               </Button>
             </Link>
 
-            <div className="flex flex-col gap-2">
-              <div className="space-y-1 text-center lg:text-left">
-                <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-start">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-balance">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-balance">
                     Análisis de Pureza #{pureza.analisisID}
                   </h1>
                   <Badge
                     variant={getEstadoBadgeVariant(pureza.estado)}
                     className="text-xs px-2 py-0.5"
                   >
-                    {pureza.estado}
+                    {formatearEstado(pureza.estado)}
                   </Badge>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground text-pretty">
-                  Análisis de Pureza de Semillas • Lote {pureza.lote}
-                </p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">Ficha:</span>
+                    <span>{pureza.idLote || pureza.analisisID}</span>
+                  </span>
+                  <span className="hidden sm:inline">•</span>
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">Lote:</span>
+                    <span>{pureza.lote}</span>
+                  </span>
+                </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 justify-center lg:justify-end">
-                <Link href={`/listado/analisis/pureza/${pureza.analisisID}/editar`} className="w-full sm:w-auto">
-                  <Button size="sm" className="gap-1.5 w-full h-9">
+              <div className="flex gap-2">
+                <Link href={`/listado/analisis/pureza/${pureza.analisisID}/editar`}>
+                  <Button size="sm" className="gap-1.5 h-9">
                     <Edit className="h-3.5 w-3.5" />
                     <span className="text-xs sm:text-sm">Editar análisis</span>
                   </Button>
                 </Link>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  className="gap-1.5 w-full sm:w-auto h-9"
-                  onClick={async () => {
-                    try {
-                      // Validación básica
-                      if (!pureza.fecha || !pureza.pesoInicial_g || !pureza.pesoTotal_g) {
-                        const confirmed = await confirm({
-                          title: "Finalizar sin datos completos",
-                          message: "Faltan datos básicos. ¿Desea intentar finalizar de todas formas?",
-                          confirmText: "Finalizar",
-                          cancelText: "Cancelar",
-                          variant: "warning"
-                        })
-                        
-                        if (!confirmed) {
-                          return
-                        }
-                      }
-
-                      const { finalizarAnalisis } = await import('@/app/services/pureza-service')
-                      await finalizarAnalisis(Number.parseInt(pureza.analisisID.toString()))
-                      window.location.reload()
-                    } catch (err: any) {
-                      alert(err?.message || 'Error al finalizar el análisis')
-                    }
-                  }}
-                >
-                  <span className="text-xs sm:text-sm">Finalizar Análisis</span>
-                </Button>
               </div>
             </div>
           </div>

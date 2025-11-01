@@ -18,7 +18,7 @@ import {
   TestTube,
   CalendarDays,
   Beaker,
-  Plus,
+  Edit,
   Thermometer,
   Timer,
   Hash,
@@ -30,6 +30,7 @@ import {
 import Link from 'next/link'
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
+import { formatearEstado } from "@/lib/utils/format-estado"
 
 // Función utilitaria para formatear fechas
 const formatearFechaLocal = (fechaString: string): string => {
@@ -104,19 +105,20 @@ export default function TetrazolioDetailPage() {
 
   const getEstadoBadge = (estado: string) => {
     const variants = {
-      "PENDIENTE": { variant: "outline" as const, color: "blue" },
-      "EN_PROCESO": { variant: "secondary" as const, color: "yellow" },
-      "FINALIZADO": { variant: "secondary" as const, color: "green" },
-      "PENDIENTE_APROBACION": { variant: "secondary" as const, color: "orange" },
-      "APROBADO": { variant: "default" as const, color: "green" },
-      "PARA_REPETIR": { variant: "destructive" as const, color: "red" }
+      "REGISTRADO": { variant: "default" as const },
+      "PENDIENTE": { variant: "outline" as const },
+      "EN_PROCESO": { variant: "secondary" as const },
+      "FINALIZADO": { variant: "secondary" as const },
+      "PENDIENTE_APROBACION": { variant: "destructive" as const },
+      "APROBADO": { variant: "default" as const },
+      "PARA_REPETIR": { variant: "destructive" as const }
     }
 
     const config = variants[estado as keyof typeof variants] || variants["PENDIENTE"]
 
     return (
       <Badge variant={config.variant}>
-        {estado.replace('_', ' ')}
+        {formatearEstado(estado)}
       </Badge>
     )
   }
@@ -186,27 +188,32 @@ export default function TetrazolioDetailPage() {
               </Button>
             </Link>
 
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-3xl lg:text-4xl font-bold text-balance">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-balance">
                     Análisis de Tetrazolio #{tetrazolio.analisisID}
                   </h1>
                   {getEstadoBadge(tetrazolio.estado || 'REGISTRADO')}
                 </div>
-                <p className="text-base text-muted-foreground text-pretty">
-                  Viabilidad con tetrazolio • Lote {tetrazolio.lote}
-                </p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">Ficha:</span>
+                    <span>{tetrazolio.idLote || tetrazolio.analisisID}</span>
+                  </span>
+                  <span className="hidden sm:inline">•</span>
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">Lote:</span>
+                    <span>{tetrazolio.lote}</span>
+                  </span>
+                </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex gap-2">
                 <Link href={`/listado/analisis/tetrazolio/${tetrazolioId}/editar`}>
-                  <Button
-                    size="lg"
-                    className="gap-2 w-full sm:w-auto"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Editar análisis
+                  <Button size="sm" className="gap-1.5 h-9">
+                    <Edit className="h-3.5 w-3.5" />
+                    <span className="text-xs sm:text-sm">Editar análisis</span>
                   </Button>
                 </Link>
               </div>

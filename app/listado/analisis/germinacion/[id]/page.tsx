@@ -31,6 +31,7 @@ import type { TablaGermDTO } from "@/app/models/interfaces/repeticiones"
 import type { EstadoAnalisis } from "@/app/models/types/enums"
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
+import { formatearEstado } from "@/lib/utils/format-estado"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -164,22 +165,30 @@ export default function GerminacionDetailPage() {
               </Button>
             </Link>
 
-            <div className="flex flex-col gap-2">
-              <div className="space-y-1 text-center lg:text-left">
-                <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-start">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-balance">Análisis de Germinación #{germinacion.analisisID}</h1>
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-balance">Análisis de Germinación #{germinacion.analisisID}</h1>
                   <Badge variant={getEstadoBadgeVariant(germinacion.estado)} className="text-xs px-2 py-0.5">
-                    {germinacion.estado}
+                    {formatearEstado(germinacion.estado)}
                   </Badge>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground text-pretty">
-                  Ensayo de germinación estándar • Lote {germinacion.lote}
-                </p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">Ficha:</span>
+                    <span>{germinacion.idLote || germinacion.analisisID}</span>
+                  </span>
+                  <span className="hidden sm:inline">•</span>
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">Lote:</span>
+                    <span>{germinacion.lote}</span>
+                  </span>
+                </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 justify-center lg:justify-end">
-                <Link href={`/listado/analisis/germinacion/${germinacion.analisisID}/editar`} className="w-full sm:w-auto">
-                  <Button size="sm" className="gap-1.5 w-full h-9">
+              <div className="flex gap-2">
+                <Link href={`/listado/analisis/germinacion/${germinacion.analisisID}/editar`}>
+                  <Button size="sm" className="gap-1.5 h-9">
                     <Edit className="h-3.5 w-3.5" />
                     <span className="text-xs sm:text-sm">Editar análisis</span>
                   </Button>

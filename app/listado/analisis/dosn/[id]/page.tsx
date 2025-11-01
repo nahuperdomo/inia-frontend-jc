@@ -27,6 +27,7 @@ import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card
 import * as especiesService from "@/app/services/especie-service"
 import type { EspecieDTO } from "@/app/models"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
+import { formatearEstado } from "@/lib/utils/format-estado"
 
 
 // Función helper para mostrar nombres legibles de tipos de listado
@@ -206,72 +207,39 @@ export default function DosnDetailPage() {
             </Button>
           </Link>
 
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-3xl lg:text-4xl font-bold text-balance">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl sm:text-3xl font-bold text-balance">
                   Análisis DOSN #{dosn.analisisID}
                 </h1>
                 <Badge
                   variant={getEstadoBadgeVariant(dosn.estado)}
                   className="text-sm px-3 py-1"
                 >
-                  {dosn.estado}
+                  {formatearEstado(dosn.estado)}
                 </Badge>
               </div>
-              <p className="text-base text-muted-foreground text-pretty">
-                Determinación de otras semillas nocivas • Lote {dosn.lote}
-              </p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <span className="font-medium">Ficha:</span>
+                  <span>{dosn.idLote || dosn.analisisID}</span>
+                </span>
+                <span className="hidden sm:inline">•</span>
+                <span className="flex items-center gap-1">
+                  <span className="font-medium">Lote:</span>
+                  <span>{dosn.lote}</span>
+                </span>
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex gap-2">
               <Link href={`/listado/analisis/dosn/${dosn.analisisID}/editar`}>
-                <Button size="lg" className="gap-2 w-full sm:w-auto">
-                  <Edit className="h-4 w-4" />
-                  Editar análisis
+                <Button size="sm" className="gap-1.5 h-9">
+                  <Edit className="h-3.5 w-3.5" />
+                  <span className="text-xs sm:text-sm">Editar análisis</span>
                 </Button>
               </Link>
-              {/* Botón Finalizar: muestra confirmación y realiza validación cliente */}
-              <Button
-                size="lg"
-                variant="destructive"
-                className="gap-2 w-full sm:w-auto"
-                onClick={async () => {
-                  try {
-                    // Validación cliente (mismos criterios que el servidor)
-                    const tieneINIA = !!(dosn.fechaINIA && dosn.gramosAnalizadosINIA && Number(dosn.gramosAnalizadosINIA) > 0)
-                    const tieneINASE = !!(dosn.fechaINASE && dosn.gramosAnalizadosINASE && Number(dosn.gramosAnalizadosINASE) > 0)
-                    const tieneCuscuta = !!(dosn.cuscutaRegistros && dosn.cuscutaRegistros.length > 0 && dosn.cuscutaRegistros.some(r => (r.cuscuta_g && Number(r.cuscuta_g) > 0) || (r.cuscutaNum && Number(r.cuscutaNum) > 0)))
-                    const tieneListados = !!(dosn.listados && dosn.listados.length > 0)
-
-                    if (!tieneINIA && !tieneINASE && !tieneCuscuta && !tieneListados) {
-                      // Mostrar un modal sencillo con confirmación del usuario
-                      const confirmed = await confirm({
-                        title: "Finalizar sin evidencia",
-                        message: "No hay evidencia (INIA/INASE/listados/cuscuta). ¿Desea intentar finalizar de todas formas?",
-                        confirmText: "Finalizar",
-                        cancelText: "Cancelar",
-                        variant: "warning"
-                      })
-                      
-                      if (!confirmed) {
-                        return
-                      }
-                    }
-
-                    // Llamada al servicio
-                    // Importar dinamicamente para evitar ciclos si no existe
-                    const { finalizarAnalisis } = await import('@/app/services/dosn-service')
-                    await finalizarAnalisis(Number.parseInt(dosn.analisisID.toString()))
-                    // Refrescar la página para mostrar el nuevo estado
-                    window.location.reload()
-                  } catch (err: any) {
-                    alert(err?.message || 'Error al finalizar el análisis')
-                  }
-                }}
-              >
-                Finalizar Análisis
-              </Button>
             </div>
           </div>
         </div>
