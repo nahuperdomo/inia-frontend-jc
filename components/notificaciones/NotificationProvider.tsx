@@ -54,21 +54,19 @@ interface NotificationProviderProps {
     autoRefreshInterval?: number; // en milisegundos
     enableAutoRefresh?: boolean;
     enableSmartPolling?: boolean; // Nueva prop para polling inteligente
-    enableRealtime?: boolean; // 🔥 NUEVO: Habilitar SSE para tiempo real
 }
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({
     children,
-    autoRefreshInterval = 60000, // 60 segundos (cambiado de 30)
+    autoRefreshInterval = 60000, // 60 segundos
     enableAutoRefresh = true,
-    enableSmartPolling = true, // Habilitado por defecto
-    enableRealtime = true // 🔥 NUEVO: SSE habilitado por defecto
+    enableSmartPolling = true // Habilitado por defecto
 }) => {
     // Estado del dropdown
     const [isDropdownOpen, setDropdownOpen] = React.useState(false);
     const [autoRefresh, setAutoRefresh] = React.useState(enableAutoRefresh);
 
-    // 🔥 NUEVO: Verificar rol del usuario
+    // Verificar rol del usuario
     const { user, isLoading: authLoading } = useAuth();
     const shouldLoadNotifications = !!(!authLoading && user && user.role !== 'observador');
 
@@ -90,8 +88,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
         autoRefresh: shouldLoadNotifications && enableAutoRefresh,
         refreshInterval: autoRefreshInterval,
         showToasts: shouldLoadNotifications,
-        enableSmartPolling: shouldLoadNotifications && enableSmartPolling,
-        enableRealtime: shouldLoadNotifications && enableRealtime
+        enableSmartPolling: shouldLoadNotifications && enableSmartPolling
     });
 
     // Estado local para filtros

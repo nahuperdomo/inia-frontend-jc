@@ -11,14 +11,12 @@ import {
     eliminarNotificacion
 } from '@/app/services/notificacion-service';
 import type { NotificacionDTO, PaginatedNotificaciones } from '@/app/models/interfaces/notificacion';
-import { useNotificationStream } from './useNotificationStream';
 
 interface UseNotificationsOptions {
     autoRefresh?: boolean;
     refreshInterval?: number;
     showToasts?: boolean;
     enableSmartPolling?: boolean; // Habilitar polling inteligente
-    enableRealtime?: boolean; // 🔥 NUEVO: Habilitar SSE para tiempo real
 }
 
 interface UseNotificationsReturn {
@@ -46,10 +44,9 @@ interface UseNotificationsReturn {
 export function useNotifications(options: UseNotificationsOptions = {}): UseNotificationsReturn {
     const {
         autoRefresh = true,
-        refreshInterval = 60000, // 60 segundos (cambiado de 30)
+        refreshInterval = 60000, // 60 segundos
         showToasts = true,
-        enableSmartPolling = true, // Habilitado por defecto
-        enableRealtime = true // 🔥 NUEVO: SSE habilitado por defecto
+        enableSmartPolling = true // Habilitado por defecto
     } = options;
 
     // Estado local
@@ -70,41 +67,6 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
     const lastFetchTime = useRef<number>(Date.now());
     const consecutiveErrors = useRef<number>(0);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-    // 🔥 NUEVO: Manejo de notificaciones en tiempo real via SSE
-    const handleRealtimeNotification = useCallback((notification: NotificacionDTO) => {
-        console.log('🔥 Nueva notificación en tiempo real:', notification);
-
-        // Agregar a la lista de no leídas
-        setUnreadNotifications(prev => [notification, ...prev]);
-        setUnreadCount(prev => prev + 1);
-
-        // Si estamos en la primera página, agregar a la lista principal
-        if (currentPage === 0) {
-            setNotifications(prev => [notification, ...prev]);
-        }
-
-        // Mostrar toast si está habilitado
-        if (showToasts) {
-            toast.info(notification.nombre, {
-                description: notification.mensaje,
-                duration: 5000
-            });
-        }
-    }, [currentPage, showToasts]);
-
-    // 🔥 CRÍTICO: Conectar a SSE solo si está habilitado
-    useNotificationStream({
-        enabled: enableRealtime, // Solo conectar si está habilitado explícitamente
-        onNotification: handleRealtimeNotification,
-        onConnected: () => {
-            console.log('✅ Conectado a notificaciones en tiempo real');
-        },
-        onError: (error) => {
-            console.error('❌ Error en conexión de tiempo real:', error);
-        },
-        autoReconnect: true
-    });
 
     // Función para cargar notificaciones paginadas
     const loadNotifications = useCallback(async (page: number = 0, append: boolean = false) => {
@@ -275,8 +237,8 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
 
     // Cargar datos iniciales solo si está habilitado
     useEffect(() => {
-        // 🔥 CRÍTICO: No cargar si autoRefresh y realtime están deshabilitados
-        if (!autoRefresh && !enableRealtime) {
+        // No cargar si autoRefresh está deshabilitado
+        if (!autoRefresh) {
             console.log('🚫 Notificaciones deshabilitadas, no se cargarán datos iniciales');
             return;
         }
@@ -310,11 +272,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
 
     // Auto-refresh con polling inteligente
     useEffect(() => {
-        // 🔥 Si SSE está habilitado, reducir frecuencia de polling (solo como fallback)
-        if (!autoRefresh || enableRealtime) {
-            // Con SSE activo, hacer polling muy ocasional solo como backup
-            if (!enableRealtime) return;
-        }
+        if (!autoRefresh) return;
 
         // Limpiar intervalo previo
         if (intervalRef.current) {
@@ -323,8 +281,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
 
         // Calcular intervalo dinámico basado en errores consecutivos
         const calculateInterval = () => {
-            // Si SSE está activo, hacer polling cada 5 minutos solo como backup
-            const baseInterval = enableRealtime ? 5 * 60 * 1000 : refreshInterval;
+            const baseInterval = refreshInterval;
 
             if (consecutiveErrors.current === 0) {
                 return baseInterval;
@@ -345,7 +302,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
                 // 1. El tab está visible (o no usamos smart polling)
                 // 2. No hay errores consecutivos mayores a 3
                 if ((!enableSmartPolling || isTabVisible.current) && consecutiveErrors.current < 3) {
-                    console.log('📡 Polling notificaciones no leídas (fallback)');
+                    console.log('📡 Polling notificaciones no leídas');
                     loadUnreadNotifications();
                 } else if (consecutiveErrors.current >= 3) {
                     console.warn('⚠️ Polling pausado por errores consecutivos');
@@ -369,7 +326,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
             }
             clearInterval(recheckInterval);
         };
-    }, [autoRefresh, refreshInterval, loadUnreadNotifications, enableSmartPolling, enableRealtime]);
+    }, [autoRefresh, refreshInterval, loadUnreadNotifications, enableSmartPolling]);
 
     return {
         // Estado

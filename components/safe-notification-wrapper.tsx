@@ -31,7 +31,7 @@ export function SafeNotificationWrapper({ children }: SafeNotificationWrapperPro
         <NotificationProvider
             autoRefreshInterval={30000}
             enableAutoRefresh={true}
-            enableRealtime={true}
+            enableSmartPolling={true}
         >
             {children}
         </NotificationProvider>
