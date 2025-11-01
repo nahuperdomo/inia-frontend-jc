@@ -18,7 +18,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-import { NotificationDropdown, useNotificationBadge } from "@/components/notificaciones"
+import { NotificationDropdown, useSafeNotificationBadge } from "@/components/notificaciones"
 import { useAuth } from "@/components/auth-provider"
 import { RouteGuard } from "@/components/route-guard"
 
@@ -42,8 +42,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   // Hooks de autenticación y notificaciones
-  const { user } = useAuth()
-  const { unreadCount } = useNotificationBadge()
+  const { user, isLoading } = useAuth()
+  const { unreadCount } = useSafeNotificationBadge()
+
+  // Mostrar loading mientras se carga el usuario
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
 
   // Filtrar navegación según el rol del usuario
   const filteredNavigation = navigation.filter(item =>

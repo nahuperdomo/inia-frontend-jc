@@ -7,6 +7,9 @@ export {
     useNotificationStats
 } from './NotificationProvider';
 
+// Hook seguro que no lanza error si no está en el contexto
+export { useSafeNotificationBadge } from './safe-notification-hooks';
+
 export { default as NotificationDropdown } from './NotificationDropdown';
 export { SimpleNotificationDropdown } from './NotificationDropdown';
 

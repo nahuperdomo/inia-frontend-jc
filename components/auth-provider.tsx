@@ -47,11 +47,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    console.log("🔄 AuthProvider: Iniciando carga de usuario...");
+
     // Check for existing session
     if (typeof window !== "undefined") {
       // Intentar con ambas keys: "usuario" (del login real) o "inia-user" (del mock)
       const savedUserData = localStorage.getItem("usuario") || localStorage.getItem("inia-user")
+
       if (savedUserData) {
+        console.log("📦 AuthProvider: Datos encontrados en localStorage");
         const parsedUser = JSON.parse(savedUserData)
 
         // Si viene del login real (tiene roles array)
@@ -75,15 +79,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             permissions: ROLE_PERMISSIONS[userRole],
           }
           setUser(mappedUser)
-          console.log("✅ Usuario cargado desde localStorage (login real):", mappedUser)
+          console.log("✅ AuthProvider: Usuario cargado (login real):", { name: mappedUser.name, role: mappedUser.role })
         } else {
           // Si ya viene en formato User (del mock)
           setUser(parsedUser)
-          console.log("✅ Usuario cargado desde localStorage (mock):", parsedUser)
+          console.log("✅ AuthProvider: Usuario cargado (mock):", { name: parsedUser.name, role: parsedUser.role })
         }
+      } else {
+        console.log("⚠️ AuthProvider: No hay datos de usuario en localStorage");
       }
     }
-    setIsLoading(false)
+
+    // ⚠️ CRÍTICO: Esperar un tick antes de marcar como no cargando
+    // Esto asegura que el estado de user se haya actualizado completamente
+    setTimeout(() => {
+      setIsLoading(false)
+      console.log("✅ AuthProvider: Carga completada");
+    }, 0);
   }, [])
 
   const login = async (email: string, password: string) => {

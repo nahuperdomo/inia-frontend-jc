@@ -23,16 +23,32 @@ export function RouteGuard({ children }: RouteGuardProps) {
         pathname === publicRoute || pathname.startsWith(publicRoute + '/')
     );
 
+    // 🔍 DEBUG: Log del estado actual
+    console.log("🔍 RouteGuard:", {
+        pathname,
+        isPublicRoute,
+        isLoading,
+        hasUser: !!user,
+        userRole: user?.role,
+        userName: user?.name
+    });
+
     useEffect(() => {
         // Las rutas públicas siempre son accesibles
-        if (isPublicRoute) return;
+        if (isPublicRoute) {
+            console.log("✅ RouteGuard: Ruta pública, acceso permitido");
+            return;
+        }
 
         // ⚠️ CRÍTICO: Esperar a que termine de cargar ANTES de verificar permisos
-        if (isLoading) return;
+        if (isLoading) {
+            console.log("⏳ RouteGuard: Esperando carga del usuario...");
+            return;
+        }
 
         // ⚠️ CRÍTICO: Si no hay usuario después de cargar, redirigir a login
         if (!user) {
-            console.warn(`🚫 No hay usuario autenticado, redirigiendo a login`);
+            console.warn(`🚫 RouteGuard: No hay usuario autenticado, redirigiendo a login`);
             router.replace('/login');
             return;
         }
@@ -40,9 +56,17 @@ export function RouteGuard({ children }: RouteGuardProps) {
         // Verificar si el usuario puede acceder a la ruta actual
         const hasAccess = canAccessRoute(pathname);
 
+        console.log("🔐 RouteGuard: Verificando acceso", {
+            pathname,
+            hasAccess,
+            userRole: user.role
+        });
+
         if (!hasAccess) {
-            console.warn(`🚫 Acceso denegado a la ruta: ${pathname} para usuario: ${user.name} (${user.role})`);
+            console.warn(`🚫 RouteGuard: Acceso denegado a la ruta: ${pathname} para usuario: ${user.name} (${user.role})`);
             router.replace('/acceso-denegado');
+        } else {
+            console.log("✅ RouteGuard: Acceso permitido");
         }
     }, [pathname, canAccessRoute, isLoading, router, isPublicRoute, user]);
 

@@ -8,7 +8,19 @@ import { useAuth } from '@/components/auth-provider';
 
 export default function AccesoDenegadoPage() {
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, isLoading } = useAuth();
+
+    // Esperar a que termine de cargar el usuario
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Cargando...</p>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-background to-orange-50 p-4">

@@ -8,7 +8,7 @@ import { usePushNotifications } from '@/lib/hooks/usePushNotifications';
 import { useAuth } from '@/components/auth-provider';
 
 export function PushNotificationManager() {
-    const { user } = useAuth();
+    const { user, isLoading: isAuthLoading } = useAuth();
     const {
         isSupported,
         isSubscribed,
@@ -93,8 +93,8 @@ export function PushNotificationManager() {
         }
     };
 
-    // No mostrar nada si no está soportado o no hay usuario
-    if (!isSupported || !user) {
+    // No mostrar nada si no está soportado, no hay usuario, o aún está cargando auth
+    if (!isSupported || !user || isAuthLoading) {
         return null;
     }
 

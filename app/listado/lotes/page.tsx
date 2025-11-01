@@ -17,7 +17,19 @@ import { toast } from "sonner"
 import { useAuth } from "@/components/auth-provider"
 
 export default function ListadoLotesPage() {
-  const { user } = useAuth()
+  const { user, isLoading: isAuthLoading } = useAuth()
+
+  // Esperar a que termine de cargar el usuario
+  if (isAuthLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
   const [searchTerm, setSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState<string>("todos")
   const [filterCultivo, setFilterCultivo] = useState<string>("todos")
@@ -29,7 +41,7 @@ export default function ListadoLotesPage() {
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
   const pageSize = 10
-  
+
   // Statistics state
   const [stats, setStats] = useState({
     total: 0,
@@ -87,7 +99,7 @@ export default function ListadoLotesPage() {
   const fetchLotes = async (page: number = 0) => {
     try {
       setIsLoading(true)
-      
+
       // Convertir filterEstado a boolean o null
       let activoFilter: boolean | null = null
       if (filterEstado === "Activo") {
@@ -95,28 +107,28 @@ export default function ListadoLotesPage() {
       } else if (filterEstado === "Inactivo") {
         activoFilter = false
       }
-      
+
       // Enviar filtros al backend
       const data = await obtenerLotesPaginadas(
-        page, 
-        pageSize, 
-        searchTerm, 
-        activoFilter, 
+        page,
+        pageSize,
+        searchTerm,
+        activoFilter,
         filterCultivo
       )
-      
+
       console.log("DEBUG obtenerLotesPaginadas response:", data)
-      
+
       // Manejar respuesta: puede venir con o sin el objeto 'page'
       const content = data.content || []
       setLotes(content)
-      
+
       // Verificar si la metadata viene en data.page o directamente en data
       const pageInfo = (data as any).page || data
       const totalPagesFrom = pageInfo.totalPages ?? 1
       const totalElementsFrom = pageInfo.totalElements ?? 0
       const numberFrom = pageInfo.number ?? page
-      
+
       setTotalPages(totalPagesFrom)
       setTotalElements(totalElementsFrom)
       setCurrentPage(numberFrom)
@@ -169,290 +181,290 @@ export default function ListadoLotesPage() {
       <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-          <Link href="/listado">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-balance">Listado de Lotes</h1>
-            <p className="text-sm text-muted-foreground text-pretty">
-              Consulta y administra todos los lotes registrados
-            </p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <Link href="/listado">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Volver
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-balance">Listado de Lotes</h1>
+              <p className="text-sm text-muted-foreground text-pretty">
+                Consulta y administra todos los lotes registrados
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Link href="/registro/lotes" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                Nuevo Lote
+              </Button>
+            </Link>
           </div>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <Link href="/registro/lotes" className="w-full sm:w-auto">
-            <Button className="w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Lote
-            </Button>
-          </Link>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Lotes</p>
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <span className="text-sm">Cargando...</span>
+                    </div>
+                  ) : (
+                    <p className="text-xl sm:text-2xl font-bold">{stats.total}</p>
+                  )}
+                </div>
+                <Package className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Activos</p>
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <span className="text-sm">Cargando...</span>
+                    </div>
+                  ) : (
+                    <p className="text-xl sm:text-2xl font-bold">{stats.activos}</p>
+                  )}
+                </div>
+                <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-green-100 flex items-center justify-center">
+                  <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-green-500"></div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Inactivos</p>
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <span className="text-sm">Cargando...</span>
+                    </div>
+                  ) : (
+                    <p className="text-xl sm:text-2xl font-bold">{stats.inactivos}</p>
+                  )}
+                </div>
+                <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                  <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-yellow-500"></div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Con Análisis</p>
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <span className="text-sm">Cargando...</span>
+                    </div>
+                  ) : (
+                    <p className="text-xl sm:text-2xl font-bold">0</p>
+                  )}
+                </div>
+                <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                  <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-blue-500"></div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Filters and Search */}
         <Card>
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Lotes</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span className="text-sm">Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-xl sm:text-2xl font-bold">{stats.total}</p>
-                )}
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filtros y Búsqueda
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por ficha, nombre de lote, cultivar o especie..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
+                    className="pl-10"
+                  />
+                </div>
+                <Button onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                  <Search className="h-4 w-4" />
+                </Button>
               </div>
-              <Package className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              <Select value={filterEstado} onValueChange={setFilterEstado}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="Filtrar por estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos los estados</SelectItem>
+                  <SelectItem value="Activo">Activo</SelectItem>
+                  <SelectItem value="Inactivo">Inactivo</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterCultivo} onValueChange={setFilterCultivo}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="Filtrar por cultivo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos los cultivos</SelectItem>
+                  {cultivos.map((cultivo, index) => (
+                    <SelectItem key={`cultivo-${index}-${cultivo}`} value={cultivo}>
+                      {cultivo}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Activos</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span className="text-sm">Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-xl sm:text-2xl font-bold">{stats.activos}</p>
-                )}
-              </div>
-              <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-green-100 flex items-center justify-center">
-                <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-green-500"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Inactivos</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span className="text-sm">Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-xl sm:text-2xl font-bold">{stats.inactivos}</p>
-                )}
-              </div>
-              <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-yellow-100 flex items-center justify-center">
-                <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-yellow-500"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Con Análisis</p>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span className="text-sm">Cargando...</span>
-                  </div>
-                ) : (
-                  <p className="text-xl sm:text-2xl font-bold">0</p>
-                )}
-              </div>
-              <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-blue-500"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
-      {/* Filters and Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filtros y Búsqueda
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por ficha, nombre de lote, cultivar o especie..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyDown={handleSearchKeyDown}
-                  className="pl-10"
-                />
+        {/* Lotes Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Lista de Lotes</CardTitle>
+            <CardDescription>
+              {isLoading
+                ? "Cargando lotes..."
+                : `${totalElements} lote${totalElements !== 1 ? "s" : ""} encontrado${totalElements !== 1 ? "s" : ""}`
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {error ? (
+              <div className="text-center p-6 text-destructive">
+                <p>{error}</p>
+                <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+                  Reintentar
+                </Button>
               </div>
-              <Button onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
-            <Select value={filterEstado} onValueChange={setFilterEstado}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los estados</SelectItem>
-                <SelectItem value="Activo">Activo</SelectItem>
-                <SelectItem value="Inactivo">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterCultivo} onValueChange={setFilterCultivo}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por cultivo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los cultivos</SelectItem>
-                {cultivos.map((cultivo, index) => (
-                  <SelectItem key={`cultivo-${index}-${cultivo}`} value={cultivo}>
-                    {cultivo}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Lotes Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Lotes</CardTitle>
-          <CardDescription>
-            {isLoading
-              ? "Cargando lotes..."
-              : `${totalElements} lote${totalElements !== 1 ? "s" : ""} encontrado${totalElements !== 1 ? "s" : ""}`
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {error ? (
-            <div className="text-center p-6 text-destructive">
-              <p>{error}</p>
-              <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-                Reintentar
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className="rounded-md border overflow-x-auto w-full">
-                <Table className="min-w-full">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="whitespace-nowrap">Ficha</TableHead>
-                      <TableHead className="whitespace-nowrap">Lote</TableHead>
-                      <TableHead className="whitespace-nowrap">Cultivar</TableHead>
-                      <TableHead className="whitespace-nowrap">Especie</TableHead>
-                      <TableHead className="whitespace-nowrap">Estado</TableHead>
-                      <TableHead className="whitespace-nowrap">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {isLoading ? (
-                      <TableRow key="loading-row">
-                        <TableCell colSpan={6} className="text-center py-8">
-                          <div className="flex flex-col items-center justify-center">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-                            <p className="text-muted-foreground">Cargando datos de lotes...</p>
-                          </div>
-                        </TableCell>
+            ) : (
+              <>
+                <div className="rounded-md border overflow-x-auto w-full">
+                  <Table className="min-w-full">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="whitespace-nowrap">Ficha</TableHead>
+                        <TableHead className="whitespace-nowrap">Lote</TableHead>
+                        <TableHead className="whitespace-nowrap">Cultivar</TableHead>
+                        <TableHead className="whitespace-nowrap">Especie</TableHead>
+                        <TableHead className="whitespace-nowrap">Estado</TableHead>
+                        <TableHead className="whitespace-nowrap">Acciones</TableHead>
                       </TableRow>
-                    ) : lotes.length === 0 ? (
-                      <TableRow key="no-data-row">
-                        <TableCell colSpan={6} className="text-center py-8">
-                          <p className="text-muted-foreground">No se encontraron lotes que coincidan con los criterios de búsqueda.</p>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      lotes.map((lote) => (
-                        <TableRow key={lote.loteID}>
-                          <TableCell className="font-medium">{lote.ficha || "-"}</TableCell>
-                          <TableCell className="font-medium">{lote.nomLote || "-"}</TableCell>
-                          <TableCell>{lote.cultivarNombre || "-"}</TableCell>
-                          <TableCell>{lote.especieNombre || "-"}</TableCell>
-                          <TableCell>
-                            <Badge variant={lote.activo ? "default" : "destructive"} className="text-xs whitespace-nowrap">
-                              {lote.activo ? "Activo" : "Inactivo"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1 whitespace-nowrap">
-                              <Link href={`/listado/lotes/${lote.loteID}`}>
-                                <Button variant="ghost" size="sm" title="Ver detalles">
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </Link>
-                              <Link href={`/listado/lotes/${lote.loteID}/editar`}>
-                                <Button variant="ghost" size="sm" title="Editar">
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              </Link>
-                              {user?.role === "administrador" && (
-                                lote.activo ? (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleDesactivarLote(lote.loteID)}
-                                    className="text-red-600 hover:text-red-700"
-                                    title="Desactivar"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleReactivarLote(lote.loteID)}
-                                    className="text-green-600 hover:text-green-700"
-                                    title="Reactivar"
-                                  >
-                                    <RefreshCw className="h-4 w-4" />
-                                  </Button>
-                                )
-                              )}
+                    </TableHeader>
+                    <TableBody>
+                      {isLoading ? (
+                        <TableRow key="loading-row">
+                          <TableCell colSpan={6} className="text-center py-8">
+                            <div className="flex flex-col items-center justify-center">
+                              <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+                              <p className="text-muted-foreground">Cargando datos de lotes...</p>
                             </div>
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-              {/* Paginación: centrada en el listado (como pureza) */}
-              <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
-                <div className="text-sm text-muted-foreground">
-                  {totalElements === 0 ? (
-                    <>Mostrando 0 de 0 resultados</>
-                  ) : (
-                    <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
-                  )}
+                      ) : lotes.length === 0 ? (
+                        <TableRow key="no-data-row">
+                          <TableCell colSpan={6} className="text-center py-8">
+                            <p className="text-muted-foreground">No se encontraron lotes que coincidan con los criterios de búsqueda.</p>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        lotes.map((lote) => (
+                          <TableRow key={lote.loteID}>
+                            <TableCell className="font-medium">{lote.ficha || "-"}</TableCell>
+                            <TableCell className="font-medium">{lote.nomLote || "-"}</TableCell>
+                            <TableCell>{lote.cultivarNombre || "-"}</TableCell>
+                            <TableCell>{lote.especieNombre || "-"}</TableCell>
+                            <TableCell>
+                              <Badge variant={lote.activo ? "default" : "destructive"} className="text-xs whitespace-nowrap">
+                                {lote.activo ? "Activo" : "Inactivo"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1 whitespace-nowrap">
+                                <Link href={`/listado/lotes/${lote.loteID}`}>
+                                  <Button variant="ghost" size="sm" title="Ver detalles">
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                                <Link href={`/listado/lotes/${lote.loteID}/editar`}>
+                                  <Button variant="ghost" size="sm" title="Editar">
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                                {user?.role === "administrador" && (
+                                  lote.activo ? (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDesactivarLote(lote.loteID)}
+                                      className="text-red-600 hover:text-red-700"
+                                      title="Desactivar"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleReactivarLote(lote.loteID)}
+                                      className="text-green-600 hover:text-green-700"
+                                      title="Reactivar"
+                                    >
+                                      <RefreshCw className="h-4 w-4" />
+                                    </Button>
+                                  )
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
                 </div>
+                {/* Paginación: centrada en el listado (como pureza) */}
+                <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+                  <div className="text-sm text-muted-foreground">
+                    {totalElements === 0 ? (
+                      <>Mostrando 0 de 0 resultados</>
+                    ) : (
+                      <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
+                    )}
+                  </div>
 
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={Math.max(totalPages, 1)}
-                  onPageChange={(p) => fetchLotes(p)}
-                  showRange={1}
-                  alwaysShow={true}
-                />
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={Math.max(totalPages, 1)}
+                    onPageChange={(p) => fetchLotes(p)}
+                    showRange={1}
+                    alwaysShow={true}
+                  />
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
