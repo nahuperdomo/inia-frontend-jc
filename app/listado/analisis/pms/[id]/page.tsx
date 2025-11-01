@@ -276,6 +276,7 @@ export default function DetallePMSPage() {
             {/* Información General */}
             <AnalisisInfoGeneralCard
               analisisID={analisis.analisisID}
+              estado={analisis.estado}
               lote={analisis.lote}
               ficha={analisis.ficha}
               cultivarNombre={analisis.cultivarNombre}

@@ -150,9 +150,6 @@ export default function GerminacionDetailPage() {
 
   // Calcular estadísticas de las tablas
   const tablasFinalizadas = tablas.filter(tabla => tabla.finalizada).length
-  const promedioGerminacion = tablas.length > 0 ? 
-    (tablas.reduce((sum, tabla) => sum + (tabla.porcentajeNormalesConRedondeo || 0), 0) / tablas.length).toFixed(1) : 
-    null
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -216,6 +213,7 @@ export default function GerminacionDetailPage() {
           <div className="lg:col-span-2 space-y-6">
             <AnalisisInfoGeneralCard
               analisisID={germinacion.analisisID}
+              estado={germinacion.estado}
               lote={germinacion.lote}
               ficha={germinacion.ficha}
               cultivarNombre={germinacion.cultivarNombre}
@@ -247,7 +245,7 @@ export default function GerminacionDetailPage() {
                 ) : (
                   <div className="space-y-6">
                     {/* Estadísticas generales */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 border border-green-200/50 rounded-xl p-4 text-center">
                         <p className="text-2xl font-bold text-green-600">{tablasFinalizadas}</p>
                         <p className="text-sm text-muted-foreground">Tablas Finalizadas</p>
@@ -256,12 +254,6 @@ export default function GerminacionDetailPage() {
                         <p className="text-2xl font-bold text-blue-600">{tablas.length}</p>
                         <p className="text-sm text-muted-foreground">Total de Tablas</p>
                       </div>
-                      {promedioGerminacion && (
-                        <div className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-200/50 rounded-xl p-4 text-center">
-                          <p className="text-2xl font-bold text-purple-600">{promedioGerminacion}%</p>
-                          <p className="text-sm text-muted-foreground">Promedio Germinación</p>
-                        </div>
-                      )}
                     </div>
 
                     {/* Lista detallada de tablas */}

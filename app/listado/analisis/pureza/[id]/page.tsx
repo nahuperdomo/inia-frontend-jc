@@ -304,6 +304,7 @@ export default function PurezaDetailPage() {
               {/* Información General */}
               <AnalisisInfoGeneralCard
                 analisisID={pureza.analisisID}
+                estado={pureza.estado}
                 lote={pureza.lote}
                 ficha={pureza.ficha}
                 cultivarNombre={pureza.cultivarNombre}
@@ -325,6 +326,17 @@ export default function PurezaDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
+                  {pureza.fecha && (
+                    <div className="mb-6 pb-4 border-b">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Fecha del Análisis
+                      </label>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <p className="text-lg font-semibold">{formatearFechaLocal(pureza.fecha)}</p>
+                      </div>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                     <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-200/50 rounded-lg p-4 text-center space-y-2">
                       <p className="text-2xl font-bold text-blue-600">{Number(pureza.pesoInicial_g).toFixed(3)}</p>

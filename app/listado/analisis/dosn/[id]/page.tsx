@@ -266,6 +266,7 @@ export default function DosnDetailPage() {
             {/* Información General */}
             <AnalisisInfoGeneralCard
               analisisID={dosn.analisisID}
+              estado={dosn.estado}
               lote={dosn.lote}
               ficha={dosn.ficha}
               cultivarNombre={dosn.cultivarNombre}

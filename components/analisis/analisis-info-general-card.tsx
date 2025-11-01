@@ -8,6 +8,7 @@ import {
   CheckCircle,
   AlertTriangle,
 } from "lucide-react"
+import type { EstadoAnalisis } from "@/app/models/types/enums"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -40,6 +41,7 @@ const formatearFechaLocal = (fechaString: string): string => {
 
 interface AnalisisInfoGeneralCardProps {
   analisisID: number
+  estado: EstadoAnalisis
   fechaInicio: string
   fechaFin?: string
   lote: string // nomLote
@@ -54,6 +56,7 @@ interface AnalisisInfoGeneralCardProps {
 
 export function AnalisisInfoGeneralCard({
   analisisID,
+  estado,
   fechaInicio,
   fechaFin,
   lote,
@@ -65,6 +68,12 @@ export function AnalisisInfoGeneralCard({
   cumpleEstandar,
   className = ""
 }: AnalisisInfoGeneralCardProps) {
+  // Mostrar fecha de finalización solo en estados finales
+  const mostrarFechaFin = fechaFin && (
+    estado === 'PENDIENTE_APROBACION' || 
+    estado === 'APROBADO' || 
+    estado === 'A_REPETIR'
+  )
 
   return (
     <Card className={`overflow-hidden ${className}`}>
@@ -121,7 +130,7 @@ export function AnalisisInfoGeneralCard({
 
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Fecha de Inicio
+              Fecha de Creación
             </label>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -131,7 +140,7 @@ export function AnalisisInfoGeneralCard({
             </div>
           </div>
 
-          {fechaFin && (
+          {mostrarFechaFin && (
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Fecha de Finalización

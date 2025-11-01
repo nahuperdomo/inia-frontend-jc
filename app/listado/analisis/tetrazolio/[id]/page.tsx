@@ -237,6 +237,7 @@ export default function TetrazolioDetailPage() {
               {/* Información General */}
               <AnalisisInfoGeneralCard
                 analisisID={tetrazolio.analisisID}
+                estado={tetrazolio.estado}
                 lote={tetrazolio.lote}
                 ficha={tetrazolio.ficha}
                 cultivarNombre={tetrazolio.cultivarNombre}
