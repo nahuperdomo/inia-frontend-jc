@@ -141,7 +141,7 @@ const validarViabilidadInase = () => {
   return (
     <Card className="border-0 shadow-sm bg-card">
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100">
               <TestTube className="h-6 w-6 text-orange-600" />
@@ -158,6 +158,7 @@ const validarViabilidadInase = () => {
           <TablaToleranciasButton 
             pdfPath="/tablas-tolerancias/tabla-tetrazolio.pdf" 
             title="Tabla de Tolerancias"
+            className="w-full sm:w-auto"
           />
         </div>
       </CardHeader>

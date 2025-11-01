@@ -152,7 +152,7 @@ export default function BrassicaSection({ registros, onChangeListados, contexto 
                   {/* INIA / INASE */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-foreground">
-                      Entidad
+                      Instituto
                     </Label>
                     <Select
                       value={brassica.entidad}
@@ -160,7 +160,7 @@ export default function BrassicaSection({ registros, onChangeListados, contexto 
                       disabled={false} // Siempre habilitado
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Seleccionar entidad" />
+                        <SelectValue placeholder="Seleccionar instituto" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="inia">INIA</SelectItem>

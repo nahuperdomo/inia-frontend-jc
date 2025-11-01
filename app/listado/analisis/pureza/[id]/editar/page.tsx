@@ -540,7 +540,7 @@ export default function EditarPurezaPage() {
         <div className="space-y-6">
           {/* SECCIÓN INIA */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50">
                   <Building2 className="h-5 w-5 text-emerald-600" />
@@ -555,6 +555,7 @@ export default function EditarPurezaPage() {
                 title="Ver Tabla de Tolerancias"
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
               />
             </div>
 
@@ -1232,37 +1233,6 @@ export default function EditarPurezaPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Instituto</Label>
-                      <Select
-                        value={newListado.listadoInsti}
-                        onValueChange={(value) => setNewListado((prev) => ({ ...prev, listadoInsti: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="INIA">INIA</SelectItem>
-                          <SelectItem value="INASE">INASE</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Número</Label>
-                      <Input
-                        type="number"
-                        value={newListado.listadoNum === 0 ? "" : newListado.listadoNum}
-                        onChange={(e) =>
-                          setNewListado((prev) => ({
-                            ...prev,
-                            listadoNum: e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0
-                          }))
-                        }
-                        min="0"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
                       <Label>Especie</Label>
                       <Select
                         value={
@@ -1308,6 +1278,37 @@ export default function EditarPurezaPage() {
                           )}
                         </SelectContent>
                       </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Instituto</Label>
+                      <Select
+                        value={newListado.listadoInsti}
+                        onValueChange={(value) => setNewListado((prev) => ({ ...prev, listadoInsti: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="INIA">INIA</SelectItem>
+                          <SelectItem value="INASE">INASE</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Número</Label>
+                      <Input
+                        type="number"
+                        value={newListado.listadoNum === 0 ? "" : newListado.listadoNum}
+                        onChange={(e) =>
+                          setNewListado((prev) => ({
+                            ...prev,
+                            listadoNum: e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0
+                          }))
+                        }
+                        min="0"
+                      />
                     </div>
                   </div>
 
@@ -1378,8 +1379,8 @@ export default function EditarPurezaPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Especie</TableHead>
                         <TableHead>Tipo</TableHead>
+                        <TableHead>Especie</TableHead>
                         <TableHead>Instituto</TableHead>
                         <TableHead>Número</TableHead>
                         <TableHead>Acciones</TableHead>
@@ -1388,6 +1389,11 @@ export default function EditarPurezaPage() {
                     <TableBody>
                       {formData.listados.map((listado, index) => (
                         <TableRow key={index}>
+                          <TableCell>
+                            <Badge variant="outline" className={getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}>
+                              {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
+                            </Badge>
+                          </TableCell>
                           <TableCell>
                             <div>
                               <div className="font-medium">
@@ -1403,11 +1409,6 @@ export default function EditarPurezaPage() {
                                 }
                               </div>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}>
-                              {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
-                            </Badge>
                           </TableCell>
                           <TableCell>
                             <Badge variant="secondary">{listado.listadoInsti}</Badge>

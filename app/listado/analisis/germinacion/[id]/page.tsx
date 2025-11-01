@@ -524,10 +524,14 @@ export default function GerminacionDetailPage() {
                               tabla.porcentajeFrescasConRedondeo !== undefined ||
                               tabla.porcentajeMuertasConRedondeo !== undefined) && (
                               <div className="mb-6">
-                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                                  <Calculator className="h-4 w-4" />
-                                  Porcentajes Finales (Con Redondeo)
-                                </h4>
+                                <div className="flex items-start justify-between mb-3">
+                                  <h4 className="text-sm font-semibold">
+                                    Porcentajes con Redondeo
+                                  </h4>
+                                  <Button variant="outline" size="sm" className="h-8">
+                                    Editar
+                                  </Button>
+                                </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
                                   {tabla.porcentajeNormalesConRedondeo !== undefined && (
                                     <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
@@ -566,10 +570,17 @@ export default function GerminacionDetailPage() {
                             {/* Repeticiones */}
                             {tabla.repGerm && tabla.repGerm.length > 0 && (
                               <div className="mb-6">
-                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                                  <Table className="h-4 w-4" />
-                                  Repeticiones ({tabla.repGerm.length})
-                                </h4>
+                                <div className="flex items-start justify-between mb-3">
+                                  <div>
+                                    <h4 className="text-sm font-semibold">
+                                      Repeticiones de Tabla
+                                    </h4>
+                                    <p className="text-xs text-muted-foreground mt-1">{tabla.repGerm.length} repeticiones</p>
+                                  </div>
+                                  <Button variant="outline" size="sm" className="h-8">
+                                    Editar
+                                  </Button>
+                                </div>
                                 <div className="overflow-x-auto">
                                   <div className="min-w-full">
                                     {/* Vista móvil - cards */}
@@ -655,10 +666,14 @@ export default function GerminacionDetailPage() {
                             {/* Valores de Germinación por Instituto */}
                             {tabla.valoresGerm && tabla.valoresGerm.length > 0 && (
                               <div>
-                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                                  <Building className="h-4 w-4" />
-                                  Valores de Germinación por Instituto
-                                </h4>
+                                <div className="flex items-start justify-between mb-3">
+                                  <h4 className="text-sm font-semibold">
+                                    Valores INIA/INASE
+                                  </h4>
+                                  <Button variant="outline" size="sm" className="h-8">
+                                    Editar
+                                  </Button>
+                                </div>
                                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                                   {tabla.valoresGerm.map((valor, index) => (
                                     <div key={index} className="border rounded-lg p-4 bg-purple-50/50 border-purple-200">

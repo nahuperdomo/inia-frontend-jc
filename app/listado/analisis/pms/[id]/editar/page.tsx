@@ -793,28 +793,29 @@ export default function EditarPMSPage() {
       {/* Información del Análisis */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="flex items-center gap-2">
               <Scale className="h-5 w-5" />
               Parámetros del Análisis
             </CardTitle>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row w-full sm:w-auto">
               <TablaToleranciasButton 
                 pdfPath="/tablas-tolerancias/tabla-pms.pdf" 
                 title="Tabla de Tolerancias"
+                className="w-full sm:w-auto"
               />
               {!editingParams ? (
                 <Button 
                   variant="outline"
                   size="sm"
                   onClick={() => setEditingParams(true)}
-                  className="min-w-24"
+                  className="min-w-24 w-full sm:w-auto"
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Editar
                 </Button>
               ) : (
-                <>
+                <div className="flex flex-col gap-2 w-full sm:w-auto">
                   <Button 
                     variant="outline"
                     size="sm"
@@ -826,7 +827,7 @@ export default function EditarPMSPage() {
                       })
                       setHasChanges(false)
                     }}
-                    className="min-w-24"
+                    className="min-w-24 w-full sm:w-auto"
                   >
                     Cancelar
                   </Button>
@@ -834,7 +835,7 @@ export default function EditarPMSPage() {
                     onClick={handleSaveAnalisis}
                     disabled={!hasChanges || saving}
                     size="sm"
-                    className="min-w-32"
+                    className="min-w-32 w-full sm:w-auto"
                   >
                     {saving ? (
                       <>
@@ -848,7 +849,7 @@ export default function EditarPMSPage() {
                       </>
                     )}
                   </Button>
-                </>
+                </div>
               )}
             </div>
           </div>
@@ -1344,7 +1345,7 @@ export default function EditarPMSPage() {
                   {/* PMS Con Redondeo */}
                   <Card className="border-green-200">
                     <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
+                      <div className="space-y-3">
                         <CardTitle className="text-base text-green-800 flex items-center gap-2">
                           <Edit className="h-4 w-4" />
                           PMS con Redondeo
@@ -1354,7 +1355,7 @@ export default function EditarPMSPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setEditingRedondeo(true)}
-                            className="text-green-700 border-green-300 hover:bg-green-50"
+                            className="text-green-700 border-green-300 hover:bg-green-50 w-full sm:w-auto"
                           >
                             <Edit className="h-4 w-4 mr-2" />
                             Editar
@@ -1364,35 +1365,47 @@ export default function EditarPMSPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {editingRedondeo && puedeEditarPmsConRedondeo() ? (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <Label className="text-sm font-medium text-green-700">
                             Valor Final para Certificado
                           </Label>
-                          <div className="flex gap-2">
-                            <div className="relative flex-1">
-                              <Input
-                                type="text"
-                                value={pmsConRedondeoTemp}
-                                onChange={(e) => {
-                                  const value = e.target.value.replace(',', '.')
-                                  // Permitir cualquier input válido para números decimales
-                                  if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
-                                    setPmsConRedondeoTemp(value)
-                                  }
-                                }}
-                                onFocus={(e) => e.target.select()}
-                                placeholder="Ej: 25.4"
-                                className="text-center text-lg font-bold pr-8"
-                              />
-                              <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">
-                                g
-                              </span>
-                            </div>
+                          <div className="relative">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={pmsConRedondeoTemp}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                setPmsConRedondeoTemp(value)
+                              }}
+                              onFocus={(e) => e.target.select()}
+                              placeholder="Ej: 25.4"
+                              className="text-center text-lg font-bold pr-8"
+                            />
+                            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">
+                              g
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Ingrese el valor final redondeado según criterios del laboratorio
+                          </p>
+                          <div className="flex flex-col gap-2 pt-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setEditingRedondeo(false)
+                                setPmsConRedondeoTemp(analisis.pmsconRedon?.toString() || "")
+                              }}
+                              size="default"
+                              className="w-full"
+                            >
+                              Cancelar
+                            </Button>
                             <Button
                               onClick={handleUpdatePmsConRedondeo}
                               disabled={savingRedondeo || !pmsConRedondeoTemp || parseFloat(pmsConRedondeoTemp) <= 0}
                               size="default"
-                              className="min-w-24 bg-green-600 hover:bg-green-700"
+                              className="w-full bg-green-600 hover:bg-green-700"
                             >
                               {savingRedondeo ? (
                                 <>
@@ -1406,20 +1419,7 @@ export default function EditarPMSPage() {
                                 </>
                               )}
                             </Button>
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setEditingRedondeo(false)
-                                setPmsConRedondeoTemp(analisis.pmsconRedon?.toString() || "")
-                              }}
-                              size="default"
-                            >
-                              Cancelar
-                            </Button>
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            Ingrese el valor final redondeado según criterios del laboratorio
-                          </p>
                         </div>
                       ) : (
                         <div className="space-y-2">

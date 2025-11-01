@@ -996,7 +996,7 @@ export default function RegistroAnalisisPage() {
                     {selectedAnalysisType && (
                       <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t">
                         <div className="text-xs text-green-600 font-medium mb-1">
-                          ✅ Este lote es elegible para {getAnalysisTypeName(selectedAnalysisType)}
+                          Este lote es elegible para {getAnalysisTypeName(selectedAnalysisType)}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           Tiene el tipo de análisis asignado y no tiene análisis completados del mismo tipo.

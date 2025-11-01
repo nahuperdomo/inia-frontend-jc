@@ -120,21 +120,21 @@ export default function ReportePurezaPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
           <Link href="/reportes">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-balance">Reporte de Pureza</h1>
-            <p className="text-muted-foreground text-pretty">Métricas y estadísticas de análisis de pureza</p>
+          <div className="bg-sky-100 text-sky-700 rounded-full p-3">
+            <Beaker className="h-8 w-8" />
           </div>
         </div>
-        <div className="bg-sky-100 text-sky-700 rounded-full p-3">
-          <Beaker className="h-8 w-8" />
+        <div>
+          <h1 className="text-3xl font-bold text-balance">Reporte de Pureza</h1>
+          <p className="text-muted-foreground text-pretty">Métricas y estadísticas de análisis de pureza</p>
         </div>
       </div>
 
@@ -376,9 +376,7 @@ export default function ReportePurezaPage() {
             )}
           </CardContent>
         </Card>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Porcentaje Promedio de Malezas por Especie</CardTitle>
@@ -416,45 +414,45 @@ export default function ReportePurezaPage() {
             )}
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Porcentaje Promedio de Otras Semillas por Especie</CardTitle>
-            <CardDescription>Promedio de contaminación por otras semillas</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {dataOtrasSemillas.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={dataOtrasSemillas} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis 
-                    dataKey="especie" 
-                    stroke="#6b7280"
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                  />
-                  <YAxis stroke="#6b7280" />
-                  <Tooltip 
-                    formatter={(value) => [`${Number(value).toFixed(2)}%`, "Otras Semillas"]}
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                    }}
-                  />
-                  <Bar dataKey="porcentaje" fill="#f59e0b" name="Otras Semillas %" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                No hay datos disponibles
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Porcentaje Promedio de Otras Semillas por Especie</CardTitle>
+          <CardDescription>Promedio de contaminación por otras semillas</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {dataOtrasSemillas.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={dataOtrasSemillas} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis 
+                  dataKey="especie" 
+                  stroke="#6b7280"
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis stroke="#6b7280" />
+                <Tooltip 
+                  formatter={(value) => [`${Number(value).toFixed(2)}%`, "Otras Semillas"]}
+                  contentStyle={{ 
+                    backgroundColor: 'white', 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                  }}
+                />
+                <Bar dataKey="porcentaje" fill="#f59e0b" name="Otras Semillas %" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              No hay datos disponibles
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

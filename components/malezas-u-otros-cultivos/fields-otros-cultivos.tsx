@@ -200,16 +200,16 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
                     </Select>
                   </div>
 
-                  {/* Entidad */}
+                  {/* Instituto */}
                   <div className="space-y-2">
-                    <Label className="text-foreground">Entidad</Label>
+                    <Label className="text-foreground">Instituto</Label>
                     <Select
                       value={c.entidad}
                       onValueChange={(val) => updateCultivo(i, "entidad", val)}
                       disabled={false} // Siempre habilitado
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Seleccionar entidad" />
+                        <SelectValue placeholder="Seleccionar instituto" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="inia">INIA</SelectItem>

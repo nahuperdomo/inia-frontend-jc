@@ -236,14 +236,14 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
 
                   {/* INIA / INASE */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-foreground">Entidad</Label>
+                    <Label className="text-sm font-medium text-foreground">Instituto</Label>
                     <Select
                       value={maleza.entidad || ""}
                       onValueChange={(val) => updateMaleza(index, "entidad", val)}
                       disabled={isDisabled} // Siempre habilitado excepto en modo edición
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Seleccionar entidad" />
+                        <SelectValue placeholder="Seleccionar instituto" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="inia">INIA</SelectItem>

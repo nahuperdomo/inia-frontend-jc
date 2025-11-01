@@ -13,26 +13,26 @@ export function CalidadSection({ lot }: CalidadSectionProps) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                     <BarChart3 className="h-5 w-5" />
-                    Calidad y producción
+                    Análisis Asignados
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Kilos limpios</Label>
-                        <div className="font-semibold">{lot.kilosLimpios ? `${lot.kilosLimpios} kg` : "-"}</div>
+                {lot.tiposAnalisisAsignados && lot.tiposAnalisisAsignados.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                        {lot.tiposAnalisisAsignados.map((tipo, index) => (
+                            <span 
+                                key={index} 
+                                className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
+                            >
+                                {tipo}
+                            </span>
+                        ))}
                     </div>
-                    <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Depósito</Label>
-                        <div className="font-semibold">{lot.depositoValor || "-"}</div>
-                    </div>
-                    <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Estado</Label>
-                        <div className="font-semibold">{lot.estadoValor || "-"}</div>
-                    </div>
-                </div>
+                ) : (
+                    <p className="text-muted-foreground text-sm">No hay análisis asignados</p>
+                )}
             </CardContent>
         </Card>
     )

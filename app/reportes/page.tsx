@@ -119,7 +119,7 @@ export default function ReportesPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-balance">Centro de Reportes</h1>
           <p className="text-muted-foreground text-pretty">
@@ -127,8 +127,8 @@ export default function ReportesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/reportes/validacion">
-            <Button variant="outline">
+          <Link href="/reportes/validacion" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto">
               <FileText className="h-4 w-4 mr-2" />
               Validación
             </Button>

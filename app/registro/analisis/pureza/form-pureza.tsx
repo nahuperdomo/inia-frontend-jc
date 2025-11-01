@@ -241,7 +241,7 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                     <TabsContent value="generales" className="space-y-6">
                         {/* SECCIÓN INIA */}
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between gap-3">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50">
                                         <Building2 className="h-5 w-5 text-emerald-600" />
@@ -256,6 +256,7 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                                     title="Ver Tabla de Tolerancias"
                                     variant="outline"
                                     size="sm"
+                                    className="w-full sm:w-auto"
                                 />
                             </div>
 

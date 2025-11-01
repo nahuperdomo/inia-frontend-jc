@@ -311,23 +311,23 @@ export default function UsuarioValidacionPage() {
     return (
         <div className="p-6 space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
                     <Link href="/administracion">
                         <Button variant="ghost" size="sm">
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Volver a Administración
                         </Button>
                     </Link>
-                    <div>
-                        <h1 className="text-3xl font-bold text-balance">Gestión Completa de Usuarios</h1>
-                        <p className="text-muted-foreground text-pretty">
-                            Validación de solicitudes y administración de usuarios existentes
-                        </p>
+                    <div className="flex items-center gap-2">
+                        <Users className="h-8 w-8 text-primary" />
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Users className="h-8 w-8 text-primary" />
+                <div>
+                    <h1 className="text-3xl font-bold text-balance">Gestión Completa de Usuarios</h1>
+                    <p className="text-muted-foreground text-pretty">
+                        Validación de solicitudes y administración de usuarios existentes
+                    </p>
                 </div>
             </div>
 
@@ -374,11 +374,11 @@ export default function UsuarioValidacionPage() {
             {/* Tabs */}
             <Card>
                 <CardHeader>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-3">
                         <Button
                             variant={activeTab === "pendientes" ? "default" : "outline"}
                             onClick={() => setActiveTab("pendientes")}
-                            className="flex items-center gap-2"
+                            className="flex items-center gap-2 justify-center w-full sm:w-auto py-6 sm:py-2"
                         >
                             <UserCheck className="h-4 w-4" />
                             Solicitudes Pendientes ({solicitudesPendientes.length})
@@ -386,7 +386,7 @@ export default function UsuarioValidacionPage() {
                         <Button
                             variant={activeTab === "registrados" ? "default" : "outline"}
                             onClick={() => setActiveTab("registrados")}
-                            className="flex items-center gap-2"
+                            className="flex items-center gap-2 justify-center w-full sm:w-auto py-6 sm:py-2"
                         >
                             <Users className="h-4 w-4" />
                             Usuarios Registrados ({usuariosRegistrados.length})

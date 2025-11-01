@@ -13,28 +13,20 @@ export function EmpresaSection({ lot }: EmpresaSectionProps) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                     <Building2 className="h-5 w-5" />
-                    Empresa
+                    Empresa y Cliente
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <Label className="text-sm font-medium text-muted-foreground">Empresa</Label>
-                        <div className="font-semibold">{lot.empresaNombre || lot.empresa}</div>
+                        <div className="font-semibold mt-1">{lot.empresaNombre || "-"}</div>
                     </div>
                     <div>
                         <Label className="text-sm font-medium text-muted-foreground">Cliente</Label>
-                        <div className="font-semibold">{lot.clienteNombre || lot.cliente}</div>
-                    </div>
-                    <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Código CC</Label>
-                        <div className="font-semibold">{lot.codigoCC}</div>
-                    </div>
-                    <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Código FF</Label>
-                        <div className="font-semibold">{lot.codigoFF}</div>
+                        <div className="font-semibold mt-1">{lot.clienteNombre || "-"}</div>
                     </div>
                 </div>
             </CardContent>

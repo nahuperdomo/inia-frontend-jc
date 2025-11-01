@@ -106,7 +106,7 @@ export default function NotificationsPage() {
             <div className="p-6 max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-6">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col gap-4 mb-4">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                                 <Bell className="w-6 h-6" />
@@ -117,13 +117,13 @@ export default function NotificationsPage() {
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                             <Button
                                 onClick={handleRefresh}
                                 variant="outline"
                                 size="sm"
                                 disabled={loading}
-                                className={cn(loading && "animate-spin")}
+                                className={cn(loading && "animate-spin", "w-full sm:w-auto")}
                             >
                                 <RefreshCw className="w-4 h-4 mr-2" />
                                 Actualizar
@@ -134,6 +134,7 @@ export default function NotificationsPage() {
                                     onClick={handleMarkAllAsRead}
                                     variant="outline"
                                     size="sm"
+                                    className="w-full sm:w-auto"
                                 >
                                     <CheckCircle className="w-4 h-4 mr-2" />
                                     Marcar todas como leídas

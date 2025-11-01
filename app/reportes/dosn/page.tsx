@@ -122,21 +122,21 @@ export default function ReporteDosnPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
           <Link href="/reportes">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-balance">Reporte de DOSN</h1>
-            <p className="text-muted-foreground text-pretty">Métricas y estadísticas de análisis de DOSN</p>
+          <div className="bg-indigo-100 text-indigo-700 rounded-full p-3">
+            <TestTubes className="h-8 w-8" />
           </div>
         </div>
-        <div className="bg-indigo-100 text-indigo-700 rounded-full p-3">
-          <TestTubes className="h-8 w-8" />
+        <div>
+          <h1 className="text-3xl font-bold text-balance">Reporte de DOSN</h1>
+          <p className="text-muted-foreground text-pretty">Métricas y estadísticas de análisis de DOSN</p>
         </div>
       </div>
 

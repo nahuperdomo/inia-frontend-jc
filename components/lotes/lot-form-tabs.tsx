@@ -208,11 +208,11 @@ export function LotFormTabs({
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1">
-            <TabsTrigger value="datos" className="text-xs sm:text-sm">Datos</TabsTrigger>
-            <TabsTrigger value="empresa" className="text-xs sm:text-sm">Empresa</TabsTrigger>
-            <TabsTrigger value="recepcion" className="text-xs sm:text-sm">Recepción y almacenamiento</TabsTrigger>
-            <TabsTrigger value="calidad" className="text-xs sm:text-sm">Calidad</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 h-auto">
+            <TabsTrigger value="datos" className="text-xs sm:text-sm py-2">Datos</TabsTrigger>
+            <TabsTrigger value="empresa" className="text-xs sm:text-sm py-2">Empresa</TabsTrigger>
+            <TabsTrigger value="recepcion" className="text-xs sm:text-sm py-2 whitespace-normal">Recepción y almacenamiento</TabsTrigger>
+            <TabsTrigger value="calidad" className="text-xs sm:text-sm py-2">Calidad</TabsTrigger>
           </TabsList>
 
           {/* Datos Tab */}

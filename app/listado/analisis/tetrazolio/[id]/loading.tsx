@@ -3,7 +3,6 @@ export default function Loading() {
     <div className="space-y-6">
       <div className="flex items-center gap-2">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-600 border-t-transparent" />
-        <h1 className="text-2xl font-bold">Cargando análisis de tetrazolio...</h1>
       </div>
       
       <div className="grid gap-6">

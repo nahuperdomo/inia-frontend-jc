@@ -26,6 +26,8 @@ interface TetrazolioListadoDTO {
   activo?: boolean
   fecha?: string
   viabilidadConRedondeo?: number
+  viabilidadInase?: number
+  viabilidadInaseRedondeo?: number
   usuarioCreador?: string
   usuarioModificador?: string
 }
@@ -378,7 +380,8 @@ export default function ListadoTetrazolioPage() {
                   <TableHead className="whitespace-nowrap">Lote</TableHead>
                   <TableHead className="whitespace-nowrap">Especie</TableHead>
                   <TableHead className="whitespace-nowrap">Estado</TableHead>
-                  <TableHead className="whitespace-nowrap">Viabilidad INIA (%)</TableHead>
+                  <TableHead className="whitespace-nowrap text-center">Viabilidad INIA (%)</TableHead>
+                  <TableHead className="whitespace-nowrap text-center">Viabilidad INASE (%)</TableHead>
                   <TableHead className="whitespace-nowrap">Fecha Inicio</TableHead>
                   <TableHead className="whitespace-nowrap">Fecha Fin</TableHead>
                   <TableHead className="whitespace-nowrap">Acciones</TableHead>
@@ -387,7 +390,7 @@ export default function ListadoTetrazolioPage() {
               <TableBody>
                 {filteredAnalysis.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
+                    <TableCell colSpan={9} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <AlertTriangle className="h-8 w-8 text-muted-foreground" />
                         <p className="text-muted-foreground">No se encontraron análisis de tetrazolio</p>
@@ -398,6 +401,12 @@ export default function ListadoTetrazolioPage() {
                   filteredAnalysis.map((analysis) => {
                     const viabilidadINIA = analysis.viabilidadConRedondeo !== undefined && analysis.viabilidadConRedondeo !== null
                       ? analysis.viabilidadConRedondeo.toFixed(1)
+                      : "N/A"
+                    
+                    // Intentar primero viabilidadInase (valor manual), luego viabilidadInaseRedondeo (calculado)
+                    const valorInase = (analysis as any).viabilidadInase ?? (analysis as any).viabilidadInaseRedondeo
+                    const viabilidadINASE = valorInase !== undefined && valorInase !== null && valorInase !== ''
+                      ? Number(valorInase).toFixed(1)
                       : "N/A"
                     
                     return (
@@ -414,8 +423,11 @@ export default function ListadoTetrazolioPage() {
                             {formatEstado(analysis.estado)}
                           </Badge>
                         </TableCell>
-                        <TableCell className="whitespace-nowrap text-right">
+                        <TableCell className="whitespace-nowrap text-center">
                           {viabilidadINIA}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-center">
+                          {viabilidadINASE}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
                           {formatearFechaLocal(analysis.fechaInicio)}

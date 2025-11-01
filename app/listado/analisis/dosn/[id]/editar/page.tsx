@@ -632,36 +632,35 @@ export default function EditarDosnPage() {
           </CardContent>
         </Card>
 
-        {/*  <Card>
+        {/* Observaciones */}
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-primary/10">
                 <FileText className="h-5 w-5 text-primary" />
               </div>
-              <span className="text-xl">Información General</span>
+              <span className="text-xl">Observaciones</span>
             </CardTitle>
           </CardHeader>
-       
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Label htmlFor="comentarios" className="text-base font-medium">
-                        Comentarios
-                      </Label>
-                      <Textarea
-                        id="comentarios"
-                        value={formData.comentarios}
-                        onChange={(e) => handleInputChange("comentarios", e.target.value)}
-                        placeholder="Ingrese comentarios sobre el análisis..."
-                        rows={5}
-                        className="resize-none text-base"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Agregue observaciones o notas relevantes sobre este análisis
-                      </p>
-                    </div>
-                  </CardContent>
-        
-        </Card>*/}
+          <CardContent>
+            <div className="space-y-3">
+              <Label htmlFor="comentarios" className="text-base font-medium">
+                Comentarios
+              </Label>
+              <Textarea
+                id="comentarios"
+                value={formData.comentarios}
+                onChange={(e) => handleInputChange("comentarios", e.target.value)}
+                placeholder="Comentarios adicionales sobre el análisis..."
+                rows={4}
+                className="resize-none"
+              />
+              <p className="text-xs text-muted-foreground">
+                Agregue observaciones o notas relevantes sobre este análisis
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Análisis INIA */}
         <Card className="border-blue-200 dark:border-blue-900/50">

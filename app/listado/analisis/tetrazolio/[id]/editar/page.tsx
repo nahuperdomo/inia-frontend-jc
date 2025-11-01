@@ -698,7 +698,7 @@ export default function EditarTetrazolioPage() {
           <form onSubmit={handleSubmit}>
             <Card className="border-0 shadow-sm">
               <CardHeader className="border-b bg-muted/50">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <div className="p-2 rounded-lg bg-orange-500/10">
                       <TestTube className="h-5 w-5 text-orange-600" />
@@ -708,6 +708,7 @@ export default function EditarTetrazolioPage() {
                   <TablaToleranciasButton 
                     pdfPath="/tablas-tolerancias/tabla-tetrazolio.pdf" 
                     title="Tabla de Tolerancias"
+                    className="w-full sm:w-auto"
                   />
                 </div>
               </CardHeader>
@@ -779,7 +780,7 @@ export default function EditarTetrazolioPage() {
           {/* Sección de Repeticiones */}
           <Card className="border-0 shadow-sm">
             <CardHeader className="border-b bg-muted/50">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-4">
                 <div>
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <div className="p-2 rounded-lg bg-orange-500/10">
@@ -791,28 +792,31 @@ export default function EditarTetrazolioPage() {
                     Gestionar las repeticiones del análisis de Tetrazolio
                   </p>
                 </div>
-                {tetrazolio.estado !== "APROBADO" && repeticiones.length < (tetrazolio.numRepeticionesEsperadas || 0) && (
-                  <Button 
-                    onClick={() => {
-                      setNuevaRepeticion({
-                        fecha: new Date().toISOString().split('T')[0],
-                        viablesNum: '',
-                        noViablesNum: '',
-                        duras: ''
-                      })
-                      setShowAddRepeticion(true)
-                    }}
-                    size="sm"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Agregar Repetición
-                  </Button>
-                )}
-                {repeticiones.length >= (tetrazolio.numRepeticionesEsperadas || 0) && (
-                  <div className="text-sm text-muted-foreground">
-                    Todas las repeticiones esperadas completadas
-                  </div>
-                )}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  {tetrazolio.estado !== "APROBADO" && repeticiones.length < (tetrazolio.numRepeticionesEsperadas || 0) && (
+                    <Button 
+                      onClick={() => {
+                        setNuevaRepeticion({
+                          fecha: new Date().toISOString().split('T')[0],
+                          viablesNum: '',
+                          noViablesNum: '',
+                          duras: ''
+                        })
+                        setShowAddRepeticion(true)
+                      }}
+                      size="sm"
+                      className="w-full sm:w-auto"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Agregar Repetición
+                    </Button>
+                  )}
+                  {repeticiones.length >= (tetrazolio.numRepeticionesEsperadas || 0) && (
+                    <div className="text-sm text-muted-foreground">
+                      Todas las repeticiones esperadas completadas
+                    </div>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-6 space-y-6">

@@ -60,7 +60,7 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
   return (
     <Card className="border-0 shadow-sm bg-card">
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
               <Scale className="h-6 w-6 text-blue-600" />
@@ -79,6 +79,7 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
             title="Ver Tabla de Tolerancias"
             variant="outline"
             size="sm"
+            className="w-full sm:w-auto"
           />
         </div>
       </CardHeader>

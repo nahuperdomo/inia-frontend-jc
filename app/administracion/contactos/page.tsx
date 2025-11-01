@@ -395,23 +395,21 @@ export default function ContactosPage() {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background border-b">
         <div className="container max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
               <Link href="/administracion">
-                <Button variant="ghost" size="sm" className="mt-1">
+                <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Volver
                 </Button>
               </Link>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-1">
-                  <Users className="h-8 w-8 text-primary" />
-                  <h1 className="text-2xl md:text-3xl font-bold">Gestión de Contactos</h1>
-                </div>
-                <p className="text-sm md:text-base text-muted-foreground">
-                  Administra empresas y clientes del sistema
-                </p>
-              </div>
+              <Users className="h-8 w-8 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">Gestión de Contactos</h1>
+              <p className="text-sm md:text-base text-muted-foreground">
+                Administra empresas y clientes del sistema
+              </p>
             </div>
           </div>
         </div>

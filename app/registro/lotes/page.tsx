@@ -15,7 +15,7 @@ import { LotList } from "@/components/lotes/lot-list"
 import { LotDetailsModal } from "@/components/lotes/lot-details-modal"
 import { AnalysisModal } from "@/components/lotes/analysis-modal"
 
-import { crearLote, obtenerLotesActivos } from "@/app/services/lote-service"
+import { crearLote, obtenerLotesActivos, obtenerLotePorId } from "@/app/services/lote-service"
 import { LoteFormData, loteValidationSchema } from "@/lib/validations/lotes-validation"
 import { LoteRequestDTO } from "@/app/models/interfaces/lote"
 import useValidation from "@/lib/hooks/useValidation"
@@ -205,9 +205,18 @@ export default function RegistroLotesPage() {
     }
   };
 
-  const handleViewDetails = (lot: any) => {
-    setSelectedLot(lot)
-    setIsModalOpen(true)
+  const handleViewDetails = async (lot: any) => {
+    try {
+      // Cargar el lote completo por ID para tener todos los detalles
+      const loteCompleto = await obtenerLotePorId(lot.loteID)
+      setSelectedLot(loteCompleto)
+      setIsModalOpen(true)
+    } catch (error) {
+      console.error("Error al cargar detalles del lote:", error)
+      toast.error('Error al cargar los detalles del lote', {
+        description: 'No se pudieron cargar los detalles completos',
+      })
+    }
   }
 
   const handleCloseModal = () => {
@@ -239,21 +248,21 @@ export default function RegistroLotesPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
           <Link href="/registro">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver al Registro
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-balance">Registro de Lotes</h1>
-            <p className="text-muted-foreground text-pretty">Registra un nuevo lote de semillas en el sistema</p>
+          <div className="flex items-center gap-2">
+            <Package className="h-8 w-8 text-primary" />
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Package className="h-8 w-8 text-primary" />
+        <div>
+          <h1 className="text-3xl font-bold text-balance">Registro de Lotes</h1>
+          <p className="text-muted-foreground text-pretty">Registra un nuevo lote de semillas en el sistema</p>
         </div>
       </div>
 

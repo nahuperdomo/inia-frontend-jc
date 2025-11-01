@@ -274,12 +274,12 @@ export default function GerminacionDetailPage() {
     if (!germinacion) return
     
     try {
-      console.log("🏁 Finalizando análisis Germinación:", germinacion.analisisID)
+      console.log("Finalizando análisis Germinación:", germinacion.analisisID)
       await finalizarGerminacion(germinacion.analisisID)
       alert("Análisis finalizado exitosamente")
       await cargarDatos()
     } catch (err: any) {
-      console.error("❌ Error finalizando análisis:", err)
+      console.error("Error finalizando análisis:", err)
       alert(`Error al finalizar análisis: ${err?.message || "Error desconocido"}`)
     }
   }
@@ -319,13 +319,13 @@ export default function GerminacionDetailPage() {
     if (!germinacion) return
     
     try {
-      console.log("🏁✅ Finalizando y aprobando análisis Germinación:", germinacion.analisisID)
+      console.log("Finalizando y aprobando análisis Germinación:", germinacion.analisisID)
       // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
       await finalizarGerminacion(germinacion.analisisID)
       alert("Análisis finalizado y aprobado exitosamente")
       router.push(`/listado/analisis/germinacion/${germinacion.analisisID}`)
     } catch (err: any) {
-      console.error("❌ Error finalizando y aprobando:", err)
+      console.error("Error finalizando y aprobando:", err)
       alert(`Error al finalizar y aprobar: ${err?.message || "Error desconocido"}`)
     }
   }

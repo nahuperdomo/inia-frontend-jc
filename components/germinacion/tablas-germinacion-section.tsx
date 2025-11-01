@@ -12,6 +12,7 @@ import { RepeticionesManager } from './repeticiones-manager-v2'
 import { Table, Plus, Trash2, CheckCircle, Calculator, Building } from 'lucide-react'
 import { useToast } from '@/lib/hooks/useToast'
 import { useConfirm } from '@/lib/hooks/useConfirm'
+import { cn } from '@/lib/utils'
 import { 
   eliminarTablaGerminacion, 
   finalizarTabla, 
@@ -777,7 +778,7 @@ export function TablasGerminacionSection({
       if (tablaActual && tablaActual.numeroConteos !== tablaEditada.numeroConteos) {
         if (tablaActual.repGerm && tablaActual.repGerm.length > 0) {
           const confirmar = await confirm({
-            title: '⚠️ Cambio en número de conteos',
+            title: 'Cambio en número de conteos',
             message: 'Esto eliminará TODOS los datos de normales ingresados en TODAS las repeticiones.\n\n¿Deseas continuar?',
             confirmText: 'Continuar',
             cancelText: 'Cancelar',
@@ -793,7 +794,7 @@ export function TablasGerminacionSection({
           const diferencia = tablaEditada.numeroRepeticiones - tablaActual.numeroRepeticiones
           if (diferencia < 0) {
             const confirmar = await confirm({
-              title: '⚠️ Reducción de repeticiones',
+              title: 'Reducción de repeticiones',
               message: `Has reducido el número de repeticiones de ${tablaActual.numeroRepeticiones} a ${tablaEditada.numeroRepeticiones}.\n\nEsto eliminará las últimas ${Math.abs(diferencia)} repeticiones guardadas (desde la última hasta la primera).\n\n¿Deseas continuar?`,
               confirmText: 'Continuar',
               cancelText: 'Cancelar',
@@ -1520,7 +1521,7 @@ export function TablasGerminacionSection({
               {/* Sección de Fechas y Conteos */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg flex items-center gap-2">
-                  📅 Fechas y Conteos
+                  Fechas y Conteos
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1544,7 +1545,7 @@ export function TablasGerminacionSection({
                       Fecha en que se inicia el ensayo de germinación
                       {nuevaTabla.fechaInicioGerm && (
                         <span className="block text-blue-600 font-medium mt-0.5">
-                          ✓ {new Date(nuevaTabla.fechaInicioGerm + 'T00:00:00').toLocaleDateString('es-ES')}
+                          {new Date(nuevaTabla.fechaInicioGerm + 'T00:00:00').toLocaleDateString('es-ES')}
                         </span>
                       )}
                     </p>
@@ -1552,7 +1553,7 @@ export function TablasGerminacionSection({
 
                   {/* Fecha Último Conteo */}
                   <div>
-                    <Label className="text-sm font-medium">📆 Fecha Último Conteo *</Label>
+                    <Label className="text-sm font-medium">Fecha Último Conteo *</Label>
                     <Input
                       type="date"
                       value={nuevaTabla.fechaUltConteo}
@@ -1564,7 +1565,7 @@ export function TablasGerminacionSection({
                       Se actualiza automáticamente con el último conteo
                       {nuevaTabla.fechaUltConteo && (
                         <span className="block text-blue-600 font-medium mt-0.5">
-                          ✓ {new Date(nuevaTabla.fechaUltConteo + 'T00:00:00').toLocaleDateString('es-ES')}
+                          {new Date(nuevaTabla.fechaUltConteo + 'T00:00:00').toLocaleDateString('es-ES')}
                         </span>
                       )}
                     </p>
@@ -1670,7 +1671,7 @@ export function TablasGerminacionSection({
                           if (fechaPrimerConteo < fechaMinima) {
                             return (
                               <span className="text-orange-600 font-semibold block mt-1">
-                                ⚠️ El primer conteo debe ser al menos {(nuevaTabla.diasPrefrio || 0) + (nuevaTabla.diasPretratamiento || 0)} días después del inicio (prefrío + pretratamiento)
+                                El primer conteo debe ser al menos {(nuevaTabla.diasPrefrio || 0) + (nuevaTabla.diasPretratamiento || 0)} días después del inicio (prefrío + pretratamiento)
                               </span>
                             )
                           }
@@ -1731,7 +1732,7 @@ export function TablasGerminacionSection({
                             />
                             {index === 0 && fechaMinimaConteo && !tieneFechaInvalida && nuevaTabla.fechaConteos[index] && (
                               <p className="text-xs text-green-600 mt-1">
-                                ✓ Cumple mínimo: {new Date(fechaMinimaConteo + 'T00:00:00').toLocaleDateString('es-ES')}
+                                Cumple mínimo: {new Date(fechaMinimaConteo + 'T00:00:00').toLocaleDateString('es-ES')}
                               </p>
                             )}
                             {index === 0 && fechaMinimaConteo && (!nuevaTabla.fechaConteos[index] || tieneFechaInvalida) && (
@@ -1746,12 +1747,12 @@ export function TablasGerminacionSection({
                             )}
                             {tieneFechaInvalida && (
                               <p className="text-xs text-red-500 mt-1">
-                                ⚠️ Debe ser igual o posterior a la fecha del Conteo {index}
+                                Debe ser igual o posterior a la fecha del Conteo {index}
                               </p>
                             )}
                             {nuevaTabla.fechaConteos[index] && !tieneFechaInvalida && index !== 0 && (
                               <p className="text-xs text-blue-600 mt-1">
-                                ✓ {new Date(nuevaTabla.fechaConteos[index] + 'T00:00:00').toLocaleDateString('es-ES')}
+                                {new Date(nuevaTabla.fechaConteos[index] + 'T00:00:00').toLocaleDateString('es-ES')}
                               </p>
                             )}
                           </div>
@@ -1760,7 +1761,7 @@ export function TablasGerminacionSection({
                     </div>
                     {nuevaTabla.numeroConteos > 1 && (
                       <p className="text-xs text-blue-600 mt-2">
-                        💡 Nota: La fecha del último conteo se guardará automáticamente como Fecha de Último Conteo
+                        Nota: La fecha del último conteo se guardará automáticamente como Fecha de Último Conteo
                       </p>
                     )}
                   </div>
@@ -1770,7 +1771,7 @@ export function TablasGerminacionSection({
                 <div className="mt-6 border-t pt-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm font-medium">🏁 Fecha Final *</Label>
+                      <Label className="text-sm font-medium">Fecha Final *</Label>
                       <Input
                         type="date"
                         value={nuevaTabla.fechaFinal}
@@ -1793,7 +1794,7 @@ export function TablasGerminacionSection({
                         Debe ser igual o posterior a la fecha de último conteo
                         {nuevaTabla.fechaFinal && (
                           <span className="block text-blue-600 font-medium mt-0.5">
-                            ✓ {new Date(nuevaTabla.fechaFinal + 'T00:00:00').toLocaleDateString('es-ES')}
+                            {new Date(nuevaTabla.fechaFinal + 'T00:00:00').toLocaleDateString('es-ES')}
                           </span>
                         )}
                       </p>
@@ -1872,7 +1873,6 @@ export function TablasGerminacionSection({
                           <>
                             <CheckCircle className="h-4 w-4 mr-1" />
                             <span className="hidden sm:inline">Finalizar</span>
-                            <span className="sm:hidden">✓</span>
                           </>
                         )}
                       </Button>
@@ -2271,14 +2271,14 @@ export function TablasGerminacionSection({
                     )}
                     {tablaEditada.fechaInicioGerm && (
                       <p className="text-xs text-blue-600 font-medium mt-1">
-                        ✓ {new Date(tablaEditada.fechaInicioGerm + 'T00:00:00').toLocaleDateString('es-ES')}
+                        {new Date(tablaEditada.fechaInicioGerm + 'T00:00:00').toLocaleDateString('es-ES')}
                       </p>
                     )}
                   </div>
 
                   {/* Fecha Último Conteo */}
                   <div>
-                    <Label className="text-sm font-medium">📆 Fecha Último Conteo *</Label>
+                    <Label className="text-sm font-medium">Fecha Último Conteo *</Label>
                     <Input
                       type="date"
                       value={tablaEditada.fechaUltConteo}
@@ -2290,7 +2290,7 @@ export function TablasGerminacionSection({
                       Se actualiza automáticamente con el último conteo
                       {tablaEditada.fechaUltConteo && (
                         <span className="block text-blue-600 font-medium mt-0.5">
-                          ✓ {new Date(tablaEditada.fechaUltConteo + 'T00:00:00').toLocaleDateString('es-ES')}
+                          {new Date(tablaEditada.fechaUltConteo + 'T00:00:00').toLocaleDateString('es-ES')}
                         </span>
                       )}
                     </p>
@@ -2401,7 +2401,7 @@ export function TablasGerminacionSection({
                           if (fechaPrimerConteo < fechaMinima) {
                             return (
                               <span className="text-orange-600 font-semibold block mt-1">
-                                ⚠️ El primer conteo debe ser al menos {(tablaEditada.diasPrefrio || 0) + (tablaEditada.diasPretratamiento || 0)} días después del inicio (prefrío + pretratamiento)
+                                El primer conteo debe ser al menos {(tablaEditada.diasPrefrio || 0) + (tablaEditada.diasPretratamiento || 0)} días después del inicio (prefrío + pretratamiento)
                               </span>
                             )
                           }
@@ -2462,7 +2462,7 @@ export function TablasGerminacionSection({
                             />
                             {index === 0 && fechaMinimaConteo && !tieneFechaInvalida && tablaEditada.fechaConteos[index] && (
                               <p className="text-xs text-green-600 mt-1">
-                                ✓ Cumple mínimo: {new Date(fechaMinimaConteo + 'T00:00:00').toLocaleDateString('es-ES')}
+                                Cumple mínimo: {new Date(fechaMinimaConteo + 'T00:00:00').toLocaleDateString('es-ES')}
                               </p>
                             )}
                             {index === 0 && fechaMinimaConteo && (!tablaEditada.fechaConteos[index] || tieneFechaInvalida) && (
@@ -2477,12 +2477,12 @@ export function TablasGerminacionSection({
                             )}
                             {tieneFechaInvalida && (
                               <p className="text-xs text-red-500 mt-1">
-                                ⚠️ Debe ser igual o posterior a conteo {index}
+                                Debe ser igual o posterior a conteo {index}
                               </p>
                             )}
                             {tablaEditada.fechaConteos[index] && !tieneFechaInvalida && index !== 0 && (
                               <p className="text-xs text-blue-600 mt-1">
-                                ✓ {new Date(tablaEditada.fechaConteos[index] + 'T00:00:00').toLocaleDateString('es-ES')}
+                                {new Date(tablaEditada.fechaConteos[index] + 'T00:00:00').toLocaleDateString('es-ES')}
                               </p>
                             )}
                           </div>
@@ -2491,7 +2491,7 @@ export function TablasGerminacionSection({
                     </div>
                     {tablaEditada.numeroConteos > 1 && (
                       <p className="text-xs text-blue-600 mt-2">
-                        💡 La fecha del último conteo se guardará automáticamente como Fecha de Último Conteo
+                        La fecha del último conteo se guardará automáticamente como Fecha de Último Conteo
                       </p>
                     )}
                   </div>
@@ -2501,7 +2501,7 @@ export function TablasGerminacionSection({
                 <div className="mt-6 border-t pt-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm font-medium">🏁 Fecha Final *</Label>
+                      <Label className="text-sm font-medium">Fecha Final *</Label>
                       <Input
                         type="date"
                         value={tablaEditada.fechaFinal}
@@ -2524,7 +2524,7 @@ export function TablasGerminacionSection({
                         Debe ser igual o posterior a la fecha de último conteo
                         {tablaEditada.fechaFinal && (
                           <span className="block text-blue-600 font-medium mt-0.5">
-                            ✓ {new Date(tablaEditada.fechaFinal + 'T00:00:00').toLocaleDateString('es-ES')}
+                            {new Date(tablaEditada.fechaFinal + 'T00:00:00').toLocaleDateString('es-ES')}
                           </span>
                         )}
                       </p>
@@ -3132,8 +3132,8 @@ export function TablasGerminacionSection({
                                 }`}>
                                   <p className="text-sm font-medium">
                                     Suma INIA: {calcularSumaValores(valoresInia)}/100
-                                    {calcularSumaValores(valoresInia) > 100 && ' ❌ Excede el límite'}
-                                    {calcularSumaValores(valoresInia) === 100 && ' ✅ Completo'}
+                                    {calcularSumaValores(valoresInia) > 100 && ' Excede el límite'}
+                                    {calcularSumaValores(valoresInia) === 100 && ' Completo'}
                                   </p>
                                   <p className="text-xs opacity-75">
                                     (Excluye germinación)
@@ -3150,8 +3150,8 @@ export function TablasGerminacionSection({
                                 }`}>
                                   <p className="text-sm font-medium">
                                     Suma INASE: {calcularSumaValores(valoresInase)}/100
-                                    {calcularSumaValores(valoresInase) > 100 && ' ❌ Excede el límite'}
-                                    {calcularSumaValores(valoresInase) === 100 && ' ✅ Completo'}
+                                    {calcularSumaValores(valoresInase) > 100 && ' Excede el límite'}
+                                    {calcularSumaValores(valoresInase) === 100 && ' Completo'}
                                   </p>
                                   <p className="text-xs opacity-75">
                                     (Excluye germinación)
@@ -3160,10 +3160,11 @@ export function TablasGerminacionSection({
                               </div>
                             </div>
                             
-                            <div className="flex justify-end gap-2">
+                            <div className="flex flex-col sm:flex-row justify-end gap-2">
                               <Button
                                 variant="outline"
                                 onClick={handleCancelarValores}
+                                className="w-full sm:w-auto"
                               >
                                 Cancelar
                               </Button>
@@ -3171,11 +3172,12 @@ export function TablasGerminacionSection({
                               <Button
                                 onClick={() => handleGuardarValores(tabla.tablaGermID)}
                                 disabled={!hanCambiadoValores()}
-                                className={
+                                className={cn(
                                   hanCambiadoValores() 
                                     ? 'bg-purple-600 hover:bg-purple-700' 
-                                    : 'bg-gray-400 hover:bg-gray-500 cursor-not-allowed'
-                                }
+                                    : 'bg-gray-400 hover:bg-gray-500 cursor-not-allowed',
+                                  'w-full sm:w-auto'
+                                )}
                               >
                                 {hanCambiadoValores() ? 'Guardar Cambios' : 'Sin Cambios'}
                               </Button>

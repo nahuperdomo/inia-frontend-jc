@@ -268,6 +268,7 @@ export default function DetallePMSPage() {
           <TablaToleranciasButton 
             pdfPath="/tablas-tolerancias/tabla-pms.pdf" 
             title="Tabla de Tolerancias"
+            className="w-full sm:w-auto"
           />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

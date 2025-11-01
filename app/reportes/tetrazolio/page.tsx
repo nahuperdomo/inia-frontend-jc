@@ -46,23 +46,23 @@ export default function ReporteTetrazolioPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
           <Link href="/reportes">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-balance">Reporte de Tetrazolio</h1>
-            <p className="text-muted-foreground text-pretty">
-              Métricas y estadísticas de análisis de viabilidad
-            </p>
+          <div className="bg-amber-100 text-amber-700 rounded-full p-3">
+            <TestTube className="h-8 w-8" />
           </div>
         </div>
-        <div className="bg-amber-100 text-amber-700 rounded-full p-3">
-          <TestTube className="h-8 w-8" />
+        <div>
+          <h1 className="text-3xl font-bold text-balance">Reporte de Tetrazolio</h1>
+          <p className="text-muted-foreground text-pretty">
+            Métricas y estadísticas de análisis de viabilidad
+          </p>
         </div>
       </div>
 

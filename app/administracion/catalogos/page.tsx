@@ -770,23 +770,21 @@ export default function CatalogosPage() {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background border-b">
         <div className="container max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
               <Link href="/administracion">
-                <Button variant="ghost" size="sm" className="mt-1">
+                <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Volver
                 </Button>
               </Link>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-1">
-                  <Database className="h-8 w-8 text-primary" />
-                  <h1 className="text-2xl md:text-3xl font-bold">Gestión de Catálogos</h1>
-                </div>
-                <p className="text-sm md:text-base text-muted-foreground">
-                  Administra catálogos, especies y cultivares del sistema
-                </p>
-              </div>
+              <Database className="h-8 w-8 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">Gestión de Catálogos</h1>
+              <p className="text-sm md:text-base text-muted-foreground">
+                Administra catálogos, especies y cultivares del sistema
+              </p>
             </div>
           </div>
         </div>
@@ -834,20 +832,20 @@ export default function CatalogosPage() {
 
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-6">
-                <TabsTrigger value="catalogos" className="text-sm sm:text-base">
+              <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2 mb-6 h-auto">
+                <TabsTrigger value="catalogos" className="text-sm sm:text-base py-2">
                   <Database className="h-4 w-4 mr-2" />
                   Catálogos
                 </TabsTrigger>
-                <TabsTrigger value="especies" className="text-sm sm:text-base">
+                <TabsTrigger value="especies" className="text-sm sm:text-base py-2">
                   <Leaf className="h-4 w-4 mr-2" />
                   Especies
                 </TabsTrigger>
-                <TabsTrigger value="cultivares" className="text-sm sm:text-base">
+                <TabsTrigger value="cultivares" className="text-sm sm:text-base py-2">
                   <Sprout className="h-4 w-4 mr-2" />
                   Cultivares
                 </TabsTrigger>
-                <TabsTrigger value="malezas" className="text-sm sm:text-base">
+                <TabsTrigger value="malezas" className="text-sm sm:text-base py-2">
                   <Bug className="h-4 w-4 mr-2" />
                   Malezas
                 </TabsTrigger>

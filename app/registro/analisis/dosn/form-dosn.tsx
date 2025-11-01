@@ -12,6 +12,13 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Tabs,
   TabsList,
   TabsTrigger,
@@ -26,6 +33,8 @@ import {
   FileText,
   Building2,
   ClipboardList,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react"
 
 import MalezaFields from "@/components/malezas-u-otros-cultivos/fields-maleza"
@@ -124,7 +133,7 @@ export default function DosnFields({
     return (
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${color}`}>
                 {icon}
@@ -144,6 +153,7 @@ export default function DosnFields({
                 title="Ver Tabla de Tolerancias"
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
               />
             )}
           </div>
@@ -300,6 +310,72 @@ export default function DosnFields({
           <TabsContent value="generales" className="space-y-6">
             {renderInstitutionSection("INIA", <Building2 className="h-5 w-5 text-emerald-600" />, "bg-emerald-50")}
             {renderInstitutionSection("INASE", <Building2 className="h-5 w-5 text-blue-600" />, "bg-blue-50")}
+
+            {/* Card: Cumple Estándar */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                  Cumplimiento del Estándar
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Estado de cumplimiento</Label>
+                  <Select
+                    value={formData.cumpleEstandar || ""}
+                    onValueChange={(value) => handleInputChange("cumpleEstandar", value)}
+                  >
+                    <SelectTrigger className="w-full h-11 border rounded-md shadow-sm transition-all duration-200 focus:ring-2 focus:ring-primary/20">
+                      <SelectValue placeholder="Seleccionar estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="si">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                          Cumple con el estándar
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="no">
+                        <div className="flex items-center gap-2">
+                          <XCircle className="h-4 w-4 text-red-500" />
+                          No cumple con el estándar
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Mensaje dinámico */}
+                {formData.cumpleEstandar && (
+                  <div
+                    className={`mt-4 rounded-lg border p-4 transition-colors ${formData.cumpleEstandar === "si"
+                      ? "bg-emerald-50 border-emerald-200"
+                      : "bg-red-50 border-red-200"
+                      }`}
+                  >
+                    <div
+                      className={`flex items-center gap-2 ${formData.cumpleEstandar === "si"
+                        ? "text-emerald-800"
+                        : "text-red-800"
+                        }`}
+                    >
+                      {formData.cumpleEstandar === "si" ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4" />
+                          <span className="font-semibold">La muestra cumple con los estándares establecidos</span>
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="h-4 w-4" />
+                          <span className="font-semibold">La muestra NO cumple con los estándares establecidos</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="registros" className="space-y-6 mt-6">

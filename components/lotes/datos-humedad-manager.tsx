@@ -53,14 +53,14 @@ export function DatosHumedadManager({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
           <Droplet className="h-4 w-4" />
           Datos de Humedad
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {datos.map((dato, index) => (
-          <div key={index} className="flex items-end gap-3 p-3 bg-gray-50 rounded-lg">
+          <div key={index} className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-3 p-3 bg-gray-50 rounded-lg">
             <div className="flex-1">
               <Label className="text-xs font-medium text-muted-foreground">
                 Tipo de Humedad
@@ -69,7 +69,7 @@ export function DatosHumedadManager({
                 value={dato.tipoHumedadID?.toString() || ""}
                 onValueChange={(value) => handleDatoChange(index, 'tipoHumedadID', value)}
               >
-                <SelectTrigger className="h-8 text-sm">
+                <SelectTrigger className="h-9 sm:h-8 text-sm mt-1">
                   <SelectValue placeholder="Seleccionar tipo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -98,7 +98,7 @@ export function DatosHumedadManager({
                 max="100"
                 value={dato.valor?.toString() || ""}
                 onChange={(e) => handleDatoChange(index, 'valor', e.target.value)}
-                className="h-8 text-sm"
+                className="h-9 sm:h-8 text-sm mt-1"
                 placeholder="0.0"
               />
               {hasError && hasError(`valorHumedad_${index}`) && (
@@ -114,9 +114,10 @@ export function DatosHumedadManager({
               size="sm"
               onClick={() => handleRemoveDato(index)}
               disabled={datos.length <= 1}
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+              className="h-9 sm:h-8 w-full sm:w-8 p-0 text-muted-foreground hover:text-destructive"
             >
-              <Trash2 className="h-3 w-3" />
+              <Trash2 className="h-4 w-4 sm:h-3 sm:w-3" />
+              <span className="sm:hidden ml-2">Eliminar</span>
             </Button>
           </div>
         ))}
@@ -126,9 +127,9 @@ export function DatosHumedadManager({
           variant="outline"
           size="sm"
           onClick={handleAddDato}
-          className="w-full h-8 text-sm"
+          className="w-full h-9 sm:h-8 text-sm"
         >
-          <Plus className="h-3 w-3 mr-2" />
+          <Plus className="h-4 w-4 sm:h-3 sm:w-3 mr-2" />
           Agregar Dato de Humedad
         </Button>
       </CardContent>

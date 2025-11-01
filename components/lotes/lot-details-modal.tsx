@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Edit, Save } from "lucide-react"
+import { Edit, ExternalLink } from "lucide-react"
 import { AnalysisModal } from "./analysis-modal"
 import { DatosSection } from "./sections/DatosSection"
 import { EmpresaSection } from "./sections/EmpresaSection"
@@ -28,42 +29,22 @@ export function LotDetailsModal({
   onShowAnalysis,
   onViewAnalysis,
 }: LotDetailsModalProps) {
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [editFormData, setEditFormData] = useState<any>({})
+  const router = useRouter()
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false)
   const [analysisType, setAnalysisType] = useState<string>("")
   const [analysisMode, setAnalysisMode] = useState<"create" | "view">("create")
 
-  const especies = ["Soja", "Maíz", "Trigo", "Arroz", "Girasol", "Sorgo", "Cebada"]
-  const origenes = ["Nacional", "Importado", "Propio", "Terceros"]
-
-  const handleEditToggle = () => {
-    if (!isEditMode) {
-      setEditFormData({ ...lot })
+  const handleEditClick = () => {
+    if (lot?.loteID) {
+      router.push(`/listado/lotes/${lot.loteID}/editar`)
+      onClose()
     }
-    setIsEditMode(!isEditMode)
-  }
-
-  const handleEditFormChange = (field: string, value: string) => {
-    setEditFormData((prev: any) => ({ ...prev, [field]: value }))
-  }
-
-  const handleSaveEdit = async () => {
-    setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      onEdit(editFormData)
-      setIsEditMode(false)
-      setIsLoading(false)
-    }, 1000)
   }
 
   const handleCreateAnalysis = (type: string) => {
     if (type === "pureza-fisica") {
       onShowAnalysis()
     }
-    // Handle other analysis types here
   }
 
   const handleViewAnalysis = (type: string) => {
@@ -77,40 +58,27 @@ export function LotDetailsModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="w-[70vw] min-w-[800px] max-w-none max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-6 border-b">
-            <DialogTitle className="text-2xl font-bold">{lot.numeroReferencia || `Lote #${lot.loteID}`}</DialogTitle>
-            <div className="flex gap-2">
-              {isEditMode ? (
-                <>
-                  <Button variant="outline" size="sm" onClick={() => setIsEditMode(false)}>
-                    Cancelar
-                  </Button>
-                  <Button size="sm" onClick={handleSaveEdit} disabled={isLoading} className="gap-2">
-                    <Save className="h-4 w-4" />
-                    {isLoading ? "Guardando..." : "Guardar"}
-                  </Button>
-                </>
-              ) : (
-                <Button variant="outline" size="sm" className="gap-2 bg-transparent" onClick={handleEditToggle}>
-                  <Edit className="h-4 w-4" />
-                  EDITAR
-                </Button>
-              )}
-            </div>
+        <DialogContent className="w-[95vw] sm:w-[85vw] lg:w-[70vw] max-w-[1200px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+          <DialogHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 pb-4 sm:pb-6 border-b">
+            <DialogTitle className="text-xl sm:text-2xl font-bold break-words">
+              {lot.ficha || `Lote #${lot.loteID}`}
+            </DialogTitle>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 bg-transparent w-full sm:w-auto" 
+              onClick={handleEditClick}
+            >
+              <Edit className="h-4 w-4" />
+              Editar Lote
+              <ExternalLink className="h-3 w-3" />
+            </Button>
           </DialogHeader>
 
-          <div className="space-y-8 py-6">
+          <div className="space-y-6 sm:space-y-8 py-4 sm:py-6">
             <div className="space-y-6">
               {/* Datos Section */}
-              <DatosSection
-                lot={lot}
-                isEditMode={isEditMode}
-                editFormData={editFormData}
-                handleEditFormChange={handleEditFormChange}
-                especies={especies}
-                origenes={origenes}
-              />
+              <DatosSection lot={lot} />
 
               {/* Empresa Section */}
               <EmpresaSection lot={lot} />

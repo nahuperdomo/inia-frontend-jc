@@ -92,13 +92,13 @@ export function AnalisisHeaderBar({
             </div>
 
             {!ocultarBotonEdicion && (
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:gap-3 w-full sm:w-auto">
                 {modoEdicion ? (
                   <>
                     <Button
                       size="lg"
                       variant="outline"
-                      className="gap-2"
+                      className="gap-2 w-full sm:w-auto"
                       onClick={onToggleEdicion}
                       disabled={guardando}
                     >
@@ -106,7 +106,7 @@ export function AnalisisHeaderBar({
                     </Button>
                     <Button
                       size="lg"
-                      className="gap-2"
+                      className="gap-2 w-full sm:w-auto"
                       onClick={onGuardarCambios}
                       disabled={guardando || !tieneCambios}
                     >
@@ -117,7 +117,7 @@ export function AnalisisHeaderBar({
                 ) : (
                   <Button
                     size="lg"
-                    className="gap-2"
+                    className="gap-2 w-full sm:w-auto"
                     onClick={onToggleEdicion}
                   >
                     <Edit className="h-4 w-4" />

@@ -296,6 +296,7 @@ export default function PurezaDetailPage() {
               title="Ver Tabla de Tolerancias"
               variant="outline"
               size="sm"
+              className="w-full sm:w-auto"
             />
           </div>
           
