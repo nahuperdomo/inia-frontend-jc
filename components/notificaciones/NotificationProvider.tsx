@@ -70,13 +70,13 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
     const { user, isLoading: authLoading } = useAuth();
     const shouldLoadNotifications = !authLoading && !!user && user.role !== 'observador';
 
-    // Memoizar opciones para evitar recreación en cada render
-    const notificationOptions = React.useMemo(() => ({
+    // Opciones de notificación - simplificadas sin useMemo problemático
+    const notificationOptions = {
         autoRefresh: shouldLoadNotifications && enableAutoRefresh,
         refreshInterval: autoRefreshInterval,
         showToasts: shouldLoadNotifications,
         enableSmartPolling: shouldLoadNotifications && enableSmartPolling
-    }), [shouldLoadNotifications, enableAutoRefresh, autoRefreshInterval, enableSmartPolling]);
+    };
 
     // Hook de notificaciones - solo se activa si el usuario puede recibir notificaciones
     const {
