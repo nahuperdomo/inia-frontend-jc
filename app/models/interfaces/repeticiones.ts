@@ -90,8 +90,8 @@ export interface TablaGermDTO {
   tienePretratamiento: boolean;
   descripcionPretratamiento?: string;
   diasPrefrio: number;
-  diasPretratamiento: number;
-  fechaInicioGerm: string;
+  fechaIngreso: string; // Nueva fecha de ingreso
+  fechaGerminacion: string; // Renombrado de fechaInicioGerm
   fechaConteos: string[];
   fechaUltConteo: string;
   numDias: number;
@@ -124,8 +124,8 @@ export interface TablaGermRequestDTO {
   tienePretratamiento: boolean;
   descripcionPretratamiento?: string;
   diasPrefrio: number;
-  diasPretratamiento: number;
-  fechaInicioGerm: string;
+  fechaIngreso: string; // Nueva fecha de ingreso
+  fechaGerminacion: string; // Renombrado de fechaInicioGerm
   fechaConteos: string[];
   fechaUltConteo: string;
   numDias: number;

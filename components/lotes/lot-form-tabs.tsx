@@ -1,5 +1,5 @@
 "use client"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { useAsyncValidation } from "@/lib/hooks/useAsyncValidation"
 import { LotFormTabsProps } from "./types"
 import { AlertCircle } from "lucide-react"
@@ -69,8 +69,16 @@ export function LotFormTabs({
     
     return null;
   };
+  
   // Use React Query hook for all catalogs - centralized caching
-  const { data: catalogsData, isLoading: catalogsLoading, isError } = useAllCatalogs()
+  const { data: catalogsData, isLoading: catalogsLoading, isError, refetch } = useAllCatalogs()
+
+  // Refrescar catálogos cuando se cambia a la tab de empresa o datos
+  useEffect(() => {
+    if (activeTab === "empresa" || activeTab === "datos") {
+      refetch()
+    }
+  }, [activeTab, refetch])
 
   // Opciones estáticas
   const tipoOptions = useMemo(() => [

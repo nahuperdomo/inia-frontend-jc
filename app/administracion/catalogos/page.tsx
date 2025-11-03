@@ -195,8 +195,9 @@ export default function CatalogosPage() {
   useEffect(() => {
     if (activeTab === "especies") {
       fetchEspecies(0)
-      loadEspeciesActivas() // Para el selector de cultivares
     }
+    // Cargar especies activas para el selector de cultivares
+    loadEspeciesActivas()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filtroEspecie]) // searchTerm NO debe estar aquí
 
@@ -204,6 +205,8 @@ export default function CatalogosPage() {
   useEffect(() => {
     if (activeTab === "cultivares") {
       fetchCultivares(0)
+      // Cargar especies activas al entrar al tab de cultivares
+      loadEspeciesActivas()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filtroCultivar]) // searchTerm NO debe estar aquí
@@ -567,7 +570,10 @@ export default function CatalogosPage() {
   }
 
   // Handlers para Cultivares
-  const handleCreateCultivar = () => {
+  const handleCreateCultivar = async () => {
+    // Cargar especies activas antes de abrir el diálogo
+    await loadEspeciesActivas()
+    
     setCultivarForm({
       nombre: "",
       especieID: especiesActivas.length > 0 ? especiesActivas[0].especieID : 0
@@ -578,7 +584,10 @@ export default function CatalogosPage() {
     setDialogOpen(true)
   }
 
-  const handleEditCultivar = (cultivar: CultivarDTO) => {
+  const handleEditCultivar = async (cultivar: CultivarDTO) => {
+    // Cargar especies activas antes de abrir el diálogo
+    await loadEspeciesActivas()
+    
     setCultivarForm({
       nombre: cultivar.nombre || "",
       especieID: cultivar.especieID || 0

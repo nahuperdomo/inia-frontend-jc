@@ -88,8 +88,8 @@ export function TablasGerminacionSection({
     tienePretratamiento: false,
     descripcionPretratamiento: '',
     diasPrefrio: 0,
-    diasPretratamiento: 0,
-    fechaInicioGerm: '',
+    fechaIngreso: '',
+    fechaGerminacion: '',
     fechaConteos: [],
     fechaUltConteo: '',
     numDias: 0,
@@ -109,8 +109,8 @@ export function TablasGerminacionSection({
     tienePretratamiento: false,
     descripcionPretratamiento: '',
     diasPrefrio: 0,
-    diasPretratamiento: 0,
-    fechaInicioGerm: '',
+    fechaIngreso: '',
+    fechaGerminacion: '',
     fechaConteos: [],
     fechaUltConteo: '',
     numDias: 0,
@@ -275,15 +275,24 @@ export function TablasGerminacionSection({
   }
 
   // Función para calcular la fecha mínima del primer conteo
+  // Los días de prefrío se cuentan entre fechaIngreso y fechaGerminacion
+  // Por lo tanto, el primer conteo solo debe ser posterior a fechaGerminacion
   const calcularFechaMinimaConteo = (tabla: any) => {
-    if (!tabla.fechaInicioGerm) return null
+    if (!tabla.fechaGerminacion) return null
+    return tabla.fechaGerminacion
+  }
+
+  // Función para calcular la fecha mínima de germinación
+  // fechaGerminacion debe ser al menos fechaIngreso + diasPrefrio
+  const calcularFechaMinimaGerminacion = (tabla: any) => {
+    if (!tabla.fechaIngreso) return null
     
-    const diasTotales = (tabla.diasPrefrio || 0) + (tabla.diasPretratamiento || 0)
-    if (diasTotales === 0) return tabla.fechaInicioGerm
+    const diasPrefrio = tabla.diasPrefrio || 0
+    if (diasPrefrio === 0) return tabla.fechaIngreso
     
-    const fechaInicio = new Date(tabla.fechaInicioGerm + 'T00:00:00')
-    fechaInicio.setDate(fechaInicio.getDate() + diasTotales)
-    return fechaInicio.toISOString().split('T')[0]
+    const fechaIngreso = new Date(tabla.fechaIngreso + 'T00:00:00')
+    fechaIngreso.setDate(fechaIngreso.getDate() + diasPrefrio)
+    return fechaIngreso.toISOString().split('T')[0]
   }
 
   const validarDatosTabla = (tabla: any) => {
@@ -293,7 +302,8 @@ export function TablasGerminacionSection({
       { campo: 'metodo', nombre: 'Método' },
       { campo: 'numSemillasPRep', nombre: 'Número de semillas por repetición' },
       { campo: 'temperatura', nombre: 'Temperatura' },
-      { campo: 'fechaInicioGerm', nombre: 'Fecha de inicio de germinación' },
+      { campo: 'fechaIngreso', nombre: 'Fecha de ingreso' },
+      { campo: 'fechaGerminacion', nombre: 'Fecha de germinación' },
       { campo: 'fechaUltConteo', nombre: 'Fecha de último conteo' },
       { campo: 'numeroRepeticiones', nombre: 'Número de repeticiones' },
       { campo: 'numeroConteos', nombre: 'Número de conteos' }
@@ -308,23 +318,32 @@ export function TablasGerminacionSection({
     }
     
     // Validación de fechas de la tabla misma
-    if (tabla.fechaInicioGerm && tabla.fechaUltConteo) {
-      const fechaInicio = new Date(tabla.fechaInicioGerm)
-      const fechaUltConteo = new Date(tabla.fechaUltConteo)
+    if (tabla.fechaIngreso && tabla.fechaGerminacion) {
+      const fechaIngreso = new Date(tabla.fechaIngreso)
+      const fechaGerminacion = new Date(tabla.fechaGerminacion)
       
-      if (fechaInicio >= fechaUltConteo) {
-        errores.push('Fecha de inicio debe ser anterior a la fecha de último conteo')
+      if (fechaIngreso >= fechaGerminacion) {
+        errores.push('Fecha de germinación debe ser posterior a la fecha de ingreso')
       }
     }
     
-    // Validación adicional para fechaFinal (debe estar entre fechaInicioGerm y fechaUltConteo de la tabla)
-    if (tabla.fechaFinal && tabla.fechaInicioGerm && tabla.fechaUltConteo) {
+    if (tabla.fechaGerminacion && tabla.fechaUltConteo) {
+      const fechaGerminacion = new Date(tabla.fechaGerminacion)
+      const fechaUltConteo = new Date(tabla.fechaUltConteo)
+      
+      if (fechaGerminacion >= fechaUltConteo) {
+        errores.push('Fecha de último conteo debe ser posterior a la fecha de germinación')
+      }
+    }
+    
+    // Validación adicional para fechaFinal (debe estar entre fechaGerminacion y fechaUltConteo de la tabla)
+    if (tabla.fechaFinal && tabla.fechaGerminacion && tabla.fechaUltConteo) {
       const fechaFinal = new Date(tabla.fechaFinal + 'T00:00:00')
-      const fechaInicio = new Date(tabla.fechaInicioGerm + 'T00:00:00')
+      const fechaGerminacion = new Date(tabla.fechaGerminacion + 'T00:00:00')
       const fechaUltConteo = new Date(tabla.fechaUltConteo + 'T00:00:00')
       
-      if (fechaFinal < fechaInicio) {
-        errores.push('Fecha final debe ser posterior o igual a la fecha de inicio de germinación')
+      if (fechaFinal < fechaGerminacion) {
+        errores.push('Fecha final debe ser posterior o igual a la fecha de germinación')
       } else if (fechaFinal < fechaUltConteo) {
         errores.push('Fecha final debe ser igual o posterior a la fecha de último conteo')
       }
@@ -348,20 +367,20 @@ export function TablasGerminacionSection({
       }
       
       // Validar que cada fecha esté en el rango correcto
-      if (tabla.fechaInicioGerm && tabla.fechaUltConteo) {
-        const fechaInicio = new Date(tabla.fechaInicioGerm)
+      if (tabla.fechaGerminacion && tabla.fechaUltConteo) {
+        const fechaGerminacion = new Date(tabla.fechaGerminacion)
         const fechaUltConteo = new Date(tabla.fechaUltConteo)
         const fechaMinimaConteo = calcularFechaMinimaConteo(tabla)
         
         fechasValidas.forEach((fecha: string, index: number) => {
           const fechaConteo = new Date(fecha)
           
-          // Validar primer conteo (debe ser al menos diasPrefrio + diasPretratamiento después del inicio)
+          // Validar primer conteo (debe ser al menos diasPrefrio después de la germinación)
           if (index === 0 && fechaMinimaConteo) {
             const fechaMinima = new Date(fechaMinimaConteo)
             if (fechaConteo < fechaMinima) {
-              const diasRequeridos = (tabla.diasPrefrio || 0) + (tabla.diasPretratamiento || 0)
-              errores.push(`Primer conteo debe ser al menos ${diasRequeridos} días después del inicio (prefrío + pretratamiento)`)
+              const diasRequeridos = tabla.diasPrefrio || 0
+              errores.push(`Primer conteo debe ser al menos ${diasRequeridos} días después de la germinación (prefrío)`)
             }
           }
           
@@ -373,8 +392,8 @@ export function TablasGerminacionSection({
             }
           }
           
-          if (fechaConteo < fechaInicio || fechaConteo > fechaUltConteo) {
-            errores.push(`Fecha de conteo ${index + 1} debe estar entre la fecha de inicio y último conteo`)
+          if (fechaConteo < fechaGerminacion || fechaConteo > fechaUltConteo) {
+            errores.push(`Fecha de conteo ${index + 1} debe estar entre la fecha de germinación y último conteo`)
           }
         })
       }
@@ -396,37 +415,58 @@ export function TablasGerminacionSection({
         } else {
           // Validar que esté en el rango correcto (usando fechas de la tabla)
           const fechaFinal = new Date(valor + 'T00:00:00')
-          const fechaInicio = datosTabla.fechaInicioGerm ? new Date(datosTabla.fechaInicioGerm + 'T00:00:00') : null
+          const fechaGerminacion = datosTabla.fechaGerminacion ? new Date(datosTabla.fechaGerminacion + 'T00:00:00') : null
           const fechaUltConteo = datosTabla.fechaUltConteo ? new Date(datosTabla.fechaUltConteo + 'T00:00:00') : null
           
-          if (fechaInicio && fechaFinal < fechaInicio) {
-            nuevosErrores[campo] = 'La fecha final debe ser posterior o igual a la fecha de inicio de germinación de esta tabla'
+          if (fechaGerminacion && fechaFinal < fechaGerminacion) {
+            nuevosErrores[campo] = 'La fecha final debe ser posterior o igual a la fecha de germinación de esta tabla'
           } else if (fechaUltConteo && fechaFinal < fechaUltConteo) {
             nuevosErrores[campo] = 'La fecha final debe ser igual o posterior a la fecha de último conteo de esta tabla'
           } else {
             delete nuevosErrores[campo]
           }
         }
-      } else if (campo === 'fechaInicioGerm') {
+      } else if (campo === 'fechaIngreso') {
         if (!valor || valor === '') {
-          nuevosErrores[campo] = 'Fecha de inicio de germinación es requerida'
+          nuevosErrores[campo] = 'Fecha de ingreso es requerida'
         } else {
           delete nuevosErrores[campo]
+        }
+      } else if (campo === 'fechaGerminacion') {
+        if (!valor || valor === '') {
+          nuevosErrores[campo] = 'Fecha de germinación es requerida'
+        } else {
+          const fechaGerminacion = new Date(valor + 'T00:00:00')
+          const fechaIngreso = datosTabla.fechaIngreso ? new Date(datosTabla.fechaIngreso + 'T00:00:00') : null
+          
+          if (fechaIngreso && fechaGerminacion <= fechaIngreso) {
+            nuevosErrores[campo] = 'La fecha de germinación debe ser posterior a la fecha de ingreso'
+          } else if (fechaIngreso && datosTabla.diasPrefrio > 0) {
+            // Validar que haya al menos diasPrefrio días entre fechaIngreso y fechaGerminacion
+            const fechaMinimaGerm = calcularFechaMinimaGerminacion(datosTabla)
+            if (fechaMinimaGerm && fechaGerminacion < new Date(fechaMinimaGerm + 'T00:00:00')) {
+              nuevosErrores[campo] = `Debe haber al menos ${datosTabla.diasPrefrio} días entre ingreso y germinación (prefrío)`
+            } else {
+              delete nuevosErrores[campo]
+            }
+          } else {
+            delete nuevosErrores[campo]
+          }
         }
       } else if (campo === 'fechaUltConteo') {
         if (!valor || valor === '') {
           nuevosErrores[campo] = 'Fecha de último conteo es requerida'
         } else {
           const fechaUltConteo = new Date(valor)
-          const fechaInicio = datosTabla.fechaInicioGerm ? new Date(datosTabla.fechaInicioGerm) : null
+          const fechaGerminacion = datosTabla.fechaGerminacion ? new Date(datosTabla.fechaGerminacion) : null
           
-          if (fechaInicio && fechaUltConteo <= fechaInicio) {
-            nuevosErrores[campo] = 'La fecha de último conteo debe ser posterior a la fecha de inicio'
+          if (fechaGerminacion && fechaUltConteo <= fechaGerminacion) {
+            nuevosErrores[campo] = 'La fecha de último conteo debe ser posterior a la fecha de germinación'
           } else {
             delete nuevosErrores[campo]
             // Calcular automáticamente los días
-            if (fechaInicio) {
-              const dias = Math.ceil((fechaUltConteo.getTime() - fechaInicio.getTime()) / (1000 * 60 * 60 * 24))
+            if (fechaGerminacion) {
+              const dias = Math.ceil((fechaUltConteo.getTime() - fechaGerminacion.getTime()) / (1000 * 60 * 60 * 24))
               if (esNuevaTabla) {
                 setNuevaTabla(prev => ({ ...prev, numDias: dias }))
               } else {
@@ -530,8 +570,8 @@ export function TablasGerminacionSection({
         tienePretratamiento: false,
         descripcionPretratamiento: '',
         diasPrefrio: 0,
-        diasPretratamiento: 0,
-        fechaInicioGerm: '',
+        fechaIngreso: '',
+        fechaGerminacion: '',
         fechaConteos: [],
         fechaUltConteo: '',
         numDias: 0,
@@ -651,8 +691,8 @@ export function TablasGerminacionSection({
       tienePretratamiento: tabla.tienePretratamiento || false,
       descripcionPretratamiento: tabla.descripcionPretratamiento || '',
       diasPrefrio: tabla.diasPrefrio || 0,
-      diasPretratamiento: tabla.diasPretratamiento || 0,
-      fechaInicioGerm: tabla.fechaInicioGerm || '',
+      fechaIngreso: tabla.fechaIngreso || '',
+      fechaGerminacion: tabla.fechaGerminacion || '',
       fechaConteos: tabla.fechaConteos || [],
       fechaUltConteo: tabla.fechaUltConteo || '',
       numDias: tabla.numDias || 0,
@@ -1434,6 +1474,9 @@ export function TablasGerminacionSection({
                             ))}
                           </SelectContent>
                         </Select>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Días entre fecha de ingreso y fecha de germinación
+                        </p>
                       </div>
                     </div>
                   )}
@@ -1449,8 +1492,7 @@ export function TablasGerminacionSection({
                       onChange={(e) => setNuevaTabla(prev => ({
                         ...prev,
                         tienePretratamiento: e.target.checked,
-                        descripcionPretratamiento: e.target.checked ? prev.descripcionPretratamiento : '',
-                        diasPretratamiento: e.target.checked ? prev.diasPretratamiento : 0
+                        descripcionPretratamiento: e.target.checked ? prev.descripcionPretratamiento : ''
                       }))}
                       className="h-4 w-4"
                     />
@@ -1494,22 +1536,6 @@ export function TablasGerminacionSection({
                           />
                         )}
                       </div>
-                      <div>
-                        <Label className="text-sm">Días de Pretratamiento *</Label>
-                        <Select
-                          value={nuevaTabla.diasPretratamiento === 0 ? '' : nuevaTabla.diasPretratamiento.toString()}
-                          onValueChange={(value) => setNuevaTabla(prev => ({ ...prev, diasPretratamiento: parseInt(value) }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccionar días" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: 10 }, (_, i) => i + 1).map(day => (
-                              <SelectItem key={day} value={day.toString()}>{day} días</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
                     </div>
                   )}
                 </div>
@@ -1525,27 +1551,59 @@ export function TablasGerminacionSection({
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Fecha Inicio Germinación */}
+                  {/* Fecha de Ingreso */}
                   <div>
-                    <Label className="text-sm font-medium">📆 Fecha Inicio Germinación *</Label>
+                    <Label className="text-sm font-medium">📅 Fecha de Ingreso *</Label>
                     <Input
                       type="date"
-                      value={nuevaTabla.fechaInicioGerm}
+                      value={nuevaTabla.fechaIngreso}
                       onChange={(e) => setNuevaTabla(prev => ({ 
                         ...prev, 
-                        fechaInicioGerm: e.target.value 
+                        fechaIngreso: e.target.value 
                       }))}
-                      className={erroresValidacionNuevaTabla.fechaInicioGerm ? "border-red-500 focus:border-red-500" : ""}
+                      className={erroresValidacionNuevaTabla.fechaIngreso ? "border-red-500 focus:border-red-500" : ""}
                       lang="es-ES"
                     />
-                    {erroresValidacionNuevaTabla.fechaInicioGerm && (
-                      <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.fechaInicioGerm}</p>
+                    {erroresValidacionNuevaTabla.fechaIngreso && (
+                      <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.fechaIngreso}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Fecha en que ingresa la muestra
+                      {nuevaTabla.fechaIngreso && (
+                        <span className="block text-blue-600 font-medium mt-0.5">
+                          {new Date(nuevaTabla.fechaIngreso + 'T00:00:00').toLocaleDateString('es-ES')}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Fecha de Germinación */}
+                  <div>
+                    <Label className="text-sm font-medium">📆 Fecha de Germinación *</Label>
+                    <Input
+                      type="date"
+                      value={nuevaTabla.fechaGerminacion}
+                      min={calcularFechaMinimaGerminacion(nuevaTabla) || undefined}
+                      onChange={(e) => setNuevaTabla(prev => ({ 
+                        ...prev, 
+                        fechaGerminacion: e.target.value 
+                      }))}
+                      className={erroresValidacionNuevaTabla.fechaGerminacion ? "border-red-500 focus:border-red-500" : ""}
+                      lang="es-ES"
+                    />
+                    {erroresValidacionNuevaTabla.fechaGerminacion && (
+                      <p className="text-red-500 text-xs mt-1">{erroresValidacionNuevaTabla.fechaGerminacion}</p>
                     )}
                     <p className="text-xs text-gray-500 mt-1">
                       Fecha en que se inicia el ensayo de germinación
-                      {nuevaTabla.fechaInicioGerm && (
+                      {nuevaTabla.diasPrefrio > 0 && calcularFechaMinimaGerminacion(nuevaTabla) && (
+                        <span className="block text-orange-600 font-medium mt-0.5">
+                          Mínimo: {new Date(calcularFechaMinimaGerminacion(nuevaTabla)! + 'T00:00:00').toLocaleDateString('es-ES')} (Ingreso + {nuevaTabla.diasPrefrio} días de prefrío)
+                        </span>
+                      )}
+                      {nuevaTabla.fechaGerminacion && (
                         <span className="block text-blue-600 font-medium mt-0.5">
-                          {new Date(nuevaTabla.fechaInicioGerm + 'T00:00:00').toLocaleDateString('es-ES')}
+                          {new Date(nuevaTabla.fechaGerminacion + 'T00:00:00').toLocaleDateString('es-ES')}
                         </span>
                       )}
                     </p>
@@ -1576,8 +1634,8 @@ export function TablasGerminacionSection({
                     <Label className="text-sm font-medium">Número de Días</Label>
                     <Input
                       type="number"
-                      value={nuevaTabla.fechaInicioGerm && nuevaTabla.fechaUltConteo ? 
-                        Math.ceil((new Date(nuevaTabla.fechaUltConteo).getTime() - new Date(nuevaTabla.fechaInicioGerm).getTime()) / (1000 * 60 * 60 * 24)) : 0}
+                      value={nuevaTabla.fechaGerminacion && nuevaTabla.fechaUltConteo ? 
+                        Math.ceil((new Date(nuevaTabla.fechaUltConteo).getTime() - new Date(nuevaTabla.fechaGerminacion).getTime()) / (1000 * 60 * 60 * 24)) : 0}
                       disabled
                       className="bg-gray-50 cursor-not-allowed text-center font-semibold"
                     />
@@ -1663,15 +1721,15 @@ export function TablasGerminacionSection({
                     <Label className="text-sm font-medium mb-2 block">Fechas de Conteos Individuales *</Label>
                     <p className="text-xs text-gray-500 mb-3">
                       Especifica la fecha de cada conteo. La fecha del último conteo se guardará como Fecha de Último Conteo.
-                      {(nuevaTabla.diasPrefrio > 0 || nuevaTabla.diasPretratamiento > 0) && nuevaTabla.fechaConteos[0] && (() => {
+                      {nuevaTabla.fechaConteos[0] && (() => {
                         const fechaMinimaConteo = calcularFechaMinimaConteo(nuevaTabla)
                         if (fechaMinimaConteo) {
                           const fechaMinima = new Date(fechaMinimaConteo + 'T00:00:00')
                           const fechaPrimerConteo = new Date(nuevaTabla.fechaConteos[0] + 'T00:00:00')
-                          if (fechaPrimerConteo < fechaMinima) {
+                          if (fechaPrimerConteo <= fechaMinima) {
                             return (
                               <span className="text-orange-600 font-semibold block mt-1">
-                                El primer conteo debe ser al menos {(nuevaTabla.diasPrefrio || 0) + (nuevaTabla.diasPretratamiento || 0)} días después del inicio (prefrío + pretratamiento)
+                                El primer conteo debe realizarse después de la fecha de germinación
                               </span>
                             )
                           }
@@ -1684,11 +1742,11 @@ export function TablasGerminacionSection({
                         // Calcular fecha mínima: primer conteo usa calcularFechaMinimaConteo, los demás usan el conteo anterior
                         let fechaMinimaConteo: string | undefined
                         if (index === 0) {
-                          fechaMinimaConteo = calcularFechaMinimaConteo(nuevaTabla) || nuevaTabla.fechaInicioGerm
+                          fechaMinimaConteo = calcularFechaMinimaConteo(nuevaTabla) || nuevaTabla.fechaGerminacion
                         } else if (nuevaTabla.fechaConteos[index - 1]) {
                           fechaMinimaConteo = nuevaTabla.fechaConteos[index - 1]
                         } else {
-                          fechaMinimaConteo = nuevaTabla.fechaInicioGerm
+                          fechaMinimaConteo = nuevaTabla.fechaGerminacion
                         }
                         
                         const esUltimoConteo = index === nuevaTabla.numeroConteos - 1
@@ -1782,7 +1840,7 @@ export function TablasGerminacionSection({
                         min={
                           nuevaTabla.fechaConteos && nuevaTabla.fechaConteos.length > 0 
                             ? nuevaTabla.fechaConteos[nuevaTabla.fechaConteos.length - 1] 
-                            : nuevaTabla.fechaUltConteo || nuevaTabla.fechaInicioGerm || undefined
+                            : nuevaTabla.fechaUltConteo || nuevaTabla.fechaGerminacion || undefined
                         }
                         className={erroresValidacionNuevaTabla.fechaFinal ? "border-red-500 focus:border-red-500" : ""}
                         lang="es-ES"
@@ -2162,6 +2220,9 @@ export function TablasGerminacionSection({
                             ))}
                           </SelectContent>
                         </Select>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Días entre fecha de ingreso y fecha de germinación
+                        </p>
                       </div>
                     </div>
                   )}
@@ -2177,8 +2238,7 @@ export function TablasGerminacionSection({
                       onChange={(e) => setTablaEditada(prev => ({
                         ...prev,
                         tienePretratamiento: e.target.checked,
-                        descripcionPretratamiento: e.target.checked ? prev.descripcionPretratamiento : '',
-                        diasPretratamiento: e.target.checked ? prev.diasPretratamiento : 0
+                        descripcionPretratamiento: e.target.checked ? prev.descripcionPretratamiento : ''
                       }))}
                       className="h-4 w-4"
                     />
@@ -2222,22 +2282,6 @@ export function TablasGerminacionSection({
                           />
                         )}
                       </div>
-                      <div>
-                        <Label className="text-sm">Días de Pretratamiento *</Label>
-                        <Select
-                          value={tablaEditada.diasPretratamiento === 0 ? '' : tablaEditada.diasPretratamiento.toString()}
-                          onValueChange={(value) => setTablaEditada(prev => ({ ...prev, diasPretratamiento: parseInt(value) }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccionar días" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: 10 }, (_, i) => i + 1).map(day => (
-                              <SelectItem key={day} value={day.toString()}>{day} días</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
                     </div>
                   )}
                 </div>
@@ -2253,25 +2297,54 @@ export function TablasGerminacionSection({
                 </h4>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Fecha Inicio Germinación */}
+                  {/* Fecha de Ingreso */}
                   <div>
-                    <Label className="text-sm font-medium">📆 Fecha Inicio Germinación *</Label>
+                    <Label className="text-sm font-medium">📅 Fecha de Ingreso *</Label>
                     <Input
                       type="date"
-                      value={tablaEditada.fechaInicioGerm}
+                      value={tablaEditada.fechaIngreso}
                       onChange={(e) => {
-                        setTablaEditada(prev => ({ ...prev, fechaInicioGerm: e.target.value }))
-                        validarCampoEnTiempoReal('fechaInicioGerm', e.target.value, false)
+                        setTablaEditada(prev => ({ ...prev, fechaIngreso: e.target.value }))
+                        validarCampoEnTiempoReal('fechaIngreso', e.target.value, false)
                       }}
-                      className={erroresValidacion.fechaInicioGerm ? "border-red-500 focus:border-red-500" : ""}
+                      className={erroresValidacion.fechaIngreso ? "border-red-500 focus:border-red-500" : ""}
                       lang="es-ES"
                     />
-                    {erroresValidacion.fechaInicioGerm && (
-                      <p className="text-red-500 text-xs mt-1">{erroresValidacion.fechaInicioGerm}</p>
+                    {erroresValidacion.fechaIngreso && (
+                      <p className="text-red-500 text-xs mt-1">{erroresValidacion.fechaIngreso}</p>
                     )}
-                    {tablaEditada.fechaInicioGerm && (
+                    {tablaEditada.fechaIngreso && (
                       <p className="text-xs text-blue-600 font-medium mt-1">
-                        {new Date(tablaEditada.fechaInicioGerm + 'T00:00:00').toLocaleDateString('es-ES')}
+                        {new Date(tablaEditada.fechaIngreso + 'T00:00:00').toLocaleDateString('es-ES')}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Fecha de Germinación */}
+                  <div>
+                    <Label className="text-sm font-medium">📆 Fecha de Germinación *</Label>
+                    <Input
+                      type="date"
+                      value={tablaEditada.fechaGerminacion}
+                      min={calcularFechaMinimaGerminacion(tablaEditada) || undefined}
+                      onChange={(e) => {
+                        setTablaEditada(prev => ({ ...prev, fechaGerminacion: e.target.value }))
+                        validarCampoEnTiempoReal('fechaGerminacion', e.target.value, false)
+                      }}
+                      className={erroresValidacion.fechaGerminacion ? "border-red-500 focus:border-red-500" : ""}
+                      lang="es-ES"
+                    />
+                    {erroresValidacion.fechaGerminacion && (
+                      <p className="text-red-500 text-xs mt-1">{erroresValidacion.fechaGerminacion}</p>
+                    )}
+                    {tablaEditada.diasPrefrio > 0 && calcularFechaMinimaGerminacion(tablaEditada) && (
+                      <p className="text-xs text-orange-600 font-medium mt-1">
+                        Mínimo: {new Date(calcularFechaMinimaGerminacion(tablaEditada)! + 'T00:00:00').toLocaleDateString('es-ES')} (Ingreso + {tablaEditada.diasPrefrio} días de prefrío)
+                      </p>
+                    )}
+                    {tablaEditada.fechaGerminacion && (
+                      <p className="text-xs text-blue-600 font-medium mt-1">
+                        {new Date(tablaEditada.fechaGerminacion + 'T00:00:00').toLocaleDateString('es-ES')}
                       </p>
                     )}
                   </div>
@@ -2301,8 +2374,8 @@ export function TablasGerminacionSection({
                     <Label className="text-sm font-medium">Número de Días</Label>
                     <Input
                       type="number"
-                      value={tablaEditada.fechaInicioGerm && tablaEditada.fechaUltConteo ? 
-                        Math.ceil((new Date(tablaEditada.fechaUltConteo).getTime() - new Date(tablaEditada.fechaInicioGerm).getTime()) / (1000 * 60 * 60 * 24)) : 0}
+                      value={tablaEditada.fechaGerminacion && tablaEditada.fechaUltConteo ? 
+                        Math.ceil((new Date(tablaEditada.fechaUltConteo).getTime() - new Date(tablaEditada.fechaGerminacion).getTime()) / (1000 * 60 * 60 * 24)) : 0}
                       disabled
                       className="bg-gray-50 cursor-not-allowed text-center font-semibold"
                     />
@@ -2393,15 +2466,15 @@ export function TablasGerminacionSection({
                     <Label className="text-sm font-medium mb-2 block">Fechas de Conteos Individuales *</Label>
                     <p className="text-xs text-gray-500 mb-3">
                       Especifica la fecha de cada conteo. La fecha del último conteo se guardará como Fecha de Último Conteo.
-                      {(tablaEditada.diasPrefrio > 0 || tablaEditada.diasPretratamiento > 0) && tablaEditada.fechaConteos[0] && (() => {
+                      {tablaEditada.fechaConteos[0] && (() => {
                         const fechaMinimaConteo = calcularFechaMinimaConteo(tablaEditada)
                         if (fechaMinimaConteo) {
                           const fechaMinima = new Date(fechaMinimaConteo + 'T00:00:00')
                           const fechaPrimerConteo = new Date(tablaEditada.fechaConteos[0] + 'T00:00:00')
-                          if (fechaPrimerConteo < fechaMinima) {
+                          if (fechaPrimerConteo <= fechaMinima) {
                             return (
                               <span className="text-orange-600 font-semibold block mt-1">
-                                El primer conteo debe ser al menos {(tablaEditada.diasPrefrio || 0) + (tablaEditada.diasPretratamiento || 0)} días después del inicio (prefrío + pretratamiento)
+                                El primer conteo debe realizarse después de la fecha de germinación
                               </span>
                             )
                           }
@@ -2414,11 +2487,11 @@ export function TablasGerminacionSection({
                         // Calcular fecha mínima: primer conteo usa calcularFechaMinimaConteo, los demás usan el conteo anterior
                         let fechaMinimaConteo: string | undefined
                         if (index === 0) {
-                          fechaMinimaConteo = calcularFechaMinimaConteo(tablaEditada) || tablaEditada.fechaInicioGerm
+                          fechaMinimaConteo = calcularFechaMinimaConteo(tablaEditada) || tablaEditada.fechaGerminacion
                         } else if (tablaEditada.fechaConteos[index - 1]) {
                           fechaMinimaConteo = tablaEditada.fechaConteos[index - 1]
                         } else {
-                          fechaMinimaConteo = tablaEditada.fechaInicioGerm
+                          fechaMinimaConteo = tablaEditada.fechaGerminacion
                         }
                         
                         const esUltimoConteo = index === tablaEditada.numeroConteos - 1
@@ -2512,7 +2585,7 @@ export function TablasGerminacionSection({
                         min={
                           tablaEditada.fechaConteos && tablaEditada.fechaConteos.length > 0 
                             ? tablaEditada.fechaConteos[tablaEditada.fechaConteos.length - 1] 
-                            : tablaEditada.fechaUltConteo || tablaEditada.fechaInicioGerm || undefined
+                            : tablaEditada.fechaUltConteo || tablaEditada.fechaGerminacion || undefined
                         }
                         className={erroresValidacion.fechaFinal ? "border-red-500 focus:border-red-500" : ""}
                         lang="es-ES"
@@ -2597,7 +2670,6 @@ export function TablasGerminacionSection({
                                 <>
                                   <span className="text-green-600 font-semibold">Sí</span>
                                   {tabla.descripcionPretratamiento && ` - ${tabla.descripcionPretratamiento}`}
-                                  {tabla.diasPretratamiento > 0 && ` (${tabla.diasPretratamiento} días)`}
                                 </>
                               ) : (
                                 <span className="text-gray-500">No</span>
