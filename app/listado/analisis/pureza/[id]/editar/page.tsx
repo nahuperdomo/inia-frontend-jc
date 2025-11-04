@@ -1390,30 +1390,60 @@ export default function EditarPurezaPage() {
                       {formData.listados.map((listado, index) => (
                         <TableRow key={index}>
                           <TableCell>
-                            <Badge variant="outline" className={getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}>
-                              {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
-                            </Badge>
+                            {listado.listadoTipo === "NO_CONTIENE" ? (
+                              <div className="text-sm text-gray-700 break-words">
+                                No contiene malezas en general
+                              </div>
+                            ) : (
+                              <Badge variant="outline" className={`${getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)} whitespace-normal break-words max-w-[150px]`}>
+                                {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
+                              </Badge>
+                            )}
                           </TableCell>
                           <TableCell>
                             <div>
-                              <div className="font-medium">
-                                {listado.listadoTipo === "OTROS" 
-                                  ? (listado.especieNombre || "--")
-                                  : (listado.catalogoNombre || "--")
-                                }
-                              </div>
-                              <div className="text-sm text-muted-foreground italic">
-                                {listado.listadoTipo === "OTROS"
-                                  ? listado.especieCientifico
-                                  : listado.catalogoCientifico
-                                }
-                              </div>
+                              {listado.listadoTipo === "NO_CONTIENE" ? (
+                                <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                                  No contiene
+                                </Badge>
+                              ) : listado.listadoTipo === "BRASSICA" && !listado.catalogoNombre && !listado.especieNombre ? (
+                                <div>
+                                  <div className="font-medium break-words text-muted-foreground">
+                                    Sin especificación
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    Las brassicas no requieren catálogo
+                                  </div>
+                                  <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300 mt-2">
+                                    No contiene
+                                  </Badge>
+                                </div>
+                              ) : listado.listadoTipo === "OTROS" && !listado.catalogoNombre && !listado.especieNombre ? (
+                                <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                                  No contiene
+                                </Badge>
+                              ) : (
+                                <>
+                                  <div className="font-medium break-words">
+                                    {listado.listadoTipo === "OTROS" 
+                                      ? (listado.especieNombre || "--")
+                                      : (listado.catalogoNombre || "--")
+                                    }
+                                  </div>
+                                  <div className="text-sm text-muted-foreground italic break-words">
+                                    {listado.listadoTipo === "OTROS"
+                                      ? listado.especieCientifico
+                                      : listado.catalogoCientifico
+                                    }
+                                  </div>
+                                </>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>
                             <Badge variant="secondary">{listado.listadoInsti}</Badge>
                           </TableCell>
-                          <TableCell className="font-mono">{listado.listadoNum}</TableCell>
+                          <TableCell className="font-mono">{listado.listadoNum || "--"}</TableCell>
                           <TableCell>
                             <Button
                               onClick={() => {

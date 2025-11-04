@@ -320,17 +320,22 @@ export default function DosnDetailPage() {
               </Card>
             )}
 
-            {(dosn.fechaINASE || dosn.gramosAnalizadosINASE || dosn.tipoINASE) && (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-muted/50 border-b">
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <div className="p-2 rounded-lg bg-purple-500/10">
-                      <BarChart3 className="h-5 w-5 text-purple-600" />
-                    </div>
-                    Análisis INASE
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
+            {/* Análisis INASE - Siempre mostrar */}
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-muted/50 border-b">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <div className="p-2 rounded-lg bg-purple-500/10">
+                    <BarChart3 className="h-5 w-5 text-purple-600" />
+                  </div>
+                  Análisis INASE
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {!dosn.fechaINASE && !dosn.gramosAnalizadosINASE && (!dosn.tipoINASE || dosn.tipoINASE.length === 0) ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Aún no se han ingresado valores para INASE</p>
+                  </div>
+                ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     {dosn.fechaINASE && (
                       <div className="space-y-1.5">
@@ -350,7 +355,7 @@ export default function DosnDetailPage() {
                         <p className="text-lg font-semibold">{dosn.gramosAnalizadosINASE} g</p>
                       </div>
                     )}
-                    {dosn.tipoINASE && (
+                    {dosn.tipoINASE && dosn.tipoINASE.length > 0 && (
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                           Tipo
@@ -359,9 +364,9 @@ export default function DosnDetailPage() {
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                )}
+              </CardContent>
+            </Card>
 
             {dosn.cuscutaRegistros && dosn.cuscutaRegistros.length > 0 && (
               <Card className="overflow-hidden">
@@ -378,50 +383,62 @@ export default function DosnDetailPage() {
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="space-y-4">
-                    {dosn.cuscutaRegistros.map((registro, index) => (
-                      <Card key={registro.id || index} className="border-2">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-semibold text-muted-foreground">
-                              Registro #{index + 1}
-                            </h4>
-                            {registro.instituto && (
-                              <Badge className="bg-blue-100 text-blue-700 border-blue-200">
-                                {registro.instituto}
-                              </Badge>
-                            )}
-                          </div>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {registro.instituto && (
-                              <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-200/50 rounded-lg p-4 text-center space-y-2">
-                                <p className="text-2xl font-bold text-blue-600">{registro.instituto}</p>
-                                <p className="text-sm font-medium text-muted-foreground">Instituto Analista</p>
+                    {dosn.cuscutaRegistros.map((registro, index) => {
+                      const noContiene = (!registro.cuscuta_g || registro.cuscuta_g === 0) && (!registro.cuscutaNum || registro.cuscutaNum === 0);
+                      
+                      return (
+                        <Card key={registro.id || index} className="border-2">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-semibold text-muted-foreground">
+                                Registro #{index + 1}
+                              </h4>
+                              <div className="flex items-center gap-2">
+                                {noContiene && (
+                                  <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                                    No contiene
+                                  </Badge>
+                                )}
+                                {registro.instituto && (
+                                  <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+                                    {registro.instituto}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="pt-0">
+                            {noContiene ? (
+                              <div className="bg-gradient-to-br from-gray-500/10 to-gray-500/5 border border-gray-200/50 rounded-lg p-6 text-center space-y-2">
+                                <p className="text-lg font-semibold text-gray-600">No se detectó Cuscuta en la muestra</p>
+                                <p className="text-sm text-muted-foreground">Instituto: {registro.instituto}</p>
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {registro.instituto && (
+                                  <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-200/50 rounded-lg p-4 text-center space-y-2">
+                                    <p className="text-2xl font-bold text-blue-600">{registro.instituto}</p>
+                                    <p className="text-sm font-medium text-muted-foreground">Instituto Analista</p>
+                                  </div>
+                                )}
+                                {registro.cuscuta_g !== undefined && registro.cuscuta_g !== null && registro.cuscuta_g > 0 && (
+                                  <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-200/50 rounded-lg p-4 text-center space-y-2">
+                                    <p className="text-3xl font-bold text-orange-600">{registro.cuscuta_g}</p>
+                                    <p className="text-sm font-medium text-muted-foreground">Gramos de Cuscuta</p>
+                                  </div>
+                                )}
+                                {registro.cuscutaNum !== undefined && registro.cuscutaNum !== null && registro.cuscutaNum > 0 && (
+                                  <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 border border-red-200/50 rounded-lg p-4 text-center space-y-2">
+                                    <p className="text-3xl font-bold text-red-600">{registro.cuscutaNum}</p>
+                                    <p className="text-sm font-medium text-muted-foreground">Número de Semillas</p>
+                                  </div>
+                                )}
                               </div>
                             )}
-                            {registro.cuscuta_g !== undefined && registro.cuscuta_g !== null && (
-                              <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-200/50 rounded-lg p-4 text-center space-y-2">
-                                <p className="text-3xl font-bold text-orange-600">{registro.cuscuta_g}</p>
-                                <p className="text-sm font-medium text-muted-foreground">Gramos de Cuscuta</p>
-                              </div>
-                            )}
-                            {registro.cuscutaNum !== undefined && registro.cuscutaNum !== null && (
-                              <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 border border-red-200/50 rounded-lg p-4 text-center space-y-2">
-                                <p className="text-3xl font-bold text-red-600">{registro.cuscutaNum}</p>
-                                <p className="text-sm font-medium text-muted-foreground">Número de Semillas</p>
-                              </div>
-                            )}
-                            {registro.fechaCuscuta && (
-                              <div className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-200/50 rounded-lg p-4 text-center space-y-2">
-                                <p className="text-lg font-bold text-purple-600">{formatearFechaLocal(registro.fechaCuscuta)}</p>
-                                <p className="text-sm font-medium text-muted-foreground">Fecha de Análisis</p>
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
@@ -447,54 +464,90 @@ export default function DosnDetailPage() {
                         key={index}
                         className="bg-muted/30 border rounded-xl p-5 hover:bg-muted/50 transition-colors"
                       >
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                          <div className="space-y-1 sm:col-span-2">
-                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                              Especie
-                            </label>
-                            <p className="text-base font-semibold">
-                              {/* Mostrar catalogo (malezas) o especie (otros cultivos) */}
-                              {listado.catalogo?.nombreComun || 
-                               listado.especie?.nombreComun ||
-                               (listado.listadoTipo === "BRASSICA" ? "Sin especificación" : "--")}
-                            </p>
-                            {/* Nombre científico de malezas */}
-                            {listado.catalogo?.nombreCientifico && (
-                              <p className="text-sm text-muted-foreground italic">
-                                {listado.catalogo.nombreCientifico}
-                              </p>
-                            )}
-                            {/* Nombre científico de especies/cultivos */}
-                            {listado.especie?.nombreCientifico && (
-                              <p className="text-sm text-muted-foreground italic">
-                                {listado.especie.nombreCientifico}
-                              </p>
-                            )}
-                            {listado.listadoTipo === "BRASSICA" && !listado.catalogo?.nombreComun && !listado.especie?.nombreComun && (
-                              <p className="text-sm text-muted-foreground">
-                                Las brassicas no requieren especificación de catálogo
-                              </p>
-                            )}
+                        <div className="flex flex-col gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                Especie
+                              </label>
+                              {listado.listadoTipo === "NO_CONTIENE" ? (
+                                <div className="space-y-2">
+                                  <p className="text-base font-semibold break-words">--</p>
+                                  <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                                    No contiene
+                                  </Badge>
+                                </div>
+                              ) : listado.listadoTipo === "BRASSICA" && !listado.catalogo?.nombreComun && !listado.especie?.nombreComun ? (
+                                <div className="space-y-2">
+                                  <p className="text-base font-semibold break-words text-muted-foreground">
+                                    Sin especificación
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Las brassicas no requieren especificación de catálogo
+                                  </p>
+                                  <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                                    No contiene
+                                  </Badge>
+                                </div>
+                              ) : listado.listadoTipo === "OTROS" && !listado.catalogo?.nombreComun && !listado.especie?.nombreComun ? (
+                                <div className="space-y-2">
+                                  <p className="text-base font-semibold break-words">--</p>
+                                  <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                                    No contiene
+                                  </Badge>
+                                </div>
+                              ) : (
+                                <>
+                                  <p className="text-base font-semibold break-words">
+                                    {listado.catalogo?.nombreComun || 
+                                     listado.especie?.nombreComun || "--"}
+                                  </p>
+                                  {listado.catalogo?.nombreCientifico && (
+                                    <p className="text-sm text-muted-foreground italic break-words">
+                                      {listado.catalogo.nombreCientifico}
+                                    </p>
+                                  )}
+                                  {listado.especie?.nombreCientifico && (
+                                    <p className="text-sm text-muted-foreground italic break-words">
+                                      {listado.especie.nombreCientifico}
+                                    </p>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                Tipo
+                              </label>
+                              <div className="space-y-2">
+                                {listado.listadoTipo === "NO_CONTIENE" ? (
+                                  <>
+                                    <p className="text-base break-words">Malezas en general</p>
+                                    <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                                      No contiene
+                                    </Badge>
+                                  </>
+                                ) : (
+                                  <Badge variant="outline" className={`font-medium whitespace-normal break-words ${getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}`}>
+                                    {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                              Tipo
-                            </label>
-                            <Badge variant="outline" className={`font-medium ${getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}`}>
-                              {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
-                            </Badge>
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                              Instituto
-                            </label>
-                            <p className="text-base font-medium">{listado.listadoInsti}</p>
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                              Número
-                            </label>
-                            <p className="text-base font-semibold">{listado.listadoNum}</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                Instituto
+                              </label>
+                              <p className="text-base font-medium">{listado.listadoInsti}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                Número
+                              </label>
+                              <p className="text-base font-semibold">{listado.listadoNum || "--"}</p>
+                            </div>
                           </div>
                         </div>
                       </div>

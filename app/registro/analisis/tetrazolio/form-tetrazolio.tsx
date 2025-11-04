@@ -547,7 +547,7 @@ const validarViabilidadInase = () => {
           <div className="space-y-2">
             <Label className="text-sm font-medium flex items-center gap-2">
               <Beaker className="h-4 w-4 text-muted-foreground" />
-              Viabilidad INASE *
+              Viabilidad INASE 
             </Label>
             <Input
               id="viabilidadInase"

@@ -12,10 +12,8 @@ import { Toaster, toast } from 'sonner'
 
 import { LotFormTabs } from "@/components/lotes/lot-form-tabs"
 import { LotList } from "@/components/lotes/lot-list"
-import { LotDetailsModal } from "@/components/lotes/lot-details-modal"
-import { AnalysisModal } from "@/components/lotes/analysis-modal"
 
-import { crearLote, obtenerLotesActivos, obtenerLotePorId } from "@/app/services/lote-service"
+import { crearLote, obtenerLotesActivos } from "@/app/services/lote-service"
 import { LoteFormData, loteValidationSchema } from "@/lib/validations/lotes-validation"
 import { LoteRequestDTO } from "@/app/models/interfaces/lote"
 import useValidation from "@/lib/hooks/useValidation"
@@ -24,9 +22,6 @@ export default function RegistroLotesPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("datos")
-  const [selectedLot, setSelectedLot] = useState<any>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [showAnalysisModal, setShowAnalysisModal] = useState(false)
 
   // Estado inicial del formulario
   const initialFormData: LoteFormData = {
@@ -80,8 +75,9 @@ export default function RegistroLotesPage() {
   const loadRecentLots = async () => {
     try {
       const response = await obtenerLotesActivos();
-      setRecentLots(response);
-      console.log("Lotes recientes cargados:", response);
+      // Limitar a los últimos 5 lotes
+      setRecentLots(response.slice(0, 5));
+      console.log("Lotes recientes cargados:", response.slice(0, 5));
     } catch (error) {
       console.error('Error al cargar lotes:', error);
     }
@@ -205,44 +201,9 @@ export default function RegistroLotesPage() {
     }
   };
 
-  const handleViewDetails = async (lot: any) => {
-    try {
-      // Cargar el lote completo por ID para tener todos los detalles
-      const loteCompleto = await obtenerLotePorId(lot.loteID)
-      setSelectedLot(loteCompleto)
-      setIsModalOpen(true)
-    } catch (error) {
-      console.error("Error al cargar detalles del lote:", error)
-      toast.error('Error al cargar los detalles del lote', {
-        description: 'No se pudieron cargar los detalles completos',
-      })
-    }
-  }
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false)
-    setSelectedLot(null)
-  }
-
-  const handleEditLot = (updatedLot: any) => {
-    // Update lot in the list
-    console.log("Lot updated:", updatedLot)
-  }
-
-  const handleShowAnalysis = () => {
-    setShowAnalysisModal(true)
-  }
-
-  const handleCloseAnalysisModal = () => {
-    setShowAnalysisModal(false)
-  }
-
-  const handleSaveAnalysis = (analysisData: any) => {
-    console.log("Analysis saved:", analysisData)
-    // Update lot to show it has analysis
-    if (selectedLot) {
-      setSelectedLot({ ...selectedLot, hasAnalysis: true })
-    }
+  const handleViewDetails = (lot: any) => {
+    // Navegar directamente a la página de detalle del lote
+    router.push(`/listado/lotes/${lot.loteID}`);
   }
 
   return (
@@ -291,21 +252,6 @@ export default function RegistroLotesPage() {
         <h2 className="text-xl font-semibold mb-4">Últimos lotes registrados</h2>
         <LotList lots={recentLots} onViewDetails={handleViewDetails} />
       </div>
-
-      <LotDetailsModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        lot={selectedLot}
-        onEdit={handleEditLot}
-        onShowAnalysis={handleShowAnalysis}
-      />
-
-      <AnalysisModal
-        isOpen={showAnalysisModal}
-        onClose={handleCloseAnalysisModal}
-        lot={selectedLot}
-        onSave={handleSaveAnalysis}
-      />
     </div>
   )
 }

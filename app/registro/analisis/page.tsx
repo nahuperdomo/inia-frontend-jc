@@ -312,23 +312,16 @@ export default function RegistroAnalisisPage() {
   const validarDosn = (data: AnalysisFormData) => {
     const tieneAnalisisINIA =
       data.iniaCompleto || data.iniaReducido || data.iniaLimitado || data.iniaReducidoLimitado
-    const tieneAnalisisINASE =
-      data.inaseCompleto || data.inaseReducido || data.inaseLimitado || data.inaseReducidoLimitado
 
     const fechaINIAValida = data.iniaFecha && new Date(data.iniaFecha) <= new Date()
-    const fechaINASEValida = data.inaseFecha && new Date(data.inaseFecha) <= new Date()
-
     const gramosINIAValido = data.iniaGramos && Number(data.iniaGramos) > 0
-    const gramosINASEValido = data.inaseGramos && Number(data.inaseGramos) > 0
 
     const errores: string[] = []
 
+    // Solo validar campos de INIA (INASE es opcional)
     if (!tieneAnalisisINIA) errores.push("Debe seleccionar al menos un tipo de análisis para INIA")
-    if (!tieneAnalisisINASE) errores.push("Debe seleccionar al menos un tipo de análisis para INASE")
     if (!fechaINIAValida) errores.push("Fecha de análisis INIA inválida")
-    if (!fechaINASEValida) errores.push("Fecha de análisis INASE inválida")
     if (!gramosINIAValido) errores.push("Debe ingresar gramos válidos para INIA")
-    if (!gramosINASEValido) errores.push("Debe ingresar gramos válidos para INASE")
 
     return {
       valido: errores.length === 0,
