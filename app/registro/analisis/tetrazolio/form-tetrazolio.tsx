@@ -530,7 +530,7 @@ const validarViabilidadInase = () => {
               {showErrors && !validarTincionHs() && (
                 <p className="text-xs text-red-600 flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" />
-                  Debe seleccionar o ingresar horas de tinción válidas
+                  Debe seleccionar un campo para tinción hs
                 </p>
               )}
             </div>

@@ -569,8 +569,8 @@ export default function RegistroAnalisisPage() {
           : formData.tincionHs;
 
       if (!tincionHsValue || tincionHsValue < 1 || tincionHsValue > 72) {
-        toast.error('Tiempo de tinción inválido', {
-          description: 'El tiempo de tinción debe estar entre 1 y 72 horas.'
+        toast.error('Debe seleccionar un campo para tinción hs', {
+          description: 'Seleccione una opción del desplegable o ingrese un valor personalizado.'
         });
         setLoading(false);
         return;
