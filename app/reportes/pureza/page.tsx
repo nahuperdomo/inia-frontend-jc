@@ -5,12 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 import { ArrowLeft, Beaker, Calendar } from "lucide-react"
 import Link from "next/link"
 import { obtenerReportePureza, obtenerContaminantesPureza } from "@/app/services/reporte-service"
 import { ReportePurezaDTO } from "@/app/models/interfaces/reportes"
+import { Combobox } from "@/components/ui/combobox"
 
 export default function ReportePurezaPage() {
   const [fechaInicio, setFechaInicio] = useState("")
@@ -194,18 +194,16 @@ export default function ReportePurezaPage() {
         <CardContent className="space-y-6">
           <div>
             <Label htmlFor="especieSelector">Seleccionar Especie</Label>
-            <Select value={especieSeleccionada} onValueChange={setEspecieSeleccionada}>
-              <SelectTrigger id="especieSelector">
-                <SelectValue placeholder="Selecciona una especie" />
-              </SelectTrigger>
-              <SelectContent>
-                {dataCumpleEstandar.map((item) => (
-                  <SelectItem key={item.especie} value={item.especie}>
-                    {item.especie}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Combobox
+              value={especieSeleccionada}
+              onValueChange={setEspecieSeleccionada}
+              options={dataCumpleEstandar.map((item) => ({
+                id: item.especie,
+                nombre: item.especie,
+              }))}
+              placeholder="Selecciona una especie"
+              searchPlaceholder="Buscar especie..."
+            />
           </div>
           
           {isLoadingContaminantes ? (
