@@ -16,9 +16,9 @@ export async function crearPureza(solicitud: PurezaRequestDTO): Promise<PurezaDT
 }
 
 export async function obtenerTodasPurezasActivas(): Promise<PurezaDTO[]> {
-  console.log("🔍 Iniciando petición para obtener purezas...")
+  console.log(" Iniciando petición para obtener purezas...")
   try {
-    console.log("🔄 Realizando petición a: /api/purezas");
+    console.log(" Realizando petición a: /api/purezas");
     
     // Usar apiFetch que maneja cookies HttpOnly automáticamente
     const data = await apiFetch("/api/purezas", {
@@ -38,7 +38,7 @@ export async function obtenerTodasPurezasActivas(): Promise<PurezaDTO[]> {
     }
 
     // Si no sabemos qué formato es, devolver array vacío
-    console.warn("⚠️ Formato de respuesta desconocido:", data);
+    console.warn("️ Formato de respuesta desconocido:", data);
     return [];
   } catch (error) {
     console.error("❌ Error al obtener purezas:", error);

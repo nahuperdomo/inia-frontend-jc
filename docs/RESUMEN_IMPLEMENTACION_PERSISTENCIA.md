@@ -1,10 +1,10 @@
-# 🎯 Resumen de Implementación: Sistema de Persistencia de Formularios
+#  Resumen de Implementación: Sistema de Persistencia de Formularios
 
 ## ✅ Problema Resuelto
 
 Cuando el usuario llenaba campos en el formulario DOSN (pestaña "Generales"), luego cambiaba a la pestaña "Registros" y volvía a "Generales", **todos los datos se perdían** ❌
 
-## 🚀 Solución Implementada
+##  Solución Implementada
 
 Se creó un **sistema reutilizable y escalable** de persistencia de estado usando `sessionStorage` que:
 
@@ -14,7 +14,7 @@ Se creó un **sistema reutilizable y escalable** de persistencia de estado usand
 4. ✅ **Es totalmente reutilizable** para otros formularios (Germinación, Tetrazolio, Pureza)
 5. ✅ **Funciona en modo edición** sin interferir con datos precargados
 
-## 📦 Archivos Creados
+##  Archivos Creados
 
 ### 1. Hook Principal: `use-form-persistence.ts`
 **Ubicación:** `/lib/hooks/use-form-persistence.ts`
@@ -48,7 +48,7 @@ Documentación completa con:
 - FAQ
 - Casos de uso reales
 
-## 🔄 Componentes Actualizados
+##  Componentes Actualizados
 
 ### DOSN (Determinación de Otras Semillas en Número)
 
@@ -93,7 +93,7 @@ Documentación completa con:
 - Llamadas a `clearDosnStorage()`, `clearGerminacionStorage()`, etc. después de registro exitoso
 - Limpieza automática al redirigir
 
-## 🎨 Claves de Storage Utilizadas
+##  Claves de Storage Utilizadas
 
 ```typescript
 // DOSN
@@ -111,7 +111,7 @@ Documentación completa con:
 "pureza-malezas"
 ```
 
-## 💡 Características Técnicas
+##  Características Técnicas
 
 ### Persistencia Inteligente
 ```typescript
@@ -149,7 +149,7 @@ clearDosnStorage()
 router.push(`/listado/analisis/dosn/${result.analisisID}`)
 ```
 
-## 🔍 Comportamiento del Sistema
+##  Comportamiento del Sistema
 
 ### Flujo Normal de Usuario
 
@@ -188,7 +188,7 @@ router.push(`/listado/analisis/dosn/${result.analisisID}`)
    - Cambios solo en estado local
    - No se persisten en storage (evita conflictos)
 
-## 🎓 Cómo Extender a Otros Formularios
+##  Cómo Extender a Otros Formularios
 
 ### Ejemplo: Agregar persistencia a Germinación
 
@@ -226,7 +226,7 @@ import { clearGerminacionStorage } from "@/lib/utils/clear-form-storage"
 clearGerminacionStorage()
 ```
 
-## 🌟 Ventajas de esta Implementación
+##  Ventajas de esta Implementación
 
 ✅ **Reutilizable**: Mismos hooks para todos los formularios
 ✅ **Escalable**: Fácil agregar nuevos formularios
@@ -237,7 +237,7 @@ clearGerminacionStorage()
 ✅ **Robusto**: Maneja errores de storage deshabilitado
 ✅ **Documentado**: README completo con ejemplos
 
-## 📊 Métricas de Mejora
+##  Métricas de Mejora
 
 | Métrica | Antes | Después |
 |---------|-------|---------|
@@ -247,7 +247,7 @@ clearGerminacionStorage()
 | **Re-ingresos de datos** | 2-3 veces | 0 |
 | **Experiencia de usuario** | Mala | Excelente |
 
-## 🚦 Testing Recomendado
+##  Testing Recomendado
 
 ### Casos de Prueba
 
@@ -258,14 +258,14 @@ clearGerminacionStorage()
 5. ✅ Abrir análisis existente → editar → no interfiere con persistencia
 6. ✅ Deshabilitar storage en navegador → funciona sin persistencia
 
-## 📝 Notas Importantes
+##  Notas Importantes
 
 - **sessionStorage** se usa por defecto (datos solo en pestaña actual)
 - **localStorage** disponible para casos que necesiten persistencia permanente
 - El storage se limpia al **cerrar la pestaña** (sessionStorage) o al **enviar exitosamente** (manual)
 - Cada formulario tiene sus propias claves únicas para evitar conflictos
 
-## 🎉 Resultado Final
+##  Resultado Final
 
 El usuario ahora puede:
 - ✅ Navegar libremente entre tabs sin perder datos

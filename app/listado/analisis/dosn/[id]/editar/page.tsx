@@ -460,7 +460,7 @@ export default function EditarDosnPage() {
     if (!dosn) return
 
     try {
-      console.log("🏁 Finalizando análisis DOSN:", dosn.analisisID)
+      console.log(" Finalizando análisis DOSN:", dosn.analisisID)
       await finalizarAnalisis(dosn.analisisID)
       toast.success("Análisis finalizado exitosamente")
       router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
@@ -496,7 +496,7 @@ export default function EditarDosnPage() {
     if (!dosn) return
 
     try {
-      console.log("🔄 Marcando análisis DOSN para repetir:", dosn.analisisID)
+      console.log(" Marcando análisis DOSN para repetir:", dosn.analisisID)
       await marcarParaRepetir(dosn.analisisID)
       toast.success("Análisis marcado para repetir")
       // Recargar datos
@@ -515,7 +515,7 @@ export default function EditarDosnPage() {
     if (!dosn) return
 
     try {
-      console.log("🏁✅ Finalizando y aprobando análisis DOSN:", dosn.analisisID)
+      console.log("✅ Finalizando y aprobando análisis DOSN:", dosn.analisisID)
       // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
       await finalizarAnalisis(dosn.analisisID)
       toast.success("Análisis finalizado y aprobado exitosamente")
@@ -1139,14 +1139,14 @@ export default function EditarDosnPage() {
                       (isBrassica || (isOtros ? newListado.idEspecie : newListado.idCatalogo))
 
                     if (hasRequiredFields) {
-                      // 🔍 Buscar el registro correcto según tipo
+                      //  Buscar el registro correcto según tipo
                       const catalogo = isBrassica
                         ? null
                         : isOtros
                           ? especies.find((e) => e.especieID === newListado.idEspecie)
                           : catalogos.find((c) => c.catalogoID === newListado.idCatalogo)
 
-                      // 🧾 Armar objeto a agregar
+                      //  Armar objeto a agregar
                       handleListadoAdd({
                         ...newListado,
                         idCatalogo:
@@ -1162,7 +1162,7 @@ export default function EditarDosnPage() {
                         especieCientifico: isOtros ? catalogo?.nombreCientifico || "" : "",
                       })
 
-                      // 🧹 Limpiar formulario
+                      //  Limpiar formulario
                       setNewListado({
                         listadoTipo: "",
                         listadoInsti: "",

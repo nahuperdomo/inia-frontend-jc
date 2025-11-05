@@ -1,4 +1,4 @@
-# 🔄 Flujo de Datos - Exportación Excel
+#  Flujo de Datos - Exportación Excel
 
 ## Diagrama del Flujo Completo
 
@@ -230,7 +230,7 @@
 
 ---
 
-## 🔍 Detalle de las Estructuras de Datos
+##  Detalle de las Estructuras de Datos
 
 ### Frontend → Backend
 
@@ -298,7 +298,7 @@ Body: "Error al generar archivo Excel: ..."
 
 ---
 
-## 📊 Transformación de Datos
+##  Transformación de Datos
 
 ### 1. Entidad JPA (Base de Datos)
 ```java
@@ -338,7 +338,7 @@ DatosExportacionExcelDTO {
 
 ### 4. Archivo Descargado (Usuario)
 ```
-📁 Descargas/
+ Descargas/
   └── analisis_semillas_20241015_143052.xlsx
       • Tamaño: 156 KB
       • Formato: Excel 2007+ (.xlsx)
@@ -366,7 +366,7 @@ DatosExportacionExcelDTO {
 
 ---
 
-## 🔒 Seguridad
+##  Seguridad
 
 ### Puntos de validación:
 
@@ -384,7 +384,7 @@ DatosExportacionExcelDTO {
 
 ---
 
-## 🎨 Formato y Estilos
+##  Formato y Estilos
 
 ### Colores aplicados:
 - **Encabezados:** Gris claro (#D9D9D9)
@@ -403,7 +403,7 @@ DatosExportacionExcelDTO {
 
 ---
 
-## 🚀 Optimizaciones Futuras
+##  Optimizaciones Futuras
 
 1. **Caché:** Cachear datos de especies/cultivares
 2. **Paginación:** Exportar en lotes para archivos grandes

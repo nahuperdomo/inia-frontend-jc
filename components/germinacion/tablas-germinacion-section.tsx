@@ -1553,7 +1553,7 @@ export function TablasGerminacionSection({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Fecha de Ingreso */}
                   <div>
-                    <Label className="text-sm font-medium">📅 Fecha de Ingreso *</Label>
+                    <Label className="text-sm font-medium"> Fecha de Ingreso *</Label>
                     <Input
                       type="date"
                       value={nuevaTabla.fechaIngreso}
@@ -1579,7 +1579,7 @@ export function TablasGerminacionSection({
 
                   {/* Fecha de Germinación */}
                   <div>
-                    <Label className="text-sm font-medium">📆 Fecha de Germinación *</Label>
+                    <Label className="text-sm font-medium"> Fecha de Germinación *</Label>
                     <Input
                       type="date"
                       value={nuevaTabla.fechaGerminacion}
@@ -2293,13 +2293,13 @@ export function TablasGerminacionSection({
               {/* Sección de Fechas y Conteos para Edición */}
               <div className="space-y-4">
                 <h4 className="font-semibold text-base flex items-center gap-2">
-                  📅 Fechas y Conteos
+                   Fechas y Conteos
                 </h4>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {/* Fecha de Ingreso */}
                   <div>
-                    <Label className="text-sm font-medium">📅 Fecha de Ingreso *</Label>
+                    <Label className="text-sm font-medium"> Fecha de Ingreso *</Label>
                     <Input
                       type="date"
                       value={tablaEditada.fechaIngreso}
@@ -2322,7 +2322,7 @@ export function TablasGerminacionSection({
 
                   {/* Fecha de Germinación */}
                   <div>
-                    <Label className="text-sm font-medium">📆 Fecha de Germinación *</Label>
+                    <Label className="text-sm font-medium"> Fecha de Germinación *</Label>
                     <Input
                       type="date"
                       value={tablaEditada.fechaGerminacion}

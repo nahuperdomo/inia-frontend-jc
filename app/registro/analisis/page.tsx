@@ -161,33 +161,33 @@ export default function RegistroAnalisisPage() {
 
   // Funciones de callback con logs para debugging - memoizadas para evitar re-renders infinitos
   const handleMalezasChange = useCallback((list: any[]) => {
-    console.log("🐛 DEBUG - handleMalezasChange llamado con:", list);
+    console.log(" DEBUG - handleMalezasChange llamado con:", list);
     setMalezasList(list);
   }, []);
 
   const handleCultivosChange = useCallback((list: any[]) => {
-    console.log("🐛 DEBUG - handleCultivosChange llamado con:", list);
+    console.log(" DEBUG - handleCultivosChange llamado con:", list);
     setCultivosList(list);
   }, []);
 
   const handleBrassicasChange = useCallback((list: any[]) => {
-    console.log("🐛 DEBUG - handleBrassicasChange llamado con:", list);
+    console.log(" DEBUG - handleBrassicasChange llamado con:", list);
     setBrassicasList(list);
   }, []);
 
   // Callbacks específicos para Pureza (3 listas separadas)
   const handlePurezaMalezasChange = useCallback((list: any[]) => {
-    console.log("🐛 DEBUG - handlePurezaMalezasChange llamado con:", list);
+    console.log(" DEBUG - handlePurezaMalezasChange llamado con:", list);
     setPurezaMalezasList(list);
   }, []);
 
   const handlePurezaCultivosChange = useCallback((list: any[]) => {
-    console.log("🐛 DEBUG - handlePurezaCultivosChange llamado con:", list);
+    console.log(" DEBUG - handlePurezaCultivosChange llamado con:", list);
     setPurezaCultivosList(list);
   }, []);
 
   const handlePurezaBrassicasChange = useCallback((list: any[]) => {
-    console.log("🐛 DEBUG - handlePurezaBrassicasChange llamado con:", list);
+    console.log(" DEBUG - handlePurezaBrassicasChange llamado con:", list);
     setPurezaBrassicasList(list);
   }, []);
 
@@ -392,7 +392,7 @@ export default function RegistroAnalisisPage() {
         toast.error("Hay errores en el formulario DOSN", {
           description: errores.join(" • "),
         })
-        return // 🔥 DETIENE el envío al backend
+        return //  DETIENE el envío al backend
       }
 
       const mapTipoDosn = (obj: any, prefix: string) => [
@@ -403,7 +403,7 @@ export default function RegistroAnalisisPage() {
       ].filter(Boolean);
 
       // Debug: Verificar estados de los arrays antes de procesar
-      console.log("🔍 DEBUG - Estados de arrays antes de procesar:");
+      console.log(" DEBUG - Estados de arrays antes de procesar:");
       console.log("  - malezasList.length:", malezasList.length);
       console.log("  - cultivosList.length:", cultivosList.length);
       console.log("  - brassicasList.length:", brassicasList.length);
@@ -449,13 +449,13 @@ export default function RegistroAnalisisPage() {
       };
 
       // Debug logs para verificar datos antes de enviar
-      console.log("🔍 DEBUG - Datos de DOSN antes de enviar:");
+      console.log(" DEBUG - Datos de DOSN antes de enviar:");
       console.log("  - listados finales:", listados);
       console.log("  - payload.listados:", payload.listados);
 
       // Validación adicional para asegurar que hay datos para enviar
       if (listados.length === 0) {
-        console.warn("⚠️ WARNING: No hay listados para enviar. Esto podría ser normal si el análisis no requiere listados.");
+        console.warn("️ WARNING: No hay listados para enviar. Esto podría ser normal si el análisis no requiere listados.");
       } else {
         console.log(`✅ Se enviarán ${listados.length} listados al backend`);
       }
@@ -627,7 +627,7 @@ export default function RegistroAnalisisPage() {
 
       // PRUEBA: Intentar hacer una llamada a un endpoint que sabemos que funciona
       if (selectedAnalysisType === "GERMINACION") {
-        console.log("🧪 PRUEBA: Vamos a probar primero obtener lotes para verificar auth...");
+        console.log(" PRUEBA: Vamos a probar primero obtener lotes para verificar auth...");
         try {
           const lotesTest = await obtenerLotesActivos();
           console.log("✅ Test de auth exitoso - lotes obtenidos:", lotesTest.length);
@@ -649,7 +649,7 @@ export default function RegistroAnalisisPage() {
           router.push(`/listado/analisis/germinacion/${result.analisisID}/editar`);
         }, 1500);
       } else if (selectedAnalysisType === "PMS") {
-        console.log("🚀 Intentando crear PMS...");
+        console.log(" Intentando crear PMS...");
         const result = await crearPms(payload);
 
         toast.success('Análisis de PMS registrado exitosamente', {
@@ -685,8 +685,8 @@ export default function RegistroAnalisisPage() {
         }, 1500);
       } else {
         // Registrar otros tipos (DOSN, Pureza, etc.)
-        console.log("📤 PAYLOAD COMPLETO A ENVIAR:", JSON.stringify(payload, null, 2));
-        console.log("📤 Tipo de análisis:", selectedAnalysisType);
+        console.log(" PAYLOAD COMPLETO A ENVIAR:", JSON.stringify(payload, null, 2));
+        console.log(" Tipo de análisis:", selectedAnalysisType);
         
         const result = await registrarAnalisis(payload, selectedAnalysisType);
 

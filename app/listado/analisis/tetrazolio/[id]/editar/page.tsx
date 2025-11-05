@@ -291,7 +291,7 @@ export default function EditarTetrazolioPage() {
         porcDurasRedondeo: parseFloat(String(porcentajesEditados.porcDurasRedondeo) || '0') || 0,
       }
 
-      console.log("💾 Guardando porcentajes redondeados:", payload)
+      console.log(" Guardando porcentajes redondeados:", payload)
       const tetrazolioActualizado = await actualizarPorcentajesRedondeados(parseInt(tetrazolioId), payload)
 
       setTetrazolio(tetrazolioActualizado)
@@ -559,7 +559,7 @@ export default function EditarTetrazolioPage() {
     if (!tetrazolio) return
     
     try {
-      console.log("🏁 Finalizando análisis Tetrazolio:", tetrazolio.analisisID)
+      console.log(" Finalizando análisis Tetrazolio:", tetrazolio.analisisID)
       await finalizarAnalisis(tetrazolio.analisisID)
       toast.success("Análisis finalizado exitosamente")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
@@ -593,7 +593,7 @@ export default function EditarTetrazolioPage() {
     if (!tetrazolio) return
     
     try {
-      console.log("🔄 Marcando análisis Tetrazolio para repetir:", tetrazolio.analisisID)
+      console.log(" Marcando análisis Tetrazolio para repetir:", tetrazolio.analisisID)
       await marcarParaRepetir(tetrazolio.analisisID)
       toast.success("Análisis marcado para repetir")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
@@ -610,7 +610,7 @@ export default function EditarTetrazolioPage() {
     if (!tetrazolio) return
     
     try {
-      console.log("🏁✅ Finalizando y aprobando análisis Tetrazolio:", tetrazolio.analisisID)
+      console.log("✅ Finalizando y aprobando análisis Tetrazolio:", tetrazolio.analisisID)
       // Cuando el admin finaliza, el backend automáticamente lo aprueba
       // No necesitamos llamar a aprobarAnalisis por separado
       await finalizarAnalisis(tetrazolio.analisisID)

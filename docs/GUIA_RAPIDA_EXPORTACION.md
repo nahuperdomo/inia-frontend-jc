@@ -1,4 +1,4 @@
-# 🚀 Guía Rápida: Exportación Excel
+#  Guía Rápida: Exportación Excel
 
 ## ✅ Estado de la Conexión
 
@@ -6,7 +6,7 @@
 
 ---
 
-## 📦 ¿Qué está incluido?
+##  ¿Qué está incluido?
 
 ### Backend (Java Spring Boot)
 - ✅ `ExportacionController.java` - 4 endpoints REST
@@ -26,7 +26,7 @@
 
 ---
 
-## 🎯 Cómo Usar
+##  Cómo Usar
 
 ### 1️⃣ Inicia el Backend
 
@@ -86,7 +86,7 @@ http://localhost:3000/reportes
 
 ---
 
-## 🧪 Prueba Rápida desde la Consola del Navegador
+##  Prueba Rápida desde la Consola del Navegador
 
 1. Abre la consola del navegador (F12)
 2. Ve a la pestaña "Console"
@@ -100,7 +100,7 @@ O simplemente carga el script en el navegador.
 
 ---
 
-## 📋 Endpoints Disponibles
+##  Endpoints Disponibles
 
 | Endpoint | Método | Descripción |
 |----------|--------|-------------|
@@ -111,7 +111,7 @@ O simplemente carga el script en el navegador.
 
 ---
 
-## 🔑 Autenticación
+##  Autenticación
 
 **Todos los endpoints requieren autenticación JWT.**
 
@@ -129,7 +129,7 @@ Obtén el token desde:
 
 ---
 
-## 🎨 Formato del Excel
+##  Formato del Excel
 
 El archivo Excel generado incluye:
 
@@ -156,7 +156,7 @@ El archivo Excel generado incluye:
 
 ---
 
-## 🛠️ Configuración
+## ️ Configuración
 
 ### Variables de Entorno (Frontend)
 
@@ -172,7 +172,7 @@ NEXT_PUBLIC_API_URL=https://tu-backend.com
 
 ---
 
-## 🐛 Solución de Problemas
+##  Solución de Problemas
 
 ### ❌ "No hay token de autenticación"
 **Solución:** Inicia sesión en la aplicación primero.
@@ -201,7 +201,7 @@ NEXT_PUBLIC_API_URL=https://tu-backend.com
 
 ---
 
-## 📖 Documentación Completa
+##  Documentación Completa
 
 Para más detalles, consulta:
 - **Conexión detallada:** `docs/EXPORTACION_EXCEL_CONEXION.md`
@@ -209,7 +209,7 @@ Para más detalles, consulta:
 
 ---
 
-## 📞 Soporte
+##  Soporte
 
 Si tienes problemas:
 
@@ -222,17 +222,17 @@ Si tienes problemas:
 
 ## ✨ Características Destacadas
 
-- 🚀 **Rápido:** Genera Excel en segundos
-- 🎨 **Profesional:** Formato con estilos y colores
-- 🔍 **Filtros avanzados:** Por fecha, tipo de análisis, estado
-- 📊 **Completo:** Incluye todos los tipos de análisis (Pureza, Germinación, PMS, DOSN, Tetrazolio)
-- 🔐 **Seguro:** Autenticación JWT requerida
-- 🎯 **Flexible:** Exporta todos los lotes o selecciona específicos
-- 💾 **Descarga automática:** No necesitas guardar manualmente
+-  **Rápido:** Genera Excel en segundos
+-  **Profesional:** Formato con estilos y colores
+-  **Filtros avanzados:** Por fecha, tipo de análisis, estado
+-  **Completo:** Incluye todos los tipos de análisis (Pureza, Germinación, PMS, DOSN, Tetrazolio)
+-  **Seguro:** Autenticación JWT requerida
+-  **Flexible:** Exporta todos los lotes o selecciona específicos
+-  **Descarga automática:** No necesitas guardar manualmente
 
 ---
 
-## 🎉 ¡Listo para Usar!
+##  ¡Listo para Usar!
 
 Tu sistema de exportación a Excel está completamente operativo.
 

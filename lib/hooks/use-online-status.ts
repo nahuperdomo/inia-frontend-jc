@@ -11,12 +11,12 @@ export function useOnlineStatus() {
 
         const handleOnline = () => {
             setIsOnline(true)
-            console.log('🟢 Conexión restaurada')
+            console.log(' Conexión restaurada')
         }
 
         const handleOffline = () => {
             setIsOnline(false)
-            console.log('🔴 Sin conexión a internet')
+            console.log(' Sin conexión a internet')
         }
 
         window.addEventListener('online', handleOnline)

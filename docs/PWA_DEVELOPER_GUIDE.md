@@ -1,6 +1,6 @@
 # Guía Rápida de PWA para Desarrolladores
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Instalación de Dependencias
 ```bash
@@ -26,7 +26,7 @@ npm start
 
 Abre `http://localhost:3000` y verifica en DevTools (Application tab).
 
-## 📁 Estructura de Archivos PWA
+##  Estructura de Archivos PWA
 
 ```
 inia-frontend-jc/
@@ -53,7 +53,7 @@ inia-frontend-jc/
     └── PWA_IMPLEMENTATION.md  # Documentación completa
 ```
 
-## ⚙️ Configuración Principal
+## ️ Configuración Principal
 
 ### next.config.mjs
 ```javascript
@@ -79,7 +79,7 @@ const pwaConfig = withPWA({
 }
 ```
 
-## 🛠️ Desarrollo
+## ️ Desarrollo
 
 ### Agregar Nueva Estrategia de Caché
 
@@ -148,7 +148,7 @@ function MyComponent() {
 }
 ```
 
-## 🎨 Personalización
+##  Personalización
 
 ### Cambiar Iconos
 
@@ -194,7 +194,7 @@ Edita `manifest.json`:
 }
 ```
 
-## 🐛 Debugging
+##  Debugging
 
 ### Ver Service Worker
 1. Abrir DevTools (F12)
@@ -221,7 +221,7 @@ navigator.serviceWorker.getRegistrations().then(regs => {
 })
 ```
 
-## 🧪 Testing
+##  Testing
 
 ### Checklist de Pruebas
 
@@ -248,7 +248,7 @@ npm start
 
 Objetivo: Score > 90
 
-## 📦 Build & Deploy
+##  Build & Deploy
 
 ### Build para Producción
 ```bash
@@ -285,7 +285,7 @@ CMD ["npm", "start"]
 3. Verificar Manifest y Service Worker
 4. Probar instalación
 
-## 🔒 Seguridad
+##  Seguridad
 
 ### HTTPS Requerido
 Service Workers **requieren HTTPS** en producción.
@@ -305,7 +305,7 @@ headers: {
 }
 ```
 
-## ⚡ Performance
+##  Performance
 
 ### Precargar Rutas Críticas
 ```javascript
@@ -334,7 +334,7 @@ import Image from 'next/image'
 />
 ```
 
-## 📚 Recursos Útiles
+##  Recursos Útiles
 
 - [Next-PWA Docs](https://github.com/shadowwalker/next-pwa)
 - [Workbox Docs](https://developers.google.com/web/tools/workbox)
@@ -368,7 +368,7 @@ npm start
 # DevTools → Console → Filtrar por "sw.js"
 ```
 
-## 🎯 Best Practices
+##  Best Practices
 
 1. **Siempre testear en producción** antes de deploy
 2. **Versionar el Service Worker** si haces cambios manuales
@@ -378,7 +378,7 @@ npm start
 6. **Monitorear tamaño del caché** (límite ~50-100MB)
 7. **Limpiar caché viejo** regularmente
 
-## 💡 Tips
+##  Tips
 
 - Usa `skipWaiting: true` para forzar updates inmediatos
 - Implementa analytics para medir uso offline

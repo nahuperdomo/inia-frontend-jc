@@ -40,7 +40,7 @@ export function RepeticionesGerminacionManager({
       setLoading(true)
       setError("")
       
-      console.log("🔄 Cargando repeticiones para tabla:", tabla.tablaGermID)
+      console.log(" Cargando repeticiones para tabla:", tabla.tablaGermID)
       
       const data = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
       console.log("✅ Repeticiones cargadas:", data)
@@ -93,7 +93,7 @@ export function RepeticionesGerminacionManager({
       setGuardando(repeticion.repGermID)
       setError("")
       
-      console.log("💾 Guardando repetición:", repeticion.repGermID)
+      console.log(" Guardando repetición:", repeticion.repGermID)
       
       const solicitud: RepGermRequestDTO = {
         numRep: repeticion.numRep,
@@ -137,7 +137,7 @@ export function RepeticionesGerminacionManager({
       setEliminando(repId)
       setError("")
       
-      console.log("🗑️ Eliminando repetición:", repId)
+      console.log("️ Eliminando repetición:", repId)
       
       await eliminarRepeticion(germinacionId, tabla.tablaGermID, repId)
       console.log("✅ Repetición eliminada")

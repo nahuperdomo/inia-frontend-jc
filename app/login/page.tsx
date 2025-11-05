@@ -26,7 +26,7 @@ export default function LoginPage() {
   // Servicio de login
   async function login(usuario: string, password: string) {
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-    console.log("🔄 Intentando login con:", { usuario, API_BASE_URL });
+    console.log(" Intentando login con:", { usuario, API_BASE_URL });
 
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
       method: "POST",
@@ -38,7 +38,7 @@ export default function LoginPage() {
       credentials: "include" // CRÍTICO: permite recibir cookies HttpOnly del backend
     })
 
-    console.log("📥 Status de respuesta:", response.status);
+    console.log(" Status de respuesta:", response.status);
 
     if (!response.ok) {
       let errorMessage = "Error de autenticación";
@@ -73,13 +73,13 @@ export default function LoginPage() {
       const data = await login(credentials.usuario, credentials.password)
 
       console.log("✅ Login exitoso. Backend envió cookies HttpOnly.");
-      console.log("📦 Datos de usuario:", data.usuario);
+      console.log(" Datos de usuario:", data.usuario);
 
       // NO guardar nada en localStorage — las cookies HttpOnly quedan del lado del navegador
       // Refrescar el contexto de auth consultando el perfil al backend
       await refresh()
 
-      console.log("🚀 Redirigiendo a /dashboard...");
+      console.log(" Redirigiendo a /dashboard...");
       
       // Usar setTimeout para asegurar que las cookies se establezcan antes de redirigir
       setTimeout(() => {
@@ -89,7 +89,7 @@ export default function LoginPage() {
         // Fallback: si router.push no funciona en 1 segundo, usar window.location
         setTimeout(() => {
           if (window.location.pathname === "/login") {
-            console.warn("⚠️ router.push no redirigió, usando window.location.href");
+            console.warn("️ router.push no redirigió, usando window.location.href");
             window.location.href = "/dashboard";
           }
         }, 1000);

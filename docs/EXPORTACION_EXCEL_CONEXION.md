@@ -1,12 +1,12 @@
 # Conexión de Exportación Excel - Backend ↔ Frontend
 
-## 📋 Resumen de la Conexión
+##  Resumen de la Conexión
 
 Este documento explica cómo está conectada la funcionalidad de exportación de Excel entre el backend (Spring Boot) y el frontend (Next.js).
 
 ---
 
-## 🔌 Arquitectura de la Conexión
+##  Arquitectura de la Conexión
 
 ### Backend (Spring Boot)
 
@@ -32,7 +32,7 @@ Este documento explica cómo está conectada la funcionalidad de exportación de
 
 ---
 
-## 🚀 Endpoints Disponibles
+##  Endpoints Disponibles
 
 ### 1. Exportar Todos los Lotes Activos
 
@@ -142,7 +142,7 @@ exportarLotesConFiltros(filtros)
 
 ---
 
-## 🔐 Autenticación
+##  Autenticación
 
 Todos los endpoints requieren autenticación JWT:
 
@@ -161,7 +161,7 @@ El token se obtiene desde `localStorage.getItem('token')`.
 
 ---
 
-## 📊 Estructura del Excel Generado
+##  Estructura del Excel Generado
 
 El Excel generado incluye:
 
@@ -219,7 +219,7 @@ El Excel generado incluye:
 
 ---
 
-## 🔄 Flujo de Exportación
+##  Flujo de Exportación
 
 ```
 ┌─────────────────┐
@@ -271,7 +271,7 @@ El Excel generado incluye:
 
 ---
 
-## 🧪 Cómo Probar
+##  Cómo Probar
 
 ### 1. Asegúrate que el backend esté corriendo
 ```bash
@@ -315,7 +315,7 @@ http://localhost:3000/reportes
 
 ---
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### Error: "No hay token de autenticación"
 **Solución:** Asegúrate de estar logueado. El token JWT debe estar en localStorage.
@@ -345,7 +345,7 @@ http://localhost:3000/reportes
 
 ---
 
-## 📝 Variables de Entorno
+##  Variables de Entorno
 
 ### Frontend (.env.local)
 ```bash
@@ -361,7 +361,7 @@ spring.application.name=Proyecto-Final-UTEC
 
 ---
 
-## 🔧 Personalización
+##  Personalización
 
 ### Cambiar el formato de fecha
 En `ExportacionFiltrosDTO`:
@@ -399,7 +399,7 @@ Edita los métodos en `ExportacionExcelService.java`:
 
 ---
 
-## 🎯 Endpoints Resumidos
+##  Endpoints Resumidos
 
 | Método | Endpoint | Descripción | Componente |
 |--------|----------|-------------|------------|
@@ -410,7 +410,7 @@ Edita los métodos en `ExportacionExcelService.java`:
 
 ---
 
-## 📚 Recursos Adicionales
+##  Recursos Adicionales
 
 - **Apache POI Documentation:** https://poi.apache.org/
 - **Next.js Environment Variables:** https://nextjs.org/docs/app/building-your-application/configuring/environment-variables
@@ -418,7 +418,7 @@ Edita los métodos en `ExportacionExcelService.java`:
 
 ---
 
-## 🎉 ¡La Conexión Está Lista!
+##  ¡La Conexión Está Lista!
 
 Tu sistema de exportación a Excel está completamente funcional y conectado entre el backend y el frontend. 
 

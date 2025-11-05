@@ -419,7 +419,7 @@ export default function EditarPurezaPage() {
     if (!pureza) return
     
     try {
-      console.log("🏁 Finalizando análisis Pureza:", pureza.analisisID)
+      console.log(" Finalizando análisis Pureza:", pureza.analisisID)
       await finalizarAnalisis(pureza.analisisID)
       toast.success("Análisis finalizado exitosamente")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
@@ -453,7 +453,7 @@ export default function EditarPurezaPage() {
     if (!pureza) return
     
     try {
-      console.log("🔄 Marcando análisis Pureza para repetir:", pureza.analisisID)
+      console.log(" Marcando análisis Pureza para repetir:", pureza.analisisID)
       await marcarParaRepetir(pureza.analisisID)
       toast.success("Análisis marcado para repetir")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
@@ -470,7 +470,7 @@ export default function EditarPurezaPage() {
     if (!pureza) return
     
     try {
-      console.log("🏁✅ Finalizando y aprobando análisis Pureza:", pureza.analisisID)
+      console.log("✅ Finalizando y aprobando análisis Pureza:", pureza.analisisID)
       // Cuando el admin finaliza, el backend automáticamente lo aprueba
       // No necesitamos llamar a aprobarAnalisis por separado
       await finalizarAnalisis(pureza.analisisID)

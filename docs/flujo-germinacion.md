@@ -1,10 +1,10 @@
 # Flujo de Proceso de Germinación en INIA
 
-## 📋 Visión General del Proceso
+##  Visión General del Proceso
 
 El análisis de germinación es uno de los procesos más complejos del sistema INIA, que involucra múltiples entidades y pasos secuenciales para evaluar la capacidad germinativa de las semillas.
 
-## 🏗️ Arquitectura de Entidades
+## ️ Arquitectura de Entidades
 
 ```
 Germinacion (Análisis base)
@@ -20,7 +20,7 @@ Germinacion (Análisis base)
     └── fechaConteos[] (fechas de evaluación)
 ```
 
-## 🔄 Flujo Completo del Proceso
+##  Flujo Completo del Proceso
 
 ### 1️⃣ **CREACIÓN DEL ANÁLISIS DE GERMINACIÓN**
 
@@ -176,7 +176,7 @@ graph TD
     E --> I[Pendiente revisión]
 ```
 
-## 🎯 Estados del Proceso
+##  Estados del Proceso
 
 | Estado | Descripción | Acciones Permitidas |
 |--------|-------------|-------------------|
@@ -187,7 +187,7 @@ graph TD
 | **REPETIR** | Marcado para repetir | Reiniciar proceso |
 | **INACTIVO** | Eliminado lógicamente | No accesible |
 
-## 🔧 Validaciones Críticas
+##  Validaciones Críticas
 
 ### ✅ Al crear Germinación:
 - `numeroRepeticiones > 0`
@@ -209,7 +209,7 @@ graph TD
 - Todas las tablas deben estar finalizadas
 - Usuario debe tener permisos adecuados
 
-## 🚀 Flujo en el Frontend
+##  Flujo en el Frontend
 
 ```typescript
 // 1. Crear análisis
@@ -233,7 +233,7 @@ await finalizarTabla(germinacion.id, tabla.id);
 await finalizarAnalisis(germinacion.id);
 ```
 
-## 📊 Ejemplo de Datos
+##  Ejemplo de Datos
 
 ```json
 {

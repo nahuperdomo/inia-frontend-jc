@@ -1,10 +1,10 @@
 # Sistema de Persistencia de Formularios
 
-## 📋 Descripción
+##  Descripción
 
 Sistema reutilizable y escalable para persistir el estado de formularios en el navegador. Los datos se guardan automáticamente en `sessionStorage` (por defecto) o `localStorage`, evitando que se pierdan al navegar entre tabs o recargar la página.
 
-## 🎯 Características
+##  Características
 
 - ✅ **Persistencia automática**: Los datos se guardan al cambiar
 - ✅ **Múltiples storages**: Soporta `sessionStorage` (default) y `localStorage`
@@ -14,7 +14,7 @@ Sistema reutilizable y escalable para persistir el estado de formularios en el n
 - ✅ **Limpieza automática**: Función helper para limpiar datos al completar formularios
 - ✅ **Modo edición**: No persiste datos si hay registros precargados
 
-## 📦 Instalación
+##  Instalación
 
 Los hooks ya están disponibles en el proyecto:
 
@@ -23,7 +23,7 @@ import { usePersistentForm, usePersistentArray } from "@/lib/hooks/use-form-pers
 import { clearDosnStorage } from "@/lib/utils/clear-form-storage"
 ```
 
-## 🔧 Uso Básico
+##  Uso Básico
 
 ### Hook `usePersistentForm`
 
@@ -108,7 +108,7 @@ export default function ListaDinamica() {
 }
 ```
 
-## 🎨 Ejemplo Real: DOSN
+##  Ejemplo Real: DOSN
 
 ### Campos de Brassica
 
@@ -175,7 +175,7 @@ export default function DosnFields({ formData, handleInputChange }: Props) {
 }
 ```
 
-## 🧹 Limpieza de Storage
+##  Limpieza de Storage
 
 Después de un registro exitoso, limpia el storage para evitar conflictos:
 
@@ -210,7 +210,7 @@ import {
 } from "@/lib/utils/clear-form-storage"
 ```
 
-## 🔑 Claves de Storage Usadas
+##  Claves de Storage Usadas
 
 ### DOSN
 - `dosn-datos-generales`
@@ -230,7 +230,7 @@ import {
 - `pureza-datos-generales`
 - `pureza-malezas`
 
-## ⚙️ Configuración Avanzada
+## ️ Configuración Avanzada
 
 ### Expiración Automática
 
@@ -261,7 +261,7 @@ updateFields({
 clearStorage()
 ```
 
-## 🐛 Debugging
+##  Debugging
 
 Los hooks incluyen logs para facilitar el debugging:
 
@@ -272,7 +272,7 @@ Los hooks incluyen logs para facilitar el debugging:
 "Error saving to storage: [error details]"
 ```
 
-## 📊 Diferencias: sessionStorage vs localStorage
+##  Diferencias: sessionStorage vs localStorage
 
 | Característica | sessionStorage | localStorage |
 |---------------|----------------|--------------|
@@ -281,7 +281,7 @@ Los hooks incluyen logs para facilitar el debugging:
 | **Ideal para** | Formularios temporales | Datos persistentes |
 | **Expiración** | No necesaria | Configurable |
 
-## 🚀 Mejores Prácticas
+##  Mejores Prácticas
 
 1. **Usa claves únicas**: Evita colisiones con otros formularios
 2. **Limpia después del submit**: Previene datos antiguos
@@ -289,7 +289,7 @@ Los hooks incluyen logs para facilitar el debugging:
 4. **localStorage para preferencias**: Configuraciones del usuario
 5. **Modo edición**: No persistas si hay datos precargados
 
-## 📝 Ejemplo Completo
+##  Ejemplo Completo
 
 Ver archivos de referencia:
 - `/lib/hooks/use-form-persistence.ts` - Hooks principales
@@ -297,7 +297,7 @@ Ver archivos de referencia:
 - `/app/registro/analisis/dosn/fields/fields-brassica.tsx` - Ejemplo con arrays
 - `/app/registro/analisis/dosn/form-dosn.tsx` - Ejemplo con campos generales
 
-## 🤝 Contribuir
+##  Contribuir
 
 Para agregar persistencia a un nuevo formulario:
 

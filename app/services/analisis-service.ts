@@ -32,7 +32,7 @@ export async function registrarAnalisis(payload: any, tipo: string) {
   }
 
   // Debug log para verificar datos antes de enviar al backend
-  console.log("🚀 DEBUG - Enviando al backend:");
+  console.log(" DEBUG - Enviando al backend:");
   console.log("  - Endpoint:", endpoint);
   if (tipo === "dosn" && payload.listados) {
     console.log(`  - Cantidad de listados: ${payload.listados.length}`);

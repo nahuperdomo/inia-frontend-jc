@@ -34,7 +34,7 @@ export function AnalisisAccionesCard({
   const [ejecutandoAccion, setEjecutandoAccion] = useState(false)
 
   // DEBUG: Log para ver qué está pasando
-  console.log("🔍 AnalisisAccionesCard DEBUG:", {
+  console.log(" AnalisisAccionesCard DEBUG:", {
     analisisId,
     tipoAnalisis,
     estado,

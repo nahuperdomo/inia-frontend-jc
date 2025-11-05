@@ -99,7 +99,7 @@ export function AnalisisInfoGeneralCard({
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Ficha del Lote
               </label>
-              <p className="text-lg font-semibold font-mono">{ficha}</p>
+              <p className="text-lg font-semibold">{ficha}</p>
             </div>
           )}
 

@@ -1,4 +1,4 @@
-# 📱 Cómo Ver la PWA en tu Celular
+#  Cómo Ver la PWA en tu Celular
 
 ## ✅ El servidor ya está corriendo
 
@@ -8,7 +8,7 @@ Tu aplicación está disponible en:
 
 ---
 
-## 🌐 Método 1: Acceso por Red Local (RECOMENDADO)
+##  Método 1: Acceso por Red Local (RECOMENDADO)
 
 ### Pasos:
 
@@ -34,7 +34,7 @@ Tu aplicación está disponible en:
 
 ---
 
-## 🚀 Método 2: Deploy Temporal con ngrok (Si Método 1 no funciona)
+##  Método 2: Deploy Temporal con ngrok (Si Método 1 no funciona)
 
 Si tu celular no puede acceder por la red local, usa ngrok:
 
@@ -62,14 +62,14 @@ Si tu celular no puede acceder por la red local, usa ngrok:
 
 6. **Instala la PWA** desde el navegador móvil
 
-### ⚠️ Notas sobre ngrok:
+### ️ Notas sobre ngrok:
 - La URL cambia cada vez que reinicias ngrok (a menos que tengas cuenta paga)
 - Funciona desde cualquier red (no necesitas estar en la misma WiFi)
 - Gratis tiene límite de conexiones simultáneas
 
 ---
 
-## 🌍 Método 3: Deploy en Vercel (Para producción)
+##  Método 3: Deploy en Vercel (Para producción)
 
 Para tener la PWA disponible permanentemente:
 
@@ -103,7 +103,7 @@ Para tener la PWA disponible permanentemente:
 
 ---
 
-## 🔧 Configuración del Firewall (Si Método 1 no funciona)
+##  Configuración del Firewall (Si Método 1 no funciona)
 
 Si tu celular no puede acceder a `http://192.168.1.41:3000`, puede ser el firewall:
 
@@ -123,7 +123,7 @@ Si tu celular no puede acceder a `http://192.168.1.41:3000`, puede ser el firewa
 
 ---
 
-## 📱 Testing de la PWA
+##  Testing de la PWA
 
 ### Checklist en el celular:
 
@@ -147,7 +147,7 @@ Si tu celular no puede acceder a `http://192.168.1.41:3000`, puede ser el firewa
 
 ---
 
-## 🎯 URLs Rápidas de Acceso
+##  URLs Rápidas de Acceso
 
 Guarda estas URLs en tu celular:
 
@@ -163,7 +163,7 @@ http://192.168.1.41:3000
 
 ---
 
-## 💡 Tips
+##  Tips
 
 1. **Para desarrollo rápido**: Usa Método 1 (red local)
 2. **Para mostrar a clientes**: Usa ngrok (temporal) o Vercel (permanente)
@@ -207,7 +207,7 @@ Los íconos actuales son placeholders. Para crear íconos reales:
 
 ---
 
-## 📞 Contacto de Desarrollo
+##  Contacto de Desarrollo
 
 Si tienes problemas, verifica:
 - ✅ Servidor corriendo en tu PC
@@ -222,11 +222,11 @@ ipconfig | findstr IPv4
 
 ---
 
-## 🎉 ¡Disfruta tu PWA!
+##  ¡Disfruta tu PWA!
 
 Ahora puedes usar INIA como una app nativa en tu celular, con:
-- 📲 Ícono en pantalla de inicio
-- 🚀 Inicio rápido
-- 📴 Funcionalidad offline
-- 💾 Datos en caché
-- 🎨 Experiencia nativa
+-  Ícono en pantalla de inicio
+-  Inicio rápido
+-  Funcionalidad offline
+-  Datos en caché
+-  Experiencia nativa

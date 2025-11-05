@@ -112,7 +112,7 @@ export default function GerminacionDetailPage() {
   const cargarDatos = async () => {
     try {
       setLoading(true)
-      console.log("🔄 Cargando germinación y tablas para ID:", germinacionId)
+      console.log(" Cargando germinación y tablas para ID:", germinacionId)
       
       // Cargar datos en paralelo
       const [germinacionData, lotesData] = await Promise.all([
@@ -131,10 +131,10 @@ export default function GerminacionDetailPage() {
         console.log("✅ Tablas cargadas:", tablasData)
         setTablas(tablasData)
       } catch (tablasError: any) {
-        console.warn("⚠️ No se pudieron cargar las tablas:", tablasError)
+        console.warn("️ No se pudieron cargar las tablas:", tablasError)
         // Si es 404, significa que no hay tablas, lo cual es normal
         if (tablasError.message && tablasError.message.includes('404')) {
-          console.log("📝 No hay tablas creadas todavía - esto es normal")
+          console.log(" No hay tablas creadas todavía - esto es normal")
           setTablas([])
         } else {
           throw tablasError // Re-lanzar si es otro tipo de error
@@ -159,7 +159,7 @@ export default function GerminacionDetailPage() {
       setCreatingTable(true)
       setError("")
       
-      console.log("🚀 Creando nueva tabla para germinación:", germinacionId)
+      console.log(" Creando nueva tabla para germinación:", germinacionId)
       
       const nuevaTabla = await crearTablaGerminacion(parseInt(germinacionId))
       console.log("✅ Tabla creada:", nuevaTabla)
@@ -212,7 +212,7 @@ export default function GerminacionDetailPage() {
   const handleEditarGerminacion = () => {
     if (!germinacion) return
     
-    console.log("🔍 Iniciando edición de germinación")
+    console.log(" Iniciando edición de germinación")
     
     // Solo preparar los campos editables
     const datosEdicion = {
@@ -246,7 +246,7 @@ export default function GerminacionDetailPage() {
     }
 
     try {
-      console.log("💾 Guardando cambios en germinación:", germinacionId)
+      console.log(" Guardando cambios en germinación:", germinacionId)
       
       // Crear el DTO de edición con solo los campos permitidos
       const datosEdicion: GerminacionEditRequestDTO = {
@@ -254,7 +254,7 @@ export default function GerminacionDetailPage() {
         comentarios: germinacionEditada.comentarios
       }
       
-      console.log("📊 Datos a enviar:", JSON.stringify(datosEdicion, null, 2))
+      console.log(" Datos a enviar:", JSON.stringify(datosEdicion, null, 2))
       
       const germinacionActualizada = await actualizarGerminacion(parseInt(germinacionId), datosEdicion)
       console.log("✅ Germinación actualizada exitosamente")
@@ -304,7 +304,7 @@ export default function GerminacionDetailPage() {
     if (!germinacion) return
     
     try {
-      console.log("🔄 Marcando análisis Germinación para repetir:", germinacion.analisisID)
+      console.log(" Marcando análisis Germinación para repetir:", germinacion.analisisID)
       await marcarParaRepetir(germinacion.analisisID)
       alert("Análisis marcado para repetir")
       await cargarDatos()

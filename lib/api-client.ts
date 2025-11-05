@@ -40,8 +40,8 @@ export async function apiFetch<T = any>(endpoint: string, options: ApiOptions = 
 
     // Debug info
     if (process.env.NODE_ENV !== 'production') {
-        console.debug(`🔍 API Call: ${endpoint}`)
-        console.debug(`🔑 Token: ${token ? '✅ Presente' : '❌ No encontrado'}`)
+        console.debug(` API Call: ${endpoint}`)
+        console.debug(` Token: ${token ? '✅ Presente' : '❌ No encontrado'}`)
     }
 
     // Configurar headers
@@ -60,7 +60,7 @@ export async function apiFetch<T = any>(endpoint: string, options: ApiOptions = 
 
         // Debug info en desarrollo
         if (process.env.NODE_ENV !== 'production') {
-            console.debug(`📥 Response status: ${res.status}`)
+            console.debug(` Response status: ${res.status}`)
         }
 
         // Si la respuesta no es exitosa

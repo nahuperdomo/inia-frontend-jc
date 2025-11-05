@@ -45,7 +45,7 @@ Tamaños disponibles:
 
 Ubicación: `/public/icons/`
 
-## 📱 Instalación para Usuarios
+##  Instalación para Usuarios
 
 ### En Android (Chrome/Edge):
 1. Abre el sitio web
@@ -63,7 +63,7 @@ Ubicación: `/public/icons/`
 2. Busca el icono de instalación (+) en la barra de direcciones
 3. O usa el banner de instalación que aparece automáticamente
 
-## 🔧 Configuración Técnica
+##  Configuración Técnica
 
 ### Next.js Config (`next.config.mjs`)
 ```javascript
@@ -126,7 +126,7 @@ const pwaConfig = withPWA({
 }
 ```
 
-## 🎨 Personalización
+##  Personalización
 
 ### Cambiar Colores del Tema
 Edita `/public/manifest.json`:
@@ -158,7 +158,7 @@ Edita la sección `shortcuts` en `/public/manifest.json`:
 }
 ```
 
-## 🧪 Testing
+##  Testing
 
 ### Modo Desarrollo
 La PWA está **deshabilitada en desarrollo** para mejor experiencia de desarrollo (hot reload, etc.)
@@ -184,7 +184,7 @@ Usa las DevTools de Chrome:
 3. Selecciona "Progressive Web App"
 4. Ejecuta audit
 
-## 🚀 Deploy
+##  Deploy
 
 ### Vercel/Netlify
 La PWA funciona automáticamente al hacer deploy.
@@ -195,7 +195,7 @@ Asegúrate de:
 2. Servir archivos estáticos correctamente
 3. Usar HTTPS (requerido para Service Workers)
 
-## 📊 Métricas
+##  Métricas
 
 ### Cache Hit Rate
 Monitorea en la consola del navegador:
@@ -211,7 +211,7 @@ navigator.storage.estimate().then(estimate => {
 });
 ```
 
-## ⚠️ Limitaciones
+## ️ Limitaciones
 
 1. **Service Workers requieren HTTPS** (excepto localhost)
 2. **iOS tiene limitaciones**:
@@ -220,7 +220,7 @@ navigator.storage.estimate().then(estimate => {
    - No hay notificaciones push
 3. **Caché limitado**: ~50MB en la mayoría de navegadores
 
-## 🔄 Actualización de Service Worker
+##  Actualización de Service Worker
 
 Cuando actualizas la app:
 1. El SW se actualiza automáticamente
@@ -238,14 +238,14 @@ if ('serviceWorker' in navigator) {
 }
 ```
 
-## 📚 Recursos
+##  Recursos
 
 - [Next-PWA Documentation](https://github.com/shadowwalker/next-pwa)
 - [Workbox Documentation](https://developers.google.com/web/tools/workbox)
 - [PWA Checklist](https://web.dev/pwa-checklist/)
 - [Web App Manifest](https://web.dev/add-manifest/)
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### Service Worker no se registra
 1. Verifica que estás en HTTPS o localhost
@@ -262,7 +262,7 @@ if ('serviceWorker' in navigator) {
 2. Asegúrate de tener todos los iconos
 3. Usa Lighthouse para ver problemas específicos
 
-## 📝 Mantenimiento
+##  Mantenimiento
 
 ### Limpiar Caché Viejo
 El Service Worker limpia automáticamente según las configuraciones de `maxEntries` y `maxAgeSeconds`.

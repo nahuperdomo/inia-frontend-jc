@@ -1,8 +1,8 @@
-# 📚 INIA Frontend - Guía de Uso
+#  INIA Frontend - Guía de Uso
 
 Sistema de gestión de lotes y análisis de semillas para INIA (Instituto Nacional de Investigación Agropecuaria).
 
-## 🚀 Inicio Rápido
+##  Inicio Rápido
 
 ### Requisitos Previos
 - Node.js 18+ 
@@ -36,7 +36,7 @@ Crear archivo `.env.local` en la raíz del proyecto:
 NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
-## 📋 Funcionalidades Principales
+##  Funcionalidades Principales
 
 ### 1. **Autenticación**
 - **Login**: `/login`
@@ -68,7 +68,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8080
   - Tetrazolio
   - DOSN
 
-### 4. **📊 Exportación a Excel**
+### 4. ** Exportación a Excel**
 
 El sistema cuenta con una potente funcionalidad de exportación a Excel con múltiples opciones:
 
@@ -126,7 +126,7 @@ await exportarLotesConFiltros({
 - `POST /api/exportaciones/excel/avanzado` - Exportar con filtros avanzados
 
 **Características del Excel generado:**
-- 📑 Todas las columnas del formato estándar INIA (52 columnas totales)
+-  Todas las columnas del formato estándar INIA (52 columnas totales)
   - **A-I**: Datos básicos (Especie, Variedad, Lote, Depósito, etc.)
   - **J-O**: Pureza INIA (SP%, MI%, OC%, M%, MT.%, M.T.C%)
   - **P-U**: Pureza INASE (SP-I%, MI-I%, OC-I%, M%, M.T-I%, M.T.C%)
@@ -137,10 +137,10 @@ await exportarLotesConFiltros({
   - **AM-AR**: Germinación (PN%, AN%, D%, F%, M%, G%)
   - **AS-AX**: Germinación -I (PN-I%, AN-I%, D-I%, F-I%, M-I%, G-I%)
   - **AY-AZ**: Viabilidad (V%, V-I%)
-- 🎨 Estilos y colores personalizados (gris para INIA, amarillo para INASE)
-- 📊 Encabezados con celdas combinadas
+-  Estilos y colores personalizados (gris para INIA, amarillo para INASE)
+-  Encabezados con celdas combinadas
 - ✅ Validación de datos
-- 📅 Formatos de fecha personalizables (dd/MM/yyyy)
+-  Formatos de fecha personalizables (dd/MM/yyyy)
 
 ### 5. **Reportes**
 - **Ruta**: `/reportes`
@@ -162,7 +162,7 @@ await exportarLotesConFiltros({
 - Alertas del sistema
 - Notificaciones push (PWA)
 
-## 🎨 Componentes UI
+##  Componentes UI
 
 El proyecto usa **shadcn/ui** con Radix UI y Tailwind CSS.
 
@@ -191,7 +191,7 @@ import { Table, TableHeader, TableBody, TableRow, TableCell } from '@/components
 import { toast } from 'sonner';
 ```
 
-## 🔄 Estado y Datos
+##  Estado y Datos
 
 ### React Query (TanStack Query)
 - Caché automático de datos
@@ -215,7 +215,7 @@ const { data, isLoading, error } = useQuery({
 - **ThemeProvider**: Sistema de temas (light/dark)
 - **LoadingProvider**: Estados de carga globales
 
-## 📱 PWA (Progressive Web App)
+##  PWA (Progressive Web App)
 
 El frontend es una PWA completa:
 - ✅ Instalable en dispositivos
@@ -225,7 +225,7 @@ El frontend es una PWA completa:
 
 Componente: `components/pwa-install.tsx`
 
-## 🌐 Modo Offline
+##  Modo Offline
 
 - Detección automática de conexión
 - Indicador visual de estado
@@ -233,7 +233,7 @@ Componente: `components/pwa-install.tsx`
 
 Componente: `components/network-status.tsx`
 
-## 🎯 Estructura del Proyecto
+##  Estructura del Proyecto
 
 ```
 inia-frontend-jc/
@@ -250,18 +250,18 @@ inia-frontend-jc/
 │   ├── registro/                # Registro de usuarios
 │   ├── reportes/                # Generación de reportes
 │   └── services/                # Servicios API
-│       └── exportacion-service.ts  # 📊 Servicio de exportación
+│       └── exportacion-service.ts  #  Servicio de exportación
 ├── components/                   # Componentes reutilizables
 │   ├── ui/                      # Componentes UI (shadcn)
 │   ├── forms/                   # Formularios
-│   ├── exportar-excel-btn.tsx   # 📊 Botón exportación simple
-│   └── dialog-exportar-filtros.tsx  # 📊 Diálogo filtros avanzados
+│   ├── exportar-excel-btn.tsx   #  Botón exportación simple
+│   └── dialog-exportar-filtros.tsx  #  Diálogo filtros avanzados
 ├── lib/                         # Utilidades
 │   └── api-client.ts            # Cliente HTTP
 └── public/                      # Archivos estáticos
 ```
 
-## 🛠️ Tecnologías Utilizadas
+## ️ Tecnologías Utilizadas
 
 - **Framework**: Next.js 14 (App Router)
 - **UI**: React 18
@@ -274,7 +274,7 @@ inia-frontend-jc/
 - **Notificaciones**: Sonner
 - **Fechas**: date-fns
 
-## 📦 Scripts Disponibles
+##  Scripts Disponibles
 
 ```bash
 # Desarrollo
@@ -290,7 +290,7 @@ pnpm start:network      # Producción en red local
 pnpm lint               # Ejecutar ESLint
 ```
 
-## 🔐 Autenticación y Seguridad
+##  Autenticación y Seguridad
 
 ### Flujo de Autenticación
 
@@ -313,7 +313,7 @@ export function middleware(request: NextRequest) {
 }
 ```
 
-## 🧪 Pruebas y Desarrollo
+##  Pruebas y Desarrollo
 
 ### Probar Exportación de Excel
 
@@ -331,12 +331,12 @@ pnpm dev:network
 # Acceder desde: http://<tu-ip>:3000
 ```
 
-## 📞 Soporte y Documentación
+##  Soporte y Documentación
 
 - **Backend README**: Ver `inia-backend/EXPORTACION_EXCEL_README.md`
 - **Documentación API**: `http://localhost:8080/swagger-ui.html`
 
-## 🚨 Solución de Problemas
+##  Solución de Problemas
 
 ### Error: "No hay token de autenticación"
 - Verificar que el usuario esté logueado
@@ -356,7 +356,7 @@ pnpm dev:network
 - Verificar que el navegador soporte PWA
 - Revisar el archivo `manifest.json`
 
-## 📈 Próximas Funcionalidades
+##  Próximas Funcionalidades
 
 - [ ] Exportación a PDF
 - [ ] Importación masiva desde Excel

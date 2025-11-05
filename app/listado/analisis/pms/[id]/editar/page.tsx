@@ -98,14 +98,14 @@ export default function EditarPMSPage() {
     if (!pmsId) return
 
     try {
-      console.log("🔄 Recargando datos del análisis PMS:", pmsId)
+      console.log(" Recargando datos del análisis PMS:", pmsId)
       const [analisisActualizado, repeticionesActualizadas] = await Promise.all([
         obtenerPmsPorId(parseInt(pmsId)),
         obtenerRepeticionesPorPms(parseInt(pmsId))
       ])
       
-      console.log("📊 Análisis actualizado:", analisisActualizado)
-      console.log("📋 Repeticiones actualizadas:", repeticionesActualizadas)
+      console.log(" Análisis actualizado:", analisisActualizado)
+      console.log(" Repeticiones actualizadas:", repeticionesActualizadas)
       
       setAnalisis(analisisActualizado)
       
@@ -125,12 +125,12 @@ export default function EditarPMSPage() {
       setPmsConRedondeoTemp(analisisActualizado.pmsconRedon?.toString() || "")
       
       console.log("✅ Datos recargados exitosamente")
-      console.log("📊 Estado de validez de repeticiones:")
+      console.log(" Estado de validez de repeticiones:")
       repeticionesOrdenadas.forEach(rep => {
         console.log(`  Rep #${rep.numRep} (Tanda ${rep.numTanda}): ${rep.peso}g - Válido: ${rep.valido}`)
       })
     } catch (err) {
-      console.warn("⚠️ No se pudieron recargar los datos automáticamente:", err)
+      console.warn("️ No se pudieron recargar los datos automáticamente:", err)
     }
   }
 
@@ -251,10 +251,10 @@ export default function EditarPMSPage() {
       toast.success('Repetición agregada exitosamente')
       
       // Recargar todos los datos para obtener estadísticas y validez actualizadas
-      console.log("🔄 Recargando datos después de agregar repetición...")
+      console.log(" Recargando datos después de agregar repetición...")
       await recargarDatos()
       
-      console.log("🔍 Verificando si aún se puede agregar más repeticiones...")
+      console.log(" Verificando si aún se puede agregar más repeticiones...")
       // La función puedeAgregarRepeticiones() se re-evaluará automáticamente con los datos actualizados
     } catch (err: any) {
       console.error("❌ Error al agregar repetición:", err)
@@ -318,7 +318,7 @@ export default function EditarPMSPage() {
     })
 
     try {
-      console.log("💾 Guardando repetición:", rep)
+      console.log(" Guardando repetición:", rep)
       const updatedRep = await actualizarRepPms(analisis.analisisID, rep.repPMSID, {
         numRep: rep.numRep,
         numTanda: rep.numTanda,
@@ -335,7 +335,7 @@ export default function EditarPMSPage() {
       toast.success('Repetición actualizada exitosamente')
       
       // Recargar todos los datos para obtener estadísticas y validez actualizadas
-      console.log("🔄 Iniciando recarga de datos después de actualizar repetición...")
+      console.log(" Iniciando recarga de datos después de actualizar repetición...")
       await recargarDatos()
     } catch (err: any) {
       console.error("❌ Error al actualizar repetición:", err)
@@ -363,14 +363,14 @@ export default function EditarPMSPage() {
     }
 
     try {
-      console.log("🗑️ Eliminando repetición:", rep)
+      console.log("️ Eliminando repetición:", rep)
       await eliminarRepPms(analisis.analisisID, rep.repPMSID)
       setRepeticiones(prev => prev.filter((_, i) => i !== index))
       
       toast.success('Repetición eliminada exitosamente')
       
       // Recargar todos los datos para obtener estadísticas y validez actualizadas
-      console.log("🔄 Recargando datos después de eliminar repetición...")
+      console.log(" Recargando datos después de eliminar repetición...")
       await recargarDatos()
       console.log("✅ Recarga completada")
     } catch (err: any) {
@@ -430,7 +430,7 @@ export default function EditarPMSPage() {
     }
 
     try {
-      console.log("🏁 Finalizando análisis PMS:", analisis.analisisID)
+      console.log(" Finalizando análisis PMS:", analisis.analisisID)
       
       await finalizarAnalisis(analisis.analisisID)
       console.log("✅ Análisis PMS finalizado")
@@ -469,7 +469,7 @@ export default function EditarPMSPage() {
     if (!analisis) return
     
     try {
-      console.log("🔄 Marcando análisis PMS para repetir:", analisis.analisisID)
+      console.log(" Marcando análisis PMS para repetir:", analisis.analisisID)
       await marcarParaRepetir(analisis.analisisID)
       toast.success("Análisis marcado para repetir")
       await recargarDatos()
@@ -486,7 +486,7 @@ export default function EditarPMSPage() {
     if (!analisis) return
     
     try {
-      console.log("🏁✅ Finalizando y aprobando análisis PMS:", analisis.analisisID)
+      console.log("✅ Finalizando y aprobando análisis PMS:", analisis.analisisID)
       // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
       await finalizarAnalisis(analisis.analisisID)
       toast.success("Análisis finalizado y aprobado exitosamente")
@@ -578,7 +578,7 @@ export default function EditarPMSPage() {
     const repeticionesInvalidas = repeticiones.filter(rep => rep.valido === false)
     const repeticionesIndeterminadas = repeticiones.filter(rep => rep.valido === null || rep.valido === undefined)
     
-    console.log("📊 Estado de repeticiones:")
+    console.log(" Estado de repeticiones:")
     console.log("  Total:", totalRepeticiones)
     console.log("  Válidas:", repeticionesValidas.length)
     console.log("  Inválidas:", repeticionesInvalidas.length)
@@ -604,7 +604,7 @@ export default function EditarPMSPage() {
       
       const umbralCV = analisis.esSemillaBrozosa ? 6.0 : 4.0
       
-      console.log("📈 CV calculado:", cv.toFixed(2), "% (umbral:", umbralCV, "%)")
+      console.log(" CV calculado:", cv.toFixed(2), "% (umbral:", umbralCV, "%)")
       
       // Si el CV es aceptable, NO permitir agregar más
       if (cv <= umbralCV) {
@@ -694,7 +694,7 @@ export default function EditarPMSPage() {
     const repeticionesInvalidas = repeticiones.filter(rep => rep.valido === false)
     const repeticionesIndeterminadas = repeticiones.filter(rep => rep.valido === null || rep.valido === undefined)
     
-    console.log("🎯 Verificando si puede editar PMS con redondeo:")
+    console.log(" Verificando si puede editar PMS con redondeo:")
     console.log("  Total repeticiones:", totalRepeticiones)
     console.log("  Válidas:", repeticionesValidas.length)
     console.log("  Inválidas:", repeticionesInvalidas.length)

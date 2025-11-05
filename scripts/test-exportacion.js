@@ -9,7 +9,7 @@
 const API_BASE_URL = 'http://localhost:8080';
 const token = localStorage.getItem('token');
 
-console.log('🧪 Iniciando pruebas de exportación Excel...\n');
+console.log(' Iniciando pruebas de exportación Excel...\n');
 
 // Test 1: Verificar token
 console.log('1️⃣ Verificando autenticación...');
@@ -108,7 +108,7 @@ async function testConectividad() {
       const health = await response.json();
       console.log('✅ Backend está activo:', health);
     } else {
-      console.warn('⚠️ Endpoint /actuator/health no disponible (normal si no está habilitado)');
+      console.warn('️ Endpoint /actuator/health no disponible (normal si no está habilitado)');
     }
   } catch (error) {
     console.error('❌ Backend no responde en', API_BASE_URL);
@@ -126,7 +126,7 @@ function descargarBlob(blob, nombreArchivo) {
   link.click();
   document.body.removeChild(link);
   window.URL.revokeObjectURL(url);
-  console.log(`📥 Archivo descargado: ${nombreArchivo}`);
+  console.log(` Archivo descargado: ${nombreArchivo}`);
 }
 
 // Ejecutar todas las pruebas
@@ -138,27 +138,27 @@ async function ejecutarTodasLasPruebas() {
   await testConectividad();
   
   if (!token) {
-    console.log('\n⚠️ No se pueden ejecutar más pruebas sin token de autenticación.');
+    console.log('\n️ No se pueden ejecutar más pruebas sin token de autenticación.');
     console.log('   Por favor inicia sesión en la aplicación y vuelve a ejecutar este script.');
     return;
   }
   
   const blobSimple = await testExportacionSimple();
   if (blobSimple) {
-    console.log('   💾 Descargando archivo de prueba...');
+    console.log('    Descargando archivo de prueba...');
     descargarBlob(blobSimple, 'prueba_exportacion_simple.xlsx');
   }
   
   const blobFiltros = await testExportacionConFiltros();
   if (blobFiltros) {
-    console.log('   💾 Descargando archivo de prueba...');
+    console.log('    Descargando archivo de prueba...');
     descargarBlob(blobFiltros, 'prueba_exportacion_filtros.xlsx');
   }
   
   console.log('\n╔════════════════════════════════════════════════════════╗');
   console.log('║   PRUEBAS COMPLETADAS                                  ║');
   console.log('╚════════════════════════════════════════════════════════╝');
-  console.log('\n📊 Revisa los archivos descargados para verificar el contenido.');
+  console.log('\n Revisa los archivos descargados para verificar el contenido.');
 }
 
 // Auto-ejecutar las pruebas
@@ -172,7 +172,7 @@ window.testExportacion = {
   ejecutarTodasLasPruebas,
 };
 
-console.log('\n💡 Tip: Puedes ejecutar pruebas individuales desde la consola:');
+console.log('\n Tip: Puedes ejecutar pruebas individuales desde la consola:');
 console.log('   - testExportacion.testExportacionSimple()');
 console.log('   - testExportacion.testExportacionConFiltros()');
 console.log('   - testExportacion.ejecutarTodasLasPruebas()');

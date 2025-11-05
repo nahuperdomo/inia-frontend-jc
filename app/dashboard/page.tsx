@@ -29,7 +29,7 @@ export default function DashboardPage() {
     const cargarDatos = async () => {
       // Obtener rol desde el backend usando cookies HttpOnly automáticamente
       try {
-        console.log("🔄 Dashboard - Obteniendo perfil del usuario desde backend...")
+        console.log(" Dashboard - Obteniendo perfil del usuario desde backend...")
         const perfil = await obtenerPerfil()
         console.log("✅ Dashboard - Perfil obtenido del backend:", perfil)
         
@@ -57,12 +57,12 @@ export default function DashboardPage() {
             }
           }
         } catch (extractErr) {
-          console.warn('⚠️ Error extrayendo rol del perfil (any-cast):', extractErr)
+          console.warn('️ Error extrayendo rol del perfil (any-cast):', extractErr)
         }
 
         // Normalizar
         if (roleFromBackend) roleFromBackend = roleFromBackend.trim()
-        console.log('🔍 Dashboard - Rol de usuario del backend (resuelto):', roleFromBackend)
+        console.log(' Dashboard - Rol de usuario del backend (resuelto):', roleFromBackend)
 
         // Actualizar estado React (NO guardar en localStorage/cookies client-side)
         if (roleFromBackend) {
@@ -71,15 +71,15 @@ export default function DashboardPage() {
         }
       } catch (error) {
         console.error("❌ Error al obtener perfil del backend:", error)
-        console.error("🔍 Detalles del error:", error)
+        console.error(" Detalles del error:", error)
         // Si falla la autenticación, el usuario podría necesitar login
-        console.warn("⚠️ No se pudo obtener perfil. Usuario posiblemente no autenticado.")
+        console.warn("️ No se pudo obtener perfil. Usuario posiblemente no autenticado.")
       }
 
       // Cargar estadísticas
       try {
         const data = await obtenerEstadisticasDashboard()
-        console.log("📊 Dashboard - Estadísticas cargadas:", data)
+        console.log(" Dashboard - Estadísticas cargadas:", data)
         setStats(data)
       } catch (statsError) {
         console.error("❌ Error al cargar estadísticas:", statsError)
@@ -95,7 +95,7 @@ export default function DashboardPage() {
   // Usar useMemo para crear quickStats de forma reactiva cuando cambie userRole, loading o stats
   const quickStats = useMemo(() => {
     const isAdmin = userRole?.trim().toUpperCase() === "ADMIN"
-    console.log("🔍 Dashboard - userRole:", userRole, "| isAdmin:", isAdmin)
+    console.log(" Dashboard - userRole:", userRole, "| isAdmin:", isAdmin)
     
     const stats_array: Array<{
       label: string

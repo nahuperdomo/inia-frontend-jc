@@ -1,9 +1,9 @@
 # Especificaciones para v0: Página de Análisis de Germinación
 
-## 🎯 Objetivo
+##  Objetivo
 Crear una página completa para gestionar análisis de germinación con múltiples pasos secuenciales y validaciones complejas.
 
-## 📋 Componentes Requeridos
+##  Componentes Requeridos
 
 ### 1. **Formulario Principal - Crear Análisis de Germinación**
 ```typescript
@@ -98,43 +98,43 @@ interface PorcentajesRedondeoRequestDTO {
 - Mostrar cálculo automático vs. porcentajes ingresados
 - Botón "Finalizar Tabla" (solo si suma 100%)
 
-## 🔄 Flujo de Estados en la UI
+##  Flujo de Estados en la UI
 
 ### Estado 1: Análisis Creado
 ```
 ✅ Análisis de Germinación Creado
-📋 Estado: REGISTRADO
-🎯 Siguiente: Crear tablas de germinación
+ Estado: REGISTRADO
+ Siguiente: Crear tablas de germinación
 ```
 
 ### Estado 2: Tablas en Desarrollo
 ```
-📊 Tabla 1: Control
+ Tabla 1: Control
 ├── ✅ Parámetros configurados
-├── 🔄 Repeticiones: 2/4 completadas
+├──  Repeticiones: 2/4 completadas
 └── ⏳ Pendiente: completar repeticiones
 
-📊 Tabla 2: Tratamiento A
+ Tabla 2: Tratamiento A
 ├── ⏳ Pendiente: crear repeticiones
 ```
 
 ### Estado 3: Listo para Porcentajes
 ```
-📊 Tabla 1: Control
+ Tabla 1: Control
 ├── ✅ 4/4 repeticiones completas
-├── 🎯 Acción: Ingresar porcentajes con redondeo
-└── 📊 Promedios automáticos calculados
+├──  Acción: Ingresar porcentajes con redondeo
+└──  Promedios automáticos calculados
 ```
 
 ### Estado 4: Tabla Finalizada
 ```
-📊 Tabla 1: Control ✅ FINALIZADA
+ Tabla 1: Control ✅ FINALIZADA
 ├── ✅ Porcentajes: 100% validado
-├── 📅 Fecha final: 2025-01-15
-└── 🔒 No modificable
+├──  Fecha final: 2025-01-15
+└──  No modificable
 ```
 
-## 🛠️ Endpoints de la API
+## ️ Endpoints de la API
 
 ```typescript
 // Análisis principal
@@ -166,12 +166,12 @@ GET /api/valores-germ/tabla/{tablaId}/inia - obtener INIA
 GET /api/valores-germ/tabla/{tablaId}/inase - obtener INASE
 ```
 
-## 🎨 Diseño de Componentes Recomendado
+##  Diseño de Componentes Recomendado
 
 ### Layout Principal
 ```
 ┌─────────────────────────────────────────────────┐
-│ 🧪 Análisis de Germinación - Lote #123          │
+│  Análisis de Germinación - Lote #123          │
 ├─────────────────────────────────────────────────┤
 │ [Paso 1] [Paso 2] [Paso 3] [Paso 4] [Final]    │ ← Progress Steps
 ├─────────────────────────────────────────────────┤
@@ -198,7 +198,7 @@ interface RepeticionFormProps {
 // Deshabilitar si excede numSemillasPRep
 ```
 
-## ⚠️ Validaciones Críticas para Implementar
+## ️ Validaciones Críticas para Implementar
 
 1. **Fechas de Conteo**: No permitir fechas null en el array
 2. **Número de Repeticiones**: Controlar cuántas se pueden crear
@@ -207,12 +207,12 @@ interface RepeticionFormProps {
 5. **Porcentajes**: Deben sumar exactamente 100%
 6. **Estados**: Validar permisos según el estado del análisis
 
-## 🚀 Funcionalidades Avanzadas
+##  Funcionalidades Avanzadas
 
 ### Progreso Visual
 - Progress bar por tabla
 - Checkmarks por repetición completada  
-- Indicadores de estado (🟢 completo, 🟡 en progreso, ⚪ pendiente)
+- Indicadores de estado ( completo,  en progreso,  pendiente)
 
 ### Cálculos en Tiempo Real
 - Total automático por repetición

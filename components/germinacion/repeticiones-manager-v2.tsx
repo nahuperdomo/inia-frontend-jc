@@ -41,10 +41,10 @@ export function RepeticionesManager({
       setLoading(true)
       setError("")
       
-      console.log(`🔄 Cargando repeticiones para tabla ${tabla.tablaGermID}...`)
+      console.log(` Cargando repeticiones para tabla ${tabla.tablaGermID}...`)
       const data = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
       console.log(`✅ Repeticiones cargadas para tabla ${tabla.tablaGermID}:`, data.length, "repeticiones")
-      console.log("📝 Detalles de repeticiones:", data.map(r => ({
+      console.log(" Detalles de repeticiones:", data.map(r => ({
         numRep: r.numRep,
         normales: r.normales,
         anormales: r.anormales,
@@ -68,15 +68,15 @@ export function RepeticionesManager({
 
   const handleGuardarRepeticion = async (numeroRep: number, datos: RepGermRequestDTO) => {
     try {
-      console.log(`💾 Intentando guardar repetición ${numeroRep} para tabla ${tabla.tablaGermID}`)
-      console.log("📝 Datos a guardar:", datos)
+      console.log(` Intentando guardar repetición ${numeroRep} para tabla ${tabla.tablaGermID}`)
+      console.log(" Datos a guardar:", datos)
       
       const repeticionExistente = repeticiones.find(r => r.numRep === numeroRep)
       let repeticionesActualizadas: RepGermDTO[]
       
       if (repeticionExistente) {
         // Actualizar existente
-        console.log(`🔄 Actualizando repetición existente con ID ${repeticionExistente.repGermID}`)
+        console.log(` Actualizando repetición existente con ID ${repeticionExistente.repGermID}`)
         const repeticionActualizada = await actualizarRepeticion(
           germinacionId, 
           tabla.tablaGermID, 
@@ -99,7 +99,7 @@ export function RepeticionesManager({
         setRepeticiones(repeticionesActualizadas)
       }
       
-      console.log(`📊 Total de repeticiones ahora: ${repeticionesActualizadas.length}`)
+      console.log(` Total de repeticiones ahora: ${repeticionesActualizadas.length}`)
       
       // Actualizar callback con las repeticiones realmente actualizadas
       onRepeticionesUpdated(repeticionesActualizadas)
