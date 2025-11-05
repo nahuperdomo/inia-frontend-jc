@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import FormField from "@/components/ui/form-field"
 import FormSelect from "@/components/ui/form-select"
+import FormCombobox from "@/components/ui/form-combobox"
 import { LoteFormData, loteValidationSchema } from "@/lib/validations/lotes-validation"
 import { DatosHumedadManager } from "./datos-humedad-manager"
 import { TiposAnalisisSelector } from "./tipos-analisis-selector"
@@ -245,7 +246,7 @@ export function LotFormTabs({
                 placeholder="Ingrese un nombre único para el lote"
               />
 
-              <FormSelect
+              <FormCombobox
                 id="cultivarID"
                 label="Cultivar"
                 value={formData.cultivarID}
@@ -255,6 +256,7 @@ export function LotFormTabs({
                 error={getError("cultivarID")}
                 required={true}
                 placeholder="Seleccionar cultivar"
+                searchPlaceholder="Buscar cultivar..."
               />
 
               <FormSelect
@@ -274,7 +276,7 @@ export function LotFormTabs({
           {/* Empresa Tab */}
           <TabsContent value="empresa" className="space-y-4 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormSelect
+              <FormCombobox
                 id="empresaID"
                 label="Empresa"
                 value={formData.empresaID}
@@ -284,9 +286,10 @@ export function LotFormTabs({
                 error={getError("empresaID")}
                 required={true}
                 placeholder="Seleccionar empresa"
+                searchPlaceholder="Buscar empresa..."
               />
 
-              <FormSelect
+              <FormCombobox
                 id="clienteID"
                 label="Cliente"
                 value={formData.clienteID}
@@ -296,6 +299,7 @@ export function LotFormTabs({
                 error={getError("clienteID")}
                 required={true}
                 placeholder="Seleccionar cliente"
+                searchPlaceholder="Buscar cliente..."
               />
 
               <FormField
@@ -342,7 +346,7 @@ export function LotFormTabs({
                 required={true}
               />
 
-              <FormSelect
+              <FormCombobox
                 id="depositoID"
                 label="Depósito"
                 value={formData.depositoID}
@@ -351,9 +355,10 @@ export function LotFormTabs({
                 options={depositosOptions}
                 error={getError("depositoID")}
                 placeholder="Seleccionar depósito"
+                searchPlaceholder="Buscar depósito..."
               />
 
-              <FormSelect
+              <FormCombobox
                 id="unidadEmbolsado"
                 label="Unidad de embolsado"
                 value={formData.unidadEmbolsado}
@@ -362,6 +367,7 @@ export function LotFormTabs({
                 options={unidadesEmbolsadoOptions}
                 error={getError("unidadEmbolsado")}
                 placeholder="Seleccionar unidad"
+                searchPlaceholder="Buscar unidad..."
               />
 
               <FormField
@@ -399,7 +405,7 @@ export function LotFormTabs({
                   required={true}
                 />
 
-                <FormSelect
+                <FormCombobox
                   id="numeroArticuloID"
                   label="Número Artículo"
                   value={formData.numeroArticuloID}
@@ -408,9 +414,10 @@ export function LotFormTabs({
                   options={articulosOptions}
                   error={getError("numeroArticuloID")}
                   placeholder="Seleccionar artículo"
+                  searchPlaceholder="Buscar artículo..."
                 />
 
-                <FormSelect
+                <FormCombobox
                   id="origenID"
                   label="Origen"
                   value={formData.origenID}
@@ -420,6 +427,7 @@ export function LotFormTabs({
                   error={getError("origenID")}
                   required={true}
                   placeholder="Seleccionar origen"
+                  searchPlaceholder="Buscar origen..."
                 />
 
                 <FormSelect

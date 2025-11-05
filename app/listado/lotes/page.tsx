@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import Combobox from "@/components/ui/combobox"
 import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2, AlertTriangle, RefreshCw } from "lucide-react"
 import { extractPageMetadata } from "@/lib/utils/pagination-helper"
 import Link from "next/link"
@@ -21,9 +22,9 @@ export default function ListadoLotesPage() {
   const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState<string>("todos")
-  const [filterCultivo, setFilterCultivo] = useState<string>("todos")
+  const [filterCultivar, setFilterCultivar] = useState<string>("todos")
   const [lotes, setLotes] = useState<LoteSimpleDTO[]>([])
-  const [cultivos, setCultivos] = useState<string[]>([])
+  const [cultivares, setCultivares] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
@@ -56,8 +57,8 @@ export default function ListadoLotesPage() {
     const fetchCultivares = async () => {
       try {
         const todosLosCultivares = await obtenerTodosCultivares(true) // Solo activos
-        const nombresCultivares = [...new Set(todosLosCultivares.map(c => c.nombre).filter(Boolean))] as string[]
-        setCultivos(nombresCultivares)
+  const nombresCultivares = [...new Set(todosLosCultivares.map(c => c.nombre).filter(Boolean))] as string[]
+  setCultivares(nombresCultivares)
       } catch (error) {
         console.error("Error obteniendo cultivares:", error)
       }
@@ -68,7 +69,7 @@ export default function ListadoLotesPage() {
   useEffect(() => {
     setCurrentPage(0)
     fetchLotes(0)
-  }, [filterEstado, filterCultivo]) // Recargar cuando cambien los filtros (sin searchTerm)
+  }, [filterEstado, filterCultivar]) // Recargar cuando cambien los filtros (sin searchTerm)
 
   // Handler para búsqueda con Enter
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -103,7 +104,7 @@ export default function ListadoLotesPage() {
         pageSize, 
         searchTerm, 
         activoFilter, 
-        filterCultivo
+        filterCultivar
       )
       
       console.log("DEBUG obtenerLotesPaginadas response:", data)
@@ -157,6 +158,12 @@ export default function ListadoLotesPage() {
       })
     }
   }
+
+  // Opciones para el combobox de cultivares (incluye "todos")
+  const cultivarOptions = [
+    { id: "todos", nombre: "Todos los cultivares" },
+    ...cultivares.map((c) => ({ id: c, nombre: c }))
+  ]
 
   return (
     <div className="w-full max-w-full overflow-x-hidden">
@@ -304,19 +311,15 @@ export default function ListadoLotesPage() {
                 <SelectItem value="Inactivo">Inactivo</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filterCultivo} onValueChange={setFilterCultivo}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por cultivo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los cultivos</SelectItem>
-                {cultivos.map((cultivo, index) => (
-                  <SelectItem key={`cultivo-${index}-${cultivo}`} value={cultivo}>
-                    {cultivo}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="w-full md:w-64">
+              <Combobox
+                value={filterCultivar}
+                onValueChange={setFilterCultivar}
+                options={cultivarOptions}
+                placeholder="Filtrar por cultivar"
+                searchPlaceholder="Buscar cultivar..."
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
