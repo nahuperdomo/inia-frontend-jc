@@ -41,7 +41,7 @@ export async function apiFetch<T = any>(endpoint: string, options: ApiOptions = 
     // Debug info
     if (process.env.NODE_ENV !== 'production') {
         console.debug(` API Call: ${endpoint}`)
-        console.debug(` Token: ${token ? '✅ Presente' : '❌ No encontrado'}`)
+        console.debug(` Token: ${token ? ' Presente' : ' No encontrado'}`)
     }
 
     // Configurar headers

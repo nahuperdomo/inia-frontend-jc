@@ -43,11 +43,11 @@ export function RepeticionesGerminacionManager({
       console.log(" Cargando repeticiones para tabla:", tabla.tablaGermID)
       
       const data = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
-      console.log("✅ Repeticiones cargadas:", data)
+      console.log(" Repeticiones cargadas:", data)
       
       setRepeticiones(data)
     } catch (err: any) {
-      console.error("❌ Error cargando repeticiones:", err)
+      console.error(" Error cargando repeticiones:", err)
       setError(err?.message || "Error al cargar repeticiones")
     } finally {
       setLoading(false)
@@ -76,14 +76,14 @@ export function RepeticionesGerminacionManager({
       }
       
       await crearRepeticion(germinacionId, tabla.tablaGermID, nuevaRepeticion)
-      console.log("✅ Repetición creada")
+      console.log(" Repetición creada")
       
       // Recargar repeticiones y notificar actualización
       const repeticionesActualizadas = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
       setRepeticiones(repeticionesActualizadas)
       onRepeticionesUpdated(repeticionesActualizadas)
     } catch (err: any) {
-      console.error("❌ Error creando repetición:", err)
+      console.error(" Error creando repetición:", err)
       setError(err?.message || "Error al crear repetición")
     }
   }
@@ -106,14 +106,14 @@ export function RepeticionesGerminacionManager({
       }
       
       await actualizarRepeticion(germinacionId, tabla.tablaGermID, repeticion.repGermID, solicitud)
-      console.log("✅ Repetición guardada")
+      console.log(" Repetición guardada")
       
       // Recargar datos y notificar
       const repeticionesActualizadas = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
       setRepeticiones(repeticionesActualizadas)
       onRepeticionesUpdated(repeticionesActualizadas)
     } catch (err: any) {
-      console.error("❌ Error guardando repetición:", err)
+      console.error(" Error guardando repetición:", err)
       setError(err?.message || "Error al guardar repetición")
     } finally {
       setGuardando(null)
@@ -140,14 +140,14 @@ export function RepeticionesGerminacionManager({
       console.log("️ Eliminando repetición:", repId)
       
       await eliminarRepeticion(germinacionId, tabla.tablaGermID, repId)
-      console.log("✅ Repetición eliminada")
+      console.log(" Repetición eliminada")
       
       // Recargar datos y notificar
       const repeticionesActualizadas = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
       setRepeticiones(repeticionesActualizadas)
       onRepeticionesUpdated(repeticionesActualizadas)
     } catch (err: any) {
-      console.error("❌ Error eliminando repetición:", err)
+      console.error(" Error eliminando repetición:", err)
       setError(err?.message || "Error al eliminar repetición")
     } finally {
       setEliminando(null)

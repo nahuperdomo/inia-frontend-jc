@@ -31,7 +31,7 @@ export default function DashboardPage() {
       try {
         console.log(" Dashboard - Obteniendo perfil del usuario desde backend...")
         const perfil = await obtenerPerfil()
-        console.log("✅ Dashboard - Perfil obtenido del backend:", perfil)
+        console.log(" Dashboard - Perfil obtenido del backend:", perfil)
         
         // Extraer rol soportando varias formas que el backend pueda devolver:
         // - perfil.roles: string[]
@@ -67,10 +67,10 @@ export default function DashboardPage() {
         // Actualizar estado React (NO guardar en localStorage/cookies client-side)
         if (roleFromBackend) {
           setUserRole(roleFromBackend)
-          console.log('✅ Dashboard - Rol actualizado en estado:', roleFromBackend)
+          console.log(' Dashboard - Rol actualizado en estado:', roleFromBackend)
         }
       } catch (error) {
-        console.error("❌ Error al obtener perfil del backend:", error)
+        console.error(" Error al obtener perfil del backend:", error)
         console.error(" Detalles del error:", error)
         // Si falla la autenticación, el usuario podría necesitar login
         console.warn("️ No se pudo obtener perfil. Usuario posiblemente no autenticado.")
@@ -82,7 +82,7 @@ export default function DashboardPage() {
         console.log(" Dashboard - Estadísticas cargadas:", data)
         setStats(data)
       } catch (statsError) {
-        console.error("❌ Error al cargar estadísticas:", statsError)
+        console.error(" Error al cargar estadísticas:", statsError)
         toast.error("Error al cargar estadísticas del dashboard")
       } finally {
         setLoading(false)
@@ -117,7 +117,7 @@ export default function DashboardPage() {
 
     // Solo agregar "Análisis por aprobar" si es ADMIN (segunda posición, a la izquierda)
     if (isAdmin) {
-      console.log("✅ Dashboard - Agregando card de Análisis por Aprobar")
+      console.log(" Dashboard - Agregando card de Análisis por Aprobar")
       stats_array.push({
         label: "Análisis por Aprobar",
         value: loading ? "..." : stats?.analisisPorAprobar.toString() || "0",
@@ -127,7 +127,7 @@ export default function DashboardPage() {
         href: "/dashboard/analisis-por-aprobar",
       })
     } else {
-      console.log("❌ Dashboard - No se muestra card de Análisis por Aprobar")
+      console.log(" Dashboard - No se muestra card de Análisis por Aprobar")
     }
 
     // Agregar los no clicables al final (a la derecha)

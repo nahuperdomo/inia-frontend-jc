@@ -72,14 +72,14 @@ Tabla: Control - Repetición 1 de 4
 │ Anormales: [__] Duras: [__]                 │
 │ Frescas: [__] Muertas: [__]                 │
 │                                             │
-│ Total: 45/100 semillas ✅                   │
+│ Total: 45/100 semillas                    │
 └─────────────────────────────────────────────┘
 ```
 
 **Validaciones en tiempo real:**
 - Array `normales[]` debe tener exactamente `numeroConteos` elementos
 - `total` no puede exceder `numSemillasPRep`
-- Mostrar progreso: "Repetición X de Y completada ✅"
+- Mostrar progreso: "Repetición X de Y completada "
 
 ### 4. **Porcentajes con Redondeo (Paso Final)**
 ```typescript
@@ -102,7 +102,7 @@ interface PorcentajesRedondeoRequestDTO {
 
 ### Estado 1: Análisis Creado
 ```
-✅ Análisis de Germinación Creado
+ Análisis de Germinación Creado
  Estado: REGISTRADO
  Siguiente: Crear tablas de germinación
 ```
@@ -110,7 +110,7 @@ interface PorcentajesRedondeoRequestDTO {
 ### Estado 2: Tablas en Desarrollo
 ```
  Tabla 1: Control
-├── ✅ Parámetros configurados
+├──  Parámetros configurados
 ├──  Repeticiones: 2/4 completadas
 └── ⏳ Pendiente: completar repeticiones
 
@@ -121,15 +121,15 @@ interface PorcentajesRedondeoRequestDTO {
 ### Estado 3: Listo para Porcentajes
 ```
  Tabla 1: Control
-├── ✅ 4/4 repeticiones completas
+├──  4/4 repeticiones completas
 ├──  Acción: Ingresar porcentajes con redondeo
 └──  Promedios automáticos calculados
 ```
 
 ### Estado 4: Tabla Finalizada
 ```
- Tabla 1: Control ✅ FINALIZADA
-├── ✅ Porcentajes: 100% validado
+ Tabla 1: Control  FINALIZADA
+├──  Porcentajes: 100% validado
 ├──  Fecha final: 2025-01-15
 └──  No modificable
 ```

@@ -33,7 +33,7 @@ export default function BrassicaSection({ registros, onChangeListados, contexto 
   // NO usar persistencia - los datos solo deben vivir en la sesión actual
   const [brassicas, setBrassicas] = useState<Brassica[]>(initialBrassicas)
 
-  // ❌ Eliminar sincronización con persistencia
+  //  Eliminar sincronización con persistencia
   // Los datos NO deben guardarse en localStorage durante el registro
 
   // notificar cambios al padre
@@ -82,7 +82,7 @@ export default function BrassicaSection({ registros, onChangeListados, contexto 
     setBrassicas(updated)
   }
 
-  // ✅ Verificar si alguna brassica tiene "no" (No contiene) seleccionado
+  //  Verificar si alguna brassica tiene "no" (No contiene) seleccionado
   const tieneNoContiene = brassicas.some((b) => b.contiene === "no")
 
   return (

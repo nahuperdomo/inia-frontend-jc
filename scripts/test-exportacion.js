@@ -14,9 +14,9 @@ console.log(' Iniciando pruebas de exportación Excel...\n');
 // Test 1: Verificar token
 console.log('1️⃣ Verificando autenticación...');
 if (!token) {
-  console.error('❌ No hay token de autenticación. Por favor inicia sesión.');
+  console.error(' No hay token de autenticación. Por favor inicia sesión.');
 } else {
-  console.log('✅ Token encontrado:', token.substring(0, 20) + '...');
+  console.log(' Token encontrado:', token.substring(0, 20) + '...');
 }
 
 // Test 2: Probar exportación simple
@@ -32,7 +32,7 @@ async function testExportacionSimple() {
     });
 
     if (response.ok) {
-      console.log('✅ Respuesta exitosa:', response.status);
+      console.log(' Respuesta exitosa:', response.status);
       console.log('   Content-Type:', response.headers.get('Content-Type'));
       console.log('   Content-Length:', response.headers.get('Content-Length'), 'bytes');
       
@@ -42,12 +42,12 @@ async function testExportacionSimple() {
       
       return blob;
     } else {
-      console.error('❌ Error en respuesta:', response.status, response.statusText);
+      console.error(' Error en respuesta:', response.status, response.statusText);
       const errorText = await response.text();
       console.error('   Detalle:', errorText);
     }
   } catch (error) {
-    console.error('❌ Error en la solicitud:', error.message);
+    console.error(' Error en la solicitud:', error.message);
   }
 }
 
@@ -76,7 +76,7 @@ async function testExportacionConFiltros() {
     });
 
     if (response.ok) {
-      console.log('✅ Respuesta exitosa:', response.status);
+      console.log(' Respuesta exitosa:', response.status);
       console.log('   Content-Type:', response.headers.get('Content-Type'));
       console.log('   Content-Length:', response.headers.get('Content-Length'), 'bytes');
       
@@ -86,12 +86,12 @@ async function testExportacionConFiltros() {
       
       return blob;
     } else {
-      console.error('❌ Error en respuesta:', response.status, response.statusText);
+      console.error(' Error en respuesta:', response.status, response.statusText);
       const errorText = await response.text();
       console.error('   Detalle:', errorText);
     }
   } catch (error) {
-    console.error('❌ Error en la solicitud:', error.message);
+    console.error(' Error en la solicitud:', error.message);
   }
 }
 
@@ -106,12 +106,12 @@ async function testConectividad() {
 
     if (response.ok) {
       const health = await response.json();
-      console.log('✅ Backend está activo:', health);
+      console.log(' Backend está activo:', health);
     } else {
       console.warn('️ Endpoint /actuator/health no disponible (normal si no está habilitado)');
     }
   } catch (error) {
-    console.error('❌ Backend no responde en', API_BASE_URL);
+    console.error(' Backend no responde en', API_BASE_URL);
     console.error('   Asegúrate de que el backend esté corriendo en el puerto 8080');
   }
 }

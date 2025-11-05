@@ -91,10 +91,10 @@ import { DialogExportarConFiltros } from '@/components/dialog-exportar-filtros';
 ```
 
 **Filtros disponibles:**
-- ✅ Rango de fechas (desde/hasta)
-- ✅ Incluir lotes inactivos
-- ✅ Filtrar por tipos de análisis (Pureza, Germinación, PMS, Tetrazolio, DOSN)
-- ✅ Opciones de formato y estilo
+-  Rango de fechas (desde/hasta)
+-  Incluir lotes inactivos
+-  Filtrar por tipos de análisis (Pureza, Germinación, PMS, Tetrazolio, DOSN)
+-  Opciones de formato y estilo
 
 #### 4.3 API de Exportación
 
@@ -139,7 +139,7 @@ await exportarLotesConFiltros({
   - **AY-AZ**: Viabilidad (V%, V-I%)
 -  Estilos y colores personalizados (gris para INIA, amarillo para INASE)
 -  Encabezados con celdas combinadas
-- ✅ Validación de datos
+-  Validación de datos
 -  Formatos de fecha personalizables (dd/MM/yyyy)
 
 ### 5. **Reportes**
@@ -218,10 +218,10 @@ const { data, isLoading, error } = useQuery({
 ##  PWA (Progressive Web App)
 
 El frontend es una PWA completa:
-- ✅ Instalable en dispositivos
-- ✅ Funciona offline
-- ✅ Notificaciones push
-- ✅ Actualizaciones automáticas
+-  Instalable en dispositivos
+-  Funciona offline
+-  Notificaciones push
+-  Actualizaciones automáticas
 
 Componente: `components/pwa-install.tsx`
 

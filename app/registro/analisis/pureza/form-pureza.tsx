@@ -47,20 +47,20 @@ import OtrosCultivosFields from "@/components/malezas-u-otros-cultivos/fields-ot
 import CumplimientoEstandarFields from "@/app/registro/analisis/dosn/fields/fields-cumplio-estandar";
 import { Separator } from "@/components/ui/separator";
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button";
-// ❌ NO incluir BrassicaFields ni CuscutaFields en PUREZA
+//  NO incluir BrassicaFields ni CuscutaFields en PUREZA
 
 type Props = {
     formData: any;
     handleInputChange: (field: string, value: any) => void;
     onChangeMalezas?: (list: any[]) => void;
     onChangeCultivos?: (list: any[]) => void;
-    // ❌ NO incluir onChangeBrassicas en PUREZA
+    //  NO incluir onChangeBrassicas en PUREZA
 }
 
 const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCultivos }: Props) => {
     const [activeTab, setActiveTab] = useState("generales");
     
-    // ✅ Extraer listas de registros SOLO si vienen con estructura completa del backend (modo edición)
+    //  Extraer listas de registros SOLO si vienen con estructura completa del backend (modo edición)
     // Si malezas/cultivos está vacío o undefined, MalezaFields usará su propio estado interno
     const malezas = (formData.malezas && formData.malezas.length > 0 && formData.malezas[0]?.catalogo) 
         ? formData.malezas 
@@ -191,7 +191,7 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
         handleInputChange("redonPesoTotal", redonPesoTotalCalculado);
     }, [redonPesoTotalCalculado]);
 
-    // ✅ Validaciones de peso (del backend)
+    //  Validaciones de peso (del backend)
     const pesoInicialNum = parseFloat(formData.pesoInicial_g as string) || 0;
     const pesoTotalNum = parseFloat(formData.pesoTotal_g as string) || 0;
     
@@ -418,7 +418,7 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                                         </div>
                                     </div>
 
-                                    {/* ✅ Alertas de validación de pesos */}
+                                    {/*  Alertas de validación de pesos */}
                                     {perdidaExcedeLimite && (
                                         <Alert className="border-amber-200 bg-amber-50">
                                             <AlertTriangle className="h-4 w-4 text-amber-600" />
@@ -889,7 +889,7 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                     <TabsContent value="registros" className="space-y-6 mt-6">
                         <MalezaFields titulo="Malezas" contexto="pureza" registros={malezas} onChangeListados={onChangeMalezas} />
                         <OtrosCultivosFields contexto="pureza" registros={cultivos} onChangeListados={onChangeCultivos} />
-                        {/* ❌ NO incluir BrassicaFields ni CuscutaFields en PUREZA */}
+                        {/*  NO incluir BrassicaFields ni CuscutaFields en PUREZA */}
                         <Separator />
                         <CumplimientoEstandarFields formData={formData} handleInputChange={handleInputChange ?? (() => {})} />
                     </TabsContent>

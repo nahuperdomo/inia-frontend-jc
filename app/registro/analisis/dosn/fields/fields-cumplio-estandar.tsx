@@ -18,7 +18,7 @@ type Props = {
 }
 
 export default function CumplimientoEstandar({ formData, handleInputChange }: Props) {
-  // ❌ NO usar persistencia - los datos solo deben vivir en la sesión actual
+  //  NO usar persistencia - los datos solo deben vivir en la sesión actual
   const cumpleEstandar = formData.cumpleEstandar || ""
 
   const handleChange = (value: string) => {

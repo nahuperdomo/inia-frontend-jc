@@ -120,15 +120,15 @@ export default function GerminacionDetailPage() {
         obtenerLotesActivos()
       ])
       
-      console.log("✅ Germinación cargada:", germinacionData)
-      console.log("✅ Lotes cargados:", lotesData)
+      console.log(" Germinación cargada:", germinacionData)
+      console.log(" Lotes cargados:", lotesData)
       setGerminacion(germinacionData)
       setLotes(lotesData)
       
       // Cargar tablas usando el endpoint correcto
       try {
         const tablasData = await obtenerTablasGerminacion(parseInt(germinacionId))
-        console.log("✅ Tablas cargadas:", tablasData)
+        console.log(" Tablas cargadas:", tablasData)
         setTablas(tablasData)
       } catch (tablasError: any) {
         console.warn("️ No se pudieron cargar las tablas:", tablasError)
@@ -141,7 +141,7 @@ export default function GerminacionDetailPage() {
         }
       }
     } catch (err: any) {
-      console.error("❌ Error cargando datos:", err)
+      console.error(" Error cargando datos:", err)
       setError(err?.message || "Error al cargar datos")
     } finally {
       setLoading(false)
@@ -162,13 +162,13 @@ export default function GerminacionDetailPage() {
       console.log(" Creando nueva tabla para germinación:", germinacionId)
       
       const nuevaTabla = await crearTablaGerminacion(parseInt(germinacionId))
-      console.log("✅ Tabla creada:", nuevaTabla)
+      console.log(" Tabla creada:", nuevaTabla)
       
       // Solo recargar las tablas en lugar de recargar todo
       const tablasData = await obtenerTablasGerminacion(parseInt(germinacionId))
       setTablas(tablasData)
     } catch (err: any) {
-      console.error("❌ Error creando tabla:", err)
+      console.error(" Error creando tabla:", err)
       setError(err?.message || "Error al crear tabla")
     } finally {
       setCreatingTable(false)
@@ -202,9 +202,9 @@ export default function GerminacionDetailPage() {
         })
       }
       
-      console.log("✅ Análisis habilitado para edición")
+      console.log(" Análisis habilitado para edición")
     } catch (err: any) {
-      console.error("❌ Error editando análisis:", err)
+      console.error(" Error editando análisis:", err)
       setError(err?.message || "Error al editar análisis")
     }
   }
@@ -257,14 +257,14 @@ export default function GerminacionDetailPage() {
       console.log(" Datos a enviar:", JSON.stringify(datosEdicion, null, 2))
       
       const germinacionActualizada = await actualizarGerminacion(parseInt(germinacionId), datosEdicion)
-      console.log("✅ Germinación actualizada exitosamente")
+      console.log(" Germinación actualizada exitosamente")
       
       // Actualizar estado local
       setGerminacion(germinacionActualizada)
       setEditandoGerminacion(false)
       setGerminacionOriginal(null)
     } catch (error: any) {
-      console.error("❌ Error guardando germinación:", error)
+      console.error(" Error guardando germinación:", error)
       alert(`Error al guardar los cambios: ${error.message || 'Error desconocido'}`)
     }
   }
@@ -289,12 +289,12 @@ export default function GerminacionDetailPage() {
     if (!germinacion) return
     
     try {
-      console.log("✅ Aprobando análisis Germinación:", germinacion.analisisID)
+      console.log(" Aprobando análisis Germinación:", germinacion.analisisID)
       await aprobarAnalisis(germinacion.analisisID)
       alert("Análisis aprobado exitosamente")
       await cargarDatos()
     } catch (err: any) {
-      console.error("❌ Error aprobando análisis:", err)
+      console.error(" Error aprobando análisis:", err)
       alert(`Error al aprobar análisis: ${err?.message || "Error desconocido"}`)
     }
   }
@@ -309,7 +309,7 @@ export default function GerminacionDetailPage() {
       alert("Análisis marcado para repetir")
       await cargarDatos()
     } catch (err: any) {
-      console.error("❌ Error marcando para repetir:", err)
+      console.error(" Error marcando para repetir:", err)
       alert(`Error al marcar para repetir: ${err?.message || "Error desconocido"}`)
     }
   }

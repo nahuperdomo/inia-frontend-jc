@@ -465,7 +465,7 @@ export default function EditarDosnPage() {
       toast.success("Análisis finalizado exitosamente")
       router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
     } catch (err: any) {
-      console.error("❌ Error finalizando análisis:", err)
+      console.error(" Error finalizando análisis:", err)
       toast.error('Error al finalizar análisis', {
         description: err?.message || "No se pudo finalizar el análisis",
       })
@@ -477,14 +477,14 @@ export default function EditarDosnPage() {
     if (!dosn) return
 
     try {
-      console.log("✅ Aprobando análisis DOSN:", dosn.analisisID)
+      console.log(" Aprobando análisis DOSN:", dosn.analisisID)
       await aprobarAnalisis(dosn.analisisID)
       toast.success("Análisis aprobado exitosamente")
       // Recargar datos
       const dosnData = await obtenerDosnPorId(Number.parseInt(dosnId))
       setDosn(dosnData)
     } catch (err: any) {
-      console.error("❌ Error aprobando análisis:", err)
+      console.error(" Error aprobando análisis:", err)
       toast.error('Error al aprobar análisis', {
         description: err?.message || "No se pudo aprobar el análisis",
       })
@@ -503,7 +503,7 @@ export default function EditarDosnPage() {
       const dosnData = await obtenerDosnPorId(Number.parseInt(dosnId))
       setDosn(dosnData)
     } catch (err: any) {
-      console.error("❌ Error marcando para repetir:", err)
+      console.error(" Error marcando para repetir:", err)
       toast.error('Error al marcar para repetir', {
         description: err?.message || "No se pudo marcar el análisis",
       })
@@ -515,13 +515,13 @@ export default function EditarDosnPage() {
     if (!dosn) return
 
     try {
-      console.log("✅ Finalizando y aprobando análisis DOSN:", dosn.analisisID)
+      console.log(" Finalizando y aprobando análisis DOSN:", dosn.analisisID)
       // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
       await finalizarAnalisis(dosn.analisisID)
       toast.success("Análisis finalizado y aprobado exitosamente")
       router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
     } catch (err: any) {
-      console.error("❌ Error finalizando y aprobando:", err)
+      console.error(" Error finalizando y aprobando:", err)
       toast.error('Error al finalizar y aprobar', {
         description: err?.message || "No se pudo completar la acción",
       })

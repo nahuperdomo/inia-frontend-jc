@@ -377,10 +377,10 @@ DatosExportacionExcelDTO {
 5. **Base de datos:** Solo datos del usuario autenticado (si aplica)
 
 ### Roles permitidos:
-- ✅ ROLE_ADMIN
-- ✅ ROLE_ANALISTA
-- ✅ ROLE_OBSERVADOR
-- ❌ ROLE_USER (sin acceso)
+-  ROLE_ADMIN
+-  ROLE_ANALISTA
+-  ROLE_OBSERVADOR
+-  ROLE_USER (sin acceso)
 
 ---
 

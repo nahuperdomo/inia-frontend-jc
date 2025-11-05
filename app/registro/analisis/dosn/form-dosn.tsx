@@ -53,10 +53,10 @@ type Props = {
   onChangeListadosCultivos?: (list: any[]) => void
   onChangeListadosBrassicas?: (list: any[]) => void
   errors?: Record<string, string>
-  mostrarValidacion?: boolean // ✅ NUEVO: Controla cuándo mostrar errores y cuadro de validación
+  mostrarValidacion?: boolean //  NUEVO: Controla cuándo mostrar errores y cuadro de validación
 }
 
-// ✅ Helpers de validación
+//  Helpers de validación
 const validarFecha = (fecha: string) => {
   if (!fecha) return false
   const f = new Date(fecha)
@@ -87,13 +87,13 @@ export default function DosnFields({
   onChangeListadosCultivos,
   onChangeListadosBrassicas,
   errors = {},
-  mostrarValidacion = false, // ✅ Controlado por el padre
+  mostrarValidacion = false, //  Controlado por el padre
 }: Props) {
   const data = dosn || formData || {}
   const isReadOnly = !!modoDetalle
   const [activeTab, setActiveTab] = useState("generales")
 
-  // ❌ NO persistir datos generales - solo usar el estado del formulario padre
+  //  NO persistir datos generales - solo usar el estado del formulario padre
   // Los datos generales (fechas, gramos, tipos de análisis) NO deben guardarse en sessionStorage
   
   // Función simple para manejar cambios - sin persistencia

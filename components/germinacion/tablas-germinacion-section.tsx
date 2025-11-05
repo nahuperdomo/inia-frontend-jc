@@ -2980,7 +2980,7 @@ export function TablasGerminacionSection({
                             <div className="flex items-center justify-between">
                               <div className={`text-sm font-medium ${Math.abs(calcularTotalPorcentajes() - 100) <= 0.1 ? 'text-green-600' : 'text-red-600'}`}>
                                 Total: {calcularTotalPorcentajes().toFixed(1)}% 
-                                {Math.abs(calcularTotalPorcentajes() - 100) <= 0.1 ? ' ✅' : ' ❌ (debe ser 100%)'}
+                                {Math.abs(calcularTotalPorcentajes() - 100) <= 0.1 ? ' ' : '  (debe ser 100%)'}
                               </div>
                               
                               <div className="flex gap-2">

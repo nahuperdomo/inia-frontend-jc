@@ -24,7 +24,7 @@ export function clearDosnStorage() {
     localStorage.removeItem(key)
   })
 
-  console.log("✅ Storage de registros DOSN limpiado exitosamente")
+  console.log(" Storage de registros DOSN limpiado exitosamente")
 }
 
 /**
@@ -43,7 +43,7 @@ export function clearGerminacionStorage() {
     localStorage.removeItem(key)
   })
 
-  console.log("✅ Storage de Germinación limpiado exitosamente")
+  console.log(" Storage de Germinación limpiado exitosamente")
 }
 
 /**
@@ -62,7 +62,7 @@ export function clearTetrazolioStorage() {
     localStorage.removeItem(key)
   })
 
-  console.log("✅ Storage de Tetrazolio limpiado exitosamente")
+  console.log(" Storage de Tetrazolio limpiado exitosamente")
 }
 
 /**
@@ -83,7 +83,7 @@ export function clearPurezaStorage() {
     localStorage.removeItem(key)
   })
 
-  console.log("✅ Storage de Pureza limpiado exitosamente")
+  console.log(" Storage de Pureza limpiado exitosamente")
 }
 
 /**
@@ -94,5 +94,5 @@ export function clearAllFormsStorage() {
   clearGerminacionStorage()
   clearTetrazolioStorage()
   clearPurezaStorage()
-  console.log("✅ Todos los storages de formularios limpiados")
+  console.log(" Todos los storages de formularios limpiados")
 }

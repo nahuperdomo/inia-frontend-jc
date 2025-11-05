@@ -25,7 +25,7 @@ export async function obtenerTodasPurezasActivas(): Promise<PurezaDTO[]> {
       method: "GET",
     });
 
-    console.log("✅ Datos recibidos:", data);
+    console.log(" Datos recibidos:", data);
 
     // Si data es un objeto ResponseListadoPureza, devolver purezas
     if (data && typeof data === 'object' && 'purezas' in data) {
@@ -41,7 +41,7 @@ export async function obtenerTodasPurezasActivas(): Promise<PurezaDTO[]> {
     console.warn("️ Formato de respuesta desconocido:", data);
     return [];
   } catch (error) {
-    console.error("❌ Error al obtener purezas:", error);
+    console.error(" Error al obtener purezas:", error);
     throw error;
   }
 }

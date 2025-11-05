@@ -28,7 +28,7 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
     { contiene: "", instituto: "", gramos: "", numero: "" }
   ])
 
-  // ❌ Eliminar sincronización con persistencia
+  //  Eliminar sincronización con persistencia
   // Los datos NO deben guardarse en localStorage durante el registro
 
   // Notificar cambios al padre (enviar array completo)

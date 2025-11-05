@@ -39,7 +39,7 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
   // NO usar persistencia - los datos solo deben vivir en la sesión actual
   const [cultivos, setCultivos] = useState<Cultivo[]>(initialCultivos)
 
-  // ❌ Eliminar sincronización con persistencia
+  //  Eliminar sincronización con persistencia
   // Los datos NO deben guardarse en localStorage durante el registro
 
   const [opcionesEspecies, setOpcionesEspecies] = useState<EspecieDTO[]>([])
@@ -116,7 +116,7 @@ export default function OtrosCultivosFields({ registros, onChangeListados, conte
     setCultivos(updated)
   }
 
-  // ✅ Verificar si algún cultivo tiene "no" (No contiene) seleccionado
+  //  Verificar si algún cultivo tiene "no" (No contiene) seleccionado
   const tieneNoContiene = cultivos.some((c) => c.contiene === "no")
 
   return (

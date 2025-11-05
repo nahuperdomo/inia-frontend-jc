@@ -6,13 +6,13 @@ Sistema reutilizable y escalable para persistir el estado de formularios en el n
 
 ##  Características
 
-- ✅ **Persistencia automática**: Los datos se guardan al cambiar
-- ✅ **Múltiples storages**: Soporta `sessionStorage` (default) y `localStorage`
-- ✅ **Expiración opcional**: Para `localStorage` se puede configurar tiempo de expiración
-- ✅ **Sincronización bidireccional**: Entre el estado local y el storage
-- ✅ **Type-safe**: Totalmente tipado con TypeScript
-- ✅ **Limpieza automática**: Función helper para limpiar datos al completar formularios
-- ✅ **Modo edición**: No persiste datos si hay registros precargados
+-  **Persistencia automática**: Los datos se guardan al cambiar
+-  **Múltiples storages**: Soporta `sessionStorage` (default) y `localStorage`
+-  **Expiración opcional**: Para `localStorage` se puede configurar tiempo de expiración
+-  **Sincronización bidireccional**: Entre el estado local y el storage
+-  **Type-safe**: Totalmente tipado con TypeScript
+-  **Limpieza automática**: Función helper para limpiar datos al completar formularios
+-  **Modo edición**: No persiste datos si hay registros precargados
 
 ##  Instalación
 
@@ -118,7 +118,7 @@ export default function BrassicaSection({ registros, onChangeListados }: Props) 
     ? registros.map((r) => ({ /* mapear datos */ }))
     : [{ contiene: "", entidad: "", numero: "" }]
 
-  // ✅ Solo persiste si no hay registros precargados (modo creación)
+  //  Solo persiste si no hay registros precargados (modo creación)
   const persistence = usePersistentArray<Brassica>(
     "dosn-brassicas",
     initialBrassicas
@@ -188,7 +188,7 @@ const handleSubmit = async () => {
     
     toast.success("Análisis registrado exitosamente")
     
-    // ✅ Limpiar storage
+    //  Limpiar storage
     clearDosnStorage()
     
     router.push(`/listado/analisis/dosn/${result.analisisID}`)
@@ -267,7 +267,7 @@ Los hooks incluyen logs para facilitar el debugging:
 
 ```typescript
 // En la consola verás:
-"✅ Storage de DOSN limpiado exitosamente"
+" Storage de DOSN limpiado exitosamente"
 "Error loading from storage: [error details]"
 "Error saving to storage: [error details]"
 ```
@@ -277,7 +277,7 @@ Los hooks incluyen logs para facilitar el debugging:
 | Característica | sessionStorage | localStorage |
 |---------------|----------------|--------------|
 | **Duración** | Hasta cerrar pestaña | Permanente |
-| **Compartido entre pestañas** | ❌ No | ✅ Sí |
+| **Compartido entre pestañas** |  No |  Sí |
 | **Ideal para** | Formularios temporales | Datos persistentes |
 | **Expiración** | No necesaria | Configurable |
 

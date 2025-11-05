@@ -30,16 +30,16 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
     if (!res.ok) {
       const errorText = await res.text();
-      console.error(`❌ Error response body:`, errorText);
-      console.error(`❌ URL solicitada: ${API_BASE_URL}${endpoint}`);
-      console.error(`❌ Status: ${res.status} ${res.statusText}`);
+      console.error(` Error response body:`, errorText);
+      console.error(` URL solicitada: ${API_BASE_URL}${endpoint}`);
+      console.error(` Status: ${res.status} ${res.statusText}`);
 
       // Intenta parsear como JSON si es posible para obtener más detalles
       let errorDetail;
       try {
         if (errorText && errorText.trim().startsWith('{')) {
           errorDetail = JSON.parse(errorText);
-          console.error('❌ Error JSON detallado:', errorDetail);
+          console.error(' Error JSON detallado:', errorDetail);
         }
       } catch (jsonError) {
         // Si no se puede parsear como JSON, usar el texto como está

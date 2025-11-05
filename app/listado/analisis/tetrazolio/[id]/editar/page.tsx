@@ -302,7 +302,7 @@ export default function EditarTetrazolioPage() {
       })
       toast.success("Porcentajes actualizados exitosamente")
     } catch (err: any) {
-      console.error("❌ Error al actualizar porcentajes:", err)
+      console.error(" Error al actualizar porcentajes:", err)
       toast.error(err.message || 'Error al actualizar porcentajes')
     }
   }
@@ -359,9 +359,9 @@ export default function EditarTetrazolioPage() {
       
       toast.success("Repetición creada exitosamente")
       
-      console.log(`✅ Repetición creada. Total: ${repeticionesActualizadas.length}/${tetrazolio.numRepeticionesEsperadas}`)
+      console.log(` Repetición creada. Total: ${repeticionesActualizadas.length}/${tetrazolio.numRepeticionesEsperadas}`)
     } catch (err: any) {
-      console.error("❌ Error al crear repetición:", err)
+      console.error(" Error al crear repetición:", err)
       toast.error(err.message || "Error al crear repetición")
     } finally {
       setCreatingRepeticion(false)
@@ -564,7 +564,7 @@ export default function EditarTetrazolioPage() {
       toast.success("Análisis finalizado exitosamente")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
     } catch (err: any) {
-      console.error("❌ Error finalizando análisis:", err)
+      console.error(" Error finalizando análisis:", err)
       toast.error('Error al finalizar análisis', {
         description: err?.message || "No se pudo finalizar el análisis",
       })
@@ -576,12 +576,12 @@ export default function EditarTetrazolioPage() {
     if (!tetrazolio) return
     
     try {
-      console.log("✅ Aprobando análisis Tetrazolio:", tetrazolio.analisisID)
+      console.log(" Aprobando análisis Tetrazolio:", tetrazolio.analisisID)
       await aprobarAnalisis(tetrazolio.analisisID)
       toast.success("Análisis aprobado exitosamente")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
     } catch (err: any) {
-      console.error("❌ Error aprobando análisis:", err)
+      console.error(" Error aprobando análisis:", err)
       toast.error('Error al aprobar análisis', {
         description: err?.message || "No se pudo aprobar el análisis",
       })
@@ -598,7 +598,7 @@ export default function EditarTetrazolioPage() {
       toast.success("Análisis marcado para repetir")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
     } catch (err: any) {
-      console.error("❌ Error marcando para repetir:", err)
+      console.error(" Error marcando para repetir:", err)
       toast.error('Error al marcar para repetir', {
         description: err?.message || "No se pudo marcar el análisis",
       })
@@ -610,14 +610,14 @@ export default function EditarTetrazolioPage() {
     if (!tetrazolio) return
     
     try {
-      console.log("✅ Finalizando y aprobando análisis Tetrazolio:", tetrazolio.analisisID)
+      console.log(" Finalizando y aprobando análisis Tetrazolio:", tetrazolio.analisisID)
       // Cuando el admin finaliza, el backend automáticamente lo aprueba
       // No necesitamos llamar a aprobarAnalisis por separado
       await finalizarAnalisis(tetrazolio.analisisID)
       toast.success("Análisis finalizado y aprobado exitosamente")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
     } catch (err: any) {
-      console.error("❌ Error finalizando y aprobando:", err)
+      console.error(" Error finalizando y aprobando:", err)
       toast.error('Error al finalizar y aprobar', {
         description: err?.message || "No se pudo completar la acción",
       })

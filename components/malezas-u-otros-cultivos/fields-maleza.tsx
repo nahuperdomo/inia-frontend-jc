@@ -40,7 +40,7 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
   // NO usar persistencia - los datos solo deben vivir en la sesión actual
   const [malezas, setMalezas] = useState<Maleza[]>(initialMalezas)
 
-  // ❌ Eliminar sincronización con persistencia
+  //  Eliminar sincronización con persistencia
   // Los datos NO deben guardarse en localStorage durante el registro
 
 
@@ -131,7 +131,7 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
     setMalezas(updated)
   }
 
-  // ✅ Verificar si alguna maleza tiene "NO_CONTIENE" seleccionado
+  //  Verificar si alguna maleza tiene "NO_CONTIENE" seleccionado
   const tieneNoContiene = malezas.some((m) => m.tipoMaleza === "NO_CONTIENE")
 
   return (

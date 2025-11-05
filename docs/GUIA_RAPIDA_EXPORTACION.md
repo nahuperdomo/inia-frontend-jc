@@ -1,6 +1,6 @@
 #  Guía Rápida: Exportación Excel
 
-## ✅ Estado de la Conexión
+##  Estado de la Conexión
 
 **Backend ↔ Frontend: CONECTADO Y FUNCIONAL** ✨
 
@@ -9,20 +9,20 @@
 ##  ¿Qué está incluido?
 
 ### Backend (Java Spring Boot)
-- ✅ `ExportacionController.java` - 4 endpoints REST
-- ✅ `ExportacionExcelService.java` - Lógica de generación Excel
-- ✅ `ExportacionRequestDTO.java` - DTO para filtros
-- ✅ Apache POI integrado para generar archivos Excel
-- ✅ Autenticación JWT
-- ✅ CORS habilitado
+-  `ExportacionController.java` - 4 endpoints REST
+-  `ExportacionExcelService.java` - Lógica de generación Excel
+-  `ExportacionRequestDTO.java` - DTO para filtros
+-  Apache POI integrado para generar archivos Excel
+-  Autenticación JWT
+-  CORS habilitado
 
 ### Frontend (Next.js + TypeScript)
-- ✅ `exportacion-service.ts` - Cliente API
-- ✅ `BotonExportarExcel` - Componente botón simple
-- ✅ `DialogExportarConFiltros` - Componente con filtros
-- ✅ Página `/reportes` - UI completa
-- ✅ Manejo de errores con toasts
-- ✅ Loading states
+-  `exportacion-service.ts` - Cliente API
+-  `BotonExportarExcel` - Componente botón simple
+-  `DialogExportarConFiltros` - Componente con filtros
+-  Página `/reportes` - UI completa
+-  Manejo de errores con toasts
+-  Loading states
 
 ---
 
@@ -174,26 +174,26 @@ NEXT_PUBLIC_API_URL=https://tu-backend.com
 
 ##  Solución de Problemas
 
-### ❌ "No hay token de autenticación"
+###  "No hay token de autenticación"
 **Solución:** Inicia sesión en la aplicación primero.
 
-### ❌ "Error 401 Unauthorized"
+###  "Error 401 Unauthorized"
 **Solución:** 
 - Token expirado → Vuelve a iniciar sesión
 - Usuario sin permisos → Necesitas rol ADMIN, ANALISTA u OBSERVADOR
 
-### ❌ "Error 500 Internal Server Error"
+###  "Error 500 Internal Server Error"
 **Solución:**
 - Revisa los logs del backend
 - Verifica que haya lotes con datos de análisis en la DB
 
-### ❌ "Network request failed" o "CORS error"
+###  "Network request failed" o "CORS error"
 **Solución:**
 - Verifica que el backend esté corriendo
 - Verifica la URL en `.env.local`
 - El backend ya tiene CORS habilitado con `@CrossOrigin(origins = "*")`
 
-### ❌ Excel se descarga vacío o con 0 bytes
+###  Excel se descarga vacío o con 0 bytes
 **Solución:**
 - No hay lotes que cumplan con los filtros
 - Los lotes no tienen análisis asociados

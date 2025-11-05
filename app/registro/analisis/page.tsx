@@ -457,7 +457,7 @@ export default function RegistroAnalisisPage() {
       if (listados.length === 0) {
         console.warn("️ WARNING: No hay listados para enviar. Esto podría ser normal si el análisis no requiere listados.");
       } else {
-        console.log(`✅ Se enviarán ${listados.length} listados al backend`);
+        console.log(` Se enviarán ${listados.length} listados al backend`);
       }
     } else if (selectedAnalysisType === "PUREZA") {
       // Combinar las 3 listas igual que DOSN (simple y directo)
@@ -470,7 +470,7 @@ export default function RegistroAnalisisPage() {
         ...purezaBrassicasList.map((b) => ({ ...b, listadoTipo: "BRASSICA" })),
       ];
 
-      // ✅ Construir payload limpio solo con campos requeridos por el backend
+      //  Construir payload limpio solo con campos requeridos por el backend
       payload = {
         idLote: formData.loteid,
         comentarios: formData.observacionesPureza || "",
@@ -621,7 +621,7 @@ export default function RegistroAnalisisPage() {
       const cookies = document.cookie;
       console.log("Cookies disponibles:", cookies);
       const accessTokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('accessToken='));
-      console.log("accessToken en cookies:", accessTokenCookie ? "✅ Existe" : "❌ No existe");
+      console.log("accessToken en cookies:", accessTokenCookie ? " Existe" : " No existe");
 
       console.log("Enviando payload:", payload);
 
@@ -630,9 +630,9 @@ export default function RegistroAnalisisPage() {
         console.log(" PRUEBA: Vamos a probar primero obtener lotes para verificar auth...");
         try {
           const lotesTest = await obtenerLotesActivos();
-          console.log("✅ Test de auth exitoso - lotes obtenidos:", lotesTest.length);
+          console.log(" Test de auth exitoso - lotes obtenidos:", lotesTest.length);
         } catch (authError) {
-          console.error("❌ Test de auth falló:", authError);
+          console.error(" Test de auth falló:", authError);
           throw new Error("Problema de autenticación detectado");
         }
 
@@ -642,7 +642,7 @@ export default function RegistroAnalisisPage() {
           description: `Se ha creado el análisis para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
         });
 
-        // ✅ Limpiar storage de germinación
+        //  Limpiar storage de germinación
         clearGerminacionStorage()
 
         setTimeout(() => {
@@ -664,9 +664,9 @@ export default function RegistroAnalisisPage() {
         // Verificar autenticación antes de crear tetrazolio
         try {
           const lotesTest = await obtenerLotesActivos();
-          console.log("✅ Test de auth exitoso - lotes obtenidos:", lotesTest.length);
+          console.log(" Test de auth exitoso - lotes obtenidos:", lotesTest.length);
         } catch (authError) {
-          console.error("❌ Test de auth falló:", authError);
+          console.error(" Test de auth falló:", authError);
           throw new Error("Problema de autenticación detectado");
         }
 
@@ -676,7 +676,7 @@ export default function RegistroAnalisisPage() {
           description: `Se ha creado el análisis para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
         });
 
-        // ✅ Limpiar storage de tetrazolio
+        //  Limpiar storage de tetrazolio
         clearTetrazolioStorage()
 
         setTimeout(() => {
@@ -694,7 +694,7 @@ export default function RegistroAnalisisPage() {
           description: `Se ha registrado el análisis de ${getAnalysisTypeName(selectedAnalysisType)} para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
         });
 
-        // ✅ Limpiar storage según el tipo de análisis
+        //  Limpiar storage según el tipo de análisis
         if (selectedAnalysisType === "DOSN") {
           clearDosnStorage()
           setMalezasList([])
@@ -767,7 +767,7 @@ export default function RegistroAnalisisPage() {
     }
   }, [searchParams, router])
 
-  // ✅ Limpiar storage del tipo de análisis anterior cuando se cambia
+  //  Limpiar storage del tipo de análisis anterior cuando se cambia
   useEffect(() => {
     if (!selectedAnalysisType) return
 

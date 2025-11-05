@@ -49,7 +49,7 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
   const data = formData || {}
   const showErrors = !!mostrarValidacion
 
-  // ✅ Validaciones
+  //  Validaciones
   const validarNumRepeticiones = (): boolean => {
     const num = parseInt(data.numRepeticionesEsperadas || data.numRepeticionesEsperadasTetrazolio)
     return !isNaN(num) && num >= 2 && num <= 8
@@ -81,16 +81,16 @@ export default function TetrazolioFields({ formData, handleInputChange, mostrarV
   if (usarOtro) {
     const valorOtro = data.tincionTempOtro
     if (valorOtro === "" || valorOtro === null || valorOtro === undefined) {
-      return false  // ❌ Campo vacío → inválido
+      return false  //  Campo vacío → inválido
     }
     const valor = Number(valorOtro)
-    return !isNaN(valor)  // ✅ Acepta cualquier número
+    return !isNaN(valor)  //  Acepta cualquier número
   }
 
-  if (!data.tincionTemp) return false  // ❌ Campo vacío → inválido
+  if (!data.tincionTemp) return false  //  Campo vacío → inválido
 
   const valor = Number(data.tincionTemp)
-  return !isNaN(valor)  // ✅ Solo revisa que sea un número
+  return !isNaN(valor)  //  Solo revisa que sea un número
 }
 
 

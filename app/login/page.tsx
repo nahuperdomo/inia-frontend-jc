@@ -57,7 +57,7 @@ export default function LoginPage() {
         }
       }
       
-      console.error("❌ Error:", errorMessage);
+      console.error(" Error:", errorMessage);
       throw new Error(errorMessage);
     }
 
@@ -72,7 +72,7 @@ export default function LoginPage() {
     try {
       const data = await login(credentials.usuario, credentials.password)
 
-      console.log("✅ Login exitoso. Backend envió cookies HttpOnly.");
+      console.log(" Login exitoso. Backend envió cookies HttpOnly.");
       console.log(" Datos de usuario:", data.usuario);
 
       // NO guardar nada en localStorage — las cookies HttpOnly quedan del lado del navegador
@@ -95,9 +95,9 @@ export default function LoginPage() {
         }, 1000);
       }, 100);
       
-      console.log("✅ router.push ejecutado");
+      console.log(" router.push ejecutado");
     } catch (error: any) {
-      console.error("❌ Error en handleSubmit:", error);
+      console.error(" Error en handleSubmit:", error);
       
       // Intentar extraer el mensaje de error del backend
       let errorMsg = 'Error de autenticación';

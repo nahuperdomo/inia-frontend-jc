@@ -1,6 +1,6 @@
 #  Cómo Ver la PWA en tu Celular
 
-## ✅ El servidor ya está corriendo
+##  El servidor ya está corriendo
 
 Tu aplicación está disponible en:
 - **Desde tu PC**: http://localhost:3000
@@ -95,7 +95,7 @@ Para tener la PWA disponible permanentemente:
 
 5. **Accede desde cualquier dispositivo** con esa URL
 
-### ✅ Ventajas de Vercel:
+###  Ventajas de Vercel:
 - URL permanente y con HTTPS
 - Deploy automático desde GitHub
 - CDN global (rápido en todo el mundo)
@@ -128,22 +128,22 @@ Si tu celular no puede acceder a `http://192.168.1.41:3000`, puede ser el firewa
 ### Checklist en el celular:
 
 1. **Accede a la URL**
-   - ✅ La página carga correctamente
+   -  La página carga correctamente
    
 2. **Verifica funciones PWA:**
-   - ✅ Aparece el banner/botón de instalación
-   - ✅ Puedes agregar a pantalla de inicio
-   - ✅ El ícono aparece en el home screen
+   -  Aparece el banner/botón de instalación
+   -  Puedes agregar a pantalla de inicio
+   -  El ícono aparece en el home screen
    
 3. **Prueba offline:**
    - Abre la app instalada
    - Activa modo avión
-   - ✅ Navega por las páginas ya visitadas
-   - ✅ Aparece la página offline cuando no hay caché
+   -  Navega por las páginas ya visitadas
+   -  Aparece la página offline cuando no hay caché
    
 4. **Verifica el tema:**
-   - ✅ La barra de estado del celular toma el color de la app (#0066cc)
-   - ✅ Se ve como app nativa (sin barra del navegador)
+   -  La barra de estado del celular toma el color de la app (#0066cc)
+   -  Se ve como app nativa (sin barra del navegador)
 
 ---
 
@@ -210,10 +210,10 @@ Los íconos actuales son placeholders. Para crear íconos reales:
 ##  Contacto de Desarrollo
 
 Si tienes problemas, verifica:
-- ✅ Servidor corriendo en tu PC
-- ✅ Celular en misma red WiFi
-- ✅ Firewall permite conexiones
-- ✅ URL correcta (http://192.168.1.41:3000)
+-  Servidor corriendo en tu PC
+-  Celular en misma red WiFi
+-  Firewall permite conexiones
+-  URL correcta (http://192.168.1.41:3000)
 
 **Tu IP local puede cambiar** si reinicias el router. Para ver tu IP actual:
 ```powershell

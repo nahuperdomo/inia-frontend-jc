@@ -424,7 +424,7 @@ export default function EditarPurezaPage() {
       toast.success("Análisis finalizado exitosamente")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
     } catch (err: any) {
-      console.error("❌ Error finalizando análisis:", err)
+      console.error(" Error finalizando análisis:", err)
       toast.error('Error al finalizar análisis', {
         description: err?.message || "No se pudo finalizar el análisis",
       })
@@ -436,12 +436,12 @@ export default function EditarPurezaPage() {
     if (!pureza) return
     
     try {
-      console.log("✅ Aprobando análisis Pureza:", pureza.analisisID)
+      console.log(" Aprobando análisis Pureza:", pureza.analisisID)
       await aprobarAnalisis(pureza.analisisID)
       toast.success("Análisis aprobado exitosamente")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
     } catch (err: any) {
-      console.error("❌ Error aprobando análisis:", err)
+      console.error(" Error aprobando análisis:", err)
       toast.error('Error al aprobar análisis', {
         description: err?.message || "No se pudo aprobar el análisis",
       })
@@ -458,7 +458,7 @@ export default function EditarPurezaPage() {
       toast.success("Análisis marcado para repetir")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
     } catch (err: any) {
-      console.error("❌ Error marcando para repetir:", err)
+      console.error(" Error marcando para repetir:", err)
       toast.error('Error al marcar para repetir', {
         description: err?.message || "No se pudo marcar el análisis",
       })
@@ -470,14 +470,14 @@ export default function EditarPurezaPage() {
     if (!pureza) return
     
     try {
-      console.log("✅ Finalizando y aprobando análisis Pureza:", pureza.analisisID)
+      console.log(" Finalizando y aprobando análisis Pureza:", pureza.analisisID)
       // Cuando el admin finaliza, el backend automáticamente lo aprueba
       // No necesitamos llamar a aprobarAnalisis por separado
       await finalizarAnalisis(pureza.analisisID)
       toast.success("Análisis finalizado y aprobado exitosamente")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
     } catch (err: any) {
-      console.error("❌ Error finalizando y aprobando:", err)
+      console.error(" Error finalizando y aprobando:", err)
       toast.error('Error al finalizar y aprobar', {
         description: err?.message || "No se pudo completar la acción",
       })

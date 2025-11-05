@@ -43,7 +43,7 @@ export function RepeticionesManager({
       
       console.log(` Cargando repeticiones para tabla ${tabla.tablaGermID}...`)
       const data = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
-      console.log(`✅ Repeticiones cargadas para tabla ${tabla.tablaGermID}:`, data.length, "repeticiones")
+      console.log(` Repeticiones cargadas para tabla ${tabla.tablaGermID}:`, data.length, "repeticiones")
       console.log(" Detalles de repeticiones:", data.map(r => ({
         numRep: r.numRep,
         normales: r.normales,
@@ -83,7 +83,7 @@ export function RepeticionesManager({
           repeticionExistente.repGermID, 
           datos
         )
-        console.log("✅ Repetición actualizada exitosamente:", repeticionActualizada)
+        console.log(" Repetición actualizada exitosamente:", repeticionActualizada)
         
         repeticionesActualizadas = repeticiones.map(r => 
           r.repGermID === repeticionExistente.repGermID ? repeticionActualizada : r
@@ -93,7 +93,7 @@ export function RepeticionesManager({
         // Crear nueva
         console.log(`➕ Creando nueva repetición ${numeroRep}`)
         const nuevaRepeticion = await crearRepeticion(germinacionId, tabla.tablaGermID, datos)
-        console.log("✅ Repetición creada exitosamente:", nuevaRepeticion)
+        console.log(" Repetición creada exitosamente:", nuevaRepeticion)
         
         repeticionesActualizadas = [...repeticiones, nuevaRepeticion]
         setRepeticiones(repeticionesActualizadas)
@@ -104,12 +104,12 @@ export function RepeticionesManager({
       // Actualizar callback con las repeticiones realmente actualizadas
       onRepeticionesUpdated(repeticionesActualizadas)
       
-      console.log("✅ Repetición guardada y estado actualizado correctamente")
+      console.log(" Repetición guardada y estado actualizado correctamente")
       
     } catch (error: any) {
-      console.error("❌ Error guardando repetición:", error)
-      console.error("❌ Mensaje de error:", error?.message || error)
-      console.error("❌ Detalles completos:", error)
+      console.error(" Error guardando repetición:", error)
+      console.error(" Mensaje de error:", error?.message || error)
+      console.error(" Detalles completos:", error)
       alert(`Error al guardar la repetición: ${error?.message || 'Error desconocido'}`)
       throw error
     }
@@ -175,7 +175,7 @@ export function RepeticionesManager({
           
           {todasCompletas && (
             <div className="mt-2 text-green-600 font-medium">
-              ✅ Todas las repeticiones están completas. Ya puede ingresar porcentajes para finalizar la tabla.
+               Todas las repeticiones están completas. Ya puede ingresar porcentajes para finalizar la tabla.
             </div>
           )}
         </div>

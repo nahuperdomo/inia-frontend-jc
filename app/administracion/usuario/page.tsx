@@ -127,7 +127,7 @@ export default function UsuarioValidacionPage() {
             setTotalElementsPendientes(pageData.totalElements)
             setCurrentPagePendientes(pageData.currentPage)
         } catch (error) {
-            console.error("❌ Error:", error)
+            console.error(" Error:", error)
             toast.error("Error al cargar solicitudes pendientes", {
                 description: "No se pudieron cargar las solicitudes"
             })

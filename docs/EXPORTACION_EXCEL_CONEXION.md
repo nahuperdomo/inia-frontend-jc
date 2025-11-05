@@ -211,11 +211,11 @@ El Excel generado incluye:
 - V-I% (Viabilidad INASE)
 
 ### Estilos Aplicados
-- ✅ Encabezados con fondo gris
-- ✅ Datos INASE resaltados en amarillo
-- ✅ Bordes en todas las celdas
-- ✅ Formato de fechas: dd/MM/yyyy
-- ✅ Ajuste automático de columnas
+-  Encabezados con fondo gris
+-  Datos INASE resaltados en amarillo
+-  Bordes en todas las celdas
+-  Formato de fechas: dd/MM/yyyy
+-  Ajuste automático de columnas
 
 ---
 
@@ -385,7 +385,7 @@ Edita los métodos en `ExportacionExcelService.java`:
 
 ---
 
-## ✅ Checklist de Conexión
+##  Checklist de Conexión
 
 - [x] Backend tiene controlador `ExportacionController`
 - [x] Backend tiene servicio `ExportacionExcelService`
@@ -423,13 +423,13 @@ Edita los métodos en `ExportacionExcelService.java`:
 Tu sistema de exportación a Excel está completamente funcional y conectado entre el backend y el frontend. 
 
 **Características implementadas:**
-- ✅ Exportación simple
-- ✅ Exportación con filtros avanzados
-- ✅ Autenticación JWT
-- ✅ Manejo de errores
-- ✅ UI/UX con toasts y loading states
-- ✅ Formato Excel profesional
-- ✅ Múltiples tipos de análisis
+-  Exportación simple
+-  Exportación con filtros avanzados
+-  Autenticación JWT
+-  Manejo de errores
+-  UI/UX con toasts y loading states
+-  Formato Excel profesional
+-  Múltiples tipos de análisis
 
 **Para usar:**
 1. Inicia el backend

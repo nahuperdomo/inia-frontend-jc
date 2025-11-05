@@ -77,13 +77,13 @@ export default function TetrazolioDetailPage() {
 
       const tetrazolioData = await obtenerTetrazolioPorId(parseInt(tetrazolioId))
 
-      console.log("✅ Tetrazolio cargado:", tetrazolioData)
+      console.log(" Tetrazolio cargado:", tetrazolioData)
       setTetrazolio(tetrazolioData)
 
       // Cargar repeticiones
       try {
         const repeticionesData = await obtenerRepeticionesPorTetrazolio(parseInt(tetrazolioId))
-        console.log("✅ Repeticiones cargadas:", repeticionesData)
+        console.log(" Repeticiones cargadas:", repeticionesData)
         setRepeticiones(repeticionesData)
       } catch (repError) {
         console.warn("️ Error al cargar repeticiones:", repError)
@@ -91,7 +91,7 @@ export default function TetrazolioDetailPage() {
       }
 
     } catch (err: any) {
-      console.error("❌ Error cargando datos:", err)
+      console.error(" Error cargando datos:", err)
       setError(err.message || 'Error al cargar el análisis de tetrazolio')
     } finally {
       setLoading(false)

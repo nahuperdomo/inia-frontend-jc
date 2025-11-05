@@ -29,8 +29,8 @@ graph TD
     A[Usuario crea Germinación] --> B[GerminacionService.crearGerminacion]
     B --> C[Mapear GerminacionRequestDTO]
     C --> D{Validar datos}
-    D -->|❌ Error| E[Lanzar excepción]
-    D -->|✅ OK| F[Establecer estado REGISTRADO]
+    D -->| Error| E[Lanzar excepción]
+    D -->| OK| F[Establecer estado REGISTRADO]
     F --> G[Asignar lote]
     G --> H[Configurar parámetros]
     H --> I[Guardar en BD]
@@ -83,8 +83,8 @@ graph TD
     G --> H[Llenar con valores del usuario o 0]
     H --> I[Calcular total automáticamente]
     I --> J{total <= numSemillasPRep?}
-    J -->|❌| K[Error: Excede límite]
-    J -->|✅| L[Guardar repetición]
+    J -->|| K[Error: Excede límite]
+    J -->|| L[Guardar repetición]
     L --> M[Actualizar totales de tabla]
 ```
 
@@ -104,8 +104,8 @@ graph TD
     A[Actualizar RepGerm] --> B[Calcular total individual]
     B --> C[Actualizar totales en TablaGerm]
     C --> D{¿Todas repeticiones completas?}
-    D -->|❌| E[Mantener estado actual]
-    D -->|✅| F[Calcular promedios sin redondeo]
+    D -->|| E[Mantener estado actual]
+    D -->|| F[Calcular promedios sin redondeo]
     F --> G[Guardar promedioSinRedondeo[]]
     G --> H[Listo para ingresar porcentajes]
 ```
@@ -119,12 +119,12 @@ graph TD
 
 ```mermaid
 graph TD
-    A{¿Puede ingresar porcentajes?} -->|❌| B[Error: Repeticiones incompletas]
-    A -->|✅| C[Ingresar 5 porcentajes manualmente]
+    A{¿Puede ingresar porcentajes?} -->|| B[Error: Repeticiones incompletas]
+    A -->|| C[Ingresar 5 porcentajes manualmente]
     C --> D[TablaGermService.actualizarPorcentajes]
     D --> E[Validar que sumen 100%]
-    E -->|❌| F[Error: No suma 100%]
-    E -->|✅| G[Guardar porcentajes]
+    E -->|| F[Error: No suma 100%]
+    E -->|| G[Guardar porcentajes]
     G --> H[Actualizar ValoresGerm INIA]
     H --> I[Copiar porcentajes a valores INIA]
 ```
@@ -141,10 +141,10 @@ graph TD
 ```mermaid
 graph TD
     A[Finalizar tabla] --> B{¿Todas repeticiones completas?}
-    B -->|❌| C[Error: Repeticiones faltantes]
-    B -->|✅| D{¿Porcentajes ingresados?}
-    D -->|❌| E[Error: Faltan porcentajes]
-    D -->|✅| F[Establecer finalizada = true]
+    B -->|| C[Error: Repeticiones faltantes]
+    B -->|| D{¿Porcentajes ingresados?}
+    D -->|| E[Error: Faltan porcentajes]
+    D -->|| F[Establecer finalizada = true]
     F --> G[Establecer fechaFinal]
     G --> H[Tabla no modificable]
 ```
@@ -167,11 +167,11 @@ graph TD
 ```mermaid
 graph TD
     A[Finalizar Análisis] --> B{¿Todas tablas finalizadas?}
-    B -->|❌| C[Error: Tablas pendientes]
-    B -->|✅| D{¿Usuario es analista?}
-    D -->|✅| E[Estado: PENDIENTE_APROBACION]
-    D -->|❌| F{¿Usuario es admin?}
-    F -->|✅| G[Estado: APROBADO]
+    B -->|| C[Error: Tablas pendientes]
+    B -->|| D{¿Usuario es analista?}
+    D -->|| E[Estado: PENDIENTE_APROBACION]
+    D -->|| F{¿Usuario es admin?}
+    F -->|| G[Estado: APROBADO]
     G --> H[Análisis completado]
     E --> I[Pendiente revisión]
 ```
@@ -189,23 +189,23 @@ graph TD
 
 ##  Validaciones Críticas
 
-### ✅ Al crear Germinación:
+###  Al crear Germinación:
 - `numeroRepeticiones > 0`
 - `numeroConteos > 0`
 - `fechaConteos` debe tener elementos no-null
 - Lote debe existir y estar activo
 
-### ✅ Al crear RepGerm:
+###  Al crear RepGerm:
 - Array `normales[]` debe tener tamaño = `numeroConteos`
 - `total` no puede exceder `numSemillasPRep`
 - Número de repeticiones no puede exceder `numeroRepeticiones`
 
-### ✅ Al finalizar tabla:
+###  Al finalizar tabla:
 - Todas las repeticiones esperadas deben estar completas
 - Todos los porcentajes con redondeo deben estar ingresados
 - Los porcentajes deben sumar 100%
 
-### ✅ Al finalizar análisis:
+###  Al finalizar análisis:
 - Todas las tablas deben estar finalizadas
 - Usuario debe tener permisos adecuados
 
