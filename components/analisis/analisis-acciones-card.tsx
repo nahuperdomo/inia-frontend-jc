@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, RefreshCw } from "lucide-react"
+import { CheckCircle, RefreshCw, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { useAuth } from "@/components/auth-provider"
 import { useConfirm } from "@/lib/hooks/useConfirm"
@@ -29,24 +29,42 @@ export function AnalisisAccionesCard({
   onFinalizarYAprobar,
   onFinalizar
 }: AnalisisAccionesCardProps) {
-  const { isRole } = useAuth()
+  const { user, isLoading } = useAuth()
   const { confirm } = useConfirm()
   const [ejecutandoAccion, setEjecutandoAccion] = useState(false)
-
-  // Determinar roles
-  const esAdmin = isRole("administrador")
-  const esAnalista = isRole("analista")
-  const esObservador = isRole("observador")
 
   // DEBUG: Log para ver qué está pasando
   console.log("🔍 AnalisisAccionesCard DEBUG:", {
     analisisId,
     tipoAnalisis,
     estado,
-    esAdmin,
-    esAnalista,
-    esObservador
+    user,
+    userRole: user?.role,
+    isLoading
   })
+
+  // Mientras se está cargando, mostrar spinner
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex justify-center items-center py-2">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Si no hay usuario, no mostrar nada
+  if (!user) {
+    return null
+  }
+
+  // Determinar roles directamente del usuario
+  const esAdmin = user.role === "administrador"
+  const esAnalista = user.role === "analista"
+  const esObservador = user.role === "observador"
 
   // Si es observador, no mostrar nada
   if (esObservador) {

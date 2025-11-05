@@ -18,6 +18,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { useAuth } from "@/components/auth-provider"
 import { NotificationDropdown, useNotificationBadge } from "@/components/notificaciones"
 
 interface DashboardLayoutProps {
@@ -38,6 +39,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { logout } = useAuth()
 
   // Hook para badge de notificaciones en el sidebar
   const { unreadCount } = useNotificationBadge()
@@ -61,31 +63,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleLogout = async () => {
     try {
-      // Llamar al endpoint de logout del backend para limpiar cookies HttpOnly
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-
-      try {
-        await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
-          method: "POST",
-          credentials: "include" // Importante para enviar cookies HttpOnly
-        });
-      } catch (error) {
-        console.error('Error al llamar a logout del backend:', error);
-        // Continuar con el logout del frontend aunque falle el backend
-      }
-
-      // Limpiar datos locales (no sensibles)
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('usuario');
-        sessionStorage.clear();
-      }
-
-      // Mostrar mensaje de confirmación
+      await logout()
       toast.success("Sesión cerrada exitosamente", {
         description: "Has sido desconectado del sistema"
       })
-
-      // Redirigir al login
       router.push('/login')
     } catch (error) {
       console.error('Error al cerrar sesión:', error)

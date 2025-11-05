@@ -43,17 +43,21 @@ interface AnalysisHistoryCardProps {
 
 export function AnalysisHistoryCard({ analisisId, analisisTipo, historial }: AnalysisHistoryCardProps) {
   const [showModal, setShowModal] = useState(false)
-  const { isRole } = useAuth()
-  
-  // Solo mostrar para administradores
-  const esAdmin = isRole("administrador")
+  const { user, isLoading } = useAuth()
   
   // Mostrar solo los últimos 6 registros
   const historialMostrado = historial.slice(0, 6)
   const tieneMarRegistros = historial.length > 6
 
-  // No mostrar si no es admin o no hay historial
-  if (!esAdmin || historial.length === 0) {
+  // Mientras está cargando, no mostrar nada (evitar flickering)
+  if (isLoading) {
+    return null
+  }
+
+  // Solo mostrar para administradores y si hay historial
+  const esAdmin = user?.role === "administrador"
+  
+  if (!user || !esAdmin || historial.length === 0) {
     return null
   }
 

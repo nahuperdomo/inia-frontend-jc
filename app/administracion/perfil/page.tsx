@@ -23,7 +23,7 @@ const ROLES_LABELS: Record<string, string> = {
 }
 
 const ROLES_COLORS: Record<string, "default" | "destructive" | "secondary"> = {
-    "ADMIN": "destructive",
+    "ADMIN": "default",
     "ANALISTA": "default",
     "OBSERVADOR": "secondary"
 }
@@ -314,13 +314,19 @@ export default function PerfilPage() {
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div>
                                         <p className="text-xs text-muted-foreground">Rol</p>
-                                        <Badge 
-                                            variant={ROLES_COLORS[perfil.roles?.[0]] || "default"}
-                                            className="mt-1"
-                                        >
-                                            <Shield className="h-3 w-3 mr-1" />
-                                            {ROLES_LABELS[perfil.roles?.[0]] || perfil.roles?.[0]}
-                                        </Badge>
+                                        {(() => {
+                                            const rawRole = perfil.rol ?? perfil.roles?.[0]
+                                            const roleKey = rawRole ? String(rawRole).toUpperCase() : undefined
+                                            const label = roleKey ? (ROLES_LABELS[roleKey] || rawRole) : "Sin rol"
+                                            const variant = roleKey && ROLES_COLORS[roleKey] ? ROLES_COLORS[roleKey] : (roleKey ? "default" : "secondary")
+
+                                            return (
+                                                <Badge variant={variant as any} className="mt-1">
+                                                    <Shield className="h-3 w-3 mr-1" />
+                                                    {label}
+                                                </Badge>
+                                            )
+                                        })()}
                                     </div>
                                     <div>
                                         <p className="text-xs text-muted-foreground">Estado</p>

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { obtenerPerfil } from "@/app/services/auth-service"
+import { apiFetch } from "@/app/services/api"
 
 interface User {
   id: string
@@ -15,10 +16,12 @@ interface User {
 interface AuthContextType {
   user: User | null
   login: (email: string, password: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
   isLoading: boolean
   hasPermission: (permission: string) => boolean
   isRole: (role: string) => boolean
+  // For real login flow: rehydrate context from localStorage after backend login
+  refresh: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -46,44 +49,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    // Check for existing session
-    if (typeof window !== "undefined") {
-      // Intentar con ambas keys: "usuario" (del login real) o "inia-user" (del mock)
-      const savedUserData = localStorage.getItem("usuario") || localStorage.getItem("inia-user")
-      if (savedUserData) {
-        const parsedUser = JSON.parse(savedUserData)
-        
-        // Si viene del login real (tiene roles array)
-        if (parsedUser.roles && Array.isArray(parsedUser.roles)) {
-          let userRole: "analista" | "administrador" | "observador" = "analista"
-          if (parsedUser.roles.length > 0) {
-            const rolBackend = parsedUser.roles[0].toLowerCase()
-            if (rolBackend === "admin" || rolBackend === "administrador") {
-              userRole = "administrador"
-            } else if (rolBackend === "observador") {
-              userRole = "observador"
-            }
-          }
-          
-          const mappedUser: User = {
-            id: parsedUser.id?.toString() || "1",
-            email: parsedUser.email || "",
-            name: parsedUser.nombre || `${parsedUser.nombres || ""} ${parsedUser.apellidos || ""}`.trim() || "Usuario",
-            role: userRole,
-            department: "Laboratorio",
-            permissions: ROLE_PERMISSIONS[userRole],
-          }
-          setUser(mappedUser)
-          console.log("✅ Usuario cargado desde localStorage (login real):", mappedUser)
-        } else {
-          // Si ya viene en formato User (del mock)
-          setUser(parsedUser)
-          console.log("✅ Usuario cargado desde localStorage (mock):", parsedUser)
-        }
+  // Refrescar el usuario consultando el perfil al backend (cookies HttpOnly)
+  const refresh = async () => {
+    try {
+      const perfil = await obtenerPerfil()
+      // Determinar rol desde perfil.rol o perfil.roles[0]
+      let rawRole = (perfil.rol || (perfil.roles && perfil.roles[0]) || "").toString().toLowerCase()
+      let role: "analista" | "administrador" | "observador" = "analista"
+      if (rawRole.includes("admin")) role = "administrador"
+      else if (rawRole.includes("observador") || rawRole.includes("viewer") || rawRole.includes("read")) role = "observador"
+      else role = "analista"
+
+      const mappedUser: User = {
+        id: String(perfil.usuarioID ?? ""),
+        email: perfil.email || "",
+        name: perfil.nombreCompleto || perfil.nombre || `${perfil.nombres || ""} ${perfil.apellidos || ""}`.trim() || "Usuario",
+        role,
+        department: "Laboratorio",
+        permissions: ROLE_PERMISSIONS[role],
       }
+      setUser(mappedUser)
+      console.log("✅ Usuario cargado desde backend (profile):", mappedUser)
+    } catch (e) {
+      console.warn("No hay sesión iniciada o error al obtener perfil", e)
+      setUser(null)
     }
-    setIsLoading(false)
+  }
+
+  useEffect(() => {
+    let mounted = true
+    const init = async () => {
+      setIsLoading(true)
+      await refresh()
+      if (mounted) setIsLoading(false)
+    }
+    init()
+    return () => {
+      mounted = false
+    }
   }, [])
 
   const login = async (email: string, password: string) => {
@@ -118,16 +121,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    // Solo para entornos de desarrollo: setear usuario en memoria
     setUser(mockUser)
-    if (typeof window !== "undefined") {
-      localStorage.setItem("inia-user", JSON.stringify(mockUser))
-    }
   }
 
-  const logout = () => {
-    setUser(null)
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("inia-user")
+  const logout = async () => {
+    try {
+      // Llama al backend para invalidar cookies HttpOnly
+      await apiFetch("/api/v1/auth/logout", { method: "POST" })
+    } catch (e) {
+      console.warn("Error en logout backend, continuando con limpieza local", e)
+    } finally {
+      setUser(null)
+      // Limpieza defensiva (por si quedó algo viejo)
+      if (typeof window !== "undefined") {
+        try { localStorage.removeItem("inia-user") } catch {}
+        try { localStorage.removeItem("usuario") } catch {}
+        try { sessionStorage.clear() } catch {}
+      }
     }
   }
 
@@ -140,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading, hasPermission, isRole }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading, hasPermission, isRole, refresh }}>
       {children}
     </AuthContext.Provider>
   )

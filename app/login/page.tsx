@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Leaf, UserPlus } from "lucide-react"
 import { toast } from 'sonner'
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { useAuth } from "@/components/auth-provider"
 export default function LoginPage() {
   const [credentials, setCredentials] = useState({
     usuario: "",
@@ -20,6 +21,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const router = useRouter()
+  const { refresh } = useAuth()
 
   // Servicio de login
   async function login(usuario: string, password: string) {
@@ -73,27 +75,16 @@ export default function LoginPage() {
       console.log("✅ Login exitoso. Backend envió cookies HttpOnly.");
       console.log("📦 Datos de usuario:", data.usuario);
 
-      // SOLUCIÓN SEGURA: NO guardar token en localStorage ni cookies client-side
-      // El token está en cookies HttpOnly (accessToken, refreshToken) manejadas automáticamente por el navegador
-      
-      // Opcionalmente, guardar datos de usuario para UX (no sensibles)
-      if (data.usuario) {
-        localStorage.setItem("usuario", JSON.stringify({
-          id: data.usuario.id,
-          nombre: data.usuario.nombre,
-          nombres: data.usuario.nombres,
-          apellidos: data.usuario.apellidos,
-          email: data.usuario.email,
-          roles: data.usuario.roles
-        }));
-      }
+      // NO guardar nada en localStorage — las cookies HttpOnly quedan del lado del navegador
+      // Refrescar el contexto de auth consultando el perfil al backend
+      await refresh()
 
       console.log("🚀 Redirigiendo a /dashboard...");
       
       // Usar setTimeout para asegurar que las cookies se establezcan antes de redirigir
       setTimeout(() => {
         console.log("⏰ Ejecutando redirección después de timeout...");
-        router.push("/dashboard");
+  router.push("/dashboard");
         
         // Fallback: si router.push no funciona en 1 segundo, usar window.location
         setTimeout(() => {
