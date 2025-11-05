@@ -752,7 +752,7 @@ export default function UsuarioValidacionPage() {
                                                         </Badge>
                                                     </TableCell>
                                                     <TableCell>
-                                                        {formatDateShort(getFechaRegistro(usuario))}
+                                                        {formatDate(getFechaRegistro(usuario))}
                                                     </TableCell>
                                                     <TableCell className="text-right">
                                                         <div className="flex justify-end gap-2">
