@@ -38,6 +38,11 @@ interface UseNotificationsReturn {
     deleteNotification: (id: number) => Promise<void>;
     loadMore: () => Promise<void>;
     goToPage: (page: number) => Promise<void>;
+    
+    // NUEVO: Métodos para WebSocket
+    addNotification: (notification: NotificacionDTO) => void;
+    updateUnreadCount: (count: number | ((prev: number) => number)) => void;
+    removeNotification: (id: number) => void;
 }
 
 export function useNotifications(options: UseNotificationsOptions = {}): UseNotificationsReturn {
@@ -236,6 +241,42 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
         return () => clearInterval(interval);
     }, [autoRefresh, refreshInterval, loadUnreadNotifications]);
 
+    // NUEVO: Agregar notificación desde WebSocket
+    const addNotification = useCallback((notification: NotificacionDTO) => {
+        setNotifications(prev => [notification, ...prev]);
+        
+        // Si es no leída, agregar a la lista de no leídas
+        if (!notification.leido) {
+            setUnreadNotifications(prev => [notification, ...prev]);
+            setUnreadCount(prev => prev + 1);
+        }
+        
+        // Actualizar total de elementos
+        setTotalElements(prev => prev + 1);
+    }, []);
+
+    // NUEVO: Actualizar contador desde WebSocket
+    const updateUnreadCount = useCallback((countOrUpdater: number | ((prev: number) => number)) => {
+        if (typeof countOrUpdater === 'function') {
+            setUnreadCount(countOrUpdater);
+        } else {
+            setUnreadCount(countOrUpdater);
+        }
+    }, []);
+
+    // NUEVO: Eliminar notificación desde WebSocket
+    const removeNotification = useCallback((id: number) => {
+        setNotifications(prev => prev.filter(n => n.id !== id));
+        setUnreadNotifications(prev => prev.filter(n => n.id !== id));
+        setTotalElements(prev => Math.max(0, prev - 1));
+        
+        // Actualizar contador si era no leída
+        const wasUnread = notifications.find(n => n.id === id && !n.leido);
+        if (wasUnread) {
+            setUnreadCount(prev => Math.max(0, prev - 1));
+        }
+    }, [notifications]);
+
     return {
         // Estado
         notifications,
@@ -255,6 +296,11 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
         markAllAsRead,
         deleteNotification,
         loadMore,
-        goToPage
+        goToPage,
+        
+        // NUEVO: Para WebSocket
+        addNotification,
+        updateUnreadCount,
+        removeNotification,
     };
 }

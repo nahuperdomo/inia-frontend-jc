@@ -54,7 +54,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         error,
         pagination,
         actions,
-        dropdown
+        dropdown,
+        websocket // NUEVO: Estado del WebSocket
     } = useNotificationDropdown();
 
     // Cerrar dropdown al hacer clic fuera
@@ -161,6 +162,16 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                             {hasUnread && (
                                 <span className="px-1.5 [@media(min-width:440px)]:px-2 py-0.5 [@media(min-width:440px)]:py-1 text-[10px] [@media(min-width:440px)]:text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                                     {unreadCount} nuevas
+                                </span>
+                            )}
+                            {/* ✨ NUEVO: Indicador de WebSocket */}
+                            {websocket.isConnected && (
+                                <span 
+                                    className="flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-medium bg-green-100 text-green-700 rounded-full"
+                                    title="Notificaciones en tiempo real activas"
+                                >
+                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                                    Tiempo real
                                 </span>
                             )}
                         </div>
