@@ -104,3 +104,45 @@ export async function obtenerAnalisisPorAprobarKeyset(
     `/api/dashboard/analisis-por-aprobar/keyset?${params.toString()}`
   )
 }
+
+/**
+ * Paginación offset estándar para análisis pendientes.
+ * Mejor para navegación de páginas con números.
+ * 
+ * @param page Número de página (base 0)
+ * @param size Número de items por página
+ */
+export async function obtenerAnalisisPendientesPaginados(
+  page: number = 0,
+  size: number = 10
+): Promise<PaginatedResponse<AnalisisPendiente>> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString()
+  })
+  
+  return await apiFetch<PaginatedResponse<AnalisisPendiente>>(
+    `/api/dashboard/analisis-pendientes?${params.toString()}`
+  )
+}
+
+/**
+ * Paginación offset estándar para análisis por aprobar.
+ * Mejor para navegación de páginas con números.
+ * 
+ * @param page Número de página (base 0)
+ * @param size Número de items por página
+ */
+export async function obtenerAnalisisPorAprobarPaginados(
+  page: number = 0,
+  size: number = 10
+): Promise<PaginatedResponse<AnalisisPorAprobar>> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString()
+  })
+  
+  return await apiFetch<PaginatedResponse<AnalisisPorAprobar>>(
+    `/api/dashboard/analisis-por-aprobar?${params.toString()}`
+  )
+}

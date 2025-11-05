@@ -12,18 +12,19 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { CheckCircle, X, User, Clock, ArrowLeft, Mail, UserCheck, UserX, Users, Edit, Trash2, AlertTriangle, Search, Filter } from "lucide-react"
+import { CheckCircle, X, User, Clock, ArrowLeft, Mail, UserCheck, UserX, Users, Edit, Trash2, AlertTriangle, Search, Filter, RefreshCw } from "lucide-react"
 import { Toaster } from "sonner"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import {
-    listarSolicitudesPendientes,
-    listarUsuarios,
+    listarSolicitudesPendientesPaginadas,
+    listarUsuariosPaginados,
     aprobarUsuario,
     rechazarSolicitud,
-    gestionarUsuario
+    gestionarUsuario,
+    PaginatedResponse
 } from "@/app/services/auth-service"
 import {
     type AuthUsuarioDTO,
@@ -45,8 +46,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-
-// Interfaces basadas en el backend se importan desde el servicio
+import Pagination from "@/components/pagination"
+import { extractPageMetadata } from "@/lib/utils/pagination-helper"
 
 // Mapeo de roles - coincide con el enum Rol del backend
 const ROLES_OPCIONES = [
@@ -65,8 +66,25 @@ const ROLES_LABELS: Record<string, string> = {
 export default function UsuarioValidacionPage() {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(true)
+    
+    // Estado de solicitudes pendientes con paginación
     const [solicitudesPendientes, setSolicitudesPendientes] = useState<AuthUsuarioDTO[]>([])
+    const [currentPagePendientes, setCurrentPagePendientes] = useState(0)
+    const [totalPagesPendientes, setTotalPagesPendientes] = useState(0)
+    const [totalElementsPendientes, setTotalElementsPendientes] = useState(0)
+    const [searchTermPendientes, setSearchTermPendientes] = useState("")
+    
+    // Estado de usuarios registrados con paginación
     const [usuariosRegistrados, setUsuariosRegistrados] = useState<AuthUsuarioDTO[]>([])
+    const [currentPageUsuarios, setCurrentPageUsuarios] = useState(0)
+    const [totalPagesUsuarios, setTotalPagesUsuarios] = useState(0)
+    const [totalElementsUsuarios, setTotalElementsUsuarios] = useState(0)
+    const [searchTermUsuarios, setSearchTermUsuarios] = useState("")
+    
+    // Stats globales
+    const [statsUsuariosActivos, setStatsUsuariosActivos] = useState(0)
+    const [statsAdministradores, setStatsAdministradores] = useState(0)
+    
     const [selectedUser, setSelectedUser] = useState<AuthUsuarioDTO | null>(null)
     const [selectedRegisteredUser, setSelectedRegisteredUser] = useState<AuthUsuarioDTO | null>(null)
     const [selectedRole, setSelectedRole] = useState<string>("")
@@ -76,35 +94,122 @@ export default function UsuarioValidacionPage() {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [activeTab, setActiveTab] = useState<"pendientes" | "registrados">("pendientes")
-    const [searchTerm, setSearchTerm] = useState("")
     const [roleFilter, setRoleFilter] = useState<string>("all")
+    const [statusFilter, setStatusFilter] = useState<string>("all")
+    
+    const pageSize = 10
 
     useEffect(() => {
-        cargarDatos()
-    }, [])
+        if (activeTab === "pendientes") {
+            fetchSolicitudesPendientes(0)
+        } else {
+            fetchUsuariosRegistrados(0)
+        }
+    }, [activeTab])
+    
+    useEffect(() => {
+        if (activeTab === "registrados") {
+            setCurrentPageUsuarios(0)
+            fetchUsuariosRegistrados(0)
+        }
+    }, [roleFilter, statusFilter])
 
-    const cargarDatos = async () => {
+    const fetchSolicitudesPendientes = async (page: number = 0) => {
         setIsLoading(true)
         try {
-            const [solicitudes, usuarios] = await Promise.all([
-                listarSolicitudesPendientes(),
-                listarUsuarios()
-            ])
-            setSolicitudesPendientes(solicitudes)
-            setUsuariosRegistrados(usuarios)
+            const data = await listarSolicitudesPendientesPaginadas(page, pageSize, searchTermPendientes)
+            
+            // Extraer metadata de paginación usando helper
+            const pageData = extractPageMetadata<AuthUsuarioDTO>(data, page)
+            
+            setSolicitudesPendientes(pageData.content)
+            setTotalPagesPendientes(pageData.totalPages)
+            setTotalElementsPendientes(pageData.totalElements)
+            setCurrentPagePendientes(pageData.currentPage)
         } catch (error) {
-            console.error("Error:", error)
-            toast.error("Error al cargar datos", {
-                description: "No se pudieron cargar los datos de usuarios"
+            console.error("❌ Error:", error)
+            toast.error("Error al cargar solicitudes pendientes", {
+                description: "No se pudieron cargar las solicitudes"
             })
         } finally {
             setIsLoading(false)
         }
     }
 
+    const fetchUsuariosRegistrados = async (page: number = 0) => {
+        setIsLoading(true)
+        try {
+            const data = await listarUsuariosPaginados(page, pageSize, searchTermUsuarios, roleFilter, statusFilter)
+            
+            // Extraer metadata de paginación usando helper
+            const pageData = extractPageMetadata<AuthUsuarioDTO>(data, page)
+            
+            setUsuariosRegistrados(pageData.content)
+            setTotalPagesUsuarios(pageData.totalPages)
+            setTotalElementsUsuarios(pageData.totalElements)
+            setCurrentPageUsuarios(pageData.currentPage)
+            
+            // Calcular stats solo si es la primera carga (sin búsqueda)
+            if (!searchTermUsuarios) {
+                const activos = pageData.content.filter(u => u.activo).length || 0
+                const admins = pageData.content.filter(u => {
+                    const rol = getRolFromUsuario(u)
+                    return rol && rol.toUpperCase() === "ADMIN"
+                }).length || 0
+                
+                // Si tenemos todos los usuarios en una página, usar ese conteo
+                // Si no, hacer una aproximación basada en la proporción
+                if (pageData.totalElements <= pageSize) {
+                    setStatsUsuariosActivos(activos)
+                    setStatsAdministradores(admins)
+                } else {
+                    // Estimación basada en la proporción de la primera página
+                    const usersInPage = pageData.content.length || 1
+                    setStatsUsuariosActivos(Math.round((activos / usersInPage) * pageData.totalElements))
+                    setStatsAdministradores(Math.round((admins / usersInPage) * pageData.totalElements))
+                }
+            }
+        } catch (error) {
+            console.error("Error:", error)
+            toast.error("Error al cargar usuarios", {
+                description: "No se pudieron cargar los usuarios"
+            })
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    // Handlers para búsqueda pendientes
+    const handleSearchPendientesKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            setCurrentPagePendientes(0)
+            fetchSolicitudesPendientes(0)
+        }
+    }
+
+    const handleSearchPendientesClick = () => {
+        setCurrentPagePendientes(0)
+        fetchSolicitudesPendientes(0)
+    }
+
+    // Handlers para búsqueda usuarios
+    const handleSearchUsuariosKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            setCurrentPageUsuarios(0)
+            fetchUsuariosRegistrados(0)
+        }
+    }
+
+    const handleSearchUsuariosClick = () => {
+        setCurrentPageUsuarios(0)
+        fetchUsuariosRegistrados(0)
+    }
+
     const handleApprovalClick = (usuario: AuthUsuarioDTO) => {
         setSelectedUser(usuario)
-        setSelectedRole("2") // Por defecto ANALISTA
+        setSelectedRole("ANALISTA")
         setShowApprovalDialog(true)
     }
 
@@ -118,21 +223,18 @@ export default function UsuarioValidacionPage() {
 
         setIsSubmitting(true)
         try {
-            // Enviar el rol como string que coincide con el enum del backend
             await aprobarUsuario(selectedUser.usuarioID, { rol: selectedRole } as AprobarUsuarioRequest)
 
             toast.success("Usuario aprobado exitosamente", {
                 description: `${selectedUser.nombres} ${selectedUser.apellidos} ha sido aprobado como ${ROLES_LABELS[selectedRole]}`
             })
 
-            // Actualizar la lista removiendo el usuario aprobado
-            setSolicitudesPendientes(prev =>
-                prev.filter(u => u.usuarioID !== selectedUser.usuarioID)
-            )
-
             setShowApprovalDialog(false)
             setSelectedUser(null)
             setSelectedRole("")
+            
+            // Recargar la página actual
+            fetchSolicitudesPendientes(currentPagePendientes)
 
         } catch (error) {
             console.error("Error:", error)
@@ -155,13 +257,11 @@ export default function UsuarioValidacionPage() {
                 description: `La solicitud de ${selectedUser.nombres} ${selectedUser.apellidos} ha sido rechazada`
             })
 
-            // Actualizar la lista removiendo el usuario rechazado
-            setSolicitudesPendientes(prev =>
-                prev.filter(u => u.usuarioID !== selectedUser.usuarioID)
-            )
-
             setShowRejectDialog(false)
             setSelectedUser(null)
+            
+            // Recargar la página actual
+            fetchSolicitudesPendientes(currentPagePendientes)
 
         } catch (error) {
             console.error("Error:", error)
@@ -173,22 +273,43 @@ export default function UsuarioValidacionPage() {
         }
     }
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('es-ES', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        })
+    const formatDate = (dateString: string | undefined | null) => {
+        if (!dateString) return "N/A"
+        try {
+            // El backend devuelve fechas en formato ISO o LocalDateTime
+            const date = new Date(dateString)
+            if (isNaN(date.getTime())) return "Fecha inválida"
+            return date.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })
+        } catch (error) {
+            return "Fecha inválida"
+        }
     }
 
-    // Funciones para usuarios registrados
+    const formatDateShort = (dateString: string | undefined | null) => {
+        if (!dateString) return "N/A"
+        try {
+            const date = new Date(dateString)
+            if (isNaN(date.getTime())) return "N/A"
+            return date.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            })
+        } catch (error) {
+            return "N/A"
+        }
+    }
+
     const handleEditClick = (usuario: AuthUsuarioDTO) => {
         setSelectedRegisteredUser(usuario)
-        // Extraer el rol (ya viene en el formato correcto del backend)
-        const currentRole = (usuario.roles && usuario.roles[0]) || "ANALISTA"
-        setSelectedRole(currentRole)
+        const currentRole = getRolFromUsuario(usuario)
+        setSelectedRole(currentRole === "Sin rol" ? "ANALISTA" : currentRole.toUpperCase())
         setShowEditDialog(true)
     }
 
@@ -202,7 +323,6 @@ export default function UsuarioValidacionPage() {
 
         setIsSubmitting(true)
         try {
-            // Enviar el rol como string que coincide con el enum del backend
             await gestionarUsuario(selectedRegisteredUser.usuarioID, {
                 rol: selectedRole
             } as GestionarUsuarioRequest)
@@ -211,12 +331,12 @@ export default function UsuarioValidacionPage() {
                 description: `El rol de ${selectedRegisteredUser.nombres} ${selectedRegisteredUser.apellidos} ha sido actualizado a ${ROLES_LABELS[selectedRole]}`
             })
 
-            // Recargar datos para reflejar cambios
-            await cargarDatos()
-
             setShowEditDialog(false)
             setSelectedRegisteredUser(null)
             setSelectedRole("")
+            
+            // Recargar la página actual
+            fetchUsuariosRegistrados(currentPageUsuarios)
 
         } catch (error) {
             console.error("Error:", error)
@@ -241,11 +361,11 @@ export default function UsuarioValidacionPage() {
                 description: `${selectedRegisteredUser.nombres} ${selectedRegisteredUser.apellidos} ha sido desactivado del sistema`
             })
 
-            // Recargar datos para reflejar cambios
-            await cargarDatos()
-
             setShowDeleteDialog(false)
             setSelectedRegisteredUser(null)
+            
+            // Recargar la página actual
+            fetchUsuariosRegistrados(currentPageUsuarios)
 
         } catch (error) {
             console.error("Error:", error)
@@ -267,8 +387,8 @@ export default function UsuarioValidacionPage() {
                 description: `${usuario.nombres} ${usuario.apellidos} ha sido ${!usuario.activo ? 'activado' : 'desactivado'}`
             })
 
-            // Recargar datos para reflejar cambios
-            await cargarDatos()
+            // Recargar la página actual
+            fetchUsuariosRegistrados(currentPageUsuarios)
 
         } catch (error) {
             console.error("Error:", error)
@@ -278,39 +398,53 @@ export default function UsuarioValidacionPage() {
         }
     }
 
-    // Filtros para usuarios registrados
-    const filteredUsuarios = usuariosRegistrados.filter(usuario => {
-        const matchesSearch = (
-            usuario.nombres.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            usuario.apellidos.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            usuario.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            usuario.email.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+    // Helper para obtener el rol del usuario (maneja ambos formatos del backend)
+    const getRolFromUsuario = (usuario: AuthUsuarioDTO): string => {
+        // El backend devuelve 'rol' (singular), no 'roles' (plural)
+        if (usuario.rol) return usuario.rol
+        if (usuario.roles && usuario.roles.length > 0) return usuario.roles[0]
+        return "Sin rol"
+    }
 
-        const userRole = (usuario.roles && usuario.roles[0]) || ""
-        const matchesRole = roleFilter === "all" || userRole === roleFilter
+    const getRolLabel = (usuario: AuthUsuarioDTO | undefined): string => {
+        if (!usuario) return "Sin rol"
+        const rol = getRolFromUsuario(usuario)
+        if (!rol || rol === "Sin rol") return "Sin rol"
+        const roleUpper = rol.toUpperCase()
+        return ROLES_LABELS[roleUpper] || rol
+    }
 
-        return matchesSearch && matchesRole
-    })
+    // Helper para obtener la fecha de registro (maneja ambos formatos del backend)
+    const getFechaRegistro = (usuario: AuthUsuarioDTO): string | null => {
+        // El backend devuelve 'fechaCreacion', no 'fechaRegistro'
+        return usuario.fechaCreacion || usuario.fechaRegistro || null
+    }
 
-    const getRoleBadgeVariant = (roles: string[]) => {
-        const firstRole = roles[0]?.toUpperCase() || ""
-        switch (firstRole) {
+    const getEstadoSolicitud = (usuario: AuthUsuarioDTO): string => {
+        // El backend devuelve 'estado', no 'estadoSolicitud'
+        return usuario.estado || usuario.estadoSolicitud || "PENDIENTE"
+    }
+
+    const getRoleBadgeVariant = (usuario: AuthUsuarioDTO | undefined) => {
+        if (!usuario) return "outline" as const
+        const rol = getRolFromUsuario(usuario)
+        if (!rol || rol === "Sin rol") return "outline" as const
+        const roleUpper = rol.toUpperCase()
+        switch (roleUpper) {
             case "ADMIN":
             case "ADMINISTRADOR":
-                return "destructive"
+                return "destructive" as const
             case "ANALISTA":
-                return "default"
+                return "default" as const
             case "OBSERVADOR":
-                return "secondary"
+                return "secondary" as const
             default:
-                return "outline"
+                return "outline" as const
         }
     }
 
     return (
-        <div className="p-6 space-y-6">
-            {/* Header */}
+        <div className="p-6 space-y-6">{/* Header */}
             <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <Link href="/administracion">
@@ -338,7 +472,7 @@ export default function UsuarioValidacionPage() {
                         <CardTitle className="text-sm font-medium">Solicitudes Pendientes</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-orange-600">{solicitudesPendientes.length}</div>
+                        <div className="text-2xl font-bold text-orange-600">{totalElementsPendientes}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -346,9 +480,7 @@ export default function UsuarioValidacionPage() {
                         <CardTitle className="text-sm font-medium">Usuarios Activos</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-green-600">
-                            {usuariosRegistrados.filter(u => u.activo).length}
-                        </div>
+                        <div className="text-2xl font-bold text-green-600">{statsUsuariosActivos}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -356,9 +488,7 @@ export default function UsuarioValidacionPage() {
                         <CardTitle className="text-sm font-medium">Administradores</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-red-600">
-                            {usuariosRegistrados.filter(u => u.roles && u.roles.some((role: string) => role.toUpperCase().includes("ADMIN"))).length}
-                        </div>
+                        <div className="text-2xl font-bold text-red-600">{statsAdministradores}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -366,7 +496,7 @@ export default function UsuarioValidacionPage() {
                         <CardTitle className="text-sm font-medium">Total Usuarios</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{usuariosRegistrados.length}</div>
+                        <div className="text-2xl font-bold">{totalElementsUsuarios}</div>
                     </CardContent>
                 </Card>
             </div>
@@ -381,7 +511,7 @@ export default function UsuarioValidacionPage() {
                             className="flex items-center gap-2 justify-center w-full sm:w-auto py-6 sm:py-2"
                         >
                             <UserCheck className="h-4 w-4" />
-                            Solicitudes Pendientes ({solicitudesPendientes.length})
+                            Solicitudes Pendientes ({totalElementsPendientes})
                         </Button>
                         <Button
                             variant={activeTab === "registrados" ? "default" : "outline"}
@@ -389,7 +519,7 @@ export default function UsuarioValidacionPage() {
                             className="flex items-center gap-2 justify-center w-full sm:w-auto py-6 sm:py-2"
                         >
                             <Users className="h-4 w-4" />
-                            Usuarios Registrados ({usuariosRegistrados.length})
+                            Usuarios Registrados ({totalElementsUsuarios})
                         </Button>
                     </div>
                 </CardHeader>
@@ -402,6 +532,23 @@ export default function UsuarioValidacionPage() {
                                 <p className="text-sm text-muted-foreground">
                                     Revisa y gestiona las solicitudes de nuevos usuarios
                                 </p>
+                            </div>
+
+                            {/* Barra de búsqueda */}
+                            <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                                    <Input
+                                        placeholder="Buscar por nombre de usuario, nombre o apellido..."
+                                        value={searchTermPendientes}
+                                        onChange={(e) => setSearchTermPendientes(e.target.value)}
+                                        onKeyDown={handleSearchPendientesKeyDown}
+                                        className="pl-10"
+                                    />
+                                </div>
+                                <Button type="button" onClick={handleSearchPendientesClick} variant="secondary" size="sm" className="px-4">
+                                    <Search className="h-4 w-4" />
+                                </Button>
                             </div>
 
                             {isLoading ? (
@@ -420,64 +567,78 @@ export default function UsuarioValidacionPage() {
                                     </p>
                                 </div>
                             ) : (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Usuario</TableHead>
-                                            <TableHead>Nombre Completo</TableHead>
-                                            <TableHead>Email</TableHead>
-                                            <TableHead>Fecha de Solicitud</TableHead>
-                                            <TableHead>Estado</TableHead>
-                                            <TableHead className="text-right">Acciones</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {solicitudesPendientes.map((usuario) => (
-                                            <TableRow key={usuario.usuarioID}>
-                                                <TableCell className="font-medium">
-                                                    {usuario.nombre}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {usuario.nombres} {usuario.apellidos}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-2">
-                                                        <Mail className="h-4 w-4 text-muted-foreground" />
-                                                        {usuario.email}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {formatDate(usuario.fechaRegistro)}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="secondary">
-                                                        {usuario.estadoSolicitud}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <div className="flex gap-2 justify-end">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="default"
-                                                            onClick={() => handleApprovalClick(usuario)}
-                                                        >
-                                                            <UserCheck className="h-4 w-4 mr-1" />
-                                                            Aprobar
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="destructive"
-                                                            onClick={() => handleRejectClick(usuario)}
-                                                        >
-                                                            <UserX className="h-4 w-4 mr-1" />
-                                                            Rechazar
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
+                                <>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Usuario</TableHead>
+                                                <TableHead>Nombre Completo</TableHead>
+                                                <TableHead>Email</TableHead>
+                                                <TableHead>Fecha de Solicitud</TableHead>
+                                                <TableHead className="text-right">Acciones</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {solicitudesPendientes.map((usuario) => (
+                                                <TableRow key={usuario.usuarioID}>
+                                                    <TableCell className="font-medium">
+                                                        {usuario.nombre}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {usuario.nombres} {usuario.apellidos}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-2">
+                                                            <Mail className="h-4 w-4 text-muted-foreground" />
+                                                            {usuario.email}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {formatDate(getFechaRegistro(usuario))}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <div className="flex gap-2 justify-end">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="default"
+                                                                onClick={() => handleApprovalClick(usuario)}
+                                                            >
+                                                                <UserCheck className="h-4 w-4 mr-1" />
+                                                                Aprobar
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="destructive"
+                                                                onClick={() => handleRejectClick(usuario)}
+                                                            >
+                                                                <UserX className="h-4 w-4 mr-1" />
+                                                                Rechazar
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+
+                                    {/* Paginación */}
+                                    <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+                                        <div className="text-sm text-muted-foreground">
+                                            {totalElementsPendientes === 0 ? (
+                                                <>Mostrando 0 de 0 resultados</>
+                                            ) : (
+                                                <>Mostrando {currentPagePendientes * pageSize + 1} a {Math.min((currentPagePendientes + 1) * pageSize, totalElementsPendientes)} de {totalElementsPendientes} resultados</>
+                                            )}
+                                        </div>
+                                        <Pagination
+                                            currentPage={currentPagePendientes}
+                                            totalPages={Math.max(totalPagesPendientes, 1)}
+                                            onPageChange={(p) => fetchSolicitudesPendientes(p)}
+                                            showRange={1}
+                                            alwaysShow={true}
+                                        />
+                                    </div>
+                                </>
                             )}
                         </div>
                     ) : (
@@ -494,16 +655,20 @@ export default function UsuarioValidacionPage() {
 
                             {/* Filtros */}
                             <div className="flex gap-4 flex-wrap">
-                                <div className="flex-1 min-w-[200px]">
-                                    <div className="relative">
-                                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <div className="flex-1 min-w-[200px] flex gap-2">
+                                    <div className="relative flex-1">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                                         <Input
-                                            placeholder="Buscar usuarios..."
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                            className="pl-8"
+                                            placeholder="Buscar por nombre de usuario, nombre o apellido..."
+                                            value={searchTermUsuarios}
+                                            onChange={(e) => setSearchTermUsuarios(e.target.value)}
+                                            onKeyDown={handleSearchUsuariosKeyDown}
+                                            className="pl-10"
                                         />
                                     </div>
+                                    <Button type="button" onClick={handleSearchUsuariosClick} variant="secondary" size="sm" className="px-4">
+                                        <Search className="h-4 w-4" />
+                                    </Button>
                                 </div>
                                 <div className="min-w-[150px]">
                                     <Select value={roleFilter} onValueChange={setRoleFilter}>
@@ -519,6 +684,19 @@ export default function UsuarioValidacionPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
+                                <div className="min-w-[150px]">
+                                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                        <SelectTrigger>
+                                            <Filter className="h-4 w-4 mr-2" />
+                                            <SelectValue placeholder="Filtrar por estado" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Todos</SelectItem>
+                                            <SelectItem value="true">Activos</SelectItem>
+                                            <SelectItem value="false">Inactivos</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
 
                             {isLoading ? (
@@ -528,7 +706,7 @@ export default function UsuarioValidacionPage() {
                                         <p className="text-muted-foreground">Cargando usuarios...</p>
                                     </div>
                                 </div>
-                            ) : filteredUsuarios.length === 0 ? (
+                            ) : usuariosRegistrados.length === 0 ? (
                                 <div className="text-center p-8">
                                     <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                                     <h3 className="text-lg font-medium mb-2">No hay usuarios</h3>
@@ -537,83 +715,102 @@ export default function UsuarioValidacionPage() {
                                     </p>
                                 </div>
                             ) : (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Usuario</TableHead>
-                                            <TableHead>Nombre Completo</TableHead>
-                                            <TableHead>Email</TableHead>
-                                            <TableHead>Rol</TableHead>
-                                            <TableHead>Estado</TableHead>
-                                            <TableHead>Registro</TableHead>
-                                            <TableHead className="text-right">Acciones</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {filteredUsuarios.map((usuario) => (
-                                            <TableRow key={usuario.usuarioID}>
-                                                <TableCell className="font-medium">
-                                                    {usuario.nombre}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {usuario.nombres} {usuario.apellidos}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-2">
-                                                        <Mail className="h-4 w-4 text-muted-foreground" />
-                                                        {usuario.email}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant={getRoleBadgeVariant(usuario.roles || [])}>
-                                                        {(usuario.roles && usuario.roles[0]) || "Sin rol"}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant={usuario.activo ? "default" : "secondary"}>
-                                                        {usuario.activo ? "Activo" : "Inactivo"}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {new Date(usuario.fechaRegistro).toLocaleDateString('es-ES', {
-                                                        year: 'numeric',
-                                                        month: 'short',
-                                                        day: 'numeric'
-                                                    })}
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <div className="flex gap-2 justify-end">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => handleEditClick(usuario)}
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant={usuario.activo ? "secondary" : "default"}
-                                                            onClick={() => toggleUsuarioActivo(usuario)}
-                                                        >
-                                                            {usuario.activo ? (
-                                                                <UserX className="h-4 w-4" />
-                                                            ) : (
-                                                                <UserCheck className="h-4 w-4" />
-                                                            )}
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="destructive"
-                                                            onClick={() => handleDeleteClick(usuario)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
+                                <>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Usuario</TableHead>
+                                                <TableHead>Nombre Completo</TableHead>
+                                                <TableHead>Email</TableHead>
+                                                <TableHead>Rol</TableHead>
+                                                <TableHead>Estado</TableHead>
+                                                <TableHead>Registro</TableHead>
+                                                <TableHead className="text-right">Acciones</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {usuariosRegistrados.map((usuario) => (
+                                                <TableRow key={usuario.usuarioID}>
+                                                    <TableCell className="font-medium">
+                                                        {usuario.nombre}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {usuario.nombres} {usuario.apellidos}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-2">
+                                                            <Mail className="h-4 w-4 text-muted-foreground" />
+                                                            {usuario.email}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {getRolLabel(usuario)}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={usuario.activo ? "default" : "secondary"}>
+                                                            {usuario.activo ? "Activo" : "Inactivo"}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {formatDateShort(getFechaRegistro(usuario))}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <div className="flex justify-end gap-2">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => handleEditClick(usuario)}
+                                                                className="text-blue-600 hover:text-blue-700"
+                                                                title="Editar rol"
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                            {usuario.activo ? (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => handleDeleteClick(usuario)}
+                                                                    className="text-red-600 hover:text-red-700"
+                                                                    title="Desactivar"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            ) : (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => toggleUsuarioActivo(usuario)}
+                                                                    className="text-green-600 hover:text-green-700"
+                                                                    title="Reactivar"
+                                                                >
+                                                                    <RefreshCw className="h-4 w-4" />
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+
+                                    {/* Paginación */}
+                                    <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+                                        <div className="text-sm text-muted-foreground">
+                                            {totalElementsUsuarios === 0 ? (
+                                                <>Mostrando 0 de 0 resultados</>
+                                            ) : (
+                                                <>Mostrando {currentPageUsuarios * pageSize + 1} a {Math.min((currentPageUsuarios + 1) * pageSize, totalElementsUsuarios)} de {totalElementsUsuarios} resultados</>
+                                            )}
+                                        </div>
+                                        <Pagination
+                                            currentPage={currentPageUsuarios}
+                                            totalPages={Math.max(totalPagesUsuarios, 1)}
+                                            onPageChange={(p) => fetchUsuariosRegistrados(p)}
+                                            showRange={1}
+                                            alwaysShow={true}
+                                        />
+                                    </div>
+                                </>
                             )}
                         </div>
                     )}
@@ -652,7 +849,7 @@ export default function UsuarioValidacionPage() {
                             <div className="rounded-lg border p-3 bg-muted/50">
                                 <p className="text-sm"><strong>Usuario:</strong> {selectedUser.nombre}</p>
                                 <p className="text-sm"><strong>Email:</strong> {selectedUser.email}</p>
-                                <p className="text-sm"><strong>Fecha:</strong> {formatDate(selectedUser.fechaRegistro)}</p>
+                                <p className="text-sm"><strong>Fecha:</strong> {formatDate(getFechaRegistro(selectedUser))}</p>
                             </div>
                         )}
                     </div>
@@ -717,7 +914,7 @@ export default function UsuarioValidacionPage() {
 
             {/* Dialog de Edición de Usuario Registrado */}
             <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-md" showCloseButton={false}>
                     <DialogHeader>
                         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 mb-2">
                             <Edit className="h-6 w-6 text-blue-600" />
@@ -737,7 +934,7 @@ export default function UsuarioValidacionPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {ROLES_OPCIONES.map((rol) => (
-                                        <SelectItem key={rol.value} value={rol.value.toString()}>
+                                        <SelectItem key={rol.value} value={rol.value}>
                                             {rol.label}
                                         </SelectItem>
                                     ))}
@@ -749,7 +946,7 @@ export default function UsuarioValidacionPage() {
                             <div className="rounded-lg border p-3 bg-muted/50">
                                 <p className="text-sm"><strong>Usuario:</strong> {selectedRegisteredUser.nombre}</p>
                                 <p className="text-sm"><strong>Email:</strong> {selectedRegisteredUser.email}</p>
-                                <p className="text-sm"><strong>Rol Actual:</strong> {(selectedRegisteredUser.roles && selectedRegisteredUser.roles[0]) || "Sin rol"}</p>
+                                <p className="text-sm"><strong>Rol Actual:</strong> {getRolLabel(selectedRegisteredUser)}</p>
                             </div>
                         )}
                     </div>
@@ -772,17 +969,17 @@ export default function UsuarioValidacionPage() {
                 </DialogContent>
             </Dialog>
 
-            {/* Dialog de Eliminación de Usuario Registrado */}
+            {/* Dialog de Desactivación de Usuario Registrado */}
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-md" showCloseButton={false}>
                     <DialogHeader>
                         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-2">
                             <AlertTriangle className="h-6 w-6 text-red-600" />
                         </div>
-                        <DialogTitle className="text-center text-xl">Eliminar Usuario</DialogTitle>
+                        <DialogTitle className="text-center text-xl">Desactivar Usuario</DialogTitle>
                         <DialogDescription className="text-center">
-                            ¿Estás seguro de que deseas eliminar a {selectedRegisteredUser?.nombres} {selectedRegisteredUser?.apellidos}?
-                            Esta acción no se puede deshacer.
+                            ¿Estás seguro de que deseas desactivar a {selectedRegisteredUser?.nombres} {selectedRegisteredUser?.apellidos}?
+                            El usuario no podrá acceder al sistema hasta ser reactivado.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -790,7 +987,7 @@ export default function UsuarioValidacionPage() {
                         <div className="rounded-lg border p-3 bg-red-50 dark:bg-red-900/20">
                             <p className="text-sm"><strong>Usuario:</strong> {selectedRegisteredUser.nombre}</p>
                             <p className="text-sm"><strong>Email:</strong> {selectedRegisteredUser.email}</p>
-                            <p className="text-sm"><strong>Rol:</strong> {(selectedRegisteredUser.roles && selectedRegisteredUser.roles[0]) || "Sin rol"}</p>
+                            <p className="text-sm"><strong>Rol:</strong> {getRolLabel(selectedRegisteredUser)}</p>
                         </div>
                     )}
 
@@ -807,7 +1004,7 @@ export default function UsuarioValidacionPage() {
                             onClick={eliminarUsuarioConfirm}
                             disabled={isSubmitting}
                         >
-                            {isSubmitting ? "Eliminando..." : "Eliminar Usuario"}
+                            {isSubmitting ? "Desactivando..." : "Desactivar Usuario"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

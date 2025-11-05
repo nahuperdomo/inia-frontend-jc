@@ -6,9 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { AlertCircle, Plus, ArrowLeft, Loader2, CheckCircle } from "lucide-react"
+import { AlertCircle, Plus, ArrowLeft, Loader2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { obtenerAnalisisPendientesKeyset, AnalisisPendiente } from "@/app/services/dashboard-service"
+import { obtenerAnalisisPendientesPaginados, AnalisisPendiente } from "@/app/services/dashboard-service"
+import Pagination from "@/components/pagination"
+import { extractPageMetadata } from "@/lib/utils/pagination-helper"
 
 const tipoAnalisisLabels: Record<string, string> = {
   PUREZA: "Pureza",
@@ -30,11 +32,13 @@ export default function AnalisisPendientesPage() {
   const router = useRouter()
   const [pendientes, setPendientes] = useState<AnalisisPendiente[]>([])
   const [loading, setLoading] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [nextCursor, setNextCursor] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(false)
-  const pageSize = 20
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const [isLast, setIsLast] = useState(false)
+  const [isFirst, setIsFirst] = useState(true)
+  const pageSize = 10
 
   useEffect(() => {
     cargarPrimeraPagina()
@@ -44,10 +48,17 @@ export default function AnalisisPendientesPage() {
     try {
       setLoading(true)
       setError(null)
-  const response = await obtenerAnalisisPendientesKeyset(undefined, pageSize)
-      setPendientes(response.items)
-      setNextCursor(response.nextCursor)
-      setHasMore(response.hasMore)
+      const data = await obtenerAnalisisPendientesPaginados(0, pageSize)
+      
+      // Extraer metadata de paginación usando helper
+      const pageData = extractPageMetadata<AnalisisPendiente>(data, 0)
+      
+      setPendientes(pageData.content)
+      setTotalPages(pageData.totalPages)
+      setTotalElements(pageData.totalElements)
+      setCurrentPage(pageData.currentPage)
+      setIsFirst(pageData.isFirst)
+      setIsLast(pageData.isLast)
     } catch (err) {
       console.error("Error al cargar análisis pendientes:", err)
       setError("Error al cargar los análisis pendientes. Por favor, intente nuevamente.")
@@ -56,24 +67,26 @@ export default function AnalisisPendientesPage() {
     }
   }
 
-  const cargarMas = async () => {
-  if (!nextCursor || loadingMore) return
-    
+  const fetchPendientes = async (page: number = 0) => {
     try {
-      setLoadingMore(true)
+      setLoading(true)
       setError(null)
-      const response = await obtenerAnalisisPendientesKeyset(
-        nextCursor,
-        pageSize
-      )
-      setPendientes(prev => [...prev, ...response.items])
-      setNextCursor(response.nextCursor)
-      setHasMore(response.hasMore)
+      const data = await obtenerAnalisisPendientesPaginados(page, pageSize)
+      
+      // Extraer metadata de paginación usando helper
+      const pageData = extractPageMetadata<AnalisisPendiente>(data, page)
+      
+      setPendientes(pageData.content)
+      setTotalPages(pageData.totalPages)
+      setTotalElements(pageData.totalElements)
+      setCurrentPage(pageData.currentPage)
+      setIsFirst(pageData.isFirst)
+      setIsLast(pageData.isLast)
     } catch (err) {
-      console.error("Error al cargar más análisis:", err)
-      setError("Error al cargar más análisis. Por favor, intente nuevamente.")
+      console.error("Error al cargar análisis:", err)
+      setError("Error al cargar análisis. Por favor, intente nuevamente.")
     } finally {
-      setLoadingMore(false)
+      setLoading(false)
     }
   }
 
@@ -114,7 +127,7 @@ export default function AnalisisPendientesPage() {
           </div>
         </div>
         <Badge variant="secondary" className="text-lg px-4 py-2">
-          {pendientes.length} cargados
+          {totalElements} total
         </Badge>
       </div>
 
@@ -187,40 +200,22 @@ export default function AnalisisPendientesPage() {
                 </Table>
               </div>
 
-              {/* Botón Cargar Más */}
-              <div className="flex flex-col items-center gap-3 py-6">
-                {hasMore ? (
-                  <Button
-                    onClick={cargarMas}
-                    disabled={loadingMore}
-                    variant="outline"
-                    size="lg"
-                    className="min-w-[200px] transition-all hover:scale-105"
-                  >
-                    {loadingMore ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Cargando...
-                      </>
-                    ) : (
-                      <>
-                        Cargar más
-                        <Badge variant="secondary" className="ml-2">
-                          {pageSize} más
-                        </Badge>
-                      </>
-                    )}
-                  </Button>
-                ) : pendientes.length > 0 ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>No hay más análisis pendientes</span>
-                  </div>
-                ) : null}
-                
-                <p className="text-sm text-muted-foreground">
-                  Mostrando {pendientes.length} {pendientes.length === 1 ? "resultado" : "resultados"}
-                </p>
+              {/* Paginación */}
+              <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+                <div className="text-sm text-muted-foreground">
+                  {totalElements === 0 ? (
+                    <>Mostrando 0 de 0 resultados</>
+                  ) : (
+                    <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
+                  )}
+                </div>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={Math.max(totalPages, 1)}
+                  onPageChange={(p) => fetchPendientes(p)}
+                  showRange={1}
+                  alwaysShow={true}
+                />
               </div>
             </div>
           )}

@@ -28,6 +28,7 @@ interface PurezaListadoDTO {
 }
 import { toast } from "sonner"
 import { useAuth } from "@/components/auth-provider"
+import { extractPageMetadata } from "@/lib/utils/pagination-helper"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -110,21 +111,15 @@ export default function ListadoPurezaPage() {
       )
       console.log("DEBUG obtenerPurezasPaginadas response:", data)
 
-      // Datos principales
-      const content = data.content || []
-      setPurezas(content)
-
-      // Metadata: soportar dos formas que puede devolver el backend
-      const pageMeta = (data as any).page ? (data as any).page : (data as any)
-      const totalPagesFrom = pageMeta.totalPages ?? 1
-      const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0)
-      const numberFrom = pageMeta.number ?? page
-
-      setTotalPages(totalPagesFrom)
-      setTotalElements(totalElementsFrom)
-      setCurrentPage(numberFrom)
-      setIsFirst(numberFrom === 0)
-      setIsLast(numberFrom >= totalPagesFrom - 1)
+      // Extraer metadata de paginación usando helper
+      const pageData = extractPageMetadata<PurezaListadoDTO>(data, page)
+      
+      setPurezas(pageData.content)
+      setTotalPages(pageData.totalPages)
+      setTotalElements(pageData.totalElements)
+      setCurrentPage(pageData.currentPage)
+      setIsFirst(pageData.isFirst)
+      setIsLast(pageData.isLast)
     } catch (err) {
       setError("Error al cargar los análisis de pureza")
       console.error("Error fetching purezas:", err)

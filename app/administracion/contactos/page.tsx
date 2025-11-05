@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { extractPageMetadata } from "@/lib/utils/pagination-helper"
 import { 
   Plus, 
   Edit, 
@@ -110,10 +111,12 @@ export default function ContactosPage() {
         "EMPRESA"
       )
       
-      setEmpresas(response.content || [])
-      setEmpresaTotalPages(response.totalPages || 0)
-      setEmpresaTotalElements(response.totalElements || 0)
-      setEmpresaPagina(page)
+      const pageData = extractPageMetadata<ContactoDTO>(response, page)
+      
+      setEmpresas(pageData.content)
+      setEmpresaTotalPages(pageData.totalPages)
+      setEmpresaTotalElements(pageData.totalElements)
+      setEmpresaPagina(pageData.currentPage)
     } catch (error: any) {
       toast.error("Error al cargar empresas", {
         description: error?.message || "No se pudieron cargar las empresas"
@@ -138,10 +141,12 @@ export default function ContactosPage() {
         "CLIENTE"
       )
       
-      setClientes(response.content)
-      setClienteTotalPages(response.totalPages)
-      setClienteTotalElements(response.totalElements)
-      setClientePagina(page)
+      const pageData = extractPageMetadata<ContactoDTO>(response, page)
+      
+      setClientes(pageData.content)
+      setClienteTotalPages(pageData.totalPages)
+      setClienteTotalElements(pageData.totalElements)
+      setClientePagina(pageData.currentPage)
     } catch (error: any) {
       toast.error("Error al cargar clientes", {
         description: error?.message || "No se pudieron cargar los clientes"

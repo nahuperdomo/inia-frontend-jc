@@ -57,9 +57,16 @@ export interface AuthUsuarioDTO {
   apellidos: string;
   email: string;
   activo: boolean;
-  estadoSolicitud: string;
-  fechaRegistro: string;
-  roles: string[];
+  // Campos que vienen del backend (nombres reales)
+  rol: string | null;
+  estado: string;
+  fechaCreacion: string;
+  fechaUltimaConexion: string | null;
+  nombreCompleto: string;
+  // Aliases para compatibilidad con código legacy
+  estadoSolicitud?: string;
+  fechaRegistro?: string;
+  roles?: string[];
 }
 
 export interface RegistroUsuarioRequest {

@@ -14,6 +14,7 @@ import { EstadoAnalisis } from "@/app/models/types/enums"
 import Pagination from "@/components/pagination"
 import { toast } from "sonner"
 import { useAuth } from "@/components/auth-provider"
+import { extractPageMetadata } from "@/lib/utils/pagination-helper"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -112,27 +113,22 @@ export default function ListadoGerminacionPage() {
         selectedStatus !== "all" ? selectedStatus : undefined,
         undefined
       )
-      const content = (data as any).content || []
+      
+      // Extraer metadata de paginación usando helper
+      const pageData = extractPageMetadata<GerminacionListadoDTO>(data, page)
       
       // Log para debug
-      console.log("Datos recibidos del backend:", content)
-      if (content.length > 0) {
-        console.log("Primera germinación:", content[0])
+      console.log("Datos recibidos del backend:", pageData.content)
+      if (pageData.content.length > 0) {
+        console.log("Primera germinación:", pageData.content[0])
       }
       
-      setGerminaciones(content)
-
-      // support two response shapes: { content, page: { ... } } or Spring page directly { content, totalPages, number, ... }
-      const pageMeta = (data as any).page ? (data as any).page : (data as any)
-      const totalPagesFrom = pageMeta.totalPages ?? 1
-      const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0)
-      const numberFrom = pageMeta.number ?? page
-
-      setTotalPages(totalPagesFrom)
-      setTotalElements(totalElementsFrom)
-      setCurrentPage(numberFrom)
-      setIsFirst(numberFrom === 0)
-      setIsLast(numberFrom >= totalPagesFrom - 1)
+      setGerminaciones(pageData.content)
+      setTotalPages(pageData.totalPages)
+      setTotalElements(pageData.totalElements)
+      setCurrentPage(pageData.currentPage)
+      setIsFirst(pageData.isFirst)
+      setIsLast(pageData.isLast)
     } catch (err) {
       setError("Error al cargar los análisis de germinación")
       console.error("Error fetching germinaciones:", err)

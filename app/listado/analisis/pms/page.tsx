@@ -14,6 +14,7 @@ import Pagination from "@/components/pagination"
 import { obtenerPmsPaginadas, desactivarPms, activarPms } from "@/app/services/pms-service"
 import { EstadoAnalisis } from "@/app/models"
 import { useAuth } from "@/components/auth-provider"
+import { extractPageMetadata } from "@/lib/utils/pagination-helper"
 
 interface PmsListadoDTO {
   analisisID: number
@@ -80,17 +81,13 @@ export default function ListadoPMSPage() {
         undefined
       )
       
-      const content = data.content || []
-      setPms(content)
-
-      const pageMeta = (data as any).page ? (data as any).page : (data as any)
-      const totalPagesFrom = pageMeta.totalPages ?? 1
-      const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0)
-      const numberFrom = pageMeta.number ?? page
-
-      setTotalPages(totalPagesFrom)
-      setTotalElements(totalElementsFrom)
-      setCurrentPage(numberFrom)
+      // Extraer metadata de paginación usando helper
+      const pageData = extractPageMetadata<PmsListadoDTO>(data, page)
+      
+      setPms(pageData.content)
+      setTotalPages(pageData.totalPages)
+      setTotalElements(pageData.totalElements)
+      setCurrentPage(pageData.currentPage)
     } catch (err) {
       console.error("Error fetching PMS paginadas:", err)
       setError("Error al cargar los análisis PMS")

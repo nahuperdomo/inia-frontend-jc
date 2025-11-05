@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Package, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, Loader2, AlertTriangle, RefreshCw } from "lucide-react"
+import { extractPageMetadata } from "@/lib/utils/pagination-helper"
 import Link from "next/link"
 import { obtenerLotesPaginadas, eliminarLote, activarLote, obtenerEstadisticasLotes } from "@/app/services/lote-service"
 import { obtenerTodosCultivares } from "@/app/services/cultivar-service"
@@ -107,19 +108,12 @@ export default function ListadoLotesPage() {
       
       console.log("DEBUG obtenerLotesPaginadas response:", data)
       
-      // Manejar respuesta: puede venir con o sin el objeto 'page'
-      const content = data.content || []
-      setLotes(content)
+      const pageData = extractPageMetadata<LoteSimpleDTO>(data, page)
       
-      // Verificar si la metadata viene en data.page o directamente en data
-      const pageInfo = (data as any).page || data
-      const totalPagesFrom = pageInfo.totalPages ?? 1
-      const totalElementsFrom = pageInfo.totalElements ?? 0
-      const numberFrom = pageInfo.number ?? page
-      
-      setTotalPages(totalPagesFrom)
-      setTotalElements(totalElementsFrom)
-      setCurrentPage(numberFrom)
+      setLotes(pageData.content)
+      setTotalPages(pageData.totalPages)
+      setTotalElements(pageData.totalElements)
+      setCurrentPage(pageData.currentPage)
 
       // Obtener estadísticas para las cards
       const estadisticas = await obtenerEstadisticasLotes()

@@ -14,6 +14,7 @@ import Pagination from "@/components/pagination"
 import { toast } from "sonner"
 import { useAuth } from "@/components/auth-provider"
 import { EstadoAnalisis } from "@/app/models"
+import { extractPageMetadata } from "@/lib/utils/pagination-helper"
 
 interface TetrazolioListadoDTO {
   analisisID: number
@@ -85,19 +86,15 @@ export default function ListadoTetrazolioPage() {
         undefined
       )
 
-      const content = data.content || []
-      setTetrazolios(content)
-
-      const pageMeta = (data as any).page ? (data as any).page : (data as any)
-      const totalPagesFrom = pageMeta.totalPages ?? 1
-      const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0)
-      const numberFrom = pageMeta.number ?? page
-
-      setTotalPages(totalPagesFrom)
-      setTotalElements(totalElementsFrom)
-      setCurrentPage(numberFrom)
-      setIsFirst(numberFrom === 0)
-      setIsLast(numberFrom >= totalPagesFrom - 1)
+      // Extraer metadata de paginación usando helper
+      const pageData = extractPageMetadata<TetrazolioListadoDTO>(data, page)
+      
+      setTetrazolios(pageData.content)
+      setTotalPages(pageData.totalPages)
+      setTotalElements(pageData.totalElements)
+      setCurrentPage(pageData.currentPage)
+      setIsFirst(pageData.isFirst)
+      setIsLast(pageData.isLast)
     } catch (err: any) {
       console.error("Error fetching Tetrazolio paginadas:", err)
       setError("Error al cargar los análisis Tetrazolio")

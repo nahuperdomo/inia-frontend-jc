@@ -55,6 +55,63 @@ export async function listarUsuarios(): Promise<AuthUsuarioDTO[]> {
   return apiFetch("/api/v1/auth/users");
 }
 
+export interface PaginatedResponse<T> {
+  content: T[]
+  totalElements: number
+  totalPages: number
+  number: number
+  size: number
+  first: boolean
+  last: boolean
+  empty: boolean
+}
+
+/**
+ * Paginación con backend para usuarios.
+ * Llama al endpoint paginado del backend con búsqueda y filtro de rol.
+ */
+export async function listarUsuariosPaginados(
+  page: number = 0,
+  size: number = 10,
+  searchTerm?: string,
+  rol?: string,
+  activo?: string
+): Promise<PaginatedResponse<AuthUsuarioDTO>> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  })
+  if (searchTerm && searchTerm.trim()) {
+    params.append("search", searchTerm.trim())
+  }
+  if (rol && rol !== "all") {
+    params.append("rol", rol)
+  }
+  if (activo && activo !== "all") {
+    params.append("activo", activo)
+  }
+  return apiFetch(`/api/v1/auth/users/paginated?${params.toString()}`);
+}
+
+/**
+ * Paginación con backend para solicitudes pendientes.
+ * Llama al endpoint paginado del backend con búsqueda.
+ */
+export async function listarSolicitudesPendientesPaginadas(
+  page: number = 0,
+  size: number = 10,
+  searchTerm?: string
+): Promise<PaginatedResponse<AuthUsuarioDTO>> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  })
+  if (searchTerm && searchTerm.trim()) {
+    params.append("search", searchTerm.trim())
+  }
+  return apiFetch(`/api/v1/auth/pending/paginated?${params.toString()}`);
+}
+
 export async function listarUsuariosActivos(): Promise<AuthUsuarioDTO[]> {
   return apiFetch("/api/v1/auth/users/active");
 }

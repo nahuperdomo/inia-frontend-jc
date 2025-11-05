@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
 import { ArrowLeft, Search, Eye, AlertTriangle, Database, Loader2, Filter } from "lucide-react"
+import { extractPageMetadata } from "@/lib/utils/pagination-helper"
 import { obtenerLegadosPaginadas, obtenerEspeciesUnicas } from "@/app/services/legado-service"
 import type { LegadoListadoDTO } from "@/app/models/interfaces/legado"
 import Pagination from "@/components/pagination"
@@ -40,20 +41,12 @@ export default function ListadoLegadoPage() {
 
       console.log("DEBUG obtenerLegadosPaginadas response:", data)
 
-      const content = data.content || []
-      setLegados(content)
-
-      // Verificar si la metadata viene en data.page o directamente en data
-      const pageInfo = (data as any).page || data
-      const totalPagesFrom = pageInfo.totalPages ?? 1
-      const totalElementsFrom = pageInfo.totalElements ?? 0
-      const numberFrom = pageInfo.number ?? page
-
-      console.log("DEBUG pagination info:", { totalPagesFrom, totalElementsFrom, numberFrom })
-
-      setTotalPages(totalPagesFrom)
-      setTotalElements(totalElementsFrom)
-      setCurrentPage(numberFrom)
+      const pageData = extractPageMetadata<LegadoListadoDTO>(data, page)
+      
+      setLegados(pageData.content)
+      setTotalPages(pageData.totalPages)
+      setTotalElements(pageData.totalElements)
+      setCurrentPage(pageData.currentPage)
     } catch (err) {
       console.error("Error fetching legados:", err)
       setError("Error al cargar los datos legados. Intente nuevamente más tarde.")

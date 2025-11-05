@@ -14,6 +14,7 @@ import Pagination from "@/components/pagination"
 import { EstadoAnalisis } from "@/app/models"
 import { toast, Toaster } from "sonner"
 import { useAuth } from "@/components/auth-provider"
+import { extractPageMetadata } from "@/lib/utils/pagination-helper"
 
 interface DosnListadoDTO {
   analisisID: number
@@ -80,19 +81,13 @@ export default function ListadoDOSNPage() {
       )
       console.log("DEBUG obtenerDosnPaginadas response:", data)
 
-      // Datos principales
-      const content = data.content || []
-      setDosns(content)
-
-      // Extract pagination metadata supporting both shapes
-      const pageMeta = (data as any).page ? (data as any).page : (data as any)
-      const totalPagesFrom = pageMeta.totalPages ?? 1
-      const totalElementsFrom = pageMeta.totalElements ?? (content.length || 0)
-      const numberFrom = pageMeta.number ?? page
-
-      setTotalPages(totalPagesFrom)
-      setTotalElements(totalElementsFrom)
-      setCurrentPage(numberFrom)
+      // Extraer metadata de paginación usando helper
+      const pageData = extractPageMetadata<DosnListadoDTO>(data, page)
+      
+      setDosns(pageData.content)
+      setTotalPages(pageData.totalPages)
+      setTotalElements(pageData.totalElements)
+      setCurrentPage(pageData.currentPage)
     } catch (err) {
       setError("Error al cargar los análisis DOSN")
       console.error("Error fetching DOSNs:", err)

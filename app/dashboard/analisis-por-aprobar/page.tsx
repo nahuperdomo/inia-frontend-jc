@@ -8,10 +8,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { AlertCircle, Eye, ArrowLeft, ShieldAlert, Loader2, CheckCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { obtenerAnalisisPorAprobarKeyset, AnalisisPorAprobar } from "@/app/services/dashboard-service"
+import { obtenerAnalisisPorAprobarPaginados, AnalisisPorAprobar } from "@/app/services/dashboard-service"
 import { obtenerPerfil } from "@/app/services/auth-service"
 import { format, parseISO } from "date-fns"
 import { es } from "date-fns/locale"
+import Pagination from "@/components/pagination"
+import { extractPageMetadata } from "@/lib/utils/pagination-helper"
 
 const tipoAnalisisLabels: Record<string, string> = {
   PUREZA: "Pureza",
@@ -41,12 +43,14 @@ export default function AnalisisPorAprobarPage() {
   const router = useRouter()
   const [porAprobar, setPorAprobar] = useState<AnalisisPorAprobar[]>([])
   const [loading, setLoading] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
-  const [nextCursor, setNextCursor] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(false)
-  const pageSize = 20
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const [isLast, setIsLast] = useState(false)
+  const [isFirst, setIsFirst] = useState(true)
+  const pageSize = 10
 
   useEffect(() => {
     cargarPerfilYDatos()
@@ -69,10 +73,17 @@ export default function AnalisisPorAprobarPage() {
       }
 
       // Cargar primera página
-  const response = await obtenerAnalisisPorAprobarKeyset(undefined, pageSize)
-  setPorAprobar(response.items)
-  setNextCursor(response.nextCursor)
-  setHasMore(response.hasMore)
+      const data = await obtenerAnalisisPorAprobarPaginados(0, pageSize)
+      
+      // Extraer metadata de paginación usando helper
+      const pageData = extractPageMetadata<AnalisisPorAprobar>(data, 0)
+      
+      setPorAprobar(pageData.content)
+      setTotalPages(pageData.totalPages)
+      setTotalElements(pageData.totalElements)
+      setCurrentPage(pageData.currentPage)
+      setIsFirst(pageData.isFirst)
+      setIsLast(pageData.isLast)
     } catch (err) {
       console.error("Error al cargar análisis por aprobar:", err)
       setError("Error al cargar los análisis por aprobar. Por favor, intente nuevamente.")
@@ -81,21 +92,26 @@ export default function AnalisisPorAprobarPage() {
     }
   }
 
-  const cargarMas = async () => {
-    if (!nextCursor || loadingMore) return
-    
+  const fetchPorAprobar = async (page: number = 0) => {
     try {
-      setLoadingMore(true)
+      setLoading(true)
       setError(null)
-      const response = await obtenerAnalisisPorAprobarKeyset(nextCursor, pageSize)
-      setPorAprobar(prev => [...prev, ...response.items])
-      setNextCursor(response.nextCursor)
-      setHasMore(response.hasMore)
+      const data = await obtenerAnalisisPorAprobarPaginados(page, pageSize)
+      
+      // Extraer metadata de paginación usando helper
+      const pageData = extractPageMetadata<AnalisisPorAprobar>(data, page)
+      
+      setPorAprobar(pageData.content)
+      setTotalPages(pageData.totalPages)
+      setTotalElements(pageData.totalElements)
+      setCurrentPage(pageData.currentPage)
+      setIsFirst(pageData.isFirst)
+      setIsLast(pageData.isLast)
     } catch (err) {
-      console.error("Error al cargar más análisis:", err)
-      setError("Error al cargar más análisis. Por favor, intente nuevamente.")
+      console.error("Error al cargar análisis:", err)
+      setError("Error al cargar análisis. Por favor, intente nuevamente.")
     } finally {
-      setLoadingMore(false)
+      setLoading(false)
     }
   }
 
@@ -172,7 +188,7 @@ export default function AnalisisPorAprobarPage() {
           </div>
         </div>
         <Badge variant="secondary" className="text-lg px-4 py-2">
-          {porAprobar.length} cargados
+          {totalElements} total
         </Badge>
       </div>
 
@@ -247,40 +263,22 @@ export default function AnalisisPorAprobarPage() {
                 </Table>
               </div>
 
-              {/* Botón Cargar Más */}
-              <div className="flex flex-col items-center gap-3 py-6">
-                {hasMore ? (
-                  <Button
-                    onClick={cargarMas}
-                    disabled={loadingMore}
-                    variant="outline"
-                    size="lg"
-                    className="min-w-[200px] transition-all hover:scale-105"
-                  >
-                    {loadingMore ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Cargando...
-                      </>
-                    ) : (
-                      <>
-                        Cargar más
-                        <Badge variant="secondary" className="ml-2">
-                          {pageSize} más
-                        </Badge>
-                      </>
-                    )}
-                  </Button>
-                ) : porAprobar.length > 0 ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>No hay más análisis por aprobar</span>
-                  </div>
-                ) : null}
-                
-                <p className="text-sm text-muted-foreground">
-                  Mostrando {porAprobar.length} {porAprobar.length === 1 ? "resultado" : "resultados"}
-                </p>
+              {/* Paginación */}
+              <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+                <div className="text-sm text-muted-foreground">
+                  {totalElements === 0 ? (
+                    <>Mostrando 0 de 0 resultados</>
+                  ) : (
+                    <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
+                  )}
+                </div>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={Math.max(totalPages, 1)}
+                  onPageChange={(p) => fetchPorAprobar(p)}
+                  showRange={1}
+                  alwaysShow={true}
+                />
               </div>
             </div>
           )}

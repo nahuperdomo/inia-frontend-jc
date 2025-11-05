@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { extractPageMetadata } from "@/lib/utils/pagination-helper"
 import { 
   Plus, 
   Edit, 
@@ -279,10 +280,12 @@ export default function CatalogosPage() {
         tipoSeleccionado
       )
 
-      setCatalogos(data.content || [])
-      setCatalogoTotalPages(data.totalPages || 0)
-      setCatalogoTotalElements(data.totalElements || 0)
-      setCatalogoPagina(page)
+      const pageData = extractPageMetadata<CatalogoDTO>(data, page)
+      
+      setCatalogos(pageData.content)
+      setCatalogoTotalPages(pageData.totalPages)
+      setCatalogoTotalElements(pageData.totalElements)
+      setCatalogoPagina(pageData.currentPage)
     } catch (error: any) {
       toast.error("Error al cargar catálogos", {
         description: error?.message || "No se pudieron cargar los catálogos"
@@ -306,10 +309,12 @@ export default function CatalogosPage() {
         activoValue
       )
 
-      setEspecies(data.content || [])
-      setEspecieTotalPages(data.totalPages || 0)
-      setEspecieTotalElements(data.totalElements || 0)
-      setEspeciePagina(page)
+      const pageData = extractPageMetadata<EspecieDTO>(data, page)
+      
+      setEspecies(pageData.content)
+      setEspecieTotalPages(pageData.totalPages)
+      setEspecieTotalElements(pageData.totalElements)
+      setEspeciePagina(pageData.currentPage)
     } catch (error: any) {
       toast.error("Error al cargar especies", {
         description: error?.message
@@ -343,10 +348,12 @@ export default function CatalogosPage() {
         activoValue
       )
 
-      setCultivares(data.content || [])
-      setCultivarTotalPages(data.totalPages || 0)
-      setCultivarTotalElements(data.totalElements || 0)
-      setCultivarPagina(page)
+      const pageData = extractPageMetadata<CultivarDTO>(data, page)
+      
+      setCultivares(pageData.content)
+      setCultivarTotalPages(pageData.totalPages)
+      setCultivarTotalElements(pageData.totalElements)
+      setCultivarPagina(pageData.currentPage)
     } catch (error: any) {
       toast.error("Error al cargar cultivares", {
         description: error?.message
@@ -370,10 +377,12 @@ export default function CatalogosPage() {
         activoValue
       )
 
-      setMalezas(data.content || [])
-      setMalezasTotalPages(data.totalPages || 0)
-      setMalezasTotalElements(data.totalElements || 0)
-      setMalezasPagina(page)
+      const pageData = extractPageMetadata<MalezasCatalogoDTO>(data, page)
+      
+      setMalezas(pageData.content)
+      setMalezasTotalPages(pageData.totalPages)
+      setMalezasTotalElements(pageData.totalElements)
+      setMalezasPagina(pageData.currentPage)
     } catch (error: any) {
       toast.error("Error al cargar malezas", {
         description: error?.message
