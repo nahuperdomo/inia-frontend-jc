@@ -17,7 +17,9 @@ import {
   resetPassword, 
   validatePasswordStrength,
   validateRecoveryCodeFormat,
-  validateTotpCodeFormat
+  validateTotpCodeFormat,
+  validateBackupCodeFormat,
+  formatBackupCode
 } from "@/app/services/auth-2fa-service"
 
 function ResetPasswordForm() {
@@ -27,6 +29,7 @@ function ResetPasswordForm() {
   const [email, setEmail] = useState(searchParams.get('email') || '')
   const [recoveryCode, setRecoveryCode] = useState('')
   const [totpCode, setTotpCode] = useState('')
+  const [useBackupCode, setUseBackupCode] = useState(false)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -41,7 +44,7 @@ function ResetPasswordForm() {
   const isFormValid = 
     email && 
     validateRecoveryCodeFormat(recoveryCode) && 
-    validateTotpCodeFormat(totpCode) &&
+    (useBackupCode ? validateBackupCodeFormat(totpCode) : validateTotpCodeFormat(totpCode)) &&
     passwordValidation.isValid &&
     passwordsMatch
 
@@ -229,27 +232,73 @@ function ResetPasswordForm() {
                   )}
                 </div>
 
-                {/* Código 2FA */}
+                {/* Código 2FA o Código de Respaldo */}
                 <div className="space-y-2">
-                  <Label htmlFor="totpCode">Código de Google Authenticator</Label>
-                  <input
-                    id="totpCode"
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={6}
-                    value={totpCode}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6)
-                      setTotpCode(value)
-                    }}
-                    placeholder="123456"
-                    disabled={isLoading}
-                    className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none disabled:opacity-50"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Código de 6 dígitos de tu aplicación Google Authenticator
-                  </p>
+                  {!useBackupCode ? (
+                    <>
+                      <Label htmlFor="totpCode">Código de Google Authenticator</Label>
+                      <input
+                        id="totpCode"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={6}
+                        value={totpCode}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6)
+                          setTotpCode(value)
+                        }}
+                        placeholder="123456"
+                        disabled={isLoading}
+                        className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none disabled:opacity-50"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Código de 6 dígitos de tu aplicación Google Authenticator
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUseBackupCode(true)
+                          setTotpCode("")
+                        }}
+                        className="text-sm text-blue-600 hover:text-blue-800 underline"
+                        disabled={isLoading}
+                      >
+                        ¿Perdiste tu teléfono? Usa un código de respaldo
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Label htmlFor="backupCode">Código de Respaldo</Label>
+                      <input
+                        id="backupCode"
+                        type="text"
+                        maxLength={14}
+                        value={totpCode}
+                        onChange={(e) => {
+                          const formatted = formatBackupCode(e.target.value)
+                          setTotpCode(formatted)
+                        }}
+                        placeholder="XXXX-XXXX-XXXX"
+                        disabled={isLoading}
+                        className="w-full px-4 py-3 text-center text-xl font-mono tracking-widest border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none disabled:opacity-50 uppercase"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Código de respaldo de 12 caracteres (se usa solo UNA VEZ)
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUseBackupCode(false)
+                          setTotpCode("")
+                        }}
+                        className="text-sm text-blue-600 hover:text-blue-800 underline"
+                        disabled={isLoading}
+                      >
+                        ← Usar código de Google Authenticator
+                      </button>
+                    </>
+                  )}
                 </div>
 
                 <div className="border-t pt-4">

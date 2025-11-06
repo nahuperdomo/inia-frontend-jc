@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Input2FA } from '@/components/ui/input-2fa'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
-import { Shield, ShieldCheck, ShieldAlert, Smartphone, Trash2, ArrowLeft } from 'lucide-react'
+import { Shield, ShieldCheck, ShieldAlert, Smartphone, Trash2, ArrowLeft, Download, Copy, RefreshCw, Key } from 'lucide-react'
 import Link from 'next/link'
+import { regenerateBackupCodes, getBackupCodesCount } from '@/app/services/auth-2fa-service'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -51,10 +52,17 @@ export default function Configuracion2FAPage() {
   const [trustedDevices, setTrustedDevices] = useState<TrustedDevice[]>([])
   const [loadingDevices, setLoadingDevices] = useState(false)
 
+  // Códigos de respaldo
+  const [backupCodes, setBackupCodes] = useState<string[]>([])
+  const [showBackupCodes, setShowBackupCodes] = useState(false)
+  const [availableCodesCount, setAvailableCodesCount] = useState<number>(0)
+  const [regenerateCode, setRegenerateCode] = useState('')
+
   // Verificar estado actual del 2FA
   useEffect(() => {
     checkStatus()
     loadTrustedDevices()
+    loadBackupCodesCount()
   }, [])
 
   const checkStatus = async () => {
@@ -102,6 +110,23 @@ export default function Configuracion2FAPage() {
       setTrustedDevices([])
     } finally {
       setLoadingDevices(false)
+    }
+  }
+
+  const loadBackupCodesCount = async () => {
+    if (!has2FA) return
+    
+    try {
+      const data = await getBackupCodesCount()
+      setAvailableCodesCount(data.availableCodes)
+      
+      if (data.warning) {
+        toast.warning('Códigos de respaldo', {
+          description: data.warning,
+        })
+      }
+    } catch (error) {
+      console.error('Error cargando conteo de códigos:', error)
     }
   }
 
@@ -197,6 +222,16 @@ export default function Configuracion2FAPage() {
         throw new Error(errorData.error || 'Código inválido')
       }
 
+      const data = await response.json()
+      
+      // Verificar si el backend devolvió códigos de respaldo
+      if (data.backupCodes && data.backupCodes.length > 0) {
+        console.log('🎫 Códigos de respaldo recibidos:', data.backupCodes.length)
+        setBackupCodes(data.backupCodes)
+        setShowBackupCodes(true)
+        setAvailableCodesCount(data.backupCodes.length)
+      }
+
       toast.success('¡2FA Activado!', {
         description: 'Autenticación de dos factores configurada correctamente',
         duration: 5000,
@@ -238,6 +273,8 @@ export default function Configuracion2FAPage() {
       })
 
       setHas2FA(false)
+      setAvailableCodesCount(0)
+      setBackupCodes([])
     } catch (error) {
       console.error('Error desactivando 2FA:', error)
       toast.error('Error', {
@@ -246,6 +283,73 @@ export default function Configuracion2FAPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleRegenerateBackupCodes = async () => {
+    if (regenerateCode.length !== 6) {
+      toast.error('Error', { description: 'Ingresa el código de 6 dígitos de Google Authenticator' })
+      return
+    }
+
+    if (!confirm('¿Estás seguro de regenerar los códigos de respaldo?\n\nTodos los códigos anteriores serán INVALIDADOS.')) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      const data = await regenerateBackupCodes(regenerateCode)
+      
+      setBackupCodes(data.backupCodes)
+      setShowBackupCodes(true)
+      setAvailableCodesCount(data.totalCodes)
+      setRegenerateCode('')
+      
+      toast.success('Códigos regenerados', {
+        description: `${data.totalCodes} nuevos códigos generados. Los anteriores fueron invalidados.`,
+        duration: 5000,
+      })
+    } catch (error: any) {
+      console.error('Error regenerando códigos:', error)
+      toast.error('Error', {
+        description: error.message || 'No se pudieron regenerar los códigos',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const copyBackupCodes = () => {
+    const text = backupCodes.join('\n')
+    navigator.clipboard.writeText(text)
+    toast.success('Copiado', {
+      description: 'Códigos copiados al portapapeles',
+    })
+  }
+
+  const downloadBackupCodes = () => {
+    const text = `CÓDIGOS DE RESPALDO - INIA
+Generados: ${new Date().toLocaleString()}
+
+IMPORTANTE: Guarda estos códigos en un lugar seguro.
+Cada código solo se puede usar UNA VEZ.
+
+${backupCodes.map((code, i) => `${i + 1}. ${code}`).join('\n')}
+
+NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
+`
+    const blob = new Blob([text], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `inia-backup-codes-${Date.now()}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    
+    toast.success('Descargado', {
+      description: 'Códigos guardados en archivo de texto',
+    })
   }
 
   const handleRevokeDevice = async (deviceId: number) => {
@@ -474,6 +578,113 @@ export default function Configuracion2FAPage() {
           )}
         </CardContent>
       </Card>
+
+        {/* Códigos de Respaldo */}
+        {showBackupCodes && backupCodes.length > 0 && (
+          <Card className="border-yellow-500 border-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-yellow-700">
+                <Key className="w-5 h-5" />
+                ⚠️ CÓDIGOS DE RESPALDO - GUÁRDALOS AHORA
+              </CardTitle>
+              <CardDescription className="text-red-600 font-semibold">
+                Estos códigos se muestran SOLO UNA VEZ. Guárdalos en un lugar seguro.
+                Cada código solo se puede usar una vez.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-4 bg-gray-50 rounded-lg font-mono text-sm">
+                {backupCodes.map((code, index) => (
+                  <div key={index} className="flex items-center gap-2 p-2 bg-white rounded border">
+                    <span className="text-gray-500 font-bold w-6">{index + 1}.</span>
+                    <span className="font-bold text-lg tracking-wider">{code}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-2 flex-wrap">
+                <Button onClick={downloadBackupCodes} variant="default">
+                  <Download className="w-4 h-4 mr-2" />
+                  Descargar como .txt
+                </Button>
+                <Button onClick={copyBackupCodes} variant="outline">
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copiar al portapapeles
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setShowBackupCodes(false)
+                    setBackupCodes([])
+                  }} 
+                  variant="secondary"
+                >
+                  Ya los guardé
+                </Button>
+              </div>
+
+              <Alert>
+                <AlertDescription>
+                  <strong>¿Para qué sirven?</strong> Si pierdes tu teléfono o no tienes acceso a Google Authenticator,
+                  podrás usar estos códigos para iniciar sesión o recuperar tu contraseña.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Regenerar códigos de respaldo */}
+        {has2FA && !showBackupCodes && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="w-5 h-5" />
+                Códigos de Respaldo
+              </CardTitle>
+              <CardDescription>
+                Tienes {availableCodesCount} códigos de respaldo disponibles.
+                {availableCodesCount <= 2 && availableCodesCount > 0 && (
+                  <span className="text-yellow-600 font-semibold"> ⚠️ Considera regenerarlos.</span>
+                )}
+                {availableCodesCount === 0 && (
+                  <span className="text-red-600 font-semibold"> ⚠️ No tienes códigos disponibles. Regenera inmediatamente.</span>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <AlertDescription>
+                  Los códigos de respaldo te permiten iniciar sesión si pierdes acceso a Google Authenticator.
+                  Al regenerarlos, todos los códigos anteriores serán invalidados.
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Código de Google Authenticator</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={regenerateCode}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6)
+                    setRegenerateCode(value)
+                  }}
+                  placeholder="123456"
+                  className="w-full max-w-xs px-4 py-2 text-center text-lg font-mono tracking-widest border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                />
+              </div>
+
+              <Button 
+                onClick={handleRegenerateBackupCodes} 
+                disabled={loading || regenerateCode.length !== 6}
+                variant="outline"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                {loading ? 'Regenerando...' : 'Regenerar Códigos de Respaldo'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
       {/* Dispositivos de confianza */}
       {has2FA && (

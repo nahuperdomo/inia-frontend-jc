@@ -38,6 +38,49 @@ export interface Requires2FAResponse {
   userId: number;
 }
 
+export interface Requires2FASetupResponse {
+  requires2FASetup: boolean;
+  mensaje: string;
+  userId: number;
+  email: string;
+  nombre: string;
+}
+
+export interface RequiresCredentialChangeResponse {
+  requiresCredentialChange: boolean;
+  mensaje: string;
+  setupToken: string;  // Solo el token, no los datos sensibles
+}
+
+export interface AdminSetupData {
+  userId: number;
+  nombre: string;
+  qrCodeDataUrl: string;
+  totpSecret: string;
+}
+
+export interface CompleteAdminSetupRequest {
+  currentPassword: string;
+  newEmail: string;
+  newPassword: string;
+  totpCode: string;
+}
+
+export interface CompleteAdminSetupResponse {
+  mensaje: string;
+  backupCodes: string[];
+  totalCodes: number;
+  usuario: {
+    id: number;
+    nombre: string;
+    nombres: string;
+    apellidos: string;
+    email: string;
+    roles: string[];
+    has2FA: boolean;
+  };
+}
+
 export interface ForgotPasswordRequest {
   email: string;
 }
@@ -57,6 +100,17 @@ export interface ResetPasswordResponse {
   mensaje: string;
 }
 
+export interface BackupCodesResponse {
+  mensaje: string;
+  backupCodes: string[];
+  totalCodes: number;
+}
+
+export interface BackupCodesCountResponse {
+  availableCodes: number;
+  warning?: string;
+}
+
 export interface ErrorResponse {
   error: string;
 }
@@ -70,14 +124,15 @@ export interface ErrorResponse {
  * 1. Si el usuario NO tiene 2FA → Login directo
  * 2. Si el usuario tiene 2FA + dispositivo de confianza → Login directo
  * 3. Si el usuario tiene 2FA + dispositivo nuevo → Requiere código TOTP
+ * 4. Si es admin con credenciales temporales → Requiere cambio de credenciales
  * 
  * @param credentials Credenciales de login con datos opcionales de 2FA
- * @returns Datos del usuario o respuesta requiriendo 2FA
+ * @returns Datos del usuario o respuesta requiriendo 2FA/setup/cambio de credenciales
  * @throws Error si las credenciales son incorrectas o el código 2FA es inválido
  */
 export async function login2FA(
   credentials: Login2FARequest
-): Promise<Login2FAResponse | Requires2FAResponse> {
+): Promise<Login2FAResponse | Requires2FAResponse | Requires2FASetupResponse | RequiresCredentialChangeResponse> {
   console.log('🔐 [Auth2FA] Iniciando login con 2FA...');
   console.log('📧 [Auth2FA] Usuario:', credentials.usuario);
   console.log('🔑 [Auth2FA] Tiene código TOTP:', !!credentials.totpCode);
@@ -106,7 +161,7 @@ export async function login2FA(
       return data;
     }
 
-    // Requiere código 2FA (403)
+    // Requiere código 2FA o cambio de credenciales (403)
     if (response.status === 403) {
       const responseText = await response.text();
       console.log('📄 [Auth2FA] Respuesta 403:', responseText);
@@ -117,10 +172,32 @@ export async function login2FA(
       }
       
       try {
-        const data: Requires2FAResponse = JSON.parse(responseText);
-        console.log('🔐 [Auth2FA] Se requiere código 2FA');
-        console.log('👤 [Auth2FA] User ID:', data.userId);
-        return data;
+        const data = JSON.parse(responseText);
+        
+        // Verificar si requiere cambio de credenciales (admin first-login)
+        if ('requiresCredentialChange' in data && data.requiresCredentialChange) {
+          console.log('⚠️ [Auth2FA] Requiere cambio de credenciales (admin)');
+          console.log('👤 [Auth2FA] User ID:', data.userId);
+          return data as RequiresCredentialChangeResponse;
+        }
+        
+        // Verificar si requiere setup de 2FA
+        if ('requires2FASetup' in data && data.requires2FASetup) {
+          console.log('⚠️ [Auth2FA] Requiere setup de 2FA');
+          console.log('👤 [Auth2FA] User ID:', data.userId);
+          return data as Requires2FASetupResponse;
+        }
+        
+        // Verificar si requiere código 2FA
+        if ('requires2FA' in data && data.requires2FA) {
+          console.log('🔐 [Auth2FA] Se requiere código 2FA');
+          console.log('👤 [Auth2FA] User ID:', data.userId);
+          return data as Requires2FAResponse;
+        }
+        
+        // Si no coincide con ningún tipo conocido
+        console.error('❌ [Auth2FA] Respuesta 403 desconocida:', data);
+        throw new Error('Respuesta inesperada del servidor');
       } catch (parseError) {
         console.error('❌ [Auth2FA] Error parseando JSON 403:', parseError);
         throw new Error('Error del servidor: respuesta inválida');
@@ -331,6 +408,236 @@ export async function resetPassword(
 }
 
 /**
+ * Setup inicial de 2FA (para usuarios sin autenticación)
+ * Se usa cuando el usuario DEBE activar 2FA obligatoriamente
+ * 
+ * @param email Email del usuario
+ * @param password Contraseña del usuario
+ * @returns Datos para configurar Google Authenticator
+ */
+export async function setupInitial2FA(
+  email: string,
+  password: string
+): Promise<{
+  mensaje: string;
+  data: {
+    secret: string;
+    qrCodeDataUrl: string;
+    issuer: string;
+    accountName: string;
+  };
+  userId: number;
+  email: string;
+}> {
+  console.log('🔐 [Auth2FA] Setup inicial de 2FA para:', email);
+  
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/2fa/setup-initial`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ email, password }),
+  });
+
+  console.log('📡 [Auth2FA] Status de respuesta:', response.status);
+
+  if (response.ok) {
+    const data = await response.json();
+    console.log('✅ [Auth2FA] Setup inicial exitoso');
+    return data;
+  }
+
+  // Error
+  const responseText = await response.text();
+  console.log('📄 [Auth2FA] Respuesta error:', responseText);
+  
+  if (!responseText || responseText.trim() === '') {
+    throw new Error(`Error del servidor (${response.status}): sin respuesta`);
+  }
+  
+  try {
+    const errorData: ErrorResponse = JSON.parse(responseText);
+    console.error('❌ [Auth2FA] Error:', errorData.error);
+    throw new Error(errorData.error || 'Error al iniciar setup 2FA');
+  } catch (parseError) {
+    console.error('❌ [Auth2FA] Error parseando respuesta:', parseError);
+    throw new Error(responseText || 'Error al iniciar setup 2FA');
+  }
+}
+
+/**
+ * Verificar código TOTP inicial y activar 2FA (con login automático)
+ * 
+ * @param email Email del usuario
+ * @param totpCode Código TOTP de 6 dígitos
+ * @returns Datos de usuario autenticado + códigos de respaldo
+ */
+export async function verifyInitial2FA(
+  email: string,
+  totpCode: string
+): Promise<{
+  mensaje: string;
+  totpEnabled: boolean;
+  backupCodes: string[];
+  totalCodes: number;
+  usuario: {
+    id: number;
+    nombre: string;
+    nombres: string;
+    apellidos: string;
+    email: string;
+    roles: string[];
+    has2FA: boolean;
+  };
+}> {
+  console.log('🔐 [Auth2FA] Verificando código inicial para:', email);
+  
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/2fa/verify-initial`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ email, totpCode }),
+  });
+
+  console.log('📡 [Auth2FA] Status de respuesta:', response.status);
+
+  if (response.ok) {
+    const data = await response.json();
+    console.log('✅ [Auth2FA] Verificación inicial exitosa');
+    console.log('🎫 [Auth2FA] Códigos de respaldo recibidos:', data.totalCodes);
+    return data;
+  }
+
+  // Error
+  const responseText = await response.text();
+  console.log('📄 [Auth2FA] Respuesta error:', responseText);
+  
+  if (!responseText || responseText.trim() === '') {
+    throw new Error(`Error del servidor (${response.status}): sin respuesta`);
+  }
+  
+  try {
+    const errorData: ErrorResponse = JSON.parse(responseText);
+    console.error('❌ [Auth2FA] Error:', errorData.error);
+    throw new Error(errorData.error || 'Error al verificar código');
+  } catch (parseError) {
+    console.error('❌ [Auth2FA] Error parseando respuesta:', parseError);
+    throw new Error(responseText || 'Error al verificar código');
+  }
+}
+
+/**
+ * Regenera los códigos de respaldo del usuario
+ * 
+ * Requiere:
+ * - Usuario autenticado con 2FA habilitado
+ * - Código TOTP válido para confirmación
+ * 
+ * El backend:
+ * 1. Verifica código TOTP
+ * 2. Invalida todos los códigos antiguos
+ * 3. Genera 10 nuevos códigos de respaldo
+ * 4. Retorna los códigos EN TEXTO PLANO (solo se muestran una vez)
+ * 
+ * @param totpCode Código TOTP para confirmar la operación
+ * @returns Nuevos códigos de respaldo
+ * @throws Error si el código TOTP es inválido o no tiene 2FA habilitado
+ */
+export async function regenerateBackupCodes(
+  totpCode: string
+): Promise<BackupCodesResponse> {
+  console.log('🔄 [Auth2FA] Regenerando códigos de respaldo...');
+  
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/2fa/backup-codes/regenerate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    credentials: 'include', // CRÍTICO: enviar cookies JWT
+    body: JSON.stringify({ totpCode }),
+  });
+
+  console.log('📡 [Auth2FA] Status de respuesta:', response.status);
+
+  if (response.ok) {
+    const data: BackupCodesResponse = await response.json();
+    console.log('✅ [Auth2FA] Códigos regenerados:', data.totalCodes);
+    return data;
+  }
+
+  // Error
+  const responseText = await response.text();
+  console.log('📄 [Auth2FA] Respuesta error:', responseText);
+  
+  if (!responseText || responseText.trim() === '') {
+    throw new Error(`Error del servidor (${response.status}): sin respuesta`);
+  }
+  
+  try {
+    const errorData: ErrorResponse = JSON.parse(responseText);
+    console.error('❌ [Auth2FA] Error:', errorData.error);
+    throw new Error(errorData.error || 'Error al regenerar códigos de respaldo');
+  } catch (parseError) {
+    console.error('❌ [Auth2FA] Error parseando respuesta:', parseError);
+    throw new Error(responseText || 'Error al regenerar códigos de respaldo');
+  }
+}
+
+/**
+ * Obtiene el conteo de códigos de respaldo disponibles
+ * 
+ * Requiere:
+ * - Usuario autenticado
+ * 
+ * @returns Cantidad de códigos disponibles (no usados) y advertencias
+ */
+export async function getBackupCodesCount(): Promise<BackupCodesCountResponse> {
+  console.log('🔢 [Auth2FA] Obteniendo conteo de códigos de respaldo...');
+  
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/2fa/backup-codes/count`, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+    credentials: 'include', // CRÍTICO: enviar cookies JWT
+  });
+
+  console.log('📡 [Auth2FA] Status de respuesta:', response.status);
+
+  if (response.ok) {
+    const data: BackupCodesCountResponse = await response.json();
+    console.log('✅ [Auth2FA] Códigos disponibles:', data.availableCodes);
+    if (data.warning) {
+      console.warn('⚠️ [Auth2FA]', data.warning);
+    }
+    return data;
+  }
+
+  // Error
+  const responseText = await response.text();
+  console.log('📄 [Auth2FA] Respuesta error:', responseText);
+  
+  if (!responseText || responseText.trim() === '') {
+    throw new Error(`Error del servidor (${response.status}): sin respuesta`);
+  }
+  
+  try {
+    const errorData: ErrorResponse = JSON.parse(responseText);
+    console.error('❌ [Auth2FA] Error:', errorData.error);
+    throw new Error(errorData.error || 'Error al obtener conteo de códigos');
+  } catch (parseError) {
+    console.error('❌ [Auth2FA] Error parseando respuesta:', parseError);
+    throw new Error(responseText || 'Error al obtener conteo de códigos');
+  }
+}
+
+/**
  * Valida el formato de un código TOTP (6 dígitos numéricos)
  * 
  * @param code Código a validar
@@ -338,6 +645,36 @@ export async function resetPassword(
  */
 export function validateTotpCodeFormat(code: string): boolean {
   return /^\d{6}$/.test(code);
+}
+
+/**
+ * Valida el formato de un código de respaldo (formato: XXXX-XXXX-XXXX o 12 caracteres)
+ * 
+ * @param code Código a validar
+ * @returns true si el formato es válido
+ */
+export function validateBackupCodeFormat(code: string): boolean {
+  // Permitir con o sin guiones
+  const cleanCode = code.replace(/-/g, '');
+  return /^[A-Z0-9]{12}$/i.test(cleanCode);
+}
+
+/**
+ * Formatea un código de respaldo al formato XXXX-XXXX-XXXX
+ * 
+ * @param code Código sin formato
+ * @returns Código formateado
+ */
+export function formatBackupCode(code: string): string {
+  const cleanCode = code.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+  
+  if (cleanCode.length > 8) {
+    return `${cleanCode.substring(0, 4)}-${cleanCode.substring(4, 8)}-${cleanCode.substring(8, 12)}`;
+  } else if (cleanCode.length > 4) {
+    return `${cleanCode.substring(0, 4)}-${cleanCode.substring(4)}`;
+  }
+  
+  return cleanCode;
 }
 
 /**
@@ -420,4 +757,76 @@ export function validatePasswordStrength(password: string): {
     strength: 'strong',
     message: 'Contraseña fuerte',
   };
+}
+
+/**
+ * Completar configuración inicial del admin
+ * Permite al admin cambiar sus credenciales temporales y activar 2FA
+ * 
+ * @param data Datos de configuración (contraseña actual, nuevo email, nueva contraseña, código TOTP)
+ * @returns Datos del usuario y códigos de respaldo
+ * @throws Error si la configuración falla
+ */
+export async function completeAdminSetup(
+  data: CompleteAdminSetupRequest
+): Promise<CompleteAdminSetupResponse> {
+  console.log('🔐 [Auth2FA] Completando configuración inicial del admin...');
+  
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/admin/complete-setup`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+
+  console.log('📡 [Auth2FA] Status de respuesta:', response.status);
+
+  if (response.ok) {
+    const result: CompleteAdminSetupResponse = await response.json();
+    console.log('✅ [Auth2FA] Configuración completada exitosamente');
+    console.log('🔐 [Auth2FA] 2FA activado');
+    console.log('🔑 [Auth2FA] Códigos de respaldo generados:', result.totalCodes);
+    return result;
+  }
+
+  // Error
+  const errorData: ErrorResponse = await response.json();
+  console.error('❌ [Auth2FA] Error:', errorData.error);
+  throw new Error(errorData.error || 'Error al completar configuración');
+}
+
+/**
+ * Obtener datos de configuración usando token temporal
+ * El token es de un solo uso y expira en 5 minutos
+ * 
+ * @param token Token temporal recibido del login
+ * @returns Datos necesarios para la configuración (QR, secret, etc.)
+ * @throws Error si el token es inválido o expirado
+ */
+export async function getAdminSetupData(token: string): Promise<AdminSetupData> {
+  console.log('🎫 [Auth2FA] Obteniendo datos de configuración con token...');
+  
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/admin/setup-data/${token}`, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  console.log('📡 [Auth2FA] Status de respuesta:', response.status);
+
+  if (response.ok) {
+    const data: AdminSetupData = await response.json();
+    console.log('✅ [Auth2FA] Datos de configuración obtenidos');
+    return data;
+  }
+
+  // Error
+  const errorData: ErrorResponse = await response.json();
+  console.error('❌ [Auth2FA] Error:', errorData.error);
+  throw new Error(errorData.error || 'Token inválido o expirado');
 }

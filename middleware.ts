@@ -15,7 +15,8 @@ export function middleware(request: NextRequest) {
         '/login', 
         '/registro/usuario',
         '/forgot-password',
-        '/reset-password'
+        '/reset-password',
+        '/admin-setup'  // Configuración inicial del admin (sin autenticación previa)
     ];
 
     // Si no hay accessToken y no estamos en una ruta pública, redirigimos a /login
