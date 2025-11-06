@@ -206,6 +206,7 @@ export default function EditarDosnPage() {
           tipoINASE: dosnData.tipoINASE || [],
           cuscutaRegistros: dosnData.cuscutaRegistros?.map(r => ({
             id: r.id,
+            contiene: (r.cuscuta_g && r.cuscuta_g > 0) || (r.cuscutaNum && r.cuscutaNum > 0),
             instituto: r.instituto,
             cuscuta_g: r.cuscuta_g || 0,
             cuscutaNum: r.cuscutaNum || 0,
@@ -279,6 +280,7 @@ export default function EditarDosnPage() {
       cuscutaRegistros: [
         ...prev.cuscutaRegistros,
         {
+          contiene: true,
           instituto: "",
           cuscuta_g: 0,
           cuscutaNum: 0,
@@ -298,7 +300,19 @@ export default function EditarDosnPage() {
   const handleCuscutaRegistroUpdate = (index: number, field: string, value: any) => {
     setFormData((prev) => {
       const updated = [...prev.cuscutaRegistros]
-      updated[index] = { ...updated[index], [field]: value }
+      
+      // Si se cambia el campo "contiene" a false, resetear peso y número
+      if (field === "contiene" && value === false) {
+        updated[index] = { 
+          ...updated[index], 
+          contiene: false,
+          cuscuta_g: 0,
+          cuscutaNum: 0
+        }
+      } else {
+        updated[index] = { ...updated[index], [field]: value }
+      }
+      
       return { ...prev, cuscutaRegistros: updated }
     })
   }
@@ -341,32 +355,12 @@ export default function EditarDosnPage() {
         newErrors.gramosAnalizadosINIA = "Debe ingresar una cantidad válida de gramos (> 0) para INIA"
       }
 
-      // --- INASE ---
-      if (!validarTiposAnalisis(formData.tipoINASE)) {
-        newErrors.tipoINASE = "Debe seleccionar al menos un tipo de análisis para INASE"
-      }
-
-      if (!validarFecha(formData.fechaINASE)) {
-        newErrors.fechaINASE = "Ingrese una fecha válida (no futura) para INASE"
-      }
-
-      if (!validarGramos(formData.gramosAnalizadosINASE)) {
-        newErrors.gramosAnalizadosINASE = "Debe ingresar una cantidad válida de gramos (> 0) para INASE"
-      }
-
-      // --- Reglas cruzadas opcionales ---
+      // --- Reglas cruzadas opcionales para INIA ---
       if (formData.fechaINIA && !formData.gramosAnalizadosINIA) {
         newErrors.gramosAnalizadosINIA = "Si hay fecha, debe ingresar los gramos analizados para INIA"
       }
       if (formData.gramosAnalizadosINIA && !formData.fechaINIA) {
         newErrors.fechaINIA = "Si hay gramos analizados, debe ingresar la fecha de INIA"
-      }
-
-      if (formData.fechaINASE && !formData.gramosAnalizadosINASE) {
-        newErrors.gramosAnalizadosINASE = "Si hay fecha, debe ingresar los gramos analizados para INASE"
-      }
-      if (formData.gramosAnalizadosINASE && !formData.fechaINASE) {
-        newErrors.fechaINASE = "Si hay gramos analizados, debe ingresar la fecha de INASE"
       }
 
       // --- Validar listados ---
@@ -786,11 +780,8 @@ export default function EditarDosnPage() {
                   type="date"
                   value={formData.fechaINASE}
                   onChange={(e) => handleInputChange("fechaINASE", e.target.value)}
-                  className={`text-base ${errors.fechaINASE ? "border-red-500 bg-red-50" : ""}`}
+                  className="text-base"
                 />
-                {errors.fechaINASE && (
-                  <p className="text-sm text-destructive mt-1">{errors.fechaINASE}</p>
-                )}
               </div>
 
               {/* Gramos Analizados INASE */}
@@ -812,32 +803,25 @@ export default function EditarDosnPage() {
                     placeholder="Ingrese gramos"
                     min="0"
                     step="0.01"
-                    className={`pr-10 text-base ${errors.gramosAnalizadosINASE ? "border-red-500 bg-red-50" : ""}`}
+                    className="pr-10 text-base"
                   />
                   <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
                     g
                   </span>
                 </div>
-                {errors.gramosAnalizadosINASE && (
-                  <p className="text-sm text-destructive mt-1">{errors.gramosAnalizadosINASE}</p>
-                )}
               </div>
             </div>
 
             {/* Tipos de Análisis INASE */}
             <div className="space-y-3">
-              <Label
-                className={`text-sm font-medium ${errors.tipoINASE ? "text-red-600" : ""
-                  }`}
-              >
+              <Label className="text-sm font-medium">
                 Tipos de Análisis INASE
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {["COMPLETO", "REDUCIDO", "LIMITADO", "REDUCIDO_LIMITADO"].map((tipo) => (
                   <div
                     key={tipo}
-                    className={`flex items-center space-x-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors ${errors.tipoINASE ? "border-red-300 bg-red-50" : ""
-                      }`}
+                    className="flex items-center space-x-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
                   >
                     <Checkbox
                       id={`inase-${tipo}`}
@@ -850,9 +834,6 @@ export default function EditarDosnPage() {
                   </div>
                 ))}
               </div>
-              {errors.tipoINASE && (
-                <p className="text-sm text-destructive mt-1">{errors.tipoINASE}</p>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -902,10 +883,26 @@ export default function EditarDosnPage() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div className="space-y-2">
+                        <Label className="text-sm font-medium">¿Contiene Cuscuta?</Label>
+                        <Select
+                          value={registro.contiene ? "SI" : "NO"}
+                          onValueChange={(value) => handleCuscutaRegistroUpdate(index, "contiene", value === "SI")}
+                        >
+                          <SelectTrigger className="text-base">
+                            <SelectValue placeholder="Seleccionar" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="SI">Sí</SelectItem>
+                            <SelectItem value="NO">No</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
                         <Label className="text-sm font-medium">Instituto</Label>
                         <Select
                           value={registro.instituto || ""}
                           onValueChange={(value) => handleCuscutaRegistroUpdate(index, "instituto", value)}
+                          disabled={!registro.contiene}
                         >
                           <SelectTrigger className="text-base">
                             <SelectValue placeholder="Seleccionar instituto" />
@@ -933,6 +930,7 @@ export default function EditarDosnPage() {
                             min="0"
                             step="0.01"
                             className="pr-10 text-base"
+                            disabled={!registro.contiene}
                           />
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-muted-foreground">
                             g
@@ -954,15 +952,7 @@ export default function EditarDosnPage() {
                           placeholder="Ingrese número"
                           min="0"
                           className="text-base"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">Fecha</Label>
-                        <Input
-                          type="date"
-                          value={registro.fechaCuscuta || ""}
-                          onChange={(e) => handleCuscutaRegistroUpdate(index, "fechaCuscuta", e.target.value)}
-                          className="text-base"
+                          disabled={!registro.contiene}
                         />
                       </div>
                     </div>
@@ -1214,8 +1204,8 @@ export default function EditarDosnPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="min-w-[200px]">Especie</TableHead>
                         <TableHead className="min-w-[150px]">Tipo</TableHead>
+                        <TableHead className="min-w-[200px]">Especie</TableHead>
                         <TableHead className="min-w-[100px]">Instituto</TableHead>
                         <TableHead className="min-w-[80px]">Número</TableHead>
                         <TableHead className="min-w-[80px]">Acciones</TableHead>
@@ -1225,26 +1215,49 @@ export default function EditarDosnPage() {
                       {formData.listados.map((listado, index) => (
                         <TableRow key={index}>
                           <TableCell>
-                            <div>
-                              <div className="font-medium">
-                                {listado.catalogoNombre ||
-                                  listado.especieNombre ||
-                                  (listado.listadoTipo === "BRASSICA" ? "Sin especificación" : "--")}
+                            {listado.listadoTipo === "NO_CONTIENE" ? (
+                              <div className="text-sm text-gray-700 break-words">
+                                No contiene malezas en general
                               </div>
-                              <div className="text-sm text-muted-foreground italic">
-                                {listado.catalogoCientifico || listado.especieCientifico}
-                              </div>
-                              {listado.listadoTipo === "BRASSICA" && !listado.catalogoNombre && !listado.especieNombre && (
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  No requiere catálogo
-                                </div>
-                              )}
-                            </div>
+                            ) : (
+                              <Badge variant="outline" className={`${getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)} whitespace-normal break-words max-w-[150px]`}>
+                                {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
+                              </Badge>
+                            )}
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className={getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}>
-                              {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
-                            </Badge>
+                            <div>
+                              {listado.listadoTipo === "NO_CONTIENE" ? (
+                                <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                                  No contiene
+                                </Badge>
+                              ) : listado.listadoTipo === "BRASSICA" && !listado.catalogoNombre && !listado.especieNombre ? (
+                                <div>
+                                  <div className="font-medium break-words text-muted-foreground">
+                                    Sin especificación
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    Las brassicas no requieren catálogo
+                                  </div>
+                                  <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300 mt-2">
+                                    No contiene
+                                  </Badge>
+                                </div>
+                              ) : listado.listadoTipo === "OTROS" && !listado.catalogoNombre && !listado.especieNombre ? (
+                                <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                                  No contiene
+                                </Badge>
+                              ) : (
+                                <>
+                                  <div className="font-medium break-words">
+                                    {listado.catalogoNombre || listado.especieNombre || "--"}
+                                  </div>
+                                  <div className="text-sm text-muted-foreground italic break-words">
+                                    {listado.catalogoCientifico || listado.especieCientifico}
+                                  </div>
+                                </>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <Badge variant="secondary">
@@ -1252,7 +1265,7 @@ export default function EditarDosnPage() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <span className="font-mono text-lg">{listado.listadoNum}</span>
+                            <span className="font-mono text-lg">{listado.listadoNum || "--"}</span>
                           </TableCell>
                           <TableCell>
                             <Button

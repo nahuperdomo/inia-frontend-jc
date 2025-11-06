@@ -1,7 +1,8 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { useNotifications } from '@/lib/hooks/use-notifications';
+import { useNotificationWebSocket } from '@/lib/hooks/use-notification-websocket';
 import type { NotificacionDTO, TipoNotificacion } from '@/app/models';
 
 // Tipos para el contexto
@@ -33,6 +34,11 @@ interface NotificationContextType {
     setDropdownOpen: (open: boolean) => void;
     autoRefresh: boolean;
     setAutoRefresh: (enabled: boolean) => void;
+
+    // NUEVO: Estado WebSocket
+    isWebSocketConnected: boolean;
+    webSocketError: string | null;
+    reconnectWebSocket: () => Promise<void>;
 }
 
 // Crear el contexto
@@ -56,7 +62,7 @@ interface NotificationProviderProps {
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({
     children,
-    autoRefreshInterval = 30000, // 30 segundos por defecto
+    autoRefreshInterval = 60000, //  Aumentado a 60s (fallback cuando WS falla)
     enableAutoRefresh = true
 }) => {
     // Estado del dropdown
@@ -76,10 +82,71 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
         markAllAsRead,
         deleteNotification,
         refreshNotifications: refresh,
-        goToPage
+        goToPage,
+        // NUEVO: Métodos para WebSocket
+        addNotification,
+        updateUnreadCount,
+        removeNotification,
     } = useNotifications({
         autoRefresh: enableAutoRefresh,
         refreshInterval: autoRefreshInterval,
+        showToasts: false //  Desactivar toasts del polling (los maneja WebSocket)
+    });
+
+    // NUEVO: Obtener token y userId de localStorage
+    const [token, setToken] = React.useState<string | null>(null);
+    const [userId, setUserId] = React.useState<string | null>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const savedUserData = localStorage.getItem('usuario');
+            if (savedUserData) {
+                try {
+                    const parsedUser = JSON.parse(savedUserData);
+                    setToken(parsedUser.token || null);
+                    setUserId(parsedUser.id?.toString() || parsedUser.usuarioID?.toString() || null);
+                } catch (err) {
+                    console.error('Error parsing user data:', err);
+                }
+            }
+        }
+    }, []);
+
+    //  NUEVO: Hook de WebSocket
+    const { 
+        isConnected: isWebSocketConnected, 
+        error: webSocketError,
+        reconnect: reconnectWebSocket 
+    } = useNotificationWebSocket({
+        token: token || undefined,
+        userId: userId || undefined,
+        
+        // Callback cuando llega una notificación
+        onNotification: useCallback((notification: NotificacionDTO) => {
+            console.log('📩 Notificación recibida en Provider:', notification.nombre);
+            addNotification(notification);
+        }, [addNotification]),
+        
+        // Callback cuando se actualiza el contador
+        onCountUpdate: useCallback((count: number) => {
+            console.log('🔢 Contador actualizado en Provider:', count);
+            updateUnreadCount(count);
+        }, [updateUnreadCount]),
+        
+        // Callback cuando se marca como leída
+        onMarkAsRead: useCallback((notificationId: number) => {
+            console.log('✓ Notificación marcada como leída:', notificationId);
+            // Actualizar localmente
+            updateUnreadCount(prev => Math.max(0, prev - 1));
+        }, [updateUnreadCount]),
+        
+        // Callback cuando se elimina
+        onDelete: useCallback((notificationId: number) => {
+            console.log('🗑️ Notificación eliminada:', notificationId);
+            removeNotification(notificationId);
+        }, [removeNotification]),
+        
+        // Mostrar toasts para nuevas notificaciones
         showToasts: true
     });
 
@@ -87,16 +154,17 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
     const [typeFilter, setTypeFilter] = React.useState<TipoNotificacion | 'all'>('all');
     const [statusFilter, setStatusFilter] = React.useState<'all' | 'read' | 'unread'>('all');
 
-    // Auto-refresh con intervalo
+    //  Auto-refresh solo si WebSocket NO está conectado (fallback)
     useEffect(() => {
-        if (!autoRefresh) return;
+        if (!autoRefresh || isWebSocketConnected) return;
 
+        console.log('⚠️ WebSocket desconectado, usando polling como fallback');
         const interval = setInterval(() => {
             refresh();
         }, autoRefreshInterval);
 
         return () => clearInterval(interval);
-    }, [autoRefresh, autoRefreshInterval, refresh]);
+    }, [autoRefresh, autoRefreshInterval, refresh, isWebSocketConnected]);
 
     // Refresh cuando se abre el dropdown
     useEffect(() => {
@@ -167,7 +235,12 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
         isDropdownOpen,
         setDropdownOpen,
         autoRefresh,
-        setAutoRefresh
+        setAutoRefresh,
+        
+        // ✨ NUEVO: Estado WebSocket
+        isWebSocketConnected,
+        webSocketError,
+        reconnectWebSocket,
     };
 
     return (
@@ -204,7 +277,11 @@ export const useNotificationDropdown = () => {
         deleteNotification,
         refreshNotifications,
         isDropdownOpen,
-        setDropdownOpen
+        setDropdownOpen,
+        // ✨ NUEVO: WebSocket
+        isWebSocketConnected,
+        webSocketError,
+        reconnectWebSocket
     } = useNotificationContext();
 
     return {
@@ -226,6 +303,12 @@ export const useNotificationDropdown = () => {
             isOpen: isDropdownOpen,
             setOpen: setDropdownOpen,
             toggle: () => setDropdownOpen(!isDropdownOpen)
+        },
+        // ✨ NUEVO: Estado WebSocket
+        websocket: {
+            isConnected: isWebSocketConnected,
+            error: webSocketError,
+            reconnect: reconnectWebSocket
         }
     };
 };

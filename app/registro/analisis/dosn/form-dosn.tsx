@@ -165,7 +165,7 @@ export default function DosnFields({
             <div className="space-y-2">
               <Label htmlFor={`${prefix}Fecha`} className="text-sm font-medium flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                Fecha de análisis *
+                Fecha de análisis {institution === "INIA" ? "*" : ""}
               </Label>
               <Input
                 id={`${prefix}Fecha`}
@@ -177,11 +177,11 @@ export default function DosnFields({
                     : (e) => handleFieldChange(`${prefix}Fecha`, e.target.value)
                 }
                 className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
-                  mostrarValidacion && !fechaValida ? "border-red-500 bg-red-50" : ""
+                  mostrarValidacion && institution === "INIA" && !fechaValida ? "border-red-500 bg-red-50" : ""
                 } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
                 readOnly={isReadOnly}
               />
-              {mostrarValidacion && !fechaValida && (
+              {mostrarValidacion && institution === "INIA" && !fechaValida && (
                 <p className="text-xs text-red-600 mt-1">Ingrese una fecha válida (no futura)</p>
               )}
             </div>
@@ -190,7 +190,7 @@ export default function DosnFields({
             <div className="space-y-2">
               <Label htmlFor={`${prefix}Gramos`} className="text-sm font-medium flex items-center gap-2">
                 <Weight className="h-4 w-4 text-muted-foreground" />
-                Gramos analizados *
+                Gramos analizados {institution === "INIA" ? "*" : ""}
               </Label>
               <Input
                 id={`${prefix}Gramos`}
@@ -204,11 +204,11 @@ export default function DosnFields({
                     : (e) => handleFieldChange(`${prefix}Gramos`, e.target.value)
                 }
                 className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
-                  mostrarValidacion && !gramosValidos ? "border-red-500 bg-red-50" : ""
+                  mostrarValidacion && institution === "INIA" && !gramosValidos ? "border-red-500 bg-red-50" : ""
                 } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
                 readOnly={isReadOnly}
               />
-              {mostrarValidacion && !gramosValidos && (
+              {mostrarValidacion && institution === "INIA" && !gramosValidos && (
                 <p className="text-xs text-red-600 mt-1">
                   Debe ingresar una cantidad válida de gramos (&gt; 0)
                 </p>
@@ -220,11 +220,11 @@ export default function DosnFields({
           <div className="space-y-2">
             <Label
               className={`text-sm font-medium flex items-center gap-2 ${
-                mostrarValidacion && !hayAnalisisSeleccionado ? "text-red-600" : ""
+                mostrarValidacion && institution === "INIA" && !hayAnalisisSeleccionado ? "text-red-600" : ""
               }`}
             >
               <ClipboardList className="h-4 w-4 text-muted-foreground" />
-              Tipo de análisis *
+              Tipo de análisis {institution === "INIA" ? "*" : ""}
             </Label>
 
             <div className="space-y-3">
@@ -257,7 +257,7 @@ export default function DosnFields({
               })}
             </div>
 
-            {mostrarValidacion && !hayAnalisisSeleccionado && (
+            {mostrarValidacion && institution === "INIA" && !hayAnalisisSeleccionado && (
               <p className="text-xs text-red-600 mt-1">
                 Debe seleccionar al menos un tipo de análisis
               </p>
@@ -270,11 +270,8 @@ export default function DosnFields({
 
   const configuracionValida =
     validarTiposAnalisis(data, "inia") &&
-    validarTiposAnalisis(data, "inase") &&
     validarFecha(data.iniaFecha) &&
-    validarFecha(data.inaseFecha) &&
-    validarGramos(data.iniaGramos) &&
-    validarGramos(data.inaseGramos)
+    validarGramos(data.iniaGramos)
 
   return (
     <Card className="border-0 shadow-sm bg-card">
@@ -422,14 +419,9 @@ export default function DosnFields({
                     {!validarTiposAnalisis(data, "inia") && (
                       <li>Seleccione al menos un tipo de análisis para INIA.</li>
                     )}
-                    {!validarTiposAnalisis(data, "inase") && (
-                      <li>Seleccione al menos un tipo de análisis para INASE.</li>
-                    )}
                     {!validarFecha(data.iniaFecha) && <li>Ingrese una fecha válida para INIA.</li>}
-                    {!validarFecha(data.inaseFecha) && <li>Ingrese una fecha válida para INASE.</li>}
                     {!validarGramos(data.iniaGramos) && <li>Ingrese gramos válidos (&gt; 0) para INIA.</li>}
-                    {!validarGramos(data.inaseGramos) && <li>Ingrese gramos válidos (&gt; 0) para INASE.</li>}
-                    {configuracionValida && <li>Todos los datos requeridos son correctos</li>}
+                    {configuracionValida && <li>Todos los datos requeridos son correctos. Los datos INASE son opcionales.</li>}
                   </ul>
                 </div>
               </div>

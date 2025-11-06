@@ -592,49 +592,91 @@ export default function PurezaDetailPage() {
                           key={index}
                           className="bg-muted/30 border rounded-xl p-5 hover:bg-muted/50 transition-colors"
                         >
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div className="space-y-1 sm:col-span-2">
-                              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Especie
-                              </label>
-                              <p className="text-base font-semibold">
-                                {/* Mostrar catalogo (malezas) o especie (otros cultivos) */}
-                                {listado.catalogo?.nombreComun || 
-                                 listado.especie?.nombreComun || 
-                                 "--"}
-                              </p>
-                              {/* Nombre científico de malezas */}
-                              {listado.catalogo?.nombreCientifico && (
-                                <p className="text-sm text-muted-foreground italic">
-                                  {listado.catalogo.nombreCientifico}
-                                </p>
-                              )}
-                              {/* Nombre científico de especies/cultivos */}
-                              {listado.especie?.nombreCientifico && (
-                                <p className="text-sm text-muted-foreground italic">
-                                  {listado.especie.nombreCientifico}
-                                </p>
-                              )}
+                          <div className="flex flex-col gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                  Especie
+                                </label>
+                                {listado.listadoTipo === "NO_CONTIENE" ? (
+                                  <div className="space-y-2">
+                                    <p className="text-base font-semibold break-words">--</p>
+                                    <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                                      No contiene
+                                    </Badge>
+                                  </div>
+                                ) : listado.listadoTipo === "BRASSICA" && !listado.catalogo?.nombreComun && !listado.especie?.nombreComun ? (
+                                  <div className="space-y-2">
+                                    <p className="text-base font-semibold break-words text-muted-foreground">
+                                      Sin especificación
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      Las brassicas no requieren especificación de catálogo
+                                    </p>
+                                    <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                                      No contiene
+                                    </Badge>
+                                  </div>
+                                ) : listado.listadoTipo === "OTROS" && !listado.catalogo?.nombreComun && !listado.especie?.nombreComun ? (
+                                  <div className="space-y-2">
+                                    <p className="text-base font-semibold break-words">--</p>
+                                    <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                                      No contiene
+                                    </Badge>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <p className="text-base font-semibold break-words">
+                                      {listado.catalogo?.nombreComun || 
+                                       listado.especie?.nombreComun || 
+                                       "--"}
+                                    </p>
+                                    {listado.catalogo?.nombreCientifico && (
+                                      <p className="text-sm text-muted-foreground italic break-words">
+                                        {listado.catalogo.nombreCientifico}
+                                      </p>
+                                    )}
+                                    {listado.especie?.nombreCientifico && (
+                                      <p className="text-sm text-muted-foreground italic break-words">
+                                        {listado.especie.nombreCientifico}
+                                      </p>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                  Tipo
+                                </label>
+                                <div className="space-y-2">
+                                  {listado.listadoTipo === "NO_CONTIENE" ? (
+                                    <>
+                                      <p className="text-base break-words">Malezas en general</p>
+                                      <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                                        No contiene
+                                      </Badge>
+                                    </>
+                                  ) : (
+                                    <Badge variant="outline" className={`font-medium whitespace-normal break-words ${getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}`}>
+                                      {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                            <div className="space-y-1">
-                              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Tipo
-                              </label>
-                              <Badge variant="outline" className={`font-medium ${getTipoListadoBadgeColor(listado.listadoTipo as TipoListado)}`}>
-                                {getTipoListadoDisplay(listado.listadoTipo as TipoListado)}
-                              </Badge>
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Instituto
-                              </label>
-                              <p className="text-base font-medium">{listado.listadoInsti}</p>
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Número
-                              </label>
-                              <p className="text-base font-semibold">{listado.listadoNum}</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                  Instituto
+                                </label>
+                                <p className="text-base font-medium">{listado.listadoInsti}</p>
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                  Número
+                                </label>
+                                <p className="text-base font-semibold">{listado.listadoNum || "--"}</p>
+                              </div>
                             </div>
                           </div>
                         </div>
