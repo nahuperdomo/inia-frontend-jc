@@ -2,128 +2,127 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Leaf, UserPlus } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Leaf, UserPlus, Shield, Smartphone } from "lucide-react"
 import { toast } from 'sonner'
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuth } from "@/components/auth-provider"
+import { getDeviceFingerprint } from "@/lib/fingerprint"
+import { login2FA, type Login2FAResponse, type Requires2FAResponse } from "@/app/services/auth-2fa-service"
+import { Input2FA } from "@/components/ui/input-2fa"
+
 export default function LoginPage() {
   const [credentials, setCredentials] = useState({
     usuario: "",
     password: "",
   })
+  const [requires2FA, setRequires2FA] = useState(false)
+  const [totpCode, setTotpCode] = useState("")
+  const [trustDevice, setTrustDevice] = useState(true)
+  const [deviceFingerprint, setDeviceFingerprint] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const router = useRouter()
   const { refresh } = useAuth()
 
-  // Servicio de login
-  async function login(usuario: string, password: string) {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-    console.log(" Intentando login con:", { usuario, API_BASE_URL });
-
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      },
-      body: JSON.stringify({ usuario, password }),
-      credentials: "include" // CRÍTICO: permite recibir cookies HttpOnly del backend
-    })
-
-    console.log(" Status de respuesta:", response.status);
-
-    if (!response.ok) {
-      let errorMessage = "Error de autenticación";
-      
+  // Generar device fingerprint al cargar la página
+  useEffect(() => {
+    async function loadFingerprint() {
       try {
-        const errorData = await response.json();
-        if (errorData.error) {
-          errorMessage = errorData.error;
-        }
-      } catch {
-        // Si no es JSON, intentar leerlo como texto
-        try {
-          errorMessage = await response.text();
-        } catch {
-          // Usar mensaje por defecto
-        }
+        const fingerprint = await getDeviceFingerprint()
+        setDeviceFingerprint(fingerprint)
+        console.log('📱 [Login] Device fingerprint generado')
+      } catch (error) {
+        console.error('⚠️ [Login] Error generando fingerprint:', error)
+        // No bloqueamos el login si falla el fingerprint
       }
-      
-      console.error(" Error:", errorMessage);
-      throw new Error(errorMessage);
     }
-
-    return response.json();
-  }
+    loadFingerprint()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setErrorMessage(null) // Limpiar errores anteriores
+    setErrorMessage(null)
 
     try {
-      const data = await login(credentials.usuario, credentials.password)
+      const loginData = {
+        usuario: credentials.usuario,
+        password: credentials.password,
+        deviceFingerprint: deviceFingerprint || undefined,
+        totpCode: requires2FA && totpCode ? totpCode : undefined,
+        trustDevice: requires2FA && trustDevice ? trustDevice : undefined,
+      }
 
-      console.log(" Login exitoso. Backend envió cookies HttpOnly.");
-      console.log(" Datos de usuario:", data.usuario);
+      const result = await login2FA(loginData)
 
-      // NO guardar nada en localStorage — las cookies HttpOnly quedan del lado del navegador
-      // Refrescar el contexto de auth consultando el perfil al backend
+      // Verificar si requiere código 2FA
+      if ('requires2FA' in result && result.requires2FA) {
+        console.log('🔐 [Login] Se requiere código 2FA')
+        setRequires2FA(true)
+        toast.info('Autenticación de dos factores', {
+          description: 'Ingresa el código de Google Authenticator',
+          duration: 5000,
+        })
+        return
+      }
+
+      // Login exitoso
+      const data = result as Login2FAResponse
+      console.log('✅ [Login] Login exitoso')
+      console.log('👤 [Login] Usuario:', data.usuario.nombre)
+      console.log('🔐 [Login] Tiene 2FA:', data.usuario.has2FA)
+
+      // Refrescar contexto de autenticación
       await refresh()
 
-      console.log(" Redirigiendo a /dashboard...");
-      
-      // Usar setTimeout para asegurar que las cookies se establezcan antes de redirigir
+      toast.success('Bienvenido', {
+        description: `Hola ${data.usuario.nombres} ${data.usuario.apellidos}`,
+        duration: 3000,
+      })
+
+      // Redirigir al dashboard
       setTimeout(() => {
-        console.log("⏰ Ejecutando redirección después de timeout...");
-  router.push("/dashboard");
+        router.push("/dashboard")
         
-        // Fallback: si router.push no funciona en 1 segundo, usar window.location
+        // Fallback por si router.push no funciona
         setTimeout(() => {
           if (window.location.pathname === "/login") {
-            console.warn("️ router.push no redirigió, usando window.location.href");
-            window.location.href = "/dashboard";
+            window.location.href = "/dashboard"
           }
-        }, 1000);
-      }, 100);
-      
-      console.log(" router.push ejecutado");
+        }, 1000)
+      }, 100)
+
     } catch (error: any) {
-      console.error(" Error en handleSubmit:", error);
+      console.error('❌ [Login] Error:', error)
       
-      // Intentar extraer el mensaje de error del backend
-      let errorMsg = 'Error de autenticación';
-      let errorDescription = 'Verifica tus credenciales e intenta nuevamente';
+      let errorMsg = 'Error de autenticación'
+      let errorDescription = 'Verifica tus credenciales e intenta nuevamente'
       
-      try {
-        // El error puede venir como string o en error.message
-        const errorText = error.message || error.toString();
-        
-        // Mensajes específicos del backend (ambiguos por seguridad)
-        if (errorText.includes('Credenciales incorrectas')) {
-          errorMsg = 'Credenciales incorrectas';
-          errorDescription = 'El usuario/email o contraseña son incorrectos';
-        } else if (errorText.includes('pendiente de aprobación')) {
-          errorMsg = 'Acceso no disponible';
-          errorDescription = 'Tu cuenta está pendiente de aprobación. Contacta al administrador.';
-        } else if (errorText.includes('No se puede iniciar sesión')) {
-          errorMsg = 'Acceso no disponible';
-          errorDescription = 'No se puede acceder con esta cuenta. Contacta al administrador.';
-        }
-      } catch (parseError) {
-        console.error("Error parsing error message:", parseError);
+      const errorText = error.message || error.toString()
+      
+      if (errorText.includes('Credenciales incorrectas')) {
+        errorMsg = 'Credenciales incorrectas'
+        errorDescription = 'El usuario/email o contraseña son incorrectos'
+      } else if (errorText.includes('Código de autenticación inválido')) {
+        errorMsg = 'Código 2FA inválido'
+        errorDescription = 'El código de Google Authenticator es incorrecto'
+      } else if (errorText.includes('pendiente de aprobación')) {
+        errorMsg = 'Acceso no disponible'
+        errorDescription = 'Tu cuenta está pendiente de aprobación'
+      } else if (errorText.includes('No se puede iniciar sesión')) {
+        errorMsg = 'Acceso no disponible'
+        errorDescription = 'Contacta al administrador'
       }
       
-      // Guardar el error en el estado para mostrarlo en la UI
-      setErrorMessage(`${errorMsg}: ${errorDescription}`);
+      setErrorMessage(`${errorMsg}: ${errorDescription}`)
       
       toast.error(errorMsg, {
         description: errorDescription,
@@ -133,6 +132,14 @@ export default function LoginPage() {
       setIsLoading(false)
     }
   }
+
+  // Reset del estado 2FA si se cambia el usuario
+  useEffect(() => {
+    if (requires2FA) {
+      setRequires2FA(false)
+      setTotpCode("")
+    }
+  }, [credentials.usuario])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-green-100 p-4">
@@ -154,36 +161,122 @@ export default function LoginPage() {
               <p className="text-sm text-red-800">{errorMessage}</p>
             </div>
           )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="usuario">Usuario o Email</Label>
-              <Input
-                id="usuario"
-                type="text"
-                placeholder="Ingresa tu usuario o email"
-                value={credentials.usuario}
-                onChange={(e) => setCredentials((prev) => ({ ...prev, usuario: e.target.value }))}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                value={credentials.password}
-                onChange={(e) => setCredentials((prev) => ({ ...prev, password: e.target.value }))}
-                required
-              />
-            </div>
+            {!requires2FA ? (
+              <>
+                {/* Paso 1: Credenciales básicas */}
+                <div className="space-y-2">
+                  <Label htmlFor="usuario">Usuario o Email</Label>
+                  <Input
+                    id="usuario"
+                    type="text"
+                    placeholder="Ingresa tu usuario o email"
+                    value={credentials.usuario}
+                    onChange={(e) => setCredentials((prev) => ({ ...prev, usuario: e.target.value }))}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Contraseña</Label>
+                    <Link 
+                      href="/forgot-password" 
+                      className="text-sm text-primary hover:underline"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </Link>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={credentials.password}
+                    onChange={(e) => setCredentials((prev) => ({ ...prev, password: e.target.value }))}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Paso 2: Código 2FA */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center gap-2 text-primary">
+                    <Shield className="h-5 w-5" />
+                    <span className="text-sm font-medium">Autenticación de Dos Factores</span>
+                  </div>
+
+                  <div className="text-center space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      Ingresa el código de 6 dígitos de tu aplicación Google Authenticator
+                    </p>
+                    <div className="flex justify-center items-center gap-2 text-xs text-muted-foreground">
+                      <Smartphone className="h-4 w-4" />
+                      <span>Abre Google Authenticator en tu teléfono</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="totpCode">Código de autenticación</Label>
+                    <input
+                      id="totpCode"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      value={totpCode}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6)
+                        setTotpCode(value)
+                      }}
+                      placeholder="123456"
+                      autoFocus
+                      disabled={isLoading}
+                      className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none disabled:opacity-50"
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-2 bg-muted p-3 rounded-md">
+                    <Checkbox
+                      id="trustDevice"
+                      checked={trustDevice}
+                      onCheckedChange={(checked) => setTrustDevice(checked as boolean)}
+                      disabled={isLoading}
+                    />
+                    <label
+                      htmlFor="trustDevice"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      Confiar en este dispositivo por 60 días
+                    </label>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      setRequires2FA(false)
+                      setTotpCode("")
+                      setErrorMessage(null)
+                    }}
+                    className="w-full"
+                    disabled={isLoading}
+                  >
+                    ← Volver a ingresar credenciales
+                  </Button>
+                </div>
+              </>
+            )}
+
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <LoadingSpinner className="mr-2" size={16} />
-                  Iniciando sesión...
+                  {requires2FA ? 'Verificando código...' : 'Iniciando sesión...'}
                 </>
               ) : (
-                "Iniciar sesión"
+                requires2FA ? 'Verificar código' : 'Iniciar sesión'
               )}
             </Button>
           </form>

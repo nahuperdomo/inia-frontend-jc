@@ -11,7 +11,12 @@ export function middleware(request: NextRequest) {
     }
 
     // Lista de rutas públicas que no requieren autenticación
-    const publicRoutes = ['/login', '/registro/usuario'];
+    const publicRoutes = [
+        '/login', 
+        '/registro/usuario',
+        '/forgot-password',
+        '/reset-password'
+    ];
 
     // Si no hay accessToken y no estamos en una ruta pública, redirigimos a /login
     if (!accessToken && !publicRoutes.includes(request.nextUrl.pathname)) {

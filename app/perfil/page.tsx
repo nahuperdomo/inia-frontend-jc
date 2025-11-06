@@ -278,6 +278,20 @@ export default function PerfilPage() {
             </header>
 
             <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6">
+                {/* Alerta de Seguridad con botón 2FA */}
+                <Alert>
+                    <Shield className="h-4 w-4" />
+                    <AlertDescription className="flex items-center justify-between">
+                        <span>Protege tu cuenta con autenticación de dos factores</span>
+                        <Link href="/perfil/2fa">
+                            <Button variant="outline" size="sm">
+                                <Shield className="h-4 w-4 mr-2" />
+                                Configurar 2FA
+                            </Button>
+                        </Link>
+                    </AlertDescription>
+                </Alert>
+
                 {/* Información del Usuario */}
                 {perfil && (
                     <Card className="border-2">

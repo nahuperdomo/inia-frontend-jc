@@ -243,7 +243,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* User info/avatar - Link to profile */}
               <Link 
-                href="/administracion/perfil"
+                href="/perfil"
                 className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <User className="h-4 w-4" />
