@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input2FA } from '@/components/ui/input-2fa'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
-import { Shield, ShieldCheck, ShieldAlert, Smartphone, Trash2, ArrowLeft, Download, Copy, RefreshCw, Key } from 'lucide-react'
-import Link from 'next/link'
+import { Shield, ShieldCheck, ShieldAlert, Smartphone, Trash2, Download, Copy, RefreshCw, Key } from 'lucide-react'
 import { regenerateBackupCodes, getBackupCodesCount } from '@/app/services/auth-2fa-service'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -62,8 +61,14 @@ export default function Configuracion2FAPage() {
   useEffect(() => {
     checkStatus()
     loadTrustedDevices()
-    loadBackupCodesCount()
   }, [])
+
+  // Cargar códigos de respaldo cuando cambia el estado de 2FA
+  useEffect(() => {
+    if (has2FA && !checkingStatus) {
+      loadBackupCodesCount()
+    }
+  }, [has2FA, checkingStatus])
 
   const checkStatus = async () => {
     try {
@@ -114,8 +119,6 @@ export default function Configuracion2FAPage() {
   }
 
   const loadBackupCodesCount = async () => {
-    if (!has2FA) return
-    
     try {
       const data = await getBackupCodesCount()
       setAvailableCodesCount(data.availableCodes)
@@ -252,38 +255,7 @@ export default function Configuracion2FAPage() {
     }
   }
 
-  const handleDisable2FA = async () => {
-    if (!confirm('¿Estás seguro de desactivar la autenticación de dos factores?\n\nEsto hará tu cuenta menos segura.')) {
-      return
-    }
 
-    try {
-      setLoading(true)
-      const response = await fetch(`${API_BASE_URL}/api/v1/auth/2fa/disable`, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        throw new Error('Error al desactivar 2FA')
-      }
-
-      toast.success('2FA Desactivado', {
-        description: 'Autenticación de dos factores desactivada',
-      })
-
-      setHas2FA(false)
-      setAvailableCodesCount(0)
-      setBackupCodes([])
-    } catch (error) {
-      console.error('Error desactivando 2FA:', error)
-      toast.error('Error', {
-        description: 'No se pudo desactivar el 2FA',
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleRegenerateBackupCodes = async () => {
     if (regenerateCode.length !== 6) {
@@ -421,30 +393,7 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
   console.log('🎨 Render - showSetup:', showSetup, 'qrCodeUrl:', !!qrCodeUrl, 'has2FA:', has2FA)
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card sticky top-0 z-10">
-        <div className="flex h-16 items-center px-4 md:px-6">
-          <div className="flex items-center gap-3 flex-1">
-            <Link href="/perfil">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Volver
-              </Button>
-            </Link>
-            <div className="bg-primary rounded-full p-2">
-              <Shield className="h-5 w-5 md:h-6 md:w-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-lg md:text-xl font-bold">Autenticación de Dos Factores</h1>
-              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
-                Protege tu cuenta con Google Authenticator
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <>
       <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6">
         {/* Estado actual del 2FA */}
         <Card className="mb-6">
@@ -572,9 +521,12 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
           )}
 
           {has2FA && (
-            <Button variant="destructive" onClick={handleDisable2FA} disabled={loading}>
-              {loading ? 'Desactivando...' : 'Desactivar 2FA'}
-            </Button>
+            <Alert>
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Autenticación de Dos Factores Obligatoria:</strong> El 2FA está activado y es obligatorio para todos los usuarios por políticas de seguridad. No se puede desactivar.
+              </AlertDescription>
+            </Alert>
           )}
         </CardContent>
       </Card>
@@ -737,6 +689,6 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
         </Card>
       )}
       </div>
-    </div>
+    </>
   )
 }

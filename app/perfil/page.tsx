@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { useState, useEffect } from "react"
-import { ArrowLeft, User, Mail, Lock, Shield, Save, Eye, EyeOff, AlertCircle, CheckCircle2, Edit, X } from "lucide-react"
+import { User, Mail, Lock, Shield, Save, Eye, EyeOff, AlertCircle, CheckCircle2, Edit, X } from "lucide-react"
 import { Toaster } from "sonner"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -253,30 +253,7 @@ export default function PerfilPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background">
-            {/* Header */}
-            <header className="border-b bg-card sticky top-0 z-10">
-                <div className="flex h-16 items-center px-4 md:px-6">
-                    <div className="flex items-center gap-3 flex-1">
-                        <Link href="/administracion">
-                            <Button variant="ghost" size="sm">
-                                <ArrowLeft className="h-4 w-4 mr-2" />
-                                Volver
-                            </Button>
-                        </Link>
-                        <div className="bg-primary rounded-full p-2">
-                            <User className="h-5 w-5 md:h-6 md:w-6 text-primary-foreground" />
-                        </div>
-                        <div>
-                            <h1 className="text-lg md:text-xl font-bold">Mi Perfil</h1>
-                            <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
-                                Administra tu información personal y configuración
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
+        <>
             <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6">
                 {/* Alerta de Seguridad con botón 2FA */}
                 <Alert>
@@ -679,6 +656,6 @@ export default function PerfilPage() {
             </div>
 
             <Toaster richColors />
-        </div>
+        </>
     )
 }
