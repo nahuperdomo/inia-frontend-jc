@@ -59,8 +59,8 @@ describe('Login Page', () => {
     render(<LoginPage />)
 
     // Assert
-    expect(screen.getByPlaceholderText(/usuario/i)).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(/contraseña/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/usuario o email/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/contraseña/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /iniciar sesión/i })).toBeInTheDocument()
   })
 
@@ -83,13 +83,19 @@ describe('Login Page', () => {
     const user = userEvent.setup()
     mockLogin2FA.mockResolvedValue({
       success: true,
+      usuario: {
+        nombre: 'testuser',
+        nombres: 'Test',
+        apellidos: 'User',
+        has2FA: false,
+      },
     } as any)
 
     render(<LoginPage />)
 
     // Act
-    const usernameInput = screen.getByPlaceholderText(/usuario/i)
-    const passwordInput = screen.getByPlaceholderText(/contraseña/i)
+    const usernameInput = screen.getByLabelText(/usuario o email/i)
+    const passwordInput = screen.getByLabelText(/contraseña/i)
     const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })
 
     await user.type(usernameInput, 'testuser')
@@ -105,8 +111,12 @@ describe('Login Page', () => {
         totpCode: undefined,
         trustDevice: undefined,
       })
-      expect(mockPush).toHaveBeenCalledWith('/dashboard')
     })
+
+    // Esperar a que se llame router.push (tiene un setTimeout de 100ms)
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/dashboard')
+    }, { timeout: 500 })
   })
 
   it('debe mostrar error cuando las credenciales son incorrectas', async () => {
@@ -119,8 +129,8 @@ describe('Login Page', () => {
     render(<LoginPage />)
 
     // Act
-    const usernameInput = screen.getByPlaceholderText(/usuario/i)
-    const passwordInput = screen.getByPlaceholderText(/contraseña/i)
+    const usernameInput = screen.getByLabelText(/usuario o email/i)
+    const passwordInput = screen.getByLabelText(/contraseña/i)
     const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })
 
     await user.type(usernameInput, 'wronguser')
@@ -143,8 +153,8 @@ describe('Login Page', () => {
     render(<LoginPage />)
 
     // Act
-    const usernameInput = screen.getByPlaceholderText(/usuario/i)
-    const passwordInput = screen.getByPlaceholderText(/contraseña/i)
+    const usernameInput = screen.getByLabelText(/usuario o email/i)
+    const passwordInput = screen.getByLabelText(/contraseña/i)
     const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })
 
     await user.type(usernameInput, 'testuser')
