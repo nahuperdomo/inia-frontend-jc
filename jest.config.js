@@ -31,6 +31,12 @@ const customJestConfig = {
     '**/__tests__/**/*.[jt]s?(x)',
     '**/?(*.)+(spec|test).[jt]s?(x)',
   ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/.next/',
+    '/coverage/',
+    '/__tests__/jest.d.ts',
+  ],
   coverageThreshold: {
     global: {
       branches: 50,
