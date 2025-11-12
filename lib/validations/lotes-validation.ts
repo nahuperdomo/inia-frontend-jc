@@ -11,6 +11,7 @@ import {
     minLength,
     isValidDate,
     isPastOrPresent,
+    isFutureOrPresent,
     compose
 } from './validation-rules';
 
@@ -70,7 +71,10 @@ export const loteValidationSchema: ValidationSchema<LoteFormData> = {
     codigoFF: minLength(2),
 
     // Pestaña "recepcion"
-    fechaEntrega: isValidDate,
+    fechaEntrega: compose([
+        isValidDate,
+        isFutureOrPresent
+    ]),
     fechaRecibo: compose([
         required,
         isValidDate,
@@ -96,7 +100,10 @@ export const loteValidationSchema: ValidationSchema<LoteFormData> = {
         required,
         isNumber
     ]),
-    fechaCosecha: isValidDate,
+    fechaCosecha: compose([
+        isValidDate,
+        isPastOrPresent
+    ]),
     tiposAnalisisAsignados: (value: TipoAnalisis[]) => {
         if (!value || value.length === 0) {
             return 'Debe seleccionar al menos un tipo de análisis';

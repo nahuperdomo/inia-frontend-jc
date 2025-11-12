@@ -140,3 +140,40 @@ export async function crearAdminPredeterminado(): Promise<{ mensaje: string; usu
     method: "POST",
   });
 }
+
+// Validaciones de unicidad
+export async function validarNombreUsuarioUnico(nombre: string): Promise<boolean> {
+  try {
+    const response = await apiFetch(`/api/v1/auth/check-username?nombre=${encodeURIComponent(nombre)}`);
+    
+    // Si la respuesta no tiene la propiedad 'disponible', el endpoint no existe
+    if (response.disponible === undefined) {
+      console.warn('El backend no devuelve la propiedad "disponible". El endpoint puede no estar implementado.');
+      return true; // Asumimos disponible si el endpoint no existe
+    }
+    
+    return response.disponible;
+  } catch (error) {
+    console.error('Error al validar nombre de usuario:', error);
+    // Si hay error en la petición, asumimos que está disponible para no bloquear el registro
+    return true;
+  }
+}
+
+export async function validarEmailUnico(email: string): Promise<boolean> {
+  try {
+    const response = await apiFetch(`/api/v1/auth/check-email?email=${encodeURIComponent(email)}`);
+    
+    // Si la respuesta no tiene la propiedad 'disponible', el endpoint no existe
+    if (response.disponible === undefined) {
+      console.warn('El backend no devuelve la propiedad "disponible". El endpoint puede no estar implementado.');
+      return true; // Asumimos disponible si el endpoint no existe
+    }
+    
+    return response.disponible;
+  } catch (error) {
+    console.error('Error al validar email:', error);
+    // Si hay error en la petición, asumimos que está disponible para no bloquear el registro
+    return true;
+  }
+}

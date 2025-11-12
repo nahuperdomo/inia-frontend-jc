@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
     Bell,
     CheckCheck,
@@ -40,6 +41,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 }) => {
     const dropdownRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+    const [mounted, setMounted] = useState(false);
 
     // Hooks del contexto
     const { unreadCount, hasUnread, hasNotifications } = useNotificationBadge();
@@ -52,6 +55,72 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         dropdown,
         websocket // NUEVO: Estado del WebSocket
     } = useNotificationDropdown();
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // Actualizar posición del dropdown cuando se abre
+    useEffect(() => {
+        if (dropdown.isOpen && triggerRef.current) {
+            const updatePosition = () => {
+                if (triggerRef.current) {
+                    const rect = triggerRef.current.getBoundingClientRect();
+                    const dropdownWidth = window.innerWidth < 340 
+                        ? window.innerWidth - 32 
+                        : window.innerWidth < 360 
+                        ? 256 
+                        : window.innerWidth < 440 
+                        ? 288 
+                        : 320;
+
+                    let left = 0;
+                    let top = rect.bottom + 8;
+
+                    // En pantallas pequeñas, centrar respecto al botón
+                    if (window.innerWidth < 640) {
+                        left = rect.left + rect.width / 2;
+                        // Ajustar si se sale por la derecha
+                        const rightEdge = left + dropdownWidth / 2;
+                        if (rightEdge > window.innerWidth - 16) {
+                            left = window.innerWidth - dropdownWidth / 2 - 16;
+                        }
+                        // Ajustar si se sale por la izquierda
+                        const leftEdge = left - dropdownWidth / 2;
+                        if (leftEdge < 16) {
+                            left = dropdownWidth / 2 + 16;
+                        }
+                    } else {
+                        // En pantallas grandes, alinear el borde derecho del dropdown con el borde derecho del botón
+                        left = rect.right - dropdownWidth;
+                        // Ajustar si se sale por la izquierda
+                        if (left < 16) {
+                            left = 16;
+                        }
+                        // Ajustar si se sale por la derecha (por si acaso)
+                        if (left + dropdownWidth > window.innerWidth - 16) {
+                            left = window.innerWidth - dropdownWidth - 16;
+                        }
+                    }
+
+                    setDropdownPosition({
+                        top,
+                        left,
+                        width: rect.width
+                    });
+                }
+            };
+
+            updatePosition();
+            window.addEventListener('resize', updatePosition);
+            window.addEventListener('scroll', updatePosition);
+
+            return () => {
+                window.removeEventListener('resize', updatePosition);
+                window.removeEventListener('scroll', updatePosition);
+            };
+        }
+    }, [dropdown.isOpen]);
 
     // Cerrar dropdown al hacer clic fuera
     useEffect(() => {
@@ -137,19 +206,36 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 </NotificationCountBadge>
             </button>
 
-            {/* Dropdown Panel */}
-            {dropdown.isOpen && (
+            {/* Dropdown Panel - Renderizado con Portal */}
+            {mounted && dropdown.isOpen && createPortal(
                 <div
                     ref={dropdownRef}
+                    style={{
+                        position: 'fixed',
+                        top: `${dropdownPosition.top}px`,
+                        left: `${dropdownPosition.left}px`,
+                        transform: window.innerWidth < 640 ? 'translateX(-50%)' : 'none',
+                        animation: 'slideDown 0.2s ease-out',
+                    }}
                     className={cn(
-                        'absolute top-full mt-2',
-                        'right-0',
                         'w-80 [@media(max-width:440px)]:w-72 [@media(max-width:360px)]:w-64 [@media(max-width:340px)]:w-[calc(100vw-2rem)]',
-                        'bg-white rounded-lg shadow-lg border border-gray-200 z-50',
-                        'animate-in slide-in-from-top-5 fade-in duration-200',
+                        'bg-white rounded-lg shadow-xl border border-gray-200',
+                        'z-[9999]',
                         dropdownClassName
                     )}
                 >
+                    <style jsx>{`
+                        @keyframes slideDown {
+                            from {
+                                opacity: 0;
+                                transform: translateY(-10px) ${window.innerWidth < 640 ? 'translateX(-50%)' : ''};
+                            }
+                            to {
+                                opacity: 1;
+                                transform: translateY(0) ${window.innerWidth < 640 ? 'translateX(-50%)' : ''};
+                            }
+                        }
+                    `}</style>
                     {/* Header */}
                     <div className="flex items-center justify-between p-3 [@media(min-width:440px)]:p-4 border-b border-gray-200">
                         <div className="flex items-center gap-2">
@@ -292,7 +378,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                             </div>
                         </div>
                     )}
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

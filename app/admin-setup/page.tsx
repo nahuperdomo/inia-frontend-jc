@@ -18,6 +18,7 @@ import {
   validatePasswordStrength,
   formatBackupCode
 } from "@/app/services/auth-2fa-service"
+import { validarEmailUnico } from "@/app/services/auth-service"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Image from 'next/image'
 
@@ -30,6 +31,7 @@ export default function AdminSetupPage() {
     confirmPassword: '',
     totpCode: ''
   })
+  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({})
   const [backupCodes, setBackupCodes] = useState<string[]>([])
   const [showBackupCodes, setShowBackupCodes] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -104,6 +106,47 @@ export default function AdminSetupPage() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    // Limpiar error cuando el usuario empiece a escribir
+    if (validationErrors[field]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[field]
+        return newErrors
+      })
+    }
+  }
+
+  const validateEmailField = async () => {
+    const email = formData.newEmail.trim()
+    
+    if (!email) {
+      return
+    }
+
+    // Validar formato
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setValidationErrors(prev => ({
+        ...prev,
+        newEmail: 'El formato del email no es válido'
+      }))
+      return
+    }
+
+    // Validar unicidad con el backend
+    const disponible = await validarEmailUnico(email)
+    if (!disponible) {
+      setValidationErrors(prev => ({
+        ...prev,
+        newEmail: 'Este email ya está registrado'
+      }))
+    } else {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors.newEmail
+        return newErrors
+      })
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,6 +157,10 @@ export default function AdminSetupPage() {
       // Validaciones
       if (!formData.newEmail) {
         throw new Error('El email es requerido')
+      }
+
+      if (validationErrors.newEmail) {
+        throw new Error('Por favor corrige los errores en el formulario')
       }
 
       if (!formData.newPassword || formData.newPassword.length < 8) {
@@ -315,12 +362,22 @@ export default function AdminSetupPage() {
                     placeholder="tu-email@inia.gub.uy"
                     value={formData.newEmail}
                     onChange={(e) => handleInputChange('newEmail', e.target.value)}
+                    onBlur={validateEmailField}
+                    className={validationErrors.newEmail ? 'border-red-500' : ''}
                     required
                     autoComplete="email"
                   />
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Este email se usará para notificaciones del sistema
-                  </p>
+                  {validationErrors.newEmail && (
+                    <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                      <AlertCircle className="h-4 w-4" />
+                      {validationErrors.newEmail}
+                    </p>
+                  )}
+                  {!validationErrors.newEmail && formData.newEmail && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Este email se usará para notificaciones del sistema
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -481,7 +538,8 @@ export default function AdminSetupPage() {
               type="submit"
               className="w-full bg-green-600 hover:bg-green-700"
               disabled={isLoading || !formData.newEmail || !formData.newPassword || 
-                        formData.newPassword !== formData.confirmPassword || formData.totpCode.length !== 6}
+                        formData.newPassword !== formData.confirmPassword || formData.totpCode.length !== 6 ||
+                        Object.keys(validationErrors).length > 0}
             >
               {isLoading ? (
                 <>

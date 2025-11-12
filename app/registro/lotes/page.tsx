@@ -86,7 +86,7 @@ export default function RegistroLotesPage() {
   const handleInputChange = useCallback(async (field: keyof LoteFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
-    // Validar ficha y nombre de lote cuando cambian
+    // Validar ficha y nombre de lote cuando cambian (validaciones asíncronas únicas)
     if (field === 'ficha' && value) {
       const esValido = await validarFichaUnica(value);
       if (!esValido) {
