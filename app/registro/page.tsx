@@ -7,6 +7,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { obtenerLotesPaginadas, obtenerEstadisticasLotes } from "@/app/services/lote-service"
 import type { LoteSimpleDTO } from "@/app/models"
+import { DashboardLayout } from "@/components/dashboard-layout"
 
 export default function RegistroPage() {
   const [lotesRecientes, setLotesRecientes] = useState<LoteSimpleDTO[]>([])
@@ -52,14 +53,15 @@ export default function RegistroPage() {
   ]
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-balance">Centro de Registro</h1>
-        <p className="text-muted-foreground text-pretty">
-          Registra nuevos elementos en el sistema INIA de manera rápida y eficiente
-        </p>
-      </div>
+    <DashboardLayout>
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-balance">Centro de Registro</h1>
+          <p className="text-muted-foreground text-pretty">
+            Registra nuevos elementos en el sistema INIA de manera rápida y eficiente
+          </p>
+        </div>
 
       {/* Registration Options */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -155,6 +157,7 @@ export default function RegistroPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </DashboardLayout>
   )
 }
