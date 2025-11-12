@@ -1,0 +1,1552 @@
+﻿
+> my-v0-project@0.1.0 lint
+> eslint . --ext .ts,.tsx,.js,.jsx
+
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\__tests__\app\login\page.test.tsx
+   92:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  150:76  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\__tests__\jest.d.ts
+  21:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  22:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\admin-setup\page.tsx
+   67:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   76:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   80:23  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  137:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  146:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  157:21  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  160:11  warning  'errorMsg' is never reassigned. Use 'const' instead                                prefer-const
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\administracion\catalogos\page.tsx
+    22:3    warning  'CheckCircle2' is defined but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+    22:3    warning  'CheckCircle2' is defined but never used                                                   unused-imports/no-unused-imports
+    29:3    warning  'Microscope' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+    29:3    warning  'Microscope' is defined but never used                                                     unused-imports/no-unused-imports
+    54:10   warning  'Textarea' is defined but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+    54:10   warning  'Textarea' is defined but never used                                                       unused-imports/no-unused-imports
+    58:3    warning  'obtenerTodosCatalogos' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+    58:3    warning  'obtenerTodosCatalogos' is defined but never used                                          unused-imports/no-unused-imports
+    59:3    warning  'obtenerCatalogoPorTipo' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+    59:3    warning  'obtenerCatalogoPorTipo' is defined but never used                                         unused-imports/no-unused-imports
+    75:3    warning  'obtenerTodosCultivares' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+    75:3    warning  'obtenerTodosCultivares' is defined but never used                                         unused-imports/no-unused-imports
+    83:3    warning  'obtenerTodasMalezas' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+    83:3    warning  'obtenerTodasMalezas' is defined but never used                                            unused-imports/no-unused-imports
+    84:3    warning  'obtenerMalezasInactivas' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+    84:3    warning  'obtenerMalezasInactivas' is defined but never used                                        unused-imports/no-unused-imports
+   192:5    error    Definition for rule 'react-hooks/exhaustive-deps' was not found                            react-hooks/exhaustive-deps
+   202:5    error    Definition for rule 'react-hooks/exhaustive-deps' was not found                            react-hooks/exhaustive-deps
+   212:5    error    Definition for rule 'react-hooks/exhaustive-deps' was not found                            react-hooks/exhaustive-deps
+   220:5    error    Definition for rule 'react-hooks/exhaustive-deps' was not found                            react-hooks/exhaustive-deps
+   289:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   318:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   333:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   357:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   386:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   447:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   459:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   489:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   530:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   542:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   572:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   619:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   631:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   661:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   702:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   714:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+   744:21   warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+  1540:10   warning  'setMalezasCultivosForm' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  1540:10   warning  'setMalezasCultivosForm' is defined but never used. Allowed unused vars must match /^_/u   unused-imports/no-unused-vars
+  1540:33   warning  'arg0' is defined but never used. Allowed unused args must match /^_/u                     @typescript-eslint/no-unused-vars
+  1540:33   warning  'arg0' is defined but never used. Allowed unused args must match /^_/u                     unused-imports/no-unused-vars
+  1540:105  warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\administracion\contactos\page.tsx
+   49:3   warning  'obtenerTodosLosContactos' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   49:3   warning  'obtenerTodosLosContactos' is defined but never used                                        unused-imports/no-unused-imports
+   50:3   warning  'obtenerEmpresas' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+   50:3   warning  'obtenerEmpresas' is defined but never used                                                 unused-imports/no-unused-imports
+   51:3   warning  'obtenerClientes' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+   51:3   warning  'obtenerClientes' is defined but never used                                                 unused-imports/no-unused-imports
+  120:21  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  150:21  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  164:5   error    Definition for rule 'react-hooks/exhaustive-deps' was not found                             react-hooks/exhaustive-deps
+  172:5   error    Definition for rule 'react-hooks/exhaustive-deps' was not found                             react-hooks/exhaustive-deps
+  267:21  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  279:21  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  318:21  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  330:21  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  374:21  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\administracion\usuario\page.tsx
+    4:29  warning  'CardDescription' is defined but never used. Allowed unused vars must match /^_/u                    @typescript-eslint/no-unused-vars
+    4:29  warning  'CardDescription' is defined but never used                                                          unused-imports/no-unused-imports
+    5:23  warning  'C:\Nadia\ProyectoFinal\inia-frontend-jc\node_modules\sonner\dist\index.js' imported multiple times  import/no-duplicates
+   15:10  warning  'CheckCircle' is defined but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+   15:10  warning  'CheckCircle' is defined but never used                                                              unused-imports/no-unused-imports
+   15:23  warning  'X' is defined but never used. Allowed unused vars must match /^_/u                                  @typescript-eslint/no-unused-vars
+   15:23  warning  'X' is defined but never used                                                                        unused-imports/no-unused-imports
+   15:26  warning  'User' is defined but never used. Allowed unused vars must match /^_/u                               @typescript-eslint/no-unused-vars
+   15:26  warning  'User' is defined but never used                                                                     unused-imports/no-unused-imports
+   16:25  warning  'C:\Nadia\ProyectoFinal\inia-frontend-jc\node_modules\sonner\dist\index.js' imported multiple times  import/no-duplicates
+   27:5   warning  'PaginatedResponse' is defined but never used. Allowed unused vars must match /^_/u                  @typescript-eslint/no-unused-vars
+   27:5   warning  'PaginatedResponse' is defined but never used                                                        unused-imports/no-unused-imports
+   67:11  warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u                    @typescript-eslint/no-unused-vars
+   67:11  warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u                    unused-imports/no-unused-vars
+  289:18  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                     @typescript-eslint/no-unused-vars
+  289:18  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                     unused-imports/no-unused-vars
+  294:11  warning  'formatDateShort' is assigned a value but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+  294:11  warning  'formatDateShort' is assigned a value but never used. Allowed unused vars must match /^_/u           unused-imports/no-unused-vars
+  304:18  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                     @typescript-eslint/no-unused-vars
+  304:18  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                     unused-imports/no-unused-vars
+  423:11  warning  'getEstadoSolicitud' is assigned a value but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+  423:11  warning  'getEstadoSolicitud' is assigned a value but never used. Allowed unused vars must match /^_/u        unused-imports/no-unused-vars
+  428:11  warning  'getRoleBadgeVariant' is assigned a value but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+  428:11  warning  'getRoleBadgeVariant' is assigned a value but never used. Allowed unused vars must match /^_/u       unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\dashboard\analisis-pendientes\page.tsx
+  39:10  warning  'isLast' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  39:10  warning  'isLast' is assigned a value but never used. Allowed unused vars must match /^_/u   unused-imports/no-unused-vars
+  40:10  warning  'isFirst' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  40:10  warning  'isFirst' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\dashboard\analisis-por-aprobar\page.tsx
+   51:10  warning  'isLast' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+   51:10  warning  'isLast' is assigned a value but never used. Allowed unused vars must match /^_/u   unused-imports/no-unused-vars
+   52:10  warning  'isFirst' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   52:10  warning  'isFirst' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+   65:21  warning  Unexpected any. Specify a different type                                            @typescript-eslint/no-explicit-any
+  129:14  warning  'err' is defined but never used. Allowed unused caught errors must match /^_/u      @typescript-eslint/no-unused-vars
+  129:14  warning  'err' is defined but never used. Allowed unused caught errors must match /^_/u      unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\dashboard\page.tsx
+    5:10  warning  'Button' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+    5:10  warning  'Button' is defined but never used                                                 unused-imports/no-unused-imports
+    9:3   warning  'FlaskConical' is defined but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+    9:3   warning  'FlaskConical' is defined but never used                                           unused-imports/no-unused-imports
+   10:3   warning  'Beaker' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+   10:3   warning  'Beaker' is defined but never used                                                 unused-imports/no-unused-imports
+   32:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   34:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   43:20  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   43:36  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   65:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   70:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   82:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   98:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  103:13  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  120:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  130:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\forgot-password\page.tsx
+  29:13  warning  'result' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  29:13  warning  'result' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  31:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  45:21  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\dosn\[id]\editar\page.tsx
+   14:21  warning  'Save' is defined but never used. Allowed unused vars must match /^_/u                              @typescript-eslint/no-unused-vars
+   14:21  warning  'Save' is defined but never used                                                                    unused-imports/no-unused-imports
+   26:73  warning  'Instituto' is defined but never used. Allowed unused vars must match /^_/u                         @typescript-eslint/no-unused-vars
+   26:73  warning  'Instituto' is defined but never used                                                               unused-imports/no-unused-imports
+  101:29  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  102:21  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  112:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  116:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  118:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  129:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  137:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  139:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  144:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  146:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  147:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  148:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  151:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  154:15  warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  167:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  170:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  229:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  248:52  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  263:41  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  300:77  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  406:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  407:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  408:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  409:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  417:40  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  420:42  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  422:23  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  423:20  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  439:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  453:9   warning  'handleFinalizarAnalisis' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  453:9   warning  'handleFinalizarAnalisis' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  457:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  461:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  470:9   warning  'handleAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+  470:9   warning  'handleAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u            unused-imports/no-unused-vars
+  474:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  480:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  489:9   warning  'handleMarcarParaRepetir' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  489:9   warning  'handleMarcarParaRepetir' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  493:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  499:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  508:9   warning  'handleFinalizarYAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  508:9   warning  'handleFinalizarYAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  512:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  517:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  868:56  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\dosn\[id]\page.tsx
+    7:10  warning  'Separator' is defined but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+    7:10  warning  'Separator' is defined but never used                                               unused-imports/no-unused-imports
+   13:3   warning  'Download' is defined but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+   13:3   warning  'Download' is defined but never used                                                unused-imports/no-unused-imports
+   14:3   warning  'Calendar' is defined but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+   14:3   warning  'Calendar' is defined but never used                                                unused-imports/no-unused-imports
+   17:3   warning  'CheckCircle' is defined but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+   17:3   warning  'CheckCircle' is defined but never used                                             unused-imports/no-unused-imports
+   24:30  warning  '@/app/models' imported multiple times                                              import/no-duplicates
+   27:13  warning  'especiesService' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+   27:13  warning  'especiesService' is defined but never used                                         unused-imports/no-unused-imports
+   28:15  warning  'EspecieDTO' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+   28:15  warning  'EspecieDTO' is defined but never used                                              unused-imports/no-unused-imports
+   28:33  warning  '@/app/models' imported multiple times                                              import/no-duplicates
+  101:11  warning  'confirm' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  101:11  warning  'confirm' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\dosn\page.tsx
+   41:10  warning  'error' is assigned a value but never used. Allowed unused vars must match /^_/u                @typescript-eslint/no-unused-vars
+   41:10  warning  'error' is assigned a value but never used. Allowed unused vars must match /^_/u                unused-imports/no-unused-vars
+   50:5   error    Definition for rule 'react-hooks/exhaustive-deps' was not found                                 react-hooks/exhaustive-deps
+   82:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error               no-console
+  165:9   warning  'formatearFechaLocal' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  165:9   warning  'formatearFechaLocal' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\germinacion\[id]\editar\page.tsx
+    7:10  warning  'Badge' is defined but never used. Allowed unused vars must match /^_/u                             @typescript-eslint/no-unused-vars
+    7:10  warning  'Badge' is defined but never used                                                                   unused-imports/no-unused-imports
+   20:26  warning  'GerminacionRequestDTO' is defined but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+   20:26  warning  'GerminacionRequestDTO' is defined but never used                                                   unused-imports/no-unused-imports
+   22:24  warning  'RepGermDTO' is defined but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+   22:24  warning  'RepGermDTO' is defined but never used                                                              unused-imports/no-unused-imports
+   24:32  warning  'CheckCircle' is defined but never used. Allowed unused vars must match /^_/u                       @typescript-eslint/no-unused-vars
+   24:32  warning  'CheckCircle' is defined but never used                                                             unused-imports/no-unused-imports
+   33:7   warning  'formatearFechaLocal' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+   33:7   warning  'formatearFechaLocal' is assigned a value but never used. Allowed unused vars must match /^_/u      unused-imports/no-unused-vars
+   62:12  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                    @typescript-eslint/no-unused-vars
+   62:12  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                    unused-imports/no-unused-vars
+   68:7   warning  'convertirFechaParaInput' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   68:7   warning  'convertirFechaParaInput' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+   94:10  warning  'creatingTable' is assigned a value but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+   94:10  warning  'creatingTable' is assigned a value but never used. Allowed unused vars must match /^_/u            unused-imports/no-unused-vars
+  115:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  123:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  124:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  131:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  133:29  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  137:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  143:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  157:9   warning  'handleCrearTabla' is assigned a value but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+  157:9   warning  'handleCrearTabla' is assigned a value but never used. Allowed unused vars must match /^_/u         unused-imports/no-unused-vars
+  162:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  165:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  170:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  178:9   warning  'handleReabrirAnalisis' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  178:9   warning  'handleReabrirAnalisis' is assigned a value but never used. Allowed unused vars must match /^_/u    unused-imports/no-unused-vars
+  194:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  205:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  206:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  215:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  249:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  257:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  260:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  266:21  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  273:9   warning  'handleFinalizarAnalisis' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  273:9   warning  'handleFinalizarAnalisis' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  277:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  281:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  288:9   warning  'handleAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+  288:9   warning  'handleAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u            unused-imports/no-unused-vars
+  292:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  296:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  303:9   warning  'handleMarcarParaRepetir' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  303:9   warning  'handleMarcarParaRepetir' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  307:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  311:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  318:9   warning  'handleFinalizarYAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  318:9   warning  'handleFinalizarYAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  322:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  327:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\germinacion\[id]\page.tsx
+   7:10  warning  'Separator' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+   7:10  warning  'Separator' is defined but never used                                          unused-imports/no-unused-imports
+  11:3   warning  'Download' is defined but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  11:3   warning  'Download' is defined but never used                                           unused-imports/no-unused-imports
+  13:3   warning  'FileText' is defined but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  13:3   warning  'FileText' is defined but never used                                           unused-imports/no-unused-imports
+  15:3   warning  'CheckCircle' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  15:3   warning  'CheckCircle' is defined but never used                                        unused-imports/no-unused-imports
+  21:3   warning  'Beaker' is defined but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+  21:3   warning  'Beaker' is defined but never used                                             unused-imports/no-unused-imports
+  24:3   warning  'Table' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+  24:3   warning  'Table' is defined but never used                                              unused-imports/no-unused-imports
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\germinacion\page.tsx
+    8:87   warning  'ChevronLeft' is defined but never used. Allowed unused vars must match /^_/u                  @typescript-eslint/no-unused-vars
+    8:87   warning  'ChevronLeft' is defined but never used                                                        unused-imports/no-unused-imports
+    8:100  warning  'ChevronRight' is defined but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+    8:100  warning  'ChevronRight' is defined but never used                                                       unused-imports/no-unused-imports
+   13:10   warning  'EstadoAnalisis' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+   13:10   warning  'EstadoAnalisis' is defined but never used                                                     unused-imports/no-unused-imports
+   48:7    warning  'formatearFechaHora' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   48:7    warning  'formatearFechaHora' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+   72:10   warning  'loading' is assigned a value but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+   72:10   warning  'loading' is assigned a value but never used. Allowed unused vars must match /^_/u             unused-imports/no-unused-vars
+   73:10   warning  'error' is assigned a value but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+   73:10   warning  'error' is assigned a value but never used. Allowed unused vars must match /^_/u               unused-imports/no-unused-vars
+   77:10   warning  'isLast' is assigned a value but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+   77:10   warning  'isLast' is assigned a value but never used. Allowed unused vars must match /^_/u              unused-imports/no-unused-vars
+   78:10   warning  'isFirst' is assigned a value but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+   78:10   warning  'isFirst' is assigned a value but never used. Allowed unused vars must match /^_/u             unused-imports/no-unused-vars
+   84:5    error    Definition for rule 'react-hooks/exhaustive-deps' was not found                                react-hooks/exhaustive-deps
+  121:7    warning  Unexpected console statement. Only these console methods are allowed: warn, error              no-console
+  123:9    warning  Unexpected console statement. Only these console methods are allowed: warn, error              no-console
+  170:9    warning  'pendingAnalysis' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  170:9    warning  'pendingAnalysis' is assigned a value but never used. Allowed unused vars must match /^_/u     unused-imports/no-unused-vars
+  206:9    warning  'handlePageChange' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  206:9    warning  'handlePageChange' is assigned a value but never used. Allowed unused vars must match /^_/u    unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\pms\[id]\editar\page.tsx
+   13:10  warning  'Checkbox' is defined but never used. Allowed unused vars must match /^_/u                           @typescript-eslint/no-unused-vars
+   13:10  warning  'Checkbox' is defined but never used                                                                 unused-imports/no-unused-imports
+  101:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  107:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  108:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  127:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  128:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  130:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  175:21  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  190:51  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  211:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  228:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  237:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  254:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  257:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  259:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  303:14  warning  'err' is defined but never used. Allowed unused caught errors must match /^_/u                       @typescript-eslint/no-unused-vars
+  303:14  warning  'err' is defined but never used. Allowed unused caught errors must match /^_/u                       unused-imports/no-unused-vars
+  321:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  329:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  338:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  340:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  366:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  373:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  375:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  376:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  385:86  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  407:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  433:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  436:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  442:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  451:9   warning  'handleAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+  451:9   warning  'handleAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u             unused-imports/no-unused-vars
+  455:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  459:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  468:9   warning  'handleMarcarParaRepetir' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  468:9   warning  'handleMarcarParaRepetir' is assigned a value but never used. Allowed unused vars must match /^_/u   unused-imports/no-unused-vars
+  472:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  476:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  485:9   warning  'handleFinalizarYAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  485:9   warning  'handleFinalizarYAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u   unused-imports/no-unused-vars
+  489:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  494:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  534:9   warning  'getRepeticionesPorTandas' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  534:9   warning  'getRepeticionesPorTandas' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  572:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  581:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  582:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  583:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  584:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  585:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  586:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  591:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  607:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  611:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  616:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  623:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  629:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  633:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  638:9   warning  'puedeFinalizarAnalisis' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  638:9   warning  'puedeFinalizarAnalisis' is assigned a value but never used. Allowed unused vars must match /^_/u    unused-imports/no-unused-vars
+  697:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  698:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  699:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  700:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  701:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  702:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  710:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  716:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  720:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\pms\[id]\page.tsx
+   13:3   warning  'Calendar' is defined but never used. Allowed unused vars must match /^_/u                           @typescript-eslint/no-unused-vars
+   13:3   warning  'Calendar' is defined but never used                                                                 unused-imports/no-unused-imports
+   16:3   warning  'Target' is defined but never used. Allowed unused vars must match /^_/u                             @typescript-eslint/no-unused-vars
+   16:3   warning  'Target' is defined but never used                                                                   unused-imports/no-unused-imports
+   20:3   warning  'Calculator' is defined but never used. Allowed unused vars must match /^_/u                         @typescript-eslint/no-unused-vars
+   20:3   warning  'Calculator' is defined but never used                                                               unused-imports/no-unused-imports
+   34:9   warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u                    @typescript-eslint/no-unused-vars
+   34:9   warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u                    unused-imports/no-unused-vars
+   41:10  warning  'actionLoading' is assigned a value but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+   41:10  warning  'actionLoading' is assigned a value but never used. Allowed unused vars must match /^_/u             unused-imports/no-unused-vars
+   59:21  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+   73:9   warning  'handleFinalizarAnalisis' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+   73:9   warning  'handleFinalizarAnalisis' is assigned a value but never used. Allowed unused vars must match /^_/u   unused-imports/no-unused-vars
+   81:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+   90:9   warning  'handleAprobarAnalisis' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+   90:9   warning  'handleAprobarAnalisis' is assigned a value but never used. Allowed unused vars must match /^_/u     unused-imports/no-unused-vars
+   98:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  107:9   warning  'handleMarcarParaRepetir' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  107:9   warning  'handleMarcarParaRepetir' is assigned a value but never used. Allowed unused vars must match /^_/u   unused-imports/no-unused-vars
+  115:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  124:9   warning  'handleEliminarRepeticion' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  124:9   warning  'handleEliminarRepeticion' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  136:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  159:9   warning  'getEstadoDisplay' is assigned a value but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+  159:9   warning  'getEstadoDisplay' is assigned a value but never used. Allowed unused vars must match /^_/u          unused-imports/no-unused-vars
+  163:9   warning  'getEstadoIcon' is assigned a value but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+  163:9   warning  'getEstadoIcon' is assigned a value but never used. Allowed unused vars must match /^_/u             unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\pms\page.tsx
+   10:69  warning  'AlertTriangle' is defined but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+   10:69  warning  'AlertTriangle' is defined but never used                                                       unused-imports/no-unused-imports
+   50:5   error    Definition for rule 'react-hooks/exhaustive-deps' was not found                                 react-hooks/exhaustive-deps
+  124:9   warning  'filteredAnalysis' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  124:9   warning  'filteredAnalysis' is assigned a value but never used. Allowed unused vars must match /^_/u     unused-imports/no-unused-vars
+  133:9   warning  'promedioCV' is assigned a value but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+  133:9   warning  'promedioCV' is assigned a value but never used. Allowed unused vars must match /^_/u           unused-imports/no-unused-vars
+  171:9   warning  'formatearFechaLocal' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  171:9   warning  'formatearFechaLocal' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\pureza\[id]\editar\page.tsx
+   14:21  warning  'Save' is defined but never used. Allowed unused vars must match /^_/u                              @typescript-eslint/no-unused-vars
+   14:21  warning  'Save' is defined but never used                                                                    unused-imports/no-unused-imports
+   14:51  warning  'Search' is defined but never used. Allowed unused vars must match /^_/u                            @typescript-eslint/no-unused-vars
+   14:51  warning  'Search' is defined but never used                                                                  unused-imports/no-unused-imports
+  115:21  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  125:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  128:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  133:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  145:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  225:52  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  234:62  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  235:66  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  236:66  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  237:54  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  238:72  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  239:68  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  261:58  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  262:62  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  263:66  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  264:66  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  265:54  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  266:72  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  267:68  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  301:47  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  302:49  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  303:49  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  304:43  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  305:52  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  306:50  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  321:47  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  322:49  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  323:49  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  324:43  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  325:52  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  326:50  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  346:41  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  418:9   warning  'handleFinalizarAnalisis' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  418:9   warning  'handleFinalizarAnalisis' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  422:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  426:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  435:9   warning  'handleAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+  435:9   warning  'handleAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u            unused-imports/no-unused-vars
+  439:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  443:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  452:9   warning  'handleMarcarParaRepetir' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  452:9   warning  'handleMarcarParaRepetir' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  456:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  460:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  469:9   warning  'handleFinalizarYAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  469:9   warning  'handleFinalizarYAprobar' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  473:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+  479:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\pureza\[id]\page.tsx
+    7:10  warning  'Separator' is defined but never used. Allowed unused vars must match /^_/u                     @typescript-eslint/no-unused-vars
+    7:10  warning  'Separator' is defined but never used                                                           unused-imports/no-unused-imports
+   16:3   warning  'Sprout' is defined but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+   16:3   warning  'Sprout' is defined but never used                                                              unused-imports/no-unused-imports
+   17:3   warning  'Microscope' is defined but never used. Allowed unused vars must match /^_/u                    @typescript-eslint/no-unused-vars
+   17:3   warning  'Microscope' is defined but never used                                                          unused-imports/no-unused-imports
+   18:3   warning  'PieChart' is defined but never used. Allowed unused vars must match /^_/u                      @typescript-eslint/no-unused-vars
+   18:3   warning  'PieChart' is defined but never used                                                            unused-imports/no-unused-imports
+   19:3   warning  'Leaf' is defined but never used. Allowed unused vars must match /^_/u                          @typescript-eslint/no-unused-vars
+   19:3   warning  'Leaf' is defined but never used                                                                unused-imports/no-unused-imports
+   20:3   warning  'CheckCircle2' is defined but never used. Allowed unused vars must match /^_/u                  @typescript-eslint/no-unused-vars
+   20:3   warning  'CheckCircle2' is defined but never used                                                        unused-imports/no-unused-imports
+   22:3   warning  'CheckCircle' is defined but never used. Allowed unused vars must match /^_/u                   @typescript-eslint/no-unused-vars
+   22:3   warning  'CheckCircle' is defined but never used                                                         unused-imports/no-unused-imports
+  102:7   warning  'formatearPorcentaje' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  102:7   warning  'formatearPorcentaje' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  150:11  warning  'confirm' is assigned a value but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+  150:11  warning  'confirm' is assigned a value but never used. Allowed unused vars must match /^_/u              unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\pureza\page.tsx
+    4:29  warning  'CardDescription' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+    4:29  warning  'CardDescription' is defined but never used                                                 unused-imports/no-unused-imports
+   13:10  warning  'PurezaDTO' is defined but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+   13:10  warning  'PurezaDTO' is defined but never used                                                       unused-imports/no-unused-imports
+   68:10  warning  'loading' is assigned a value but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+   68:10  warning  'loading' is assigned a value but never used. Allowed unused vars must match /^_/u          unused-imports/no-unused-vars
+   69:10  warning  'error' is assigned a value but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+   69:10  warning  'error' is assigned a value but never used. Allowed unused vars must match /^_/u            unused-imports/no-unused-vars
+   73:10  warning  'isLast' is assigned a value but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+   73:10  warning  'isLast' is assigned a value but never used. Allowed unused vars must match /^_/u           unused-imports/no-unused-vars
+   74:10  warning  'isFirst' is assigned a value but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+   74:10  warning  'isFirst' is assigned a value but never used. Allowed unused vars must match /^_/u          unused-imports/no-unused-vars
+   80:5   error    Definition for rule 'react-hooks/exhaustive-deps' was not found                             react-hooks/exhaustive-deps
+  112:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  138:21  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  148:21  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  160:9   warning  'pendingAnalysis' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  160:9   warning  'pendingAnalysis' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\tetrazolio\[id]\editar\page.tsx
+    8:21  warning  'Save' is defined but never used. Allowed unused vars must match /^_/u                               @typescript-eslint/no-unused-vars
+    8:21  warning  'Save' is defined but never used                                                                     unused-imports/no-unused-imports
+   30:7   warning  'formatearFechaLocal' is assigned a value but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+   30:7   warning  'formatearFechaLocal' is assigned a value but never used. Allowed unused vars must match /^_/u       unused-imports/no-unused-vars
+  115:58  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  120:8   warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  143:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  146:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  152:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  226:64  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  286:9   warning  'handleGuardarPorcentajes' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  286:9   warning  'handleGuardarPorcentajes' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  294:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  304:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  343:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  362:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  363:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  549:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  562:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  566:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  579:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  583:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  596:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  600:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  613:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                    no-console
+  619:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  839:70  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  850:70  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  863:70  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  876:70  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\tetrazolio\[id]\page.tsx
+   50:7   warning  'convertirFechaParaInput' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   50:7   warning  'convertirFechaParaInput' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+   65:9   warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u                   @typescript-eslint/no-unused-vars
+   65:9   warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u                   unused-imports/no-unused-vars
+   76:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+   80:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+   86:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                   no-console
+   93:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  337:37  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  337:84  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  338:43  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\analisis\tetrazolio\page.tsx
+    9:10  warning  'Select' is defined but never used. Allowed unused vars must match /^_/u                             @typescript-eslint/no-unused-vars
+    9:10  warning  'Select' is defined but never used                                                                   unused-imports/no-unused-imports
+    9:18  warning  'SelectContent' is defined but never used. Allowed unused vars must match /^_/u                      @typescript-eslint/no-unused-vars
+    9:18  warning  'SelectContent' is defined but never used                                                            unused-imports/no-unused-imports
+    9:33  warning  'SelectItem' is defined but never used. Allowed unused vars must match /^_/u                         @typescript-eslint/no-unused-vars
+    9:33  warning  'SelectItem' is defined but never used                                                               unused-imports/no-unused-imports
+    9:45  warning  'SelectTrigger' is defined but never used. Allowed unused vars must match /^_/u                      @typescript-eslint/no-unused-vars
+    9:45  warning  'SelectTrigger' is defined but never used                                                            unused-imports/no-unused-imports
+    9:60  warning  'SelectValue' is defined but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+    9:60  warning  'SelectValue' is defined but never used                                                              unused-imports/no-unused-imports
+   10:63  warning  'Download' is defined but never used. Allowed unused vars must match /^_/u                           @typescript-eslint/no-unused-vars
+   10:63  warning  'Download' is defined but never used                                                                 unused-imports/no-unused-imports
+   12:10  warning  'obtenerTodosTetrazolio' is defined but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+   12:10  warning  'obtenerTodosTetrazolio' is defined but never used                                                   unused-imports/no-unused-imports
+   43:10  warning  'loading' is assigned a value but never used. Allowed unused vars must match /^_/u                   @typescript-eslint/no-unused-vars
+   43:10  warning  'loading' is assigned a value but never used. Allowed unused vars must match /^_/u                   unused-imports/no-unused-vars
+   44:10  warning  'error' is assigned a value but never used. Allowed unused vars must match /^_/u                     @typescript-eslint/no-unused-vars
+   44:10  warning  'error' is assigned a value but never used. Allowed unused vars must match /^_/u                     unused-imports/no-unused-vars
+   48:10  warning  'isLast' is assigned a value but never used. Allowed unused vars must match /^_/u                    @typescript-eslint/no-unused-vars
+   48:10  warning  'isLast' is assigned a value but never used. Allowed unused vars must match /^_/u                    unused-imports/no-unused-vars
+   49:10  warning  'isFirst' is assigned a value but never used. Allowed unused vars must match /^_/u                   @typescript-eslint/no-unused-vars
+   49:10  warning  'isFirst' is assigned a value but never used. Allowed unused vars must match /^_/u                   unused-imports/no-unused-vars
+   55:5   error    Definition for rule 'react-hooks/exhaustive-deps' was not found                                      react-hooks/exhaustive-deps
+   98:19  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  137:9   warning  'pendingAnalysis' is assigned a value but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+  137:9   warning  'pendingAnalysis' is assigned a value but never used. Allowed unused vars must match /^_/u           unused-imports/no-unused-vars
+  197:14  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                     @typescript-eslint/no-unused-vars
+  197:14  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                     unused-imports/no-unused-vars
+  202:9   warning  'handlePageChange' is assigned a value but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+  202:9   warning  'handlePageChange' is assigned a value but never used. Allowed unused vars must match /^_/u          unused-imports/no-unused-vars
+  208:9   warning  'getPrioridadBadgeVariant' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  208:9   warning  'getPrioridadBadgeVariant' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  404:53  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  404:90  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\legado\[id]\page.tsx
+  22:3  warning  'DollarSign' is defined but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+  22:3  warning  'DollarSign' is defined but never used                                             unused-imports/no-unused-imports
+  51:9  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  52:9  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\legado\page.tsx
+  42:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\lotes\[id]\editar\page.tsx
+  144:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  145:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  160:82  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  260:21  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\lotes\[id]\page.tsx
+  14:3   warning  'User' is defined but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+  14:3   warning  'User' is defined but never used                                                   unused-imports/no-unused-imports
+  20:3   warning  'Eye' is defined but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+  20:3   warning  'Eye' is defined but never used                                                    unused-imports/no-unused-imports
+  30:9   warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  30:9   warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  47:21  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\lotes\page.tsx
+   11:60  warning  'Download' is defined but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+   11:60  warning  'Download' is defined but never used                                               unused-imports/no-unused-imports
+   11:90  warning  'AlertTriangle' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+   11:90  warning  'AlertTriangle' is defined but never used                                          unused-imports/no-unused-imports
+  110:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  141:21  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  155:21  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\listado\page.tsx
+    4:29  warning  'CardHeader' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+    4:29  warning  'CardHeader' is defined but never used                                        unused-imports/no-unused-imports
+    4:41  warning  'CardTitle' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+    4:41  warning  'CardTitle' is defined but never used                                         unused-imports/no-unused-imports
+  131:42  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  137:48  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  143:46  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  149:38  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  155:39  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\login\page.tsx
+   18:48  warning  'Requires2FAResponse' is defined but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+   18:48  warning  'Requires2FAResponse' is defined but never used                                             unused-imports/no-unused-imports
+   18:74  warning  'Requires2FASetupResponse' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   18:74  warning  'Requires2FASetupResponse' is defined but never used                                        unused-imports/no-unused-imports
+   19:10  warning  'Input2FA' is defined but never used. Allowed unused vars must match /^_/u                  @typescript-eslint/no-unused-vars
+   19:10  warning  'Input2FA' is defined but never used                                                        unused-imports/no-unused-imports
+   51:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+   84:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+   91:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+   92:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  101:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  112:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  113:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  114:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  136:21  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  173:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  185:21  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  204:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  205:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  221:21  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\models\interfaces\analisis-service.ts
+  29:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  30:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  31:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  32:8   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  33:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\models\interfaces\lote.ts
+  1:10  warning  'TipoMYCCatalogo' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  1:10  warning  'TipoMYCCatalogo' is defined but never used                                        unused-imports/no-unused-imports
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\models\interfaces\repeticiones.ts
+  112:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\notificaciones\page.tsx
+   13:10  warning  'Badge' is defined but never used. Allowed unused vars must match /^_/u                @typescript-eslint/no-unused-vars
+   13:10  warning  'Badge' is defined but never used                                                      unused-imports/no-unused-imports
+   24:5   warning  'CardDescription' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+   24:5   warning  'CardDescription' is defined but never used                                            unused-imports/no-unused-imports
+   32:5   warning  'Trash2' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+   32:5   warning  'Trash2' is defined but never used                                                     unused-imports/no-unused-imports
+   34:5   warning  'Calendar' is defined but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+   34:5   warning  'Calendar' is defined but never used                                                   unused-imports/no-unused-imports
+   35:5   warning  'User' is defined but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+   35:5   warning  'User' is defined but never used                                                       unused-imports/no-unused-imports
+   36:5   warning  'FileText' is defined but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+   36:5   warning  'FileText' is defined but never used                                                   unused-imports/no-unused-imports
+   44:9   warning  'totalCount' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   44:9   warning  'totalCount' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+   72:75  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+  208:85  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+  243:79  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+  304:45  warning  Unexpected console statement. Only these console methods are allowed: warn, error      no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\perfil\2fa\page.tsx
+    7:10  warning  'Input2FA' is defined but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+    7:10  warning  'Input2FA' is defined but never used                                                unused-imports/no-unused-imports
+   15:11  warning  'Setup2FAResponse' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   15:11  warning  'Setup2FAResponse' is defined but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+   39:9   warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+   39:9   warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u   unused-imports/no-unused-vars
+   81:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  104:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  139:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  140:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  150:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  168:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  175:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  181:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  182:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  183:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  189:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  198:21  warning  Unexpected any. Specify a different type                                            @typescript-eslint/no-explicit-any
+  232:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  248:21  warning  Unexpected any. Specify a different type                                            @typescript-eslint/no-explicit-any
+  283:21  warning  Unexpected any. Specify a different type                                            @typescript-eslint/no-explicit-any
+  393:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\perfil\page.tsx
+    7:23  warning  'C:\Nadia\ProyectoFinal\inia-frontend-jc\node_modules\sonner\dist\index.js' imported multiple times  import/no-duplicates
+   10:25  warning  'C:\Nadia\ProyectoFinal\inia-frontend-jc\node_modules\sonner\dist\index.js' imported multiple times  import/no-duplicates
+   32:11  warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u                    @typescript-eslint/no-unused-vars
+   32:11  warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u                    unused-imports/no-unused-vars
+  221:25  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+  315:76  warning  Unexpected any. Specify a different type                                                             @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\registro\analisis\dosn\fields\fields-brassica.tsx
+  19:15  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  20:33  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  24:72  warning  'contexto' is assigned a value but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+  24:72  warning  'contexto' is assigned a value but never used. Allowed unused args must match /^_/u         unused-imports/no-unused-vars
+  74:72  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  86:9   warning  'tieneNoContiene' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  86:9   warning  'tieneNoContiene' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\registro\analisis\dosn\fields\fields-cumplio-estandar.tsx
+   3:10  warning  'useEffect' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   3:10  warning  'useEffect' is defined but never used                                        unused-imports/no-unused-imports
+  16:13  warning  Unexpected any. Specify a different type                                     @typescript-eslint/no-explicit-any
+  17:45  warning  Unexpected any. Specify a different type                                     @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\registro\analisis\dosn\fields\fileds-cuscuta.tsx
+  10:24  warning  'CheckCircle2' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  10:24  warning  'CheckCircle2' is defined but never used                                        unused-imports/no-unused-imports
+  14:13  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  15:45  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  25:42  warning  'formData' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  25:42  warning  'formData' is defined but never used. Allowed unused args must match /^_/u      unused-imports/no-unused-vars
+  76:79  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\registro\analisis\dosn\form-dosn.tsx
+    4:20  warning  'useEffect' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+    4:20  warning  'useEffect' is defined but never used                                              unused-imports/no-unused-imports
+   28:10  warning  'Button' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+   28:10  warning  'Button' is defined but never used                                                 unused-imports/no-unused-imports
+   48:13  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   49:45  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   50:10  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   52:36  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   53:37  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   54:38  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   72:37  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   89:3   warning  'errors' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   89:3   warning  'errors' is assigned a value but never used. Allowed unused args must match /^_/u  unused-imports/no-unused-vars
+  100:52  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  115:9   warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  120:40  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  121:41  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\registro\analisis\germinacion\form-germinacion.tsx
+  17:13  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+  18:45  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+  21:45  warning  'formData' is defined but never used. Allowed unused args must match /^_/u           @typescript-eslint/no-unused-vars
+  21:45  warning  'formData' is defined but never used. Allowed unused args must match /^_/u           unused-imports/no-unused-vars
+  21:55  warning  'handleInputChange' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  21:55  warning  'handleInputChange' is defined but never used. Allowed unused args must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\registro\analisis\page.tsx
+    19:37  warning  '@/app/services/lote-service' imported multiple times                                                      import/no-duplicates
+    20:39  warning  '@/app/services/lote-service' imported multiple times                                                      import/no-duplicates
+    28:10  warning  'clearDosnStorage' is defined but never used. Allowed unused vars must match /^_/u                         @typescript-eslint/no-unused-vars
+    28:10  warning  'clearDosnStorage' is defined but never used                                                               unused-imports/no-unused-imports
+    28:28  warning  'clearGerminacionStorage' is defined but never used. Allowed unused vars must match /^_/u                  @typescript-eslint/no-unused-vars
+    28:28  warning  'clearGerminacionStorage' is defined but never used                                                        unused-imports/no-unused-imports
+    28:53  warning  'clearTetrazolioStorage' is defined but never used. Allowed unused vars must match /^_/u                   @typescript-eslint/no-unused-vars
+    28:53  warning  'clearTetrazolioStorage' is defined but never used                                                         unused-imports/no-unused-imports
+    28:77  warning  'clearPurezaStorage' is defined but never used. Allowed unused vars must match /^_/u                       @typescript-eslint/no-unused-vars
+    28:77  warning  'clearPurezaStorage' is defined but never used                                                             unused-imports/no-unused-imports
+   110:21  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   150:50  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   151:52  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   152:54  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   155:62  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   156:64  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   157:66  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   163:50  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   164:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   168:51  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   169:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   173:52  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   174:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   179:56  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   180:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   184:57  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   185:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   189:9   warning  'handlePurezaBrassicasChange' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+   189:9   warning  'handlePurezaBrassicasChange' is assigned a value but never used. Allowed unused vars must match /^_/u     unused-imports/no-unused-vars
+   189:58  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   190:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   195:39  warning  'setMostrarValidacionTetrazolio' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   195:39  warning  'setMostrarValidacionTetrazolio' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+   302:57  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   306:70  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   372:18  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   391:33  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   399:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   400:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   401:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   402:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   405:11  warning  'cultivosListWithOtros' is never reassigned. Use 'const' instead                                           prefer-const
+   445:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   446:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   447:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   453:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   475:48  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   476:48  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   477:50  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   478:50  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   479:44  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   480:53  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   481:51  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   482:46  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   485:40  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   485:88  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   486:42  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   486:92  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   487:42  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   487:92  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   488:36  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   488:80  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   489:45  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   489:98  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   490:43  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   490:94  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   491:38  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   491:84  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   494:33  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   494:74  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   495:42  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   495:92  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   496:42  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   496:92  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   497:36  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   497:80  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   498:45  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   498:98  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   499:43  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   499:94  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   500:34  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   615:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   617:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   619:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   623:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   626:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   645:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   660:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   681:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   682:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                          no-console
+   720:19  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   820:16  warning  'err' is defined but never used. Allowed unused caught errors must match /^_/u                             @typescript-eslint/no-unused-vars
+   820:16  warning  'err' is defined but never used. Allowed unused caught errors must match /^_/u                             unused-imports/no-unused-vars
+  1043:78  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  1053:78  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  1059:78  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  1065:78  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\registro\analisis\pms\form-pms.tsx
+  12:10  warning  'Button' is defined but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+  12:10  warning  'Button' is defined but never used                                             unused-imports/no-unused-imports
+  18:3   warning  'CheckCircle' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  18:3   warning  'CheckCircle' is defined but never used                                        unused-imports/no-unused-imports
+  25:13  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  26:45  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  57:5   error    Definition for rule 'react-hooks/exhaustive-deps' was not found                react-hooks/exhaustive-deps
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\registro\analisis\pureza\form-pureza.tsx
+   18:10  warning  'Textarea' is defined but never used. Allowed unused vars must match /^_/u                    @typescript-eslint/no-unused-vars
+   18:10  warning  'Textarea' is defined but never used                                                          unused-imports/no-unused-imports
+   28:5   warning  'MessageCircle' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+   28:5   warning  'MessageCircle' is defined but never used                                                     unused-imports/no-unused-imports
+   53:15  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   54:47  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   55:30  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   56:31  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+  106:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error             no-console
+  107:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error             no-console
+  108:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error             no-console
+  109:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error             no-console
+  110:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error             no-console
+  113:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error             no-console
+  133:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error             no-console
+  199:11  warning  'pesoInicialValido' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  199:11  warning  'pesoInicialValido' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\registro\analisis\tetrazolio\form-tetrazolio.tsx
+  12:10  warning  'Textarea' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  12:10  warning  'Textarea' is defined but never used                                        unused-imports/no-unused-imports
+  36:13  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  37:45  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\registro\lotes\page.tsx
+    8:30  warning  'Loader2' is defined but never used. Allowed unused vars must match /^_/u                   @typescript-eslint/no-unused-vars
+    8:30  warning  'Loader2' is defined but never used                                                         unused-imports/no-unused-imports
+   60:5   warning  'validateForm' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+   60:5   warning  'validateForm' is assigned a value but never used. Allowed unused vars must match /^_/u     unused-imports/no-unused-vars
+   62:5   warning  'handleBlur' is assigned a value but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+   62:5   warning  'handleBlur' is assigned a value but never used. Allowed unused vars must match /^_/u       unused-imports/no-unused-vars
+   63:5   warning  'hasError' is assigned a value but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+   63:5   warning  'hasError' is assigned a value but never used. Allowed unused vars must match /^_/u         unused-imports/no-unused-vars
+   64:5   warning  'getErrorMessage' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   64:5   warning  'getErrorMessage' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+   69:48  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+   80:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+   86:82  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  177:13  warning  'response' is assigned a value but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+  177:13  warning  'response' is assigned a value but never used. Allowed unused vars must match /^_/u         unused-imports/no-unused-vars
+  193:21  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  204:35  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\registro\usuario\page.tsx
+  129:15  warning  'newErrors' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  129:15  warning  'newErrors' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  198:18  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u      @typescript-eslint/no-unused-vars
+  198:18  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u      unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\reportes\dosn\page.tsx
+   98:9   warning  'totalContaminantesListados' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   98:9   warning  'totalContaminantesListados' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+   99:9   warning  'totalCuscuta' is assigned a value but never used. Allowed unused vars must match /^_/u                @typescript-eslint/no-unused-vars
+   99:9   warning  'totalCuscuta' is assigned a value but never used. Allowed unused vars must match /^_/u                unused-imports/no-unused-vars
+  230:50  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  266:50  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  304:50  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\reportes\germinacion\page.tsx
+  28:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  29:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  30:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  31:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\reportes\pureza\page.tsx
+  228:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  264:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  302:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\reportes\tetrazolio\page.tsx
+    8:84  warning  'Cell' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+    8:84  warning  'Cell' is defined but never used                                         unused-imports/no-unused-imports
+  163:42  warning  'index' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  163:42  warning  'index' is defined but never used. Allowed unused args must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\reset-password\page.tsx
+   3:27  warning  'useEffect' is defined but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+   3:27  warning  'useEffect' is defined but never used                                                unused-imports/no-unused-imports
+  15:10  warning  'Input2FA' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+  15:10  warning  'Input2FA' is defined but never used                                                 unused-imports/no-unused-imports
+  15:20  warning  'InputRecoveryCode' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  15:20  warning  'InputRecoveryCode' is defined but never used                                        unused-imports/no-unused-imports
+  65:13  warning  'result' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  65:13  warning  'result' is assigned a value but never used. Allowed unused vars must match /^_/u    unused-imports/no-unused-vars
+  72:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error    no-console
+  86:21  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\services\analisis-service.ts
+   3:3   warning  'AnalisisGenerico' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   3:3   warning  'AnalisisGenerico' is defined but never used                                        unused-imports/no-unused-imports
+   9:50  warning  Unexpected any. Specify a different type                                            @typescript-eslint/no-explicit-any
+  35:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  36:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  38:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  40:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error   no-console
+  82:12  warning  Unexpected any. Specify a different type                                            @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\services\api.ts
+  10:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error     no-console
+  11:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error     no-console
+  19:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error     no-console
+  28:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error     no-console
+  29:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error     no-console
+  44:16  warning  'jsonError' is defined but never used. Allowed unused caught errors must match /^_/u  @typescript-eslint/no-unused-vars
+  44:16  warning  'jsonError' is defined but never used. Allowed unused caught errors must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\services\auth-2fa-service.ts
+  136:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  137:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  138:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  139:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  153:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  158:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  159:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  160:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  167:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  179:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  180:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  186:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  187:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  193:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  194:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  215:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  229:19  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  243:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  305:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  317:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  321:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  322:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  328:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  367:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  368:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  369:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  381:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  385:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  386:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  432:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  444:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  448:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  454:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  495:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  507:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  511:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  512:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  518:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  554:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  566:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  570:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  576:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  601:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  611:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  615:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  624:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  773:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  785:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  789:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  790:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  791:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  810:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  820:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  824:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\services\auth-service.ts
+  3:3  warning  'LoginRequest' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  3:3  warning  'LoginRequest' is defined but never used                                        unused-imports/no-unused-imports
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\services\catalogo-service.ts
+  62:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  67:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  72:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  77:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  82:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  87:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\services\cultivar-service.ts
+  85:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  85:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  85:71  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\services\exportacion-service.ts
+  93:7  warning  'advertencias' is never reassigned. Use 'const' instead  prefer-const
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\services\lote-service.ts
+  5:3  warning  'ResponseListadoLote' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  5:3  warning  'ResponseListadoLote' is defined but never used                                        unused-imports/no-unused-imports
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\services\pms-service.ts
+  5:3  warning  'ResponseListadoPms' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  5:3  warning  'ResponseListadoPms' is defined but never used                                        unused-imports/no-unused-imports
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\app\services\pureza-service.ts
+   5:3  warning  'ResponseListadoPureza' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   5:3  warning  'ResponseListadoPureza' is defined but never used                                        unused-imports/no-unused-imports
+  19:3  warning  Unexpected console statement. Only these console methods are allowed: warn, error        no-console
+  21:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error        no-console
+  28:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error        no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\analisis\analisis-acciones-card.tsx
+  37:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  90:21  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\analisis\analisis-info-general-card.tsx
+  64:3  warning  'idLote' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  64:3  warning  'idLote' is defined but never used. Allowed unused args must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\analisis\analysis-history-card.tsx
+  13:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\analisis\historial-modal.tsx
+  16:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\analisis\tabla-tolerancias-button.tsx
+  5:10  warning  'FileText' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  5:10  warning  'FileText' is defined but never used                                        unused-imports/no-unused-imports
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\auth-provider.tsx
+  57:11  warning  'rawRole' is never reassigned. Use 'const' instead                                 prefer-const
+  72:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  92:39  warning  'password' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+  92:39  warning  'password' is defined but never used. Allowed unused args must match /^_/u         unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\dashboard-layout.tsx
+  16:39  warning  'Settings' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  16:39  warning  'Settings' is defined but never used                                        unused-imports/no-unused-imports
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\forms\FormSelect.tsx
+  12:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\forms\cambiar-password-form.tsx
+  3:10  warning  'Button' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  3:10  warning  'Button' is defined but never used                                        unused-imports/no-unused-imports
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\germinacion\repeticion-row.tsx
+   28:3  warning  'isFinalized' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   28:3  warning  'isFinalized' is defined but never used. Allowed unused args must match /^_/u      unused-imports/no-unused-vars
+   31:3  warning  'onEliminar' is defined but never used. Allowed unused args must match /^_/u       @typescript-eslint/no-unused-vars
+   31:3  warning  'onEliminar' is defined but never used. Allowed unused args must match /^_/u       unused-imports/no-unused-vars
+  103:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  104:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  110:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  117:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  131:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  136:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  141:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\germinacion\repeticiones-germinacion-manager.tsx
+   43:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   46:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   49:19  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   64:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   79:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   85:19  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   96:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  109:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  115:19  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  140:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  143:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  149:19  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\germinacion\repeticiones-manager-v2.tsx
+    5:10  warning  'Button' is defined but never used. Allowed unused vars must match /^_/u                    @typescript-eslint/no-unused-vars
+    5:10  warning  'Button' is defined but never used                                                          unused-imports/no-unused-imports
+   14:10  warning  'Plus' is defined but never used. Allowed unused vars must match /^_/u                      @typescript-eslint/no-unused-vars
+   14:10  warning  'Plus' is defined but never used                                                            unused-imports/no-unused-imports
+   31:3   warning  'isFinalized' is defined but never used. Allowed unused args must match /^_/u               @typescript-eslint/no-unused-vars
+   31:3   warning  'isFinalized' is defined but never used. Allowed unused args must match /^_/u               unused-imports/no-unused-vars
+   44:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+   46:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+   47:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+   57:19  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+   71:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+   72:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+   79:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+   86:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+   94:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+   96:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  102:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  107:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  109:21  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  119:9   warning  'puedeAgregarMas' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  119:9   warning  'puedeAgregarMas' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\germinacion\tablas-germinacion-section.tsx
+     9:10  warning  'ValoresGermDTO' is defined but never used. Allowed unused vars must match /^_/u                       @typescript-eslint/no-unused-vars
+     9:10  warning  'ValoresGermDTO' is defined but never used                                                             unused-imports/no-unused-imports
+    10:10  warning  'Instituto' is defined but never used. Allowed unused vars must match /^_/u                            @typescript-eslint/no-unused-vars
+    10:10  warning  'Instituto' is defined but never used                                                                  unused-imports/no-unused-imports
+    26:3   warning  'obtenerValoresPorTabla' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+    26:3   warning  'obtenerValoresPorTabla' is defined but never used                                                     unused-imports/no-unused-imports
+    37:17  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+    45:3   warning  'onTablaUpdated' is defined but never used. Allowed unused args must match /^_/u                       @typescript-eslint/no-unused-vars
+    45:3   warning  'onTablaUpdated' is defined but never used. Allowed unused args must match /^_/u                       unused-imports/no-unused-vars
+    53:10  warning  'finalizandoGerminacion' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+    53:10  warning  'finalizandoGerminacion' is assigned a value but never used. Allowed unused vars must match /^_/u      unused-imports/no-unused-vars
+    58:10  warning  'mostrandoPorcentajes' is assigned a value but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+    58:10  warning  'mostrandoPorcentajes' is assigned a value but never used. Allowed unused vars must match /^_/u        unused-imports/no-unused-vars
+    59:10  warning  'mostrandoValores' is assigned a value but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+    59:10  warning  'mostrandoValores' is assigned a value but never used. Allowed unused vars must match /^_/u            unused-imports/no-unused-vars
+    60:10  warning  'cargandoValores' is assigned a value but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+    60:10  warning  'cargandoValores' is assigned a value but never used. Allowed unused vars must match /^_/u             unused-imports/no-unused-vars
+   218:9   warning  'handleFinalizarGerminacion' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   218:9   warning  'handleFinalizarGerminacion' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+   249:9   warning  'handleEditarTabla' is assigned a value but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+   249:9   warning  'handleEditarTabla' is assigned a value but never used. Allowed unused vars must match /^_/u           unused-imports/no-unused-vars
+   280:45  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+   287:50  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+   298:37  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+   405:59  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+   898:9   warning  'handleMostrarValores' is assigned a value but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+   898:9   warning  'handleMostrarValores' is assigned a value but never used. Allowed unused vars must match /^_/u        unused-imports/no-unused-vars
+   922:16  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                       @typescript-eslint/no-unused-vars
+   922:16  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                       unused-imports/no-unused-vars
+   946:16  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                       @typescript-eslint/no-unused-vars
+   946:16  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                       unused-imports/no-unused-vars
+   980:9   warning  'handleEditarValores' is assigned a value but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+   980:9   warning  'handleEditarValores' is assigned a value but never used. Allowed unused vars must match /^_/u         unused-imports/no-unused-vars
+  1138:9   warning  'puedeIngresarPorcentajes' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  1138:9   warning  'puedeIngresarPorcentajes' is assigned a value but never used. Allowed unused vars must match /^_/u    unused-imports/no-unused-vars
+  1143:9   warning  'puedeEditarPorcentajes' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+  1143:9   warning  'puedeEditarPorcentajes' is assigned a value but never used. Allowed unused vars must match /^_/u      unused-imports/no-unused-vars
+  1147:9   warning  'puedeEditarValores' is assigned a value but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+  1147:9   warning  'puedeEditarValores' is assigned a value but never used. Allowed unused vars must match /^_/u          unused-imports/no-unused-vars
+  1159:54  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  1183:18  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                       @typescript-eslint/no-unused-vars
+  1183:18  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                       unused-imports/no-unused-vars
+  1200:18  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                       @typescript-eslint/no-unused-vars
+  1200:18  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                       unused-imports/no-unused-vars
+  1396:81  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2142:95  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2720:96  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2739:77  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2745:77  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2751:77  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2757:77  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2772:96  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2793:79  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2799:79  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2805:79  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2811:79  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2823:96  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2826:97  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2827:93  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2828:95  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2829:95  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2875:96  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  2878:93  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\lotes\analysis-modal.tsx
+  16:8   warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  17:18  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  19:18  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  38:10  warning  'showWeightAlert' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  38:10  warning  'showWeightAlert' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\lotes\datos-humedad-manager.tsx
+   3:10  warning  'useState' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+   3:10  warning  'useState' is defined but never used                                         unused-imports/no-unused-imports
+   3:20  warning  'useEffect' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   3:20  warning  'useEffect' is defined but never used                                        unused-imports/no-unused-imports
+  44:83  warning  Unexpected any. Specify a different type                                     @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\lotes\lot-details-modal.tsx
+  28:3   warning  'onEdit' is defined but never used. Allowed unused args must match /^_/u                         @typescript-eslint/no-unused-vars
+  28:3   warning  'onEdit' is defined but never used. Allowed unused args must match /^_/u                         unused-imports/no-unused-vars
+  30:3   warning  'onViewAnalysis' is defined but never used. Allowed unused args must match /^_/u                 @typescript-eslint/no-unused-vars
+  30:3   warning  'onViewAnalysis' is defined but never used. Allowed unused args must match /^_/u                 unused-imports/no-unused-vars
+  34:10  warning  'analysisType' is assigned a value but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+  34:10  warning  'analysisType' is assigned a value but never used. Allowed unused vars must match /^_/u          unused-imports/no-unused-vars
+  44:9   warning  'handleCreateAnalysis' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  44:9   warning  'handleCreateAnalysis' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  50:9   warning  'handleViewAnalysis' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  50:9   warning  'handleViewAnalysis' is assigned a value but never used. Allowed unused vars must match /^_/u    unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\lotes\lot-form-tabs.tsx
+    5:10  warning  'AlertCircle' is defined but never used. Allowed unused vars must match /^_/u                   @typescript-eslint/no-unused-vars
+    5:10  warning  'AlertCircle' is defined but never used                                                         unused-imports/no-unused-imports
+   15:10  warning  'TipoAnalisis' is defined but never used. Allowed unused vars must match /^_/u                  @typescript-eslint/no-unused-vars
+   15:10  warning  'TipoAnalisis' is defined but never used                                                        unused-imports/no-unused-imports
+   22:3   warning  'isLoading' is assigned a value but never used. Allowed unused args must match /^_/u            @typescript-eslint/no-unused-vars
+   22:3   warning  'isLoading' is assigned a value but never used. Allowed unused args must match /^_/u            unused-imports/no-unused-vars
+   27:10  warning  'isValidating' is assigned a value but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+   27:10  warning  'isValidating' is assigned a value but never used. Allowed unused vars must match /^_/u         unused-imports/no-unused-vars
+   34:5   warning  'clearValidation' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+   34:5   warning  'clearValidation' is assigned a value but never used. Allowed unused vars must match /^_/u      unused-imports/no-unused-vars
+   37:64  warning  Unexpected any. Specify a different type                                                        @typescript-eslint/no-explicit-any
+   47:54  warning  Unexpected any. Specify a different type                                                        @typescript-eslint/no-explicit-any
+   92:70  warning  Unexpected any. Specify a different type                                                        @typescript-eslint/no-explicit-any
+  113:9   warning  'hasFieldError' is assigned a value but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+  113:9   warning  'hasFieldError' is assigned a value but never used. Allowed unused vars must match /^_/u        unused-imports/no-unused-vars
+  137:43  warning  Unexpected any. Specify a different type                                                        @typescript-eslint/no-explicit-any
+  142:9   warning  'tiposHumedadOptions' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  142:9   warning  'tiposHumedadOptions' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  143:42  warning  Unexpected any. Specify a different type                                                        @typescript-eslint/no-explicit-any
+  149:40  warning  Unexpected any. Specify a different type                                                        @typescript-eslint/no-explicit-any
+  155:39  warning  Unexpected any. Specify a different type                                                        @typescript-eslint/no-explicit-any
+  161:43  warning  Unexpected any. Specify a different type                                                        @typescript-eslint/no-explicit-any
+  167:49  warning  Unexpected any. Specify a different type                                                        @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\lotes\lot-info-card.tsx
+  4:8  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\lotes\lot-list.tsx
+  8:27  warning  'Calendar' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  8:27  warning  'Calendar' is defined but never used                                        unused-imports/no-unused-imports
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\lotes\sections\CalidadSection.tsx
+  4:10  warning  'Label' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  4:10  warning  'Label' is defined but never used                                        unused-imports/no-unused-imports
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\lotes\sections\DatosSection.tsx
+  80:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\lotes\types.ts
+  5:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\malezas-u-otros-cultivos\fields-maleza.tsx
+   24:15  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+   25:33  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+   29:77  warning  'contexto' is assigned a value but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+   29:77  warning  'contexto' is assigned a value but never used. Allowed unused args must match /^_/u         unused-imports/no-unused-vars
+   57:16  warning  'err' is defined but never used. Allowed unused caught errors must match /^_/u              @typescript-eslint/no-unused-vars
+   57:16  warning  'err' is defined but never used. Allowed unused caught errors must match /^_/u              unused-imports/no-unused-vars
+  106:68  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  135:9   warning  'tieneNoContiene' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  135:9   warning  'tieneNoContiene' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\malezas-u-otros-cultivos\fields-otros-cultivos.tsx
+   23:15  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+   24:33  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+   28:76  warning  'contexto' is assigned a value but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+   28:76  warning  'contexto' is assigned a value but never used. Allowed unused args must match /^_/u         unused-imports/no-unused-vars
+   55:16  warning  'err' is defined but never used. Allowed unused caught errors must match /^_/u              @typescript-eslint/no-unused-vars
+   55:16  warning  'err' is defined but never used. Allowed unused caught errors must match /^_/u              unused-imports/no-unused-vars
+  100:66  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  120:9   warning  'tieneNoContiene' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  120:9   warning  'tieneNoContiene' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\notificaciones\NotificationDropdown.tsx
+   6:5  warning  'BellRing' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   6:5  warning  'BellRing' is defined but never used                                        unused-imports/no-unused-imports
+   7:5  warning  'Check' is defined but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+   7:5  warning  'Check' is defined but never used                                           unused-imports/no-unused-imports
+   9:5  warning  'Trash2' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+   9:5  warning  'Trash2' is defined but never used                                          unused-imports/no-unused-imports
+  10:5  warning  'Filter' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  10:5  warning  'Filter' is defined but never used                                          unused-imports/no-unused-imports
+  14:5  warning  'Settings' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  14:5  warning  'Settings' is defined but never used                                        unused-imports/no-unused-imports
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\notificaciones\NotificationIcon.tsx
+  54:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\notificaciones\NotificationProvider.tsx
+  126:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error        no-console
+  132:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error        no-console
+  138:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error        no-console
+  145:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error        no-console
+  154:12  warning  'typeFilter' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  154:12  warning  'typeFilter' is assigned a value but never used. Allowed unused vars must match /^_/u    unused-imports/no-unused-vars
+  155:12  warning  'statusFilter' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  155:12  warning  'statusFilter' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  161:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error        no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\pdf-viewer-modal.tsx
+  3:10  warning  'useState' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  3:10  warning  'useState' is defined but never used                                        unused-imports/no-unused-imports
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\pwa-install.tsx
+   51:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   53:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  160:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\ui\combobox.tsx
+   5:21  warning  'CommandPrimitive' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   5:21  warning  'CommandPrimitive' is defined but never used                                        unused-imports/no-unused-imports
+  12:18  warning  Unexpected any. Specify a different type                                            @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\ui\form-field.tsx
+  9:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\components\ui\form-select.tsx
+  9:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\jest.setup.js
+  32:5  error  Definition for rule 'jsx-a11y/alt-text' was not found  jsx-a11y/alt-text
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\api-client.ts
+  16:18  warning  'cookie' is never reassigned. Use 'const' instead                                  prefer-const
+  37:36  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  43:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  44:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  63:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  68:28  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  80:22  warning  'e' is defined but never used. Allowed unused caught errors must match /^_/u       @typescript-eslint/no-unused-vars
+  80:22  warning  'e' is defined but never used. Allowed unused caught errors must match /^_/u       unused-imports/no-unused-vars
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\fingerprint.ts
+   16:14  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   26:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   64:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   94:19  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  110:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  130:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\hooks\use-form-persistence.ts
+   11:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   21:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:59  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  125:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\hooks\use-notification-websocket.ts
+  115:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  121:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  130:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  137:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  139:19  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  156:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  174:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  190:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  194:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  216:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  222:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  228:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  234:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\hooks\use-notifications.ts
+   85:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\hooks\use-online-status.ts
+  14:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  19:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  44:46  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  45:31  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  46:31  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  61:42  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  62:27  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  63:27  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\hooks\useDebounce.ts
+  6:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  6:59  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\hooks\useFormValidation.ts
+  18:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  50:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  74:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\hooks\useLoteValidation.ts
+  20:5   warning  'clearValidation' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  20:5   warning  'clearValidation' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+  27:40  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  36:46  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\hooks\useValidation.ts
+   8:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  17:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  28:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  66:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\utils\clear-form-storage.ts
+  27:3  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  46:3  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  65:3  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  86:3  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  97:3  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\utils\notification-utils.ts
+  161:75  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\utils\pagination-helper.ts
+  45:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\validations\lotes-validation.ts
+  11:5  warning  'maxValue' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  11:5  warning  'maxValue' is defined but never used                                         unused-imports/no-unused-imports
+  13:5  warning  'maxLength' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  13:5  warning  'maxLength' is defined but never used                                        unused-imports/no-unused-imports
+  14:5  warning  'pattern' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  14:5  warning  'pattern' is defined but never used                                          unused-imports/no-unused-imports
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\validations\validation-rules.ts
+    9:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   19:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   30:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   42:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  143:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  143:86  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\lib\websocket\notification-websocket.ts
+   66:60  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   98:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  108:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  114:54  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  124:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  140:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  167:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  190:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  198:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  213:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  228:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  243:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  252:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  262:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  273:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  293:53  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  314:52  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  340:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\Nadia\ProyectoFinal\inia-frontend-jc\scripts\test-exportacion.js
+   12:1   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   15:1   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   19:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   24:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   35:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   36:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   37:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   40:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   41:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   56:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   66:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   79:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   80:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   81:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   84:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   85:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  100:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  109:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  113:12  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u   @typescript-eslint/no-unused-vars
+  113:12  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u   unused-imports/no-unused-vars
+  129:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  134:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  135:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  136:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  141:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  142:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  148:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  154:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  158:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  159:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  160:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  161:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  175:1   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  176:1   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  177:1   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  178:1   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+Ô£û 1315 problems (13 errors, 1302 warnings)
+  0 errors and 138 warnings potentially fixable with the `--fix` option.
+
+
