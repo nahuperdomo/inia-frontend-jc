@@ -1,6 +1,5 @@
 import { apiFetch } from "./api";
 import {
-  AnalisisGenerico,
   ResumenAnalisis,
   AnalisisPorLoteResponse
 } from "../models";

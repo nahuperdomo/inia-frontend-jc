@@ -45,10 +45,7 @@ import {
 } from "@/components/ui/select"
 
 // Servicios
-import { 
-  obtenerTodosLosContactos,
-  obtenerEmpresas,
-  obtenerClientes,
+import {
   obtenerContactosPaginados,
   crearContacto,
   actualizarContacto,

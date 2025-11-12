@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const perfil = await obtenerPerfil()
       // Determinar rol desde perfil.rol o perfil.roles[0]
-      let rawRole = (perfil.rol || (perfil.roles && perfil.roles[0]) || "").toString().toLowerCase()
+      const rawRole = (perfil.rol || (perfil.roles && perfil.roles[0]) || "").toString().toLowerCase()
       let role: "analista" | "administrador" | "observador" = "analista"
       if (rawRole.includes("admin")) role = "administrador"
       else if (rawRole.includes("observador") || rawRole.includes("viewer") || rawRole.includes("read")) role = "observador"

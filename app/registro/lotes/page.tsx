@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Package, Loader2, AlertCircle } from "lucide-react"
+import { ArrowLeft, Package, AlertCircle } from "lucide-react"
 import { validarFichaUnica, validarNombreLoteUnico } from "@/lib/validations/lotes-async-validation"
 import Link from "next/link"
 import { Toaster, toast } from 'sonner'

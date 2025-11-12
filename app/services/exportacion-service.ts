@@ -90,7 +90,7 @@ export function generarNombreArchivo(prefijo: string = 'analisis'): string {
  */
 export function generarResumenFiltros(filtros: ExportacionFiltrosDTO): ResumenFiltros {
   const filtrosAplicados: string[] = [];
-  let advertencias: string[] = [];
+  const advertencias: string[] = [];
   
   // Analizar rango de fechas
   if (filtros.fechaDesde || filtros.fechaHasta) {

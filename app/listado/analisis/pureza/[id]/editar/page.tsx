@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArrowLeft, Save, Loader2, AlertTriangle, Search, Plus, Trash2, Leaf, CheckCircle2, Scale, FlaskConical, Microscope, PieChart, Calendar, Calculator, Percent, Building2, FileText, XCircle } from "lucide-react"
+import { ArrowLeft, Loader2, AlertTriangle, Plus, Trash2, Leaf, CheckCircle2, Scale, FlaskConical, Microscope, PieChart, Calendar, Calculator, Percent, Building2, FileText, XCircle } from "lucide-react"
 import Link from "next/link"
 import { 
   obtenerPurezaPorId, 

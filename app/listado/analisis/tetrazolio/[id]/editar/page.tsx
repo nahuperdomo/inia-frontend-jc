@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Save, Loader2, AlertTriangle, TestTube, Target, Plus, Hash, Edit, X } from "lucide-react"
+import { ArrowLeft, Loader2, AlertTriangle, TestTube, Target, Plus, Hash, Edit, X } from "lucide-react"
 import Link from "next/link"
 import { 
   obtenerTetrazolioPorId, 

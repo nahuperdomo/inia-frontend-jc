@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import * as Popover from "@radix-ui/react-popover"
-import { Command as CommandPrimitive } from "cmdk"
 import { CheckIcon, ChevronDownIcon, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 

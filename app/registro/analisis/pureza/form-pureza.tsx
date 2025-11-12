@@ -15,7 +15,6 @@ import {
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
     Tabs,
@@ -25,7 +24,6 @@ import {
 } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-    MessageCircle,
     Scale,
     Search,
     FlaskConical,

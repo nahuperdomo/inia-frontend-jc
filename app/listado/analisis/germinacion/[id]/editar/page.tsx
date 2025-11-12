@@ -4,7 +4,6 @@ import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useConfirm } from '@/lib/hooks/useConfirm'
 import { 
@@ -17,11 +16,11 @@ import {
   marcarParaRepetir
 } from '@/app/services/germinacion-service'
 import { obtenerLotesActivos } from '@/app/services/lote-service'
-import { GerminacionDTO, GerminacionRequestDTO, GerminacionEditRequestDTO } from '@/app/models/interfaces/germinacion'
+import { GerminacionDTO, GerminacionEditRequestDTO } from '@/app/models/interfaces/germinacion'
 import { LoteSimpleDTO } from '@/app/models/interfaces/lote-simple'
-import { TablaGermDTO, RepGermDTO } from '@/app/models/interfaces/repeticiones'
+import { TablaGermDTO } from '@/app/models/interfaces/repeticiones'
 import { TablasGerminacionSection } from '@/components/germinacion/tablas-germinacion-section'
-import { CalendarDays, Beaker, CheckCircle, Edit } from 'lucide-react'
+import { CalendarDays, Beaker, Edit } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"

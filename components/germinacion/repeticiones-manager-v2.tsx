@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { RepGermDTO, RepGermRequestDTO, TablaGermDTO } from '@/app/models/interfaces/repeticiones'
 import { RepeticionRow } from './repeticion-row'
@@ -11,7 +10,7 @@ import {
   crearRepeticion, 
   actualizarRepeticion 
 } from '@/app/services/germinacion-service'
-import { Plus, Users } from 'lucide-react'
+import { Users } from 'lucide-react'
 
 interface RepeticionesManagerProps {
   tabla: TablaGermDTO

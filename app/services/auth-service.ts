@@ -1,6 +1,5 @@
 import { apiFetch } from "./api";
 import {
-  LoginRequest,
   LoginResponse,
   AuthUsuarioDTO,
   RegistroUsuarioRequest,

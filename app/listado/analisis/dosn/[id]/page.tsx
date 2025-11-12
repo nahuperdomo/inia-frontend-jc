@@ -4,28 +4,23 @@ import React, { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { useConfirm } from "@/lib/hooks/useConfirm"
 
 import {
   ArrowLeft,
   Edit,
-  Download,
-  Calendar,
   FileText,
   BarChart3,
-  CheckCircle,
   AlertTriangle,
   Loader2,
 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { obtenerDosnPorId } from "@/app/services/dosn-service"
-import type { DosnDTO } from "@/app/models"
+import type { DosnDTO  } from "@/app/models"
 import type { EstadoAnalisis, TipoDOSN, TipoListado } from "@/app/models/types/enums"
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
-import * as especiesService from "@/app/services/especie-service"
-import type { EspecieDTO } from "@/app/models"
+
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 import { AnalisisInfoGeneralCard } from "@/components/analisis/analisis-info-general-card"
 import { formatearEstado } from "@/lib/utils/format-estado"

@@ -1,8 +1,7 @@
 import { apiFetch } from "./api";
 import { 
   PmsDTO, 
-  PmsRequestDTO, 
-  ResponseListadoPms 
+  PmsRequestDTO 
 } from "../models";
 
 // PMS functions

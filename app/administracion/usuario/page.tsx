@@ -1,8 +1,8 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { toast } from "sonner"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { toast , Toaster } from "sonner"
 import { useState, useEffect } from "react"
 import {
     Dialog,
@@ -12,8 +12,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { CheckCircle, X, User, Clock, ArrowLeft, Mail, UserCheck, UserX, Users, Edit, Trash2, AlertTriangle, Search, Filter, RefreshCw } from "lucide-react"
-import { Toaster } from "sonner"
+import { Clock, ArrowLeft, Mail, UserCheck, UserX, Users, Edit, Trash2, AlertTriangle, Search, Filter, RefreshCw } from "lucide-react"
+
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
@@ -23,8 +23,7 @@ import {
     listarUsuariosPaginados,
     aprobarUsuario,
     rechazarSolicitud,
-    gestionarUsuario,
-    PaginatedResponse
+    gestionarUsuario
 } from "@/app/services/auth-service"
 import {
     type AuthUsuarioDTO,

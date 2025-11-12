@@ -13,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Leaf, Plus, List, BarChart3, Settings, LogOut, Shield, Bell, Menu, X, Home, User } from "lucide-react"
+import { Leaf, Plus, List, BarChart3, LogOut, Shield, Bell, Menu, X, Home, User } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"

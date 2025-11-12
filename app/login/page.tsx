@@ -15,8 +15,7 @@ import { toast } from 'sonner'
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuth } from "@/components/auth-provider"
 import { getDeviceFingerprint } from "@/lib/fingerprint"
-import { login2FA, type Login2FAResponse, type Requires2FAResponse, type Requires2FASetupResponse, formatBackupCode, setupInitial2FA, verifyInitial2FA } from "@/app/services/auth-2fa-service"
-import { Input2FA } from "@/components/ui/input-2fa"
+import { login2FA, type Login2FAResponse, formatBackupCode, setupInitial2FA, verifyInitial2FA } from "@/app/services/auth-2fa-service"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function LoginPage() {

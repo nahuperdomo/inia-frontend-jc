@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { FlaskConical, CheckCircle2, XCircle, Plus, Trash2 } from "lucide-react"
+import { FlaskConical, XCircle, Plus, Trash2 } from "lucide-react"
 import { Instituto } from "@/app/models/types/enums"
 
 type Props = {

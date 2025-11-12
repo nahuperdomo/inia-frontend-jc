@@ -4,24 +4,18 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import {
   ArrowLeft,
   Edit,
-  Download,
   Calendar,
-  FileText,
   BarChart3,
-  CheckCircle,
   AlertTriangle,
   Loader2,
   Sprout,
   Target,
   Thermometer,
-  Beaker,
   Calculator,
   Building,
-  Table,
 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"

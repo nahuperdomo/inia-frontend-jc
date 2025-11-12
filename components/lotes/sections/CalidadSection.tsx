@@ -1,7 +1,6 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
 import { BarChart3 } from "lucide-react"
 import { LoteDTO } from "@/app/models"
 

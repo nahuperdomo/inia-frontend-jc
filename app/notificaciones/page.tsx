@@ -10,7 +10,6 @@ import {
     getNotificationStats
 } from '@/components/notificaciones';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
     Select,
     SelectContent,
@@ -21,7 +20,6 @@ import {
 import {
     Card,
     CardContent,
-    CardDescription,
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
@@ -29,11 +27,7 @@ import {
     Bell,
     CheckCircle,
     RefreshCw,
-    Trash2,
-    Filter,
-    Calendar,
-    User,
-    FileText
+    Filter
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

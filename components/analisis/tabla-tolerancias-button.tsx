@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { FileText, Table2 } from "lucide-react"
+import { Table2 } from "lucide-react"
 import { PdfViewerModal } from "@/components/pdf-viewer-modal"
 
 interface TablaToleranciasButtonProps {

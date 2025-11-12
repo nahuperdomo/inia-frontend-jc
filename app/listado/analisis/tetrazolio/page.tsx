@@ -6,10 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Microscope, Search, Filter, Plus, Eye, Edit, Trash2, Download, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react"
+import { Microscope, Search, Filter, Plus, Eye, Edit, Trash2, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
-import { obtenerTodosTetrazolio, obtenerTetrazoliosPaginadas, desactivarTetrazolio, activarTetrazolio } from '@/app/services/tetrazolio-service'
+import { obtenerTetrazoliosPaginadas, desactivarTetrazolio, activarTetrazolio } from '@/app/services/tetrazolio-service'
 import Pagination from "@/components/pagination"
 import { toast } from "sonner"
 import { useAuth } from "@/components/auth-provider"

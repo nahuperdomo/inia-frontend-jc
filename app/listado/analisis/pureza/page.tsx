@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -10,7 +10,7 @@ import { FlaskConical, Search, Filter, Plus, ArrowLeft, Eye, Edit, Trash2, Alert
 import Link from "next/link"
 import { obtenerPurezasPaginadas, desactivarPureza, activarPureza } from "@/app/services/pureza-service"
 import Pagination from "@/components/pagination"
-import { PurezaDTO, EstadoAnalisis } from "@/app/models"
+import { EstadoAnalisis } from "@/app/models"
 
 interface PurezaListadoDTO {
   analisisID: number

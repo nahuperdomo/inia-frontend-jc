@@ -8,10 +8,7 @@ import {
     required,
     isNumber,
     minValue,
-    maxValue,
     minLength,
-    maxLength,
-    pattern,
     isValidDate,
     isPastOrPresent,
     compose

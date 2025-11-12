@@ -19,14 +19,12 @@ import {
   Sprout,
   Loader2,
   AlertCircle,
-  CheckCircle2,
   ArrowLeft,
   Save,
   X,
   Tags,
   Package,
   FlaskConical,
-  Microscope,
   Archive,
   Warehouse,
   FileText,
@@ -51,12 +49,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 
 // Servicios
-import { 
-  obtenerTodosCatalogos, 
-  obtenerCatalogoPorTipo,
+import {
   obtenerCatalogosPaginados,
   crearCatalogo,
   actualizarCatalogo,
@@ -72,7 +67,6 @@ import {
   reactivarEspecie
 } from "@/app/services/especie-service"
 import {
-  obtenerTodosCultivares,
   obtenerCultivaresPaginados,
   crearCultivar,
   actualizarCultivar,
@@ -80,8 +74,6 @@ import {
   reactivarCultivar
 } from "@/app/services/cultivar-service"
 import {
-  obtenerTodasMalezas,
-  obtenerMalezasInactivas,
   obtenerMalezasPaginadas,
   crearMaleza,
   actualizarMaleza,

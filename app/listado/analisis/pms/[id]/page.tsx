@@ -10,14 +10,11 @@ import {
   Scale, 
   ArrowLeft, 
   Edit, 
-  Calendar, 
   Hash, 
-  BarChart3, 
-  Target,
+  BarChart3,
   CheckCircle,
   Clock,
-  AlertCircle,
-  Calculator
+  AlertCircle
 } from "lucide-react"
 import { Toaster, toast } from "sonner"
 import Link from "next/link"

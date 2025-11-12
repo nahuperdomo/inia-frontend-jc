@@ -16,8 +16,8 @@ import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
 import GerminacionFields from "@/app/registro/analisis/germinacion/form-germinacion"
 import PmsFields from "@/app/registro/analisis/pms/form-pms"
 import TetrazolioFields from "@/app/registro/analisis/tetrazolio/form-tetrazolio"
-import { obtenerLotesActivos } from "@/app/services/lote-service"
-import { obtenerLotesElegibles } from "@/app/services/lote-service"
+import { obtenerLotesActivos , obtenerLotesElegibles } from "@/app/services/lote-service"
+
 import { LoteSimpleDTO } from "@/app/models"
 import { registrarAnalisis } from "@/app/services/analisis-service"
 import { crearGerminacion } from "@/app/services/germinacion-service"
@@ -25,7 +25,6 @@ import { crearPms } from "@/app/services/pms-service"
 import { TipoAnalisis } from "@/app/models/types/enums"
 import { crearTetrazolio } from "@/app/services/tetrazolio-service"
 import PurezaFields from "./pureza/form-pureza"
-import { clearDosnStorage, clearGerminacionStorage, clearTetrazolioStorage, clearPurezaStorage } from "@/lib/utils/clear-form-storage"
 
 
 export type AnalysisFormData = {
@@ -402,7 +401,7 @@ export default function RegistroAnalisisPage() {
       console.log("  - brassicasList.length:", brassicasList.length);
 
       // Agregar otrosCultivos
-      let cultivosListWithOtros = [...cultivosList];
+      const cultivosListWithOtros = [...cultivosList];
       if (formData.otrosCultivos && formData.otrosCultivos !== "") {
         cultivosListWithOtros.push({
           listadoTipo: "OTROS",

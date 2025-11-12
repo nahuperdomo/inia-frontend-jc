@@ -157,7 +157,7 @@ export default function AdminSetupPage() {
     } catch (error: any) {
       console.error('❌ [AdminSetup] Error:', error)
       
-      let errorMsg = error.message || 'Error al completar configuración'
+      const errorMsg = error.message || 'Error al completar configuración'
       
       toast.error('Error', {
         description: errorMsg,

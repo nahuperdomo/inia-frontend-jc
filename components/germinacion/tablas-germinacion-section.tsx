@@ -6,8 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { TablaGermDTO, PorcentajesRedondeoRequestDTO, TablaGermRequestDTO, RepGermDTO } from '@/app/models/interfaces/repeticiones'
-import { ValoresGermDTO, ValoresGermRequestDTO } from '@/app/models/interfaces/valores-germ'
-import { Instituto } from '@/app/models/types/enums'
+import { ValoresGermRequestDTO } from '@/app/models/interfaces/valores-germ'
 import { RepeticionesManager } from './repeticiones-manager-v2'
 import { Table, Plus, Trash2, CheckCircle, Calculator, Building } from 'lucide-react'
 import { useToast } from '@/lib/hooks/useToast'
@@ -23,7 +22,6 @@ import {
   obtenerTablaPorId
 } from '@/app/services/germinacion-service'
 import {
-  obtenerValoresPorTabla,
   actualizarValores,
   obtenerValoresIniaPorTabla,
   obtenerValoresInasePorTabla

@@ -1,8 +1,7 @@
 import { apiFetch } from "./api";
 import { 
   LoteDTO, 
-  LoteRequestDTO, 
-  ResponseListadoLote,
+  LoteRequestDTO,
   LoteSimpleDTO,
   ResponseListadoLoteSimple
 } from "../models";

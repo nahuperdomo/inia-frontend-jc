@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowLeft, Save, Loader2, AlertTriangle, FileText, Building2, Plus, Trash2, Leaf } from "lucide-react"
+import { ArrowLeft, Loader2, AlertTriangle, FileText, Building2, Plus, Trash2, Leaf } from "lucide-react"
 import Link from "next/link"
 import {
   obtenerDosnPorId,
@@ -23,7 +23,7 @@ import {
 } from "@/app/services/dosn-service"
 import * as malezasService from "@/app/services/malezas-service"
 import * as especiesService from "@/app/services/especie-service"
-import type { DosnDTO, DosnRequestDTO, MalezasCatalogoDTO, TipoListado, Instituto, EspecieDTO } from "@/app/models"
+import type { DosnDTO, DosnRequestDTO, MalezasCatalogoDTO, TipoListado, EspecieDTO } from "@/app/models"
 import { toast } from "sonner"
 import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"

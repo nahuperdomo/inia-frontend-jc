@@ -2,7 +2,6 @@ import { apiFetch } from "./api";
 import {
   PurezaDTO,
   PurezaRequestDTO,
-  ResponseListadoPureza,
   MalezasCatalogoDTO
 } from "../models";
 

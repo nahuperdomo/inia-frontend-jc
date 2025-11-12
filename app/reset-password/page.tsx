@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, Suspense } from 'react'
+import React, { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,7 +12,6 @@ import { Progress } from "@/components/ui/progress"
 import { Leaf, ArrowLeft, CheckCircle2, AlertCircle, Eye, EyeOff, Shield, Mail, Key } from 'lucide-react'
 import { toast } from 'sonner'
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { Input2FA, InputRecoveryCode } from "@/components/ui/input-2fa"
 import { 
   resetPassword, 
   validatePasswordStrength,

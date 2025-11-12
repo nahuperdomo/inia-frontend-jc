@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import {
   Card,
   CardHeader,
@@ -25,7 +25,6 @@ import {
   TabsContent,
 } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
-import { Button } from "@/components/ui/button"
 import {
   Microscope,
   Calendar,

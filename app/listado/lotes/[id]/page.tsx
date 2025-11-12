@@ -11,13 +11,11 @@ import {
   Edit, 
   Calendar,
   Building,
-  User,
   MapPin,
   Scale,
   TestTube,
   Activity,
-  FileText,
-  Eye
+  FileText
 } from "lucide-react"
 import { Toaster, toast } from "sonner"
 import Link from "next/link"

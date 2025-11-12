@@ -13,7 +13,7 @@ function getToken(): string | null {
     // Las cookies se envían automáticamente, pero también podemos leerlas si no son HttpOnly
     if (typeof document !== 'undefined') {
         const cookies = document.cookie.split(';')
-        for (let cookie of cookies) {
+        for (const cookie of cookies) {
             const [name, value] = cookie.trim().split('=')
             if (name === 'token') {
                 return decodeURIComponent(value) // Decodificar por si tiene caracteres especiales

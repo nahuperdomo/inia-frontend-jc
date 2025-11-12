@@ -3,15 +3,10 @@
 import React, { useRef, useEffect } from 'react';
 import {
     Bell,
-    BellRing,
-    Check,
     CheckCheck,
-    Trash2,
-    Filter,
     RefreshCw,
     ChevronLeft,
     ChevronRight,
-    Settings,
     X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { FlaskConical, Package, Calendar, TestTube, Microscope, Beaker, Activity, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { obtenerLotesPaginadas } from "@/app/services/lote-service"

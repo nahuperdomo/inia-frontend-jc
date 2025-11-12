@@ -2,7 +2,6 @@
 import { useMemo, useState, useEffect } from "react"
 import { useAsyncValidation } from "@/lib/hooks/useAsyncValidation"
 import { LotFormTabsProps } from "./types"
-import { AlertCircle } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import FormField from "@/components/ui/form-field"
@@ -12,7 +11,6 @@ import { LoteFormData, loteValidationSchema } from "@/lib/validations/lotes-vali
 import { DatosHumedadManager } from "./datos-humedad-manager"
 import { TiposAnalisisSelector } from "./tipos-analisis-selector"
 import { useAllCatalogs } from "@/lib/hooks/useCatalogs"
-import { TipoAnalisis } from "@/app/models/types/enums"
 
 export function LotFormTabs({
   formData,
