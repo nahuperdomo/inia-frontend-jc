@@ -95,8 +95,12 @@ function ResetPasswordForm() {
         errorMsg = 'El código de recuperación ha expirado (10 min). Solicita uno nuevo'
       } else if (errorText.includes('código de Google Authenticator')) {
         errorMsg = 'El código de Google Authenticator es incorrecto'
+      } else if (errorText.includes('contraseña') && errorText.includes('igual') && errorText.includes('actual')) {
+        errorMsg = 'La nueva contraseña no puede ser igual a la contraseña actual'
       } else if (errorText.includes('contraseña') && errorText.includes('caracteres')) {
         errorMsg = 'La contraseña debe tener mínimo 8 caracteres'
+      } else if (errorText.includes('contraseña') && errorText.includes('letra')) {
+        errorMsg = 'La contraseña debe contener al menos una letra y un número'
       } else if (errorText.includes('no existe') || errorText.includes('No se encontró')) {
         errorMsg = 'No se encontró una cuenta con este email'
       }
@@ -326,8 +330,16 @@ function ResetPasswordForm() {
                       </button>
                     </div>
                     
-                    {/* Indicador de fortaleza */}
-                    {newPassword && (
+                    {/* Error si no es válida */}
+                    {newPassword && !passwordValidation.isValid && (
+                      <div className="flex items-center gap-2 text-red-600">
+                        <AlertCircle className="h-4 w-4" />
+                        <p className="text-sm">{passwordValidation.message}</p>
+                      </div>
+                    )}
+                    
+                    {/* Indicador de fortaleza solo si es válida */}
+                    {newPassword && passwordValidation.isValid && (
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <Progress 

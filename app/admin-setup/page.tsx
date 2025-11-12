@@ -163,8 +163,10 @@ export default function AdminSetupPage() {
         throw new Error('Por favor corrige los errores en el formulario')
       }
 
-      if (!formData.newPassword || formData.newPassword.length < 8) {
-        throw new Error('La contraseña debe tener mínimo 8 caracteres')
+      // Validar contraseña con los estándares
+      const passwordValidation = validatePasswordStrength(formData.newPassword)
+      if (!passwordValidation.isValid) {
+        throw new Error(passwordValidation.message)
       }
 
       if (formData.newPassword !== formData.confirmPassword) {
@@ -386,9 +388,10 @@ export default function AdminSetupPage() {
                     <Input
                       id="newPassword"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Mínimo 8 caracteres"
+                      placeholder="Mínimo 8 caracteres, letra y número"
                       value={formData.newPassword}
                       onChange={(e) => handleInputChange('newPassword', e.target.value)}
+                      className={passwordStrength && !passwordStrength.isValid ? 'border-red-500' : ''}
                       required
                       autoComplete="new-password"
                     />
@@ -400,7 +403,13 @@ export default function AdminSetupPage() {
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                  {passwordStrength && (
+                  {passwordStrength && !passwordStrength.isValid && (
+                    <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                      <AlertCircle className="h-4 w-4" />
+                      {passwordStrength.message}
+                    </p>
+                  )}
+                  {passwordStrength && passwordStrength.isValid && (
                     <div className="flex items-center gap-2">
                       <div className={`h-2 flex-1 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700`}>
                         <div

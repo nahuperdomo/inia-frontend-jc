@@ -721,30 +721,47 @@ export function validatePasswordStrength(password: string): {
   strength: 'weak' | 'medium' | 'strong';
   message: string;
 } {
+  // Requisito 1: Mínimo 8 caracteres
   if (password.length < 8) {
     return {
       isValid: false,
       strength: 'weak',
-      message: 'La contraseña debe tener mínimo 8 caracteres',
+      message: 'Mínimo 8 caracteres',
     };
   }
   
+  // Requisito 2: Al menos una letra
+  const hasLetter = /[a-zA-Z]/.test(password);
+  
+  // Requisito 3: Al menos un número
+  const hasNumber = /\d/.test(password);
+  
+  // Validar requisitos obligatorios
+  if (!hasLetter || !hasNumber) {
+    return {
+      isValid: false,
+      strength: 'weak',
+      message: 'Debe contener al menos una letra y un número',
+    };
+  }
+  
+  // Criterios opcionales para medir fortaleza
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);
-  const hasNumber = /\d/.test(password);
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  const isLong = password.length >= 12;
   
-  const criteriaCount = [hasUpperCase, hasLowerCase, hasNumber, hasSpecialChar].filter(Boolean).length;
+  const bonusCriteria = [hasUpperCase && hasLowerCase, hasSpecialChar, isLong].filter(Boolean).length;
   
-  if (criteriaCount <= 2) {
+  if (bonusCriteria === 0) {
     return {
       isValid: true,
       strength: 'weak',
-      message: 'Contraseña débil. Considera agregar mayúsculas, números o símbolos.',
+      message: 'Contraseña débil',
     };
   }
   
-  if (criteriaCount === 3) {
+  if (bonusCriteria === 1 || bonusCriteria === 2) {
     return {
       isValid: true,
       strength: 'medium',

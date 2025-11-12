@@ -12,6 +12,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { obtenerPerfil, actualizarPerfil } from "@/app/services/auth-service"
+import { validatePasswordStrength } from "@/app/services/auth-2fa-service"
 import { type AuthUsuarioDTO, type ActualizarPerfilRequest } from "@/app/models"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
@@ -52,6 +53,11 @@ export default function PerfilPage() {
     // Estados de validación
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [touched, setTouched] = useState<Record<string, boolean>>({})
+    const [passwordStrength, setPasswordStrength] = useState<{
+        isValid: boolean;
+        strength: 'weak' | 'medium' | 'strong';
+        message: string;
+    } | null>(null)
 
     useEffect(() => {
         cargarPerfil()
@@ -84,13 +90,41 @@ export default function PerfilPage() {
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }))
         
-        // Marcar campo como tocado
-        if (!touched[field]) {
-            setTouched(prev => ({ ...prev, [field]: true }))
+        // Marcar campo como tocado inmediatamente
+        setTouched(prev => ({ ...prev, [field]: true }))
+        
+        // Actualizar indicador de fortaleza de contraseña en tiempo real
+        if (field === 'contraseniaNueva') {
+            if (value) {
+                const validation = validatePasswordStrength(value)
+                setPasswordStrength(validation)
+                // Si la validación no es válida, agregar error
+                if (!validation.isValid) {
+                    setErrors(prev => ({
+                        ...prev,
+                        contraseniaNueva: validation.message
+                    }))
+                } else {
+                    // Si es válida, limpiar el error
+                    setErrors(prev => {
+                        const newErrors = { ...prev }
+                        delete newErrors.contraseniaNueva
+                        return newErrors
+                    })
+                }
+            } else {
+                setPasswordStrength(null)
+                // Limpiar error si está vacío
+                setErrors(prev => {
+                    const newErrors = { ...prev }
+                    delete newErrors.contraseniaNueva
+                    return newErrors
+                })
+            }
         }
         
-        // Limpiar error del campo al escribir
-        if (errors[field]) {
+        // Limpiar error del campo al escribir (excepto para contraseniaNueva que se maneja arriba)
+        if (errors[field] && field !== 'contraseniaNueva') {
             setErrors(prev => {
                 const newErrors = { ...prev }
                 delete newErrors[field]
@@ -134,8 +168,10 @@ export default function PerfilPage() {
 
             if (!formData.contraseniaNueva) {
                 newErrors.contraseniaNueva = "Debe ingresar una nueva contraseña"
-            } else if (formData.contraseniaNueva.length < 6) {
-                newErrors.contraseniaNueva = "La contraseña debe tener al menos 6 caracteres"
+            } else if (formData.contraseniaNueva.length < 8) {
+                newErrors.contraseniaNueva = "La contraseña debe tener al menos 8 caracteres"
+            } else if (!/(?=.*[A-Za-z])(?=.*\d)/.test(formData.contraseniaNueva)) {
+                newErrors.contraseniaNueva = "La contraseña debe contener al menos una letra y un número"
             }
 
             if (!formData.contraseniaConfirmar) {
@@ -543,15 +579,42 @@ export default function PerfilPage() {
                                                     {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                 </button>
                                             </div>
-                                            {errors.contraseniaNueva && touched.contraseniaNueva && (
-                                                <p className="text-sm text-red-500 flex items-center gap-1">
-                                                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
-                                                    <span className="break-words">{errors.contraseniaNueva}</span>
+                                            
+                                            {/* Error si no es válida */}
+                                            {passwordStrength && formData.contraseniaNueva && !passwordStrength.isValid && (
+                                                <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                                                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                                                    <p className="text-sm break-words">{passwordStrength.message}</p>
+                                                </div>
+                                            )}
+                                            
+                                            {/* Indicador de fortaleza solo si es válida */}
+                                            {passwordStrength && formData.contraseniaNueva && passwordStrength.isValid && (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="h-2 flex-1 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+                                                        <div
+                                                            className={`h-full transition-all ${
+                                                                passwordStrength.strength === 'weak' ? 'bg-red-500 w-1/3' :
+                                                                passwordStrength.strength === 'medium' ? 'bg-yellow-500 w-2/3' :
+                                                                'bg-green-500 w-full'
+                                                            }`}
+                                                        />
+                                                    </div>
+                                                    <span className={`text-xs ${
+                                                        passwordStrength.strength === 'weak' ? 'text-red-600 dark:text-red-400' :
+                                                        passwordStrength.strength === 'medium' ? 'text-yellow-600 dark:text-yellow-400' :
+                                                        'text-green-600 dark:text-green-400'
+                                                    }`}>
+                                                        {passwordStrength.message}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            
+                                            {!passwordStrength && !formData.contraseniaNueva && (
+                                                <p className="text-xs text-muted-foreground">
+                                                    Mínimo 8 caracteres, con letra y número
                                                 </p>
                                             )}
-                                            <p className="text-xs text-muted-foreground">
-                                                Mínimo 6 caracteres
-                                            </p>
                                         </div>
 
                                         {/* Confirmar Contraseña */}

@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 import Link from "next/link"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { registrarUsuario, validarNombreUsuarioUnico, validarEmailUnico } from "@/app/services/auth-service"
+import { validatePasswordStrength } from "@/app/services/auth-2fa-service"
 import { RegistroUsuarioRequest } from "@/app/models/interfaces/usuario"
 
 interface UsuarioFormData {
@@ -54,6 +55,11 @@ export default function RegistroUsuarioPage() {
         password: false,
         confirmPassword: false,
     })
+    const [passwordStrength, setPasswordStrength] = useState<{
+        isValid: boolean;
+        strength: 'weak' | 'medium' | 'strong';
+        message: string;
+    } | null>(null)
 
     // Función para marcar un campo como tocado cuando pierde el foco
     const handleBlur = async (field: keyof UsuarioFormData) => {
@@ -119,8 +125,8 @@ export default function RegistroUsuarioPage() {
             case "password":
                 if (!value) {
                     errorMessage = "La contraseña es obligatoria"
-                } else if (value.length < 6) {
-                    errorMessage = "La contraseña debe tener al menos 6 caracteres"
+                } else if (value.length < 8) {
+                    errorMessage = "La contraseña debe tener al menos 8 caracteres"
                 } else if (!/(?=.*[A-Za-z])(?=.*\d)/.test(value)) {
                     errorMessage = "La contraseña debe contener al menos una letra y un número"
                 }
@@ -167,6 +173,16 @@ export default function RegistroUsuarioPage() {
 
     const handleInputChange = (field: keyof UsuarioFormData, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }))
+
+        // Actualizar indicador de fortaleza de contraseña en tiempo real
+        if (field === 'password') {
+            if (value) {
+                const validation = validatePasswordStrength(value)
+                setPasswordStrength(validation)
+            } else {
+                setPasswordStrength(null)
+            }
+        }
 
         // Validar en tiempo real mientras el usuario escribe (sin verificar unicidad)
         validateField(field, value, false)
@@ -336,7 +352,7 @@ export default function RegistroUsuarioPage() {
                                     <Input
                                         id="password"
                                         type="password"
-                                        placeholder="Mínimo 6 caracteres"
+                                        placeholder="Mínimo 8 caracteres, letra y número"
                                         value={formData.password}
                                         onChange={(e) => handleInputChange("password", e.target.value)}
                                         onBlur={() => handleBlur("password")}
@@ -344,6 +360,37 @@ export default function RegistroUsuarioPage() {
                                         required
                                         autoComplete="new-password"
                                     />
+                                    
+                                    {/* Error si no es válida */}
+                                    {passwordStrength && !passwordStrength.isValid && (
+                                        <div className="flex items-center gap-2 mt-2 text-red-600 dark:text-red-400">
+                                            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                                            <p className="text-sm">{passwordStrength.message}</p>
+                                        </div>
+                                    )}
+                                    
+                                    {/* Indicador de fortaleza solo si es válida */}
+                                    {passwordStrength && passwordStrength.isValid && (
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <div className="h-2 flex-1 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+                                                <div
+                                                    className={`h-full transition-all ${
+                                                        passwordStrength.strength === 'weak' ? 'bg-red-500 w-1/3' :
+                                                        passwordStrength.strength === 'medium' ? 'bg-yellow-500 w-2/3' :
+                                                        'bg-green-500 w-full'
+                                                    }`}
+                                                />
+                                            </div>
+                                            <span className={`text-xs ${
+                                                passwordStrength.strength === 'weak' ? 'text-red-600 dark:text-red-400' :
+                                                passwordStrength.strength === 'medium' ? 'text-yellow-600 dark:text-yellow-400' :
+                                                'text-green-600 dark:text-green-400'
+                                            }`}>
+                                                {passwordStrength.message}
+                                            </span>
+                                        </div>
+                                    )}
+                                    
                                     {errors.password && touched.password && (
                                         <div className="flex items-start gap-1 mt-1">
                                             <AlertCircle className="h-3 w-3 text-red-500 mt-0.5 flex-shrink-0" />
