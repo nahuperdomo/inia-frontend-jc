@@ -45,6 +45,7 @@ import {
   actualizarRepPms, 
   eliminarRepPms 
 } from "@/app/services/repeticiones-service"
+import { StickySaveButton } from "@/components/ui/sticky-save-button"
 import { obtenerLotesActivos } from "@/app/services/lote-service"
 
 interface RepeticionEdit extends RepPmsDTO {
@@ -1493,6 +1494,17 @@ export default function EditarPMSPage() {
         }}
         onFinalizar={handleFinalizarAnalisis}
       />
+
+      {/* Botón flotante para guardar cambios al hacer scroll */}
+      {editingParams && (
+        <StickySaveButton
+          onSave={handleSaveAnalisis}
+          isLoading={saving}
+          disabled={!hasChanges || saving}
+          label="Guardar Cambios"
+          loadingLabel="Guardando..."
+        />
+      )}
       </div>
     </div>
   )

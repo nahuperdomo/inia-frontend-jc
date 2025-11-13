@@ -27,6 +27,7 @@ import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
 import { toast } from "sonner"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
+import { StickySaveButton } from "@/components/ui/sticky-save-button"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -613,6 +614,17 @@ export default function GerminacionDetailPage() {
           router.push(`/listado/analisis/germinacion/${germinacionId}`)
         }}
       />
+
+      {/* Botón flotante para guardar cambios al hacer scroll */}
+      {editandoGerminacion && (
+        <StickySaveButton
+          onSave={handleGuardarGerminacion}
+          isLoading={false}
+          disabled={!hanCambiadoGerminacion()}
+          label="Guardar Cambios"
+          loadingLabel="Guardando..."
+        />
+      )}
     </div>
   )
 }
