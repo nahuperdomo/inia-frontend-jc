@@ -19,6 +19,7 @@ export interface ReportePMSDTO {
   muestrasConCVSuperado: number;
   porcentajeMuestrasConCVSuperado: number;
   muestrasConRepeticionesMaximas: number;
+  pmsPorEspecie: Record<string, number>;
 }
 
 export interface ReportePurezaDTO {
@@ -30,7 +31,8 @@ export interface ReportePurezaDTO {
 }
 
 export interface ReporteTetrazolioDTO {
-  viabilidadPorEspecie: Record<string, number>;
+  viabilidadIniaPorEspecie: Record<string, number>;
+  viabilidadInasePorEspecie: Record<string, number>;
   totalTetrazolios: number;
 }
 

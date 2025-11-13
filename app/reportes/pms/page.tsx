@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { ArrowLeft, Scale, Calendar, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { obtenerReportePms } from "@/app/services/reporte-service"
@@ -35,6 +36,13 @@ export default function ReportePmsPage() {
   useEffect(() => {
     cargarReporte()
   }, [])
+
+  const dataPmsPorEspecie = reporte?.pmsPorEspecie
+    ? Object.entries(reporte.pmsPorEspecie).map(([key, value]) => ({
+        especie: key,
+        pms: value,
+      }))
+    : []
 
   return (
     <div className="p-6 space-y-6">
@@ -163,6 +171,44 @@ export default function ReportePmsPage() {
               </ul>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>PMS Promedio por Especie (g)</CardTitle>
+          <CardDescription>Peso de mil semillas promedio por especie</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {dataPmsPorEspecie.length > 0 ? (
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={dataPmsPorEspecie} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis 
+                  dataKey="especie" 
+                  stroke="#6b7280"
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis stroke="#6b7280" />
+                <Tooltip 
+                  formatter={(value) => [`${Number(value).toFixed(2)} g`, "PMS"]}
+                  contentStyle={{ 
+                    backgroundColor: 'white', 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                  }}
+                />
+                <Bar dataKey="pms" fill="#8b5cf6" name="PMS (g)" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[350px] flex items-center justify-center text-muted-foreground">
+              No hay datos disponibles
+            </div>
+          )}
         </CardContent>
       </Card>
 

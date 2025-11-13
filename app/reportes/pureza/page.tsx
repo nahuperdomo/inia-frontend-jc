@@ -264,7 +264,10 @@ export default function ReportePurezaPage() {
                         label={({ name, value }: any) => `${name}: ${value}`}
                       >
                         {dataMalezasEspecificas.map((entry, index) => {
-                          const redShades = ["#fca5a5", "#f87171", "#ef4444", "#dc2626", "#b91c1c"]
+                          const redShades = [
+                            "#ef4444", "#fca5a5", "#dc2626", "#f87171", "#991b1b",
+                            "#fca5a5", "#7f1d1d", "#f87171", "#b91c1c", "#fca5a5"
+                          ]
                           return <Cell key={`cell-${index}`} fill={redShades[index % redShades.length]} />
                         })}
                       </Pie>
@@ -302,7 +305,10 @@ export default function ReportePurezaPage() {
                         label={({ name, value }: any) => `${name}: ${value}`}
                       >
                         {dataCultivosEspecificos.map((entry, index) => {
-                          const orangeShades = ["#fcd34d", "#fbbf24", "#f59e0b", "#d97706", "#b45309"]
+                          const orangeShades = [
+                            "#f59e0b", "#fcd34d", "#d97706", "#fbbf24", "#92400e",
+                            "#fde68a", "#78350f", "#fbbf24", "#b45309", "#fde68a"
+                          ]
                           return <Cell key={`cell-${index}`} fill={orangeShades[index % orangeShades.length]} />
                         })}
                       </Pie>

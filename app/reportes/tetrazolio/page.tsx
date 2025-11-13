@@ -25,6 +25,10 @@ export default function ReporteTetrazolioPage() {
         fechaFin: fechaFin || undefined,
       }
       const data = await obtenerReporteTetrazolio(filtros)
+      console.log('Respuesta del backend Tetrazolio:', data)
+      console.log('viabilidadIniaPorEspecie:', data?.viabilidadIniaPorEspecie)
+      console.log('viabilidadInasePorEspecie:', data?.viabilidadInasePorEspecie)
+      console.log('totalTetrazolios:', data?.totalTetrazolios)
       setReporte(data)
     } catch (error) {
       console.error("Error al cargar reporte:", error)
@@ -37,12 +41,22 @@ export default function ReporteTetrazolioPage() {
     cargarReporte()
   }, [])
 
-  const dataViabilidad = reporte?.viabilidadPorEspecie
-    ? Object.entries(reporte.viabilidadPorEspecie).map(([key, value]) => ({
+  const dataViabilidadInia = reporte?.viabilidadIniaPorEspecie
+    ? Object.entries(reporte.viabilidadIniaPorEspecie).map(([key, value]) => ({
         especie: key,
-        viabilidad: value,
+        viabilidad: Number(value) || 0,
       }))
     : []
+
+  const dataViabilidadInase = reporte?.viabilidadInasePorEspecie
+    ? Object.entries(reporte.viabilidadInasePorEspecie).map(([key, value]) => ({
+        especie: key,
+        viabilidad: Number(value) || 0,
+      }))
+    : []
+
+  console.log('dataViabilidadInia procesada:', dataViabilidadInia)
+  console.log('dataViabilidadInase procesada:', dataViabilidadInase)
 
   return (
     <div className="p-6 space-y-6">
@@ -116,13 +130,13 @@ export default function ReporteTetrazolioPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Viabilidad Promedio por Especie (%)</CardTitle>
-          <CardDescription>Porcentaje de viabilidad promedio por especie</CardDescription>
+          <CardTitle>Viabilidad INIA Promedio por Especie (%)</CardTitle>
+          <CardDescription>Porcentaje de viabilidad con redondeo (INIA) promedio por especie</CardDescription>
         </CardHeader>
         <CardContent>
-          {dataViabilidad.length > 0 ? (
+          {dataViabilidadInia.length > 0 ? (
             <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={dataViabilidad} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+              <BarChart data={dataViabilidadInia} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis 
                   dataKey="especie" 
@@ -133,7 +147,7 @@ export default function ReporteTetrazolioPage() {
                 />
                 <YAxis stroke="#6b7280" />
                 <Tooltip 
-                  formatter={(value) => [`${Number(value).toFixed(2)}%`, "Viabilidad"]}
+                  formatter={(value) => [`${Number(value).toFixed(2)}%`, "Viabilidad INIA"]}
                   contentStyle={{ 
                     backgroundColor: 'white', 
                     border: '1px solid #e5e7eb',
@@ -141,7 +155,7 @@ export default function ReporteTetrazolioPage() {
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                   }}
                 />
-                <Bar dataKey="viabilidad" fill="#fb923c" name="Viabilidad %" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="viabilidad" fill="#fb923c" name="Viabilidad INIA %" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -152,20 +166,78 @@ export default function ReporteTetrazolioPage() {
         </CardContent>
       </Card>
 
-      {dataViabilidad.length > 0 && (
+      <Card>
+        <CardHeader>
+          <CardTitle>Viabilidad INASE Promedio por Especie (%)</CardTitle>
+          <CardDescription>Porcentaje de viabilidad INASE promedio por especie</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {dataViabilidadInase.length > 0 ? (
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={dataViabilidadInase} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis 
+                  dataKey="especie" 
+                  stroke="#6b7280"
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis stroke="#6b7280" />
+                <Tooltip 
+                  formatter={(value) => [`${Number(value).toFixed(2)}%`, "Viabilidad INASE"]}
+                  contentStyle={{ 
+                    backgroundColor: 'white', 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                  }}
+                />
+                <Bar dataKey="viabilidad" fill="#10b981" name="Viabilidad INASE %" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[350px] flex items-center justify-center text-muted-foreground">
+              No hay datos disponibles
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {(dataViabilidadInia.length > 0 || dataViabilidadInase.length > 0) && (
         <Card>
           <CardHeader>
             <CardTitle>Resumen por Especie</CardTitle>
             <CardDescription>Detalle de viabilidad por especie</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {dataViabilidad.map((item, index) => (
-                <div key={item.especie} className="p-5 border-2 border-amber-200 bg-amber-50 rounded-xl">
-                  <p className="text-sm text-amber-700 mb-2 font-medium">{item.especie}</p>
-                  <p className="text-3xl font-bold text-amber-600">{item.viabilidad.toFixed(2)}%</p>
+            <div className="space-y-6">
+              {dataViabilidadInia.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold mb-3 text-amber-600">Viabilidad INIA</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {dataViabilidadInia.map((item) => (
+                      <div key={`inia-${item.especie}`} className="p-5 border-2 border-amber-200 bg-amber-50 rounded-xl">
+                        <p className="text-sm text-amber-700 mb-2 font-medium">{item.especie}</p>
+                        <p className="text-3xl font-bold text-amber-600">{item.viabilidad.toFixed(2)}%</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              )}
+              {dataViabilidadInase.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold mb-3 text-emerald-600">Viabilidad INASE</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {dataViabilidadInase.map((item) => (
+                      <div key={`inase-${item.especie}`} className="p-5 border-2 border-emerald-200 bg-emerald-50 rounded-xl">
+                        <p className="text-sm text-emerald-700 mb-2 font-medium">{item.especie}</p>
+                        <p className="text-3xl font-bold text-emerald-600">{item.viabilidad.toFixed(2)}%</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
