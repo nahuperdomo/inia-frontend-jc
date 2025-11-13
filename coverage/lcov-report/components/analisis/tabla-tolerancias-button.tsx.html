@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">70% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>7/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">33.33% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>1/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">77.77% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>7/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -114,10 +114,10 @@
 <a name='L49'></a><a href='#L49'>49</a>
 <a name='L50'></a><a href='#L50'>50</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -127,23 +127,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">91x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">91x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -161,12 +152,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use client"
 &nbsp;
-import { useState } from <span class="cstat-no" title="statement not covered" >"react"</span>
-import { Button } from <span class="cstat-no" title="statement not covered" >"@/components/ui/button"</span>
-import { FileText, Table2 } from <span class="cstat-no" title="statement not covered" >"lucide-react"</span>
-import { PdfViewerModal } from <span class="cstat-no" title="statement not covered" >"@/components/pdf-viewer-modal"</span>
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Table2 } from "lucide-react"
+import { PdfViewerModal } from "@/components/pdf-viewer-modal"
 &nbsp;
 interface TablaToleranciasButtonProps {
   pdfPath: string
@@ -176,14 +176,14 @@ interface TablaToleranciasButtonProps {
   className?: string
 }
 &nbsp;
-export function <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >TablaToleranciasButton(</span></span>{
+export function TablaToleranciasButton({
   pdfPath,
   title,
-  variant = <span class="branch-0 cbranch-no" title="branch not covered" >"outline",</span>
-  size = <span class="branch-0 cbranch-no" title="branch not covered" >"sm",</span>
+  variant = "outline",
+  size = "sm",
   className,
 }: TablaToleranciasButtonProps) {
-  const [isOpen, setIsOpen] = <span class="cstat-no" title="statement not covered" >useState(false)</span>
+  const [isOpen, setIsOpen] = useState(false)
 &nbsp;
   return (
     &lt;&gt;
@@ -209,7 +209,7 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
 }
 &nbsp;
 // Alias para compatibilidad con código anterior
-export const <span class="cstat-no" title="statement not covered" >GuiaPdfButton </span>= <span class="cstat-no" title="statement not covered" >TablaToleranciasButton</span>
+export const <span class="cstat-no" title="statement not covered" >GuiaPdfButton </span>= TablaToleranciasButton
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -217,7 +217,7 @@ export const <span class="cstat-no" title="statement not covered" >GuiaPdfButton
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-10T19:04:14.886Z
+                at 2025-11-13T19:41:37.578Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
