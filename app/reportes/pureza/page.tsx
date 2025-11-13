@@ -307,7 +307,7 @@ export default function ReportePurezaPage() {
                         {dataCultivosEspecificos.map((entry, index) => {
                           const orangeShades = [
                             "#f59e0b", "#fcd34d", "#d97706", "#fbbf24", "#92400e",
-                            "#fde68a", "#78350f", "#fbbf24", "#b45309", "#fde68a"
+                            "#f2db81ff", "#78350f", "#fbbf24", "#b45309", "#f0da82ff"
                           ]
                           return <Cell key={`cell-${index}`} fill={orangeShades[index % orangeShades.length]} />
                         })}
