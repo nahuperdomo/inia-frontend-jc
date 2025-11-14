@@ -482,8 +482,8 @@ describe('PurezaFields Component Tests', () => {
       )
 
       // Verificar que los labels de peso existen
-      expect(screen.getByText(/Peso inicial/i)).toBeInTheDocument()
-      expect(screen.getByText(/Peso total/i)).toBeInTheDocument()
+      expect(screen.getAllByText(/Peso inicial/i)[0]).toBeInTheDocument()
+      expect(screen.getAllByText(/Peso total/i)[0]).toBeInTheDocument()
     })
   })
 
