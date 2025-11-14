@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { useAuth } from "@/components/auth-provider"
 import {
   ArrowLeft,
   Edit,
@@ -31,7 +32,7 @@ import { formatearEstado } from "@/lib/utils/format-estado"
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
   if (!fechaString) return ''
-  
+
   try {
     // Si la fecha ya está en formato YYYY-MM-DD, usarla directamente
     if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
@@ -43,7 +44,7 @@ const formatearFechaLocal = (fechaString: string): string => {
         day: 'numeric'
       })
     }
-    
+
     // Si viene en otro formato, parsearlo de manera segura
     const fecha = new Date(fechaString)
     return fecha.toLocaleDateString('es-ES', {
@@ -59,6 +60,7 @@ const formatearFechaLocal = (fechaString: string): string => {
 
 export default function GerminacionDetailPage() {
   const params = useParams()
+  const { user } = useAuth()
   const germinacionId = params.id as string
   const [germinacion, setGerminacion] = useState<GerminacionDTO | null>(null)
   const [tablas, setTablas] = useState<TablaGermDTO[]>([])
@@ -69,13 +71,13 @@ export default function GerminacionDetailPage() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        
+
         // Cargar datos en paralelo
         const [germinacionData, tablasData] = await Promise.all([
           obtenerGerminacionPorId(Number.parseInt(germinacionId)),
           obtenerTablasGerminacion(Number.parseInt(germinacionId)).catch(() => []) // Si no hay tablas, devolver array vacío
         ])
-        
+
         setGerminacion(germinacionData)
         setTablas(tablasData)
       } catch (err) {
@@ -179,12 +181,14 @@ export default function GerminacionDetailPage() {
               </div>
 
               <div className="flex gap-2">
-                <Link href={`/listado/analisis/germinacion/${germinacion.analisisID}/editar`}>
-                  <Button size="sm" className="gap-1.5 h-9">
-                    <Edit className="h-3.5 w-3.5" />
-                    <span className="text-xs sm:text-sm">Editar análisis</span>
-                  </Button>
-                </Link>
+                {user?.role !== "observador" && (
+                  <Link href={`/listado/analisis/germinacion/${germinacion.analisisID}/editar`}>
+                    <Button size="sm" className="gap-1.5 h-9">
+                      <Edit className="h-3.5 w-3.5" />
+                      <span className="text-xs sm:text-sm">Editar análisis</span>
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -201,7 +205,7 @@ export default function GerminacionDetailPage() {
             size="sm"
           />
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -279,7 +283,7 @@ export default function GerminacionDetailPage() {
                               </div>
                             </div>
                           </CardHeader>
-                          
+
                           <CardContent className="p-6">
                             {/* Información de Fechas de la Tabla */}
                             {(tabla.fechaInicioGerm || tabla.fechaUltConteo || tabla.numDias) && (
@@ -308,7 +312,7 @@ export default function GerminacionDetailPage() {
                                     </div>
                                   )}
                                 </div>
-                                
+
                                 {/* Fechas de Conteos */}
                                 {tabla.fechaConteos && tabla.fechaConteos.length > 0 && (
                                   <div className="mt-4">
@@ -399,7 +403,7 @@ export default function GerminacionDetailPage() {
                                     }, 0) || 0
                                     const numRepeticiones = tabla.repGerm?.length || 1
                                     const promedio = totalConteo / numRepeticiones
-                                    
+
                                     return (
                                       <div key={conteoIndex} className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
                                         <p className="text-sm sm:text-base font-bold text-blue-600 break-words">{promedio.toFixed(4)}</p>
@@ -512,54 +516,54 @@ export default function GerminacionDetailPage() {
                             )}
 
                             {/* Porcentajes con Redondeo */}
-                            {(tabla.porcentajeNormalesConRedondeo !== undefined || 
+                            {(tabla.porcentajeNormalesConRedondeo !== undefined ||
                               tabla.porcentajeAnormalesConRedondeo !== undefined ||
                               tabla.porcentajeDurasConRedondeo !== undefined ||
                               tabla.porcentajeFrescasConRedondeo !== undefined ||
                               tabla.porcentajeMuertasConRedondeo !== undefined) && (
-                              <div className="mb-6">
-                                <div className="flex items-start justify-between mb-3">
-                                  <h4 className="text-sm font-semibold">
-                                    Porcentajes con Redondeo
-                                  </h4>
-                                  <Button variant="outline" size="sm" className="h-8">
-                                    Editar
-                                  </Button>
+                                <div className="mb-6">
+                                  <div className="flex items-start justify-between mb-3">
+                                    <h4 className="text-sm font-semibold">
+                                      Porcentajes con Redondeo
+                                    </h4>
+                                    <Button variant="outline" size="sm" className="h-8">
+                                      Editar
+                                    </Button>
+                                  </div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                                    {tabla.porcentajeNormalesConRedondeo !== undefined && (
+                                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                                        <p className="text-sm sm:text-base font-bold text-green-600 break-words">{tabla.porcentajeNormalesConRedondeo}%</p>
+                                        <p className="text-xs text-muted-foreground">Normales</p>
+                                      </div>
+                                    )}
+                                    {tabla.porcentajeAnormalesConRedondeo !== undefined && (
+                                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
+                                        <p className="text-sm sm:text-base font-bold text-orange-600 break-words">{tabla.porcentajeAnormalesConRedondeo}%</p>
+                                        <p className="text-xs text-muted-foreground">Anormales</p>
+                                      </div>
+                                    )}
+                                    {tabla.porcentajeDurasConRedondeo !== undefined && (
+                                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+                                        <p className="text-sm sm:text-base font-bold text-yellow-600 break-words">{tabla.porcentajeDurasConRedondeo}%</p>
+                                        <p className="text-xs text-muted-foreground">Duras</p>
+                                      </div>
+                                    )}
+                                    {tabla.porcentajeFrescasConRedondeo !== undefined && (
+                                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                                        <p className="text-sm sm:text-base font-bold text-blue-600 break-words">{tabla.porcentajeFrescasConRedondeo}%</p>
+                                        <p className="text-xs text-muted-foreground">Frescas</p>
+                                      </div>
+                                    )}
+                                    {tabla.porcentajeMuertasConRedondeo !== undefined && (
+                                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+                                        <p className="text-sm sm:text-base font-bold text-gray-600 break-words">{tabla.porcentajeMuertasConRedondeo}%</p>
+                                        <p className="text-xs text-muted-foreground">Muertas</p>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-                                  {tabla.porcentajeNormalesConRedondeo !== undefined && (
-                                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-                                      <p className="text-sm sm:text-base font-bold text-green-600 break-words">{tabla.porcentajeNormalesConRedondeo}%</p>
-                                      <p className="text-xs text-muted-foreground">Normales</p>
-                                    </div>
-                                  )}
-                                  {tabla.porcentajeAnormalesConRedondeo !== undefined && (
-                                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
-                                      <p className="text-sm sm:text-base font-bold text-orange-600 break-words">{tabla.porcentajeAnormalesConRedondeo}%</p>
-                                      <p className="text-xs text-muted-foreground">Anormales</p>
-                                    </div>
-                                  )}
-                                  {tabla.porcentajeDurasConRedondeo !== undefined && (
-                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-                                      <p className="text-sm sm:text-base font-bold text-yellow-600 break-words">{tabla.porcentajeDurasConRedondeo}%</p>
-                                      <p className="text-xs text-muted-foreground">Duras</p>
-                                    </div>
-                                  )}
-                                  {tabla.porcentajeFrescasConRedondeo !== undefined && (
-                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                                      <p className="text-sm sm:text-base font-bold text-blue-600 break-words">{tabla.porcentajeFrescasConRedondeo}%</p>
-                                      <p className="text-xs text-muted-foreground">Frescas</p>
-                                    </div>
-                                  )}
-                                  {tabla.porcentajeMuertasConRedondeo !== undefined && (
-                                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-                                      <p className="text-sm sm:text-base font-bold text-gray-600 break-words">{tabla.porcentajeMuertasConRedondeo}%</p>
-                                      <p className="text-xs text-muted-foreground">Muertas</p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
+                              )}
 
                             {/* Repeticiones */}
                             {tabla.repGerm && tabla.repGerm.length > 0 && (
@@ -616,7 +620,7 @@ export default function GerminacionDetailPage() {
                                         </div>
                                       ))}
                                     </div>
-                                    
+
                                     {/* Vista desktop - tabla */}
                                     <table className="hidden sm:table w-full text-sm">
                                       <thead>

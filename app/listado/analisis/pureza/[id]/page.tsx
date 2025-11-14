@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useConfirm } from "@/lib/hooks/useConfirm"
+import { useAuth } from "@/components/auth-provider"
 
 import {
   ArrowLeft,
@@ -65,7 +66,7 @@ const getTipoListadoBadgeColor = (tipo: TipoListado) => {
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
   if (!fechaString) return ''
-  
+
   try {
     // Si la fecha ya está en formato YYYY-MM-DD, usarla directamente
     if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
@@ -77,7 +78,7 @@ const formatearFechaLocal = (fechaString: string): string => {
         day: 'numeric'
       })
     }
-    
+
     // Si viene en otro formato, parsearlo de manera segura
     const fecha = new Date(fechaString)
     return fecha.toLocaleDateString('es-ES', {
@@ -114,7 +115,7 @@ const formatearPorcentajeInase = (valor: number | undefined | null, decimales: n
 // Función para formatear porcentajes con redondeo verificando el porcentaje sin redondeo
 // Retorna el valor formateado SIN el símbolo '%' para que se pueda agregar condicionalmente
 const formatearPorcentajeConRedondeo = (
-  valorRedondeado: number | undefined | null, 
+  valorRedondeado: number | undefined | null,
   porcentajeSinRedondeo: number | undefined | null
 ): string => {
   // IMPORTANTE: PRIMERO verificar el porcentaje SIN redondeo (es la fuente de verdad)
@@ -128,12 +129,12 @@ const formatearPorcentajeConRedondeo = (
       return '0.00'
     }
   }
-  
+
   // Si el valor redondeado existe, usarlo
   if (valorRedondeado !== undefined && valorRedondeado !== null) {
     return valorRedondeado.toFixed(2)
   }
-  
+
   // Si no hay ningún valor disponible
   return '--'
 }
@@ -141,6 +142,7 @@ const formatearPorcentajeConRedondeo = (
 export default function PurezaDetailPage() {
   const params = useParams()
   const { confirm } = useConfirm()
+  const { user } = useAuth()
   const purezaId = params.id as string
   const [pureza, setPureza] = useState<PurezaDTO | null>(null)
   const [loading, setLoading] = useState(true)
@@ -267,12 +269,14 @@ export default function PurezaDetailPage() {
               </div>
 
               <div className="flex gap-2">
-                <Link href={`/listado/analisis/pureza/${pureza.analisisID}/editar`}>
-                  <Button size="sm" className="gap-1.5 h-9">
-                    <Edit className="h-3.5 w-3.5" />
-                    <span className="text-xs sm:text-sm">Editar análisis</span>
-                  </Button>
-                </Link>
+                {user?.role !== "observador" && (
+                  <Link href={`/listado/analisis/pureza/${pureza.analisisID}/editar`}>
+                    <Button size="sm" className="gap-1.5 h-9">
+                      <Edit className="h-3.5 w-3.5" />
+                      <span className="text-xs sm:text-sm">Editar análisis</span>
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -292,7 +296,7 @@ export default function PurezaDetailPage() {
               className="w-full sm:w-auto"
             />
           </div>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             <div className="lg:col-span-2 space-y-6">
               {/* Información General */}
@@ -479,7 +483,7 @@ export default function PurezaDetailPage() {
                     <div className="space-y-1.5">
                       <label className="text-xs font-medium text-muted-foreground uppercase">Peso Total</label>
                       <p className="text-xl font-bold text-slate-600">
-                        {pureza.redonPesoTotal !== null && pureza.redonPesoTotal !== undefined 
+                        {pureza.redonPesoTotal !== null && pureza.redonPesoTotal !== undefined
                           ? `${pureza.redonPesoTotal.toFixed(2)}%`
                           : '100.00%'}
                       </p>
@@ -490,79 +494,79 @@ export default function PurezaDetailPage() {
 
               {/* Datos INASE - Mostrar siempre */}
               <Card className="overflow-hidden">
-                  <CardHeader className="bg-muted/50 border-b">
-                    <CardTitle className="flex items-center gap-2 text-xl">
-                      <div className="p-2 rounded-lg bg-purple-500/10">
-                        <FileText className="h-5 w-5 text-purple-600" />
-                      </div>
-                      Datos INASE
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      {pureza.inaseFecha && (
-                        <div className="space-y-1.5 sm:col-span-3">
-                          <label className="text-xs font-medium text-muted-foreground uppercase">Fecha INASE</label>
-                          <p className="text-lg font-semibold">{formatearFechaLocal(pureza.inaseFecha)}</p>
-                        </div>
-                      )}
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase">Semilla Pura</label>
-                        <p className="text-xl font-bold text-emerald-600">
-                          {(() => {
-                            const valor = formatearPorcentajeInase(pureza.inasePura)
-                            return valor === 'tr' ? 'tr' : `${valor}%`
-                          })()}
-                        </p>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase">Materia Inerte</label>
-                        <p className="text-xl font-bold text-amber-600">
-                          {(() => {
-                            const valor = formatearPorcentajeInase(pureza.inaseMateriaInerte)
-                            return valor === 'tr' ? 'tr' : `${valor}%`
-                          })()}
-                        </p>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase">Otros Cultivos</label>
-                        <p className="text-xl font-bold text-purple-600">
-                          {(() => {
-                            const valor = formatearPorcentajeInase(pureza.inaseOtrosCultivos)
-                            return valor === 'tr' ? 'tr' : `${valor}%`
-                          })()}
-                        </p>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase">Malezas</label>
-                        <p className="text-xl font-bold text-orange-600">
-                          {(() => {
-                            const valor = formatearPorcentajeInase(pureza.inaseMalezas)
-                            return valor === 'tr' ? 'tr' : `${valor}%`
-                          })()}
-                        </p>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase">Malezas Toleradas</label>
-                        <p className="text-xl font-bold text-pink-600">
-                          {(() => {
-                            const valor = formatearPorcentajeInase(pureza.inaseMalezasToleradas)
-                            return valor === 'tr' ? 'tr' : `${valor}%`
-                          })()}
-                        </p>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase">Malezas Tol. Cero</label>
-                        <p className="text-xl font-bold text-red-600">
-                          {(() => {
-                            const valor = formatearPorcentajeInase(pureza.inaseMalezasTolCero)
-                            return valor === 'tr' ? 'tr' : `${valor}%`
-                          })()}
-                        </p>
-                      </div>
+                <CardHeader className="bg-muted/50 border-b">
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <div className="p-2 rounded-lg bg-purple-500/10">
+                      <FileText className="h-5 w-5 text-purple-600" />
                     </div>
-                  </CardContent>
-                </Card>
+                    Datos INASE
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {pureza.inaseFecha && (
+                      <div className="space-y-1.5 sm:col-span-3">
+                        <label className="text-xs font-medium text-muted-foreground uppercase">Fecha INASE</label>
+                        <p className="text-lg font-semibold">{formatearFechaLocal(pureza.inaseFecha)}</p>
+                      </div>
+                    )}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase">Semilla Pura</label>
+                      <p className="text-xl font-bold text-emerald-600">
+                        {(() => {
+                          const valor = formatearPorcentajeInase(pureza.inasePura)
+                          return valor === 'tr' ? 'tr' : `${valor}%`
+                        })()}
+                      </p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase">Materia Inerte</label>
+                      <p className="text-xl font-bold text-amber-600">
+                        {(() => {
+                          const valor = formatearPorcentajeInase(pureza.inaseMateriaInerte)
+                          return valor === 'tr' ? 'tr' : `${valor}%`
+                        })()}
+                      </p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase">Otros Cultivos</label>
+                      <p className="text-xl font-bold text-purple-600">
+                        {(() => {
+                          const valor = formatearPorcentajeInase(pureza.inaseOtrosCultivos)
+                          return valor === 'tr' ? 'tr' : `${valor}%`
+                        })()}
+                      </p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase">Malezas</label>
+                      <p className="text-xl font-bold text-orange-600">
+                        {(() => {
+                          const valor = formatearPorcentajeInase(pureza.inaseMalezas)
+                          return valor === 'tr' ? 'tr' : `${valor}%`
+                        })()}
+                      </p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase">Malezas Toleradas</label>
+                      <p className="text-xl font-bold text-pink-600">
+                        {(() => {
+                          const valor = formatearPorcentajeInase(pureza.inaseMalezasToleradas)
+                          return valor === 'tr' ? 'tr' : `${valor}%`
+                        })()}
+                      </p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase">Malezas Tol. Cero</label>
+                      <p className="text-xl font-bold text-red-600">
+                        {(() => {
+                          const valor = formatearPorcentajeInase(pureza.inaseMalezasTolCero)
+                          return valor === 'tr' ? 'tr' : `${valor}%`
+                        })()}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Listados (Otras Semillas) */}
               {pureza.otrasSemillas && pureza.otrasSemillas.length > 0 && (
@@ -620,9 +624,9 @@ export default function PurezaDetailPage() {
                                 ) : (
                                   <>
                                     <p className="text-base font-semibold break-words">
-                                      {listado.catalogo?.nombreComun || 
-                                       listado.especie?.nombreComun || 
-                                       "--"}
+                                      {listado.catalogo?.nombreComun ||
+                                        listado.especie?.nombreComun ||
+                                        "--"}
                                     </p>
                                     {listado.catalogo?.nombreCientifico && (
                                       <p className="text-sm text-muted-foreground italic break-words">

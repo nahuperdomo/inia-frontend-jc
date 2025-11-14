@@ -39,10 +39,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
 
   // Hook para badge de notificaciones en el sidebar
   const { unreadCount } = useNotificationBadge()
+
+  // Filtrar navegación según el rol del usuario
+  const filteredNavigation = user?.role === "observador"
+    ? navigation.filter(item => ["Inicio", "Listado", "Reportes", "Notificaciones"].includes(item.name))
+    : navigation
 
   // Cerrar menú móvil cuando cambia la ruta
   useEffect(() => {
@@ -105,7 +110,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
           <div className="mt-8 flex-grow flex flex-col">
             <nav className="flex-1 px-2 space-y-1">
-              {navigation.map((item) => (
+              {filteredNavigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
@@ -170,7 +175,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
           <div className="flex-grow flex flex-col">
             <nav className="flex-1 px-2 space-y-1">
-              {navigation.map((item) => (
+              {filteredNavigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
@@ -224,7 +229,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Title/Breadcrumb area */}
             <div className="flex-1">
               <h2 className="text-lg font-semibold text-gray-900">
-                {navigation.find(item => pathname === item.href || pathname.startsWith(item.href + "/"))?.name || "Dashboard"}
+                {filteredNavigation.find(item => pathname === item.href || pathname.startsWith(item.href + "/"))?.name || "Dashboard"}
               </h2>
             </div>
 
@@ -242,7 +247,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               />
 
               {/* User info/avatar - Link to profile */}
-              <Link 
+              <Link
                 href="/perfil"
                 className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
               >

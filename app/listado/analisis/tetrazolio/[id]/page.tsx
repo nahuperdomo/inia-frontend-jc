@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { useAuth } from '@/components/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -63,6 +64,7 @@ const convertirFechaParaInput = (fechaString: string): string => {
 export default function TetrazolioDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const { user } = useAuth()
   const tetrazolioId = params.id as string
 
   const [tetrazolio, setTetrazolio] = useState<TetrazolioDTO | null>(null)
@@ -211,12 +213,14 @@ export default function TetrazolioDetailPage() {
               </div>
 
               <div className="flex gap-2">
-                <Link href={`/listado/analisis/tetrazolio/${tetrazolioId}/editar`}>
-                  <Button size="sm" className="gap-1.5 h-9">
-                    <Edit className="h-3.5 w-3.5" />
-                    <span className="text-xs sm:text-sm">Editar análisis</span>
-                  </Button>
-                </Link>
+                {user?.role !== "observador" && (
+                  <Link href={`/listado/analisis/tetrazolio/${tetrazolioId}/editar`}>
+                    <Button size="sm" className="gap-1.5 h-9">
+                      <Edit className="h-3.5 w-3.5" />
+                      <span className="text-xs sm:text-sm">Editar análisis</span>
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -227,8 +231,8 @@ export default function TetrazolioDetailPage() {
       <div className="pt-4">
         <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex justify-end mb-6">
-            <TablaToleranciasButton 
-              pdfPath="/tablas-tolerancias/tabla-tetrazolio.pdf" 
+            <TablaToleranciasButton
+              pdfPath="/tablas-tolerancias/tabla-tetrazolio.pdf"
               title="Tabla de Tolerancias"
               className="w-full sm:w-auto"
             />
@@ -249,248 +253,248 @@ export default function TetrazolioDetailPage() {
               />
 
               {/* Información del análisis */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Beaker className="h-5 w-5 text-orange-600" />
-                Información del Análisis
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Lote */}
-                <div className="space-y-2">
-                  <Label>Lote</Label>
-                  <div className="text-sm font-medium">{tetrazolio.lote}</div>
-                </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Beaker className="h-5 w-5 text-orange-600" />
+                    Información del Análisis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Lote */}
+                    <div className="space-y-2">
+                      <Label>Lote</Label>
+                      <div className="text-sm font-medium">{tetrazolio.lote}</div>
+                    </div>
 
-                {/* Fecha */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4" />
-                    Fecha del Ensayo
-                  </Label>
-                  <div className="text-sm">{formatearFechaLocal(tetrazolio.fecha || '')}</div>
-                </div>
+                    {/* Fecha */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <CalendarDays className="h-4 w-4" />
+                        Fecha del Ensayo
+                      </Label>
+                      <div className="text-sm">{formatearFechaLocal(tetrazolio.fecha || '')}</div>
+                    </div>
 
-                {/* Semillas por repetición */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Hash className="h-4 w-4" />
-                    Número de semillas por repetición
-                  </Label>
-                  <div className="text-sm">{tetrazolio.numSemillasPorRep}</div>
-                </div>
+                    {/* Semillas por repetición */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Hash className="h-4 w-4" />
+                        Número de semillas por repetición
+                      </Label>
+                      <div className="text-sm">{tetrazolio.numSemillasPorRep}</div>
+                    </div>
 
-                {/* Pretratamiento */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <FlaskConical className="h-4 w-4" />
-                    Pretratamiento
-                  </Label>
-                  <div className="text-sm">{tetrazolio.pretratamiento || 'Ninguno'}</div>
-                </div>
+                    {/* Pretratamiento */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <FlaskConical className="h-4 w-4" />
+                        Pretratamiento
+                      </Label>
+                      <div className="text-sm">{tetrazolio.pretratamiento || 'Ninguno'}</div>
+                    </div>
 
-                {/* Concentración */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Beaker className="h-4 w-4" />
-                    Concentración
-                  </Label>
-                  <div className="text-sm">{tetrazolio.concentracion}</div>
-                </div>
+                    {/* Concentración */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Beaker className="h-4 w-4" />
+                        Concentración
+                      </Label>
+                      <div className="text-sm">{tetrazolio.concentracion}</div>
+                    </div>
 
-                {/* Temperatura */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Thermometer className="h-4 w-4" />
-                    Tinción (°C)
-                  </Label>
-                  <div className="text-sm">{tetrazolio.tincionTemp}°C</div>
-                </div>
+                    {/* Temperatura */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Thermometer className="h-4 w-4" />
+                        Tinción (°C)
+                      </Label>
+                      <div className="text-sm">{tetrazolio.tincionTemp}°C</div>
+                    </div>
 
-                {/* Tiempo de tinción */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Timer className="h-4 w-4" />
-                    Tinción (hs)
-                  </Label>
-                  <div className="text-sm">{tetrazolio.tincionHs}h</div>
-                </div>
+                    {/* Tiempo de tinción */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Timer className="h-4 w-4" />
+                        Tinción (hs)
+                      </Label>
+                      <div className="text-sm">{tetrazolio.tincionHs}h</div>
+                    </div>
 
-                {/* Repeticiones esperadas */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Target className="h-4 w-4" />
-                    Repeticiones Esperadas
-                  </Label>
-                  <div className="text-sm">{tetrazolio.numRepeticionesEsperadas}</div>
-                </div>
+                    {/* Repeticiones esperadas */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Target className="h-4 w-4" />
+                        Repeticiones Esperadas
+                      </Label>
+                      <div className="text-sm">{tetrazolio.numRepeticionesEsperadas}</div>
+                    </div>
 
-                {/* Viabilidad INASE */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <TestTube className="h-4 w-4" />
-                    Viabilidad INASE (%)
-                  </Label>
-                  <div className="text-sm">
-                    {(tetrazolio as any).viabilidadInase != null && (tetrazolio as any).viabilidadInase !== ''
-                      ? `${(tetrazolio as any).viabilidadInase}%`
-                      : 'No especificado'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Notas generales */}
-              <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-md">
-                <h4 className="font-medium text-orange-800 mb-2">Notas Generales del Análisis de Tetrazolio</h4>
-                <ul className="text-xs text-orange-700 space-y-1">
-                  <li>• El orden de registro es: Viables → Duras → No viables.</li>
-                  <li>• Si la suma total no coincide con el número de semillas, se ajusta ±1 en Viables.</li>
-                  <li>• Los campos 'Pretratamiento', 'Tinción (hs)' y 'Tinción (°C)' pueden modificarse según la especie analizada.</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Sección de repeticiones - Solo vista */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Hash className="h-5 w-5 text-orange-600" />
-                Repeticiones ({repeticiones.length}/{tetrazolio.numRepeticionesEsperadas})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Lista de repeticiones */}
-              {repeticiones.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="grid gap-4">
-                    {repeticiones.map((repeticion, index) => (
-                      <Card key={repeticion.repTetrazolioViabID} className="border-l-4 border-l-orange-500">
-                        <CardContent className="pt-4">
-                          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                            <div>
-                              <Label className="text-xs text-muted-foreground">Repetición</Label>
-                              <div className="font-medium">#{index + 1}</div>
-                            </div>
-                            <div>
-                              <Label className="text-xs text-muted-foreground">Fecha</Label>
-                              <div>{formatearFechaLocal(repeticion.fecha)}</div>
-                            </div>
-                            <div>
-                              <Label className="text-xs text-muted-foreground">Viables</Label>
-                              <div className="text-green-600 font-medium">{repeticion.viablesNum}</div>
-                            </div>
-                            <div>
-                              <Label className="text-xs text-muted-foreground">No Viables</Label>
-                              <div className="text-red-600 font-medium">{repeticion.noViablesNum}</div>
-                            </div>
-                            <div>
-                              <Label className="text-xs text-muted-foreground">Duras</Label>
-                              <div className="text-yellow-600 font-medium">{repeticion.duras}</div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                    {/* Viabilidad INASE */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <TestTube className="h-4 w-4" />
+                        Viabilidad INASE (%)
+                      </Label>
+                      <div className="text-sm">
+                        {(tetrazolio as any).viabilidadInase != null && (tetrazolio as any).viabilidadInase !== ''
+                          ? `${(tetrazolio as any).viabilidadInase}%`
+                          : 'No especificado'}
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Resumen de totales */}
-                  {totales.total > 0 && (
-                    <Card className="bg-orange-50 border-orange-200">
-                      <CardHeader>
-                        <CardTitle className="text-lg">Resumen de Resultados</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                          <div className="text-center">
-                            <div className="text-2xl font-bold">{totales.total}</div>
-                            <div className="text-sm text-muted-foreground">Total Semillas</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-green-600">{totales.viables}</div>
-                            <div className="text-sm text-muted-foreground">Viables</div>
-                            <div className="text-xs">({((totales.viables / totales.total) * 100).toFixed(1)}%)</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-red-600">{totales.noViables}</div>
-                            <div className="text-sm text-muted-foreground">No Viables</div>
-                            <div className="text-xs">({((totales.noViables / totales.total) * 100).toFixed(1)}%)</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-yellow-600">{totales.duras}</div>
-                            <div className="text-sm text-muted-foreground">Duras</div>
-                            <div className="text-xs">({((totales.duras / totales.total) * 100).toFixed(1)}%)</div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  {/* Notas generales */}
+                  <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-md">
+                    <h4 className="font-medium text-orange-800 mb-2">Notas Generales del Análisis de Tetrazolio</h4>
+                    <ul className="text-xs text-orange-700 space-y-1">
+                      <li>• El orden de registro es: Viables → Duras → No viables.</li>
+                      <li>• Si la suma total no coincide con el número de semillas, se ajusta ±1 en Viables.</li>
+                      <li>• Los campos 'Pretratamiento', 'Tinción (hs)' y 'Tinción (°C)' pueden modificarse según la especie analizada.</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Sección de repeticiones - Solo vista */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Hash className="h-5 w-5 text-orange-600" />
+                    Repeticiones ({repeticiones.length}/{tetrazolio.numRepeticionesEsperadas})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Lista de repeticiones */}
+                  {repeticiones.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="grid gap-4">
+                        {repeticiones.map((repeticion, index) => (
+                          <Card key={repeticion.repTetrazolioViabID} className="border-l-4 border-l-orange-500">
+                            <CardContent className="pt-4">
+                              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                <div>
+                                  <Label className="text-xs text-muted-foreground">Repetición</Label>
+                                  <div className="font-medium">#{index + 1}</div>
+                                </div>
+                                <div>
+                                  <Label className="text-xs text-muted-foreground">Fecha</Label>
+                                  <div>{formatearFechaLocal(repeticion.fecha)}</div>
+                                </div>
+                                <div>
+                                  <Label className="text-xs text-muted-foreground">Viables</Label>
+                                  <div className="text-green-600 font-medium">{repeticion.viablesNum}</div>
+                                </div>
+                                <div>
+                                  <Label className="text-xs text-muted-foreground">No Viables</Label>
+                                  <div className="text-red-600 font-medium">{repeticion.noViablesNum}</div>
+                                </div>
+                                <div>
+                                  <Label className="text-xs text-muted-foreground">Duras</Label>
+                                  <div className="text-yellow-600 font-medium">{repeticion.duras}</div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+
+                      {/* Resumen de totales */}
+                      {totales.total > 0 && (
+                        <Card className="bg-orange-50 border-orange-200">
+                          <CardHeader>
+                            <CardTitle className="text-lg">Resumen de Resultados</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                              <div className="text-center">
+                                <div className="text-2xl font-bold">{totales.total}</div>
+                                <div className="text-sm text-muted-foreground">Total Semillas</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-2xl font-bold text-green-600">{totales.viables}</div>
+                                <div className="text-sm text-muted-foreground">Viables</div>
+                                <div className="text-xs">({((totales.viables / totales.total) * 100).toFixed(1)}%)</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-2xl font-bold text-red-600">{totales.noViables}</div>
+                                <div className="text-sm text-muted-foreground">No Viables</div>
+                                <div className="text-xs">({((totales.noViables / totales.total) * 100).toFixed(1)}%)</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-2xl font-bold text-yellow-600">{totales.duras}</div>
+                                <div className="text-sm text-muted-foreground">Duras</div>
+                                <div className="text-xs">({((totales.duras / totales.total) * 100).toFixed(1)}%)</div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <TestTube className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No hay repeticiones registradas aún.</p>
+                      <p className="text-sm">Las repeticiones se crean desde la página de edición.</p>
+                    </div>
                   )}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <TestTube className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No hay repeticiones registradas aún.</p>
-                  <p className="text-sm">Las repeticiones se crean desde la página de edición.</p>
-                </div>
+                </CardContent>
+              </Card>
+
+              {/* Porcentajes redondeados - Solo vista */}
+              {puedeFinalizarse && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5 text-orange-600" />
+                      Porcentajes Finales con Redondeo
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label>% Viables (Redondeo)</Label>
+                        <div className="text-lg font-medium text-green-600">
+                          {tetrazolio.porcViablesRedondeo !== null && tetrazolio.porcViablesRedondeo !== undefined
+                            ? Number(tetrazolio.porcViablesRedondeo).toFixed(1)
+                            : '0.0'}%
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>% No Viables (Redondeo)</Label>
+                        <div className="text-lg font-medium text-red-600">
+                          {tetrazolio.porcNoViablesRedondeo !== null && tetrazolio.porcNoViablesRedondeo !== undefined
+                            ? Number(tetrazolio.porcNoViablesRedondeo).toFixed(1)
+                            : '0.0'}%
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>% Duras (Redondeo)</Label>
+                        <div className="text-lg font-medium text-yellow-600">
+                          {tetrazolio.porcDurasRedondeo !== null && tetrazolio.porcDurasRedondeo !== undefined
+                            ? Number(tetrazolio.porcDurasRedondeo).toFixed(1)
+                            : '0.0'}%
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Porcentajes redondeados - Solo vista */}
-          {puedeFinalizarse && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-orange-600" />
-                  Porcentajes Finales con Redondeo
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>% Viables (Redondeo)</Label>
-                    <div className="text-lg font-medium text-green-600">
-                      {tetrazolio.porcViablesRedondeo !== null && tetrazolio.porcViablesRedondeo !== undefined 
-                        ? Number(tetrazolio.porcViablesRedondeo).toFixed(1)
-                        : '0.0'}%
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>% No Viables (Redondeo)</Label>
-                    <div className="text-lg font-medium text-red-600">
-                      {tetrazolio.porcNoViablesRedondeo !== null && tetrazolio.porcNoViablesRedondeo !== undefined 
-                        ? Number(tetrazolio.porcNoViablesRedondeo).toFixed(1)
-                        : '0.0'}%
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>% Duras (Redondeo)</Label>
-                    <div className="text-lg font-medium text-yellow-600">
-                      {tetrazolio.porcDurasRedondeo !== null && tetrazolio.porcDurasRedondeo !== undefined 
-                        ? Number(tetrazolio.porcDurasRedondeo).toFixed(1)
-                        : '0.0'}%
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Historial de Actividades */}
-            <AnalysisHistoryCard
-              analisisId={tetrazolio.analisisID}
-              analisisTipo="tetrazolio"
-              historial={tetrazolio.historial}
-            />
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Historial de Actividades */}
+              <AnalysisHistoryCard
+                analisisId={tetrazolio.analisisID}
+                analisisTipo="tetrazolio"
+                historial={tetrazolio.historial}
+              />
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
   )
 }

@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { useAuth } from "@/components/auth-provider"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { 
-  Scale, 
-  ArrowLeft, 
-  Edit, 
-  Hash, 
+import {
+  Scale,
+  ArrowLeft,
+  Edit,
+  Hash,
   BarChart3,
   CheckCircle,
   Clock,
@@ -29,6 +30,7 @@ import { formatearEstado } from "@/lib/utils/format-estado"
 export default function DetallePMSPage() {
   const params = useParams()
   const router = useRouter()
+  const { user } = useAuth()
   const id = params.id as string
 
   const [analisis, setAnalisis] = useState<PmsDTO | null>(null)
@@ -41,16 +43,16 @@ export default function DetallePMSPage() {
   useEffect(() => {
     const fetchData = async () => {
       if (!id) return
-      
+
       setLoading(true)
       setError(null)
-      
+
       try {
         const [analisisData, repeticionesData] = await Promise.all([
           obtenerPmsPorId(parseInt(id)),
           obtenerRepeticionesPorPms(parseInt(id))
         ])
-        
+
         setAnalisis(analisisData)
         setRepeticiones(repeticionesData)
       } catch (err: any) {
@@ -69,7 +71,7 @@ export default function DetallePMSPage() {
 
   const handleFinalizarAnalisis = async () => {
     if (!analisis?.analisisID) return
-    
+
     setActionLoading("finalizar")
     try {
       const result = await finalizarAnalisis(analisis.analisisID)
@@ -86,7 +88,7 @@ export default function DetallePMSPage() {
 
   const handleAprobarAnalisis = async () => {
     if (!analisis?.analisisID) return
-    
+
     setActionLoading("aprobar")
     try {
       const result = await aprobarAnalisis(analisis.analisisID)
@@ -103,7 +105,7 @@ export default function DetallePMSPage() {
 
   const handleMarcarParaRepetir = async () => {
     if (!analisis?.analisisID) return
-    
+
     setActionLoading("repetir")
     try {
       const result = await marcarParaRepetir(analisis.analisisID)
@@ -120,7 +122,7 @@ export default function DetallePMSPage() {
 
   const handleEliminarRepeticion = async (repId: number) => {
     if (!analisis?.analisisID) return
-    
+
     if (!confirm("¿Estás seguro de que deseas eliminar esta repetición?")) {
       return
     }
@@ -215,7 +217,7 @@ export default function DetallePMSPage() {
   return (
     <div className="min-h-screen bg-muted/30">
       <Toaster position="top-right" richColors closeButton />
-      
+
       <div className="bg-background border-b sticky top-0 z-10">
         <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
           <div className="flex flex-col gap-3">
@@ -248,12 +250,14 @@ export default function DetallePMSPage() {
               </div>
 
               <div className="flex gap-2">
-                <Link href={`/listado/analisis/pms/${id}/editar`}>
-                  <Button size="sm" className="gap-1.5 h-9">
-                    <Edit className="h-3.5 w-3.5" />
-                    <span className="text-xs sm:text-sm">Editar análisis</span>
-                  </Button>
-                </Link>
+                {user?.role !== "observador" && (
+                  <Link href={`/listado/analisis/pms/${id}/editar`}>
+                    <Button size="sm" className="gap-1.5 h-9">
+                      <Edit className="h-3.5 w-3.5" />
+                      <span className="text-xs sm:text-sm">Editar análisis</span>
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -262,8 +266,8 @@ export default function DetallePMSPage() {
 
       <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
         <div className="flex justify-end mb-6">
-          <TablaToleranciasButton 
-            pdfPath="/tablas-tolerancias/tabla-pms.pdf" 
+          <TablaToleranciasButton
+            pdfPath="/tablas-tolerancias/tabla-pms.pdf"
             title="Tabla de Tolerancias"
             className="w-full sm:w-auto"
           />
@@ -284,145 +288,143 @@ export default function DetallePMSPage() {
               comentarios={analisis.comentarios}
             />
 
-        {/* Repeticiones */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Resultados
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Repeticiones Esperadas:</span>
-                <span className="font-bold text-lg">{analisis.numRepeticionesEsperadas || "-"}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Número de Tandas:</span>
-                <span className="font-bold text-lg">{analisis.numTandas || "-"}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Promedio 100g:</span>
-                <span className="font-bold text-lg text-blue-600">
-                  {analisis.promedio100g ? `${analisis.promedio100g.toFixed(2)}g` : "-"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Desviación Estándar:</span>
-                <span className="font-bold text-lg">
-                  {analisis.desvioStd ? `${analisis.desvioStd.toFixed(3)}` : "-"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Coef. Variación:</span>
-                <span className={`font-bold text-lg ${
-                  analisis.coefVariacion && analisis.coefVariacion <= 4 
-                    ? 'text-green-600' 
-                    : 'text-red-600'
-                }`}>
-                  {analisis.coefVariacion ? `${analisis.coefVariacion.toFixed(2)}%` : "-"}
-                </span>
-              </div>
-              <div className="border-t pt-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">PMS Final:</span>
-                  <span className="font-bold text-xl text-green-600">
-                    {analisis.pmsconRedon ? `${analisis.pmsconRedon.toFixed(2)}g` : "-"}
-                  </span>
+            {/* Repeticiones */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Resultados
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Repeticiones Esperadas:</span>
+                    <span className="font-bold text-lg">{analisis.numRepeticionesEsperadas || "-"}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Número de Tandas:</span>
+                    <span className="font-bold text-lg">{analisis.numTandas || "-"}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Promedio 100g:</span>
+                    <span className="font-bold text-lg text-blue-600">
+                      {analisis.promedio100g ? `${analisis.promedio100g.toFixed(2)}g` : "-"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Desviación Estándar:</span>
+                    <span className="font-bold text-lg">
+                      {analisis.desvioStd ? `${analisis.desvioStd.toFixed(3)}` : "-"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Coef. Variación:</span>
+                    <span className={`font-bold text-lg ${analisis.coefVariacion && analisis.coefVariacion <= 4
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                      }`}>
+                      {analisis.coefVariacion ? `${analisis.coefVariacion.toFixed(2)}%` : "-"}
+                    </span>
+                  </div>
+                  <div className="border-t pt-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">PMS Final:</span>
+                      <span className="font-bold text-xl text-green-600">
+                        {analisis.pmsconRedon ? `${analisis.pmsconRedon.toFixed(2)}g` : "-"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {analisis.coefVariacion && (
-              <div className={`p-3 rounded text-sm ${
-                analisis.coefVariacion <= 4 
-                  ? 'bg-green-50 text-green-800 border border-green-200' 
-                  : 'bg-red-50 text-red-800 border border-red-200'
-              }`}>
-                <div className="flex items-center gap-2">
-                  {analisis.coefVariacion <= 4 ? (
-                    <CheckCircle className="h-4 w-4" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4" />
-                  )}
-                  <span className="font-medium">
-                    {analisis.coefVariacion <= 4 ? "Criterio Cumplido" : "Criterio No Cumplido"}
-                  </span>
-                </div>
-                <p className="text-xs mt-1">
-                  El coeficiente de variación debe ser ≤ 4% para ser válido
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                {analisis.coefVariacion && (
+                  <div className={`p-3 rounded text-sm ${analisis.coefVariacion <= 4
+                      ? 'bg-green-50 text-green-800 border border-green-200'
+                      : 'bg-red-50 text-red-800 border border-red-200'
+                    }`}>
+                    <div className="flex items-center gap-2">
+                      {analisis.coefVariacion <= 4 ? (
+                        <CheckCircle className="h-4 w-4" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4" />
+                      )}
+                      <span className="font-medium">
+                        {analisis.coefVariacion <= 4 ? "Criterio Cumplido" : "Criterio No Cumplido"}
+                      </span>
+                    </div>
+                    <p className="text-xs mt-1">
+                      El coeficiente de variación debe ser ≤ 4% para ser válido
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-        {/* Repeticiones */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Hash className="h-5 w-5" />
-              Repeticiones ({repeticiones.length})
-            </CardTitle>
-            <CardDescription>
-              Datos de pesaje por repetición y tanda
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-          {repeticiones.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Hash className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No hay repeticiones registradas aún.</p>
-              {analisis.estado !== "APROBADO" && (
-                <p className="text-sm mt-2">
-                  Puedes agregar repeticiones editando el análisis.
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="whitespace-nowrap">Repetición</TableHead>
-                    <TableHead className="whitespace-nowrap">Tanda</TableHead>
-                    <TableHead className="whitespace-nowrap">Peso (g)</TableHead>
-                    <TableHead className="whitespace-nowrap">Estado</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {repeticiones.map((rep) => (
-                    <TableRow key={rep.repPMSID}>
-                      <TableCell className="font-medium whitespace-nowrap">#{rep.numRep}</TableCell>
-                      <TableCell className="whitespace-nowrap">{rep.numTanda}</TableCell>
-                      <TableCell className="whitespace-nowrap">{rep.peso ? `${rep.peso.toFixed(3)}g` : "-"}</TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <Badge variant={rep.valido ? "default" : rep.valido === false ? "destructive" : "secondary"}>
-                          {rep.valido === true ? "✓ Válido" : rep.valido === false ? "✗ Inválido" : "Pendiente"}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-        </Card>
-      </div>
+            {/* Repeticiones */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Hash className="h-5 w-5" />
+                  Repeticiones ({repeticiones.length})
+                </CardTitle>
+                <CardDescription>
+                  Datos de pesaje por repetición y tanda
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {repeticiones.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Hash className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No hay repeticiones registradas aún.</p>
+                    {analisis.estado !== "APROBADO" && (
+                      <p className="text-sm mt-2">
+                        Puedes agregar repeticiones editando el análisis.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rounded-md border overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="whitespace-nowrap">Repetición</TableHead>
+                          <TableHead className="whitespace-nowrap">Tanda</TableHead>
+                          <TableHead className="whitespace-nowrap">Peso (g)</TableHead>
+                          <TableHead className="whitespace-nowrap">Estado</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {repeticiones.map((rep) => (
+                          <TableRow key={rep.repPMSID}>
+                            <TableCell className="font-medium whitespace-nowrap">#{rep.numRep}</TableCell>
+                            <TableCell className="whitespace-nowrap">{rep.numTanda}</TableCell>
+                            <TableCell className="whitespace-nowrap">{rep.peso ? `${rep.peso.toFixed(3)}g` : "-"}</TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              <Badge variant={rep.valido ? "default" : rep.valido === false ? "destructive" : "secondary"}>
+                                {rep.valido === true ? "✓ Válido" : rep.valido === false ? "✗ Inválido" : "Pendiente"}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
-      {/* Sidebar */}
-      <div className="space-y-6">
-        {/* Historial de Actividades */}
-        <AnalysisHistoryCard
-          analisisId={analisis.analisisID}
-          analisisTipo="pms"
-          historial={analisis.historial}
-        />
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Historial de Actividades */}
+            <AnalysisHistoryCard
+              analisisId={analisis.analisisID}
+              analisisTipo="pms"
+              historial={analisis.historial}
+            />
+          </div>
+        </div>
       </div>
     </div>
-    </div>
-  </div>
   )
 }

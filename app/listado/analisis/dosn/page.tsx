@@ -83,7 +83,7 @@ export default function ListadoDOSNPage() {
 
       // Extraer metadata de paginación usando helper
       const pageData = extractPageMetadata<DosnListadoDTO>(data, page)
-      
+
       setDosns(pageData.content)
       setTotalPages(pageData.totalPages)
       setTotalElements(pageData.totalElements)
@@ -190,254 +190,258 @@ export default function ListadoDOSNPage() {
               <p className="text-sm sm:text-base text-muted-foreground">Consulta la determinación de otras semillas nocivas</p>
             </div>
           </div>
-          <div className="flex justify-center sm:justify-end">
-            <Link href="/registro/analisis?tipo=DOSN">
-              <Button className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                Nuevo Análisis
-              </Button>
-            </Link>
-          </div>
+          {user?.role !== "observador" && (
+            <div className="flex justify-center sm:justify-end">
+              <Link href="/registro/analisis?tipo=DOSN">
+                <Button className="w-full sm:w-auto">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nuevo Análisis
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Análisis</p>
-                <p className="text-2xl font-bold">{totalAnalysis}</p>
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Análisis</p>
+                  <p className="text-2xl font-bold">{totalAnalysis}</p>
+                </div>
+                <Activity className="h-8 w-8 text-red-600" />
               </div>
-              <Activity className="h-8 w-8 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Completados</p>
-                <p className="text-2xl font-bold">{completedAnalysis}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Completados</p>
+                  <p className="text-2xl font-bold">{completedAnalysis}</p>
+                </div>
+                <Activity className="h-8 w-8 text-blue-600" />
               </div>
-              <Activity className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">En Proceso</p>
-                <p className="text-2xl font-bold">{inProgressAnalysis}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">En Proceso</p>
+                  <p className="text-2xl font-bold">{inProgressAnalysis}</p>
+                </div>
+                <Activity className="h-8 w-8 text-orange-600" />
               </div>
-              <Activity className="h-8 w-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Cumplen Norma</p>
-                <p className="text-2xl font-bold">{complianceRate}%</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Cumplen Norma</p>
+                  <p className="text-2xl font-bold">{complianceRate}%</p>
+                </div>
+                <AlertTriangle className="h-8 w-8 text-green-600" />
               </div>
-              <AlertTriangle className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filtros y Búsqueda
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <form 
-              onSubmit={(e) => {
-                e.preventDefault()
-                handleSearchClick()
-              }}
-              className="flex-1 flex gap-2"
-            >
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Buscar por ID análisis, Lote o Ficha..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyDown={handleSearchKeyDown}
-                  className="pl-10"
-                />
-              </div>
-              <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
-                <Search className="h-4 w-4" />
-              </Button>
-            </form>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="REGISTRADO">Registrado</SelectItem>
-                <SelectItem value="EN_PROCESO">En Proceso</SelectItem>
-                <SelectItem value="PENDIENTE_APROBACION">Pendiente Aprobación</SelectItem>
-                <SelectItem value="APROBADO">Aprobado</SelectItem>
-                <SelectItem value="A_REPETIR">A Repetir</SelectItem>
-              </SelectContent>
-            </Select>
-            <select
-              value={filtroActivo}
-              onChange={(e) => setFiltroActivo(e.target.value)}
-              className="px-3 py-2 border border-input bg-background rounded-md text-sm w-full md:w-48"
-            >
-              <option value="todos">Todos</option>
-              <option value="activos">Activos</option>
-              <option value="inactivos">Inactivos</option>
-            </select>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filtros y Búsqueda
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-4">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  handleSearchClick()
+                }}
+                className="flex-1 flex gap-2"
+              >
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Buscar por ID análisis, Lote o Ficha..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
+                    className="pl-10"
+                  />
+                </div>
+                <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                  <Search className="h-4 w-4" />
+                </Button>
+              </form>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="Filtrar por estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  <SelectItem value="REGISTRADO">Registrado</SelectItem>
+                  <SelectItem value="EN_PROCESO">En Proceso</SelectItem>
+                  <SelectItem value="PENDIENTE_APROBACION">Pendiente Aprobación</SelectItem>
+                  <SelectItem value="APROBADO">Aprobado</SelectItem>
+                  <SelectItem value="A_REPETIR">A Repetir</SelectItem>
+                </SelectContent>
+              </Select>
+              <select
+                value={filtroActivo}
+                onChange={(e) => setFiltroActivo(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm w-full md:w-48"
+              >
+                <option value="todos">Todos</option>
+                <option value="activos">Activos</option>
+                <option value="inactivos">Inactivos</option>
+              </select>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Analysis Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Análisis DOSN</CardTitle>
-          <CardDescription>
-            {totalElements} análisis
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0 sm:p-6">
-          <div className="overflow-x-auto max-w-full rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="whitespace-nowrap">ID</TableHead>
-                  <TableHead className="whitespace-nowrap">Lote</TableHead>
-                  <TableHead className="whitespace-nowrap">Especie</TableHead>
-                  <TableHead className="whitespace-nowrap">Estado</TableHead>
-                  <TableHead className="whitespace-nowrap">Cumple Estándar</TableHead>
-                  <TableHead className="whitespace-nowrap">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
+        {/* Analysis Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Lista de Análisis DOSN</CardTitle>
+            <CardDescription>
+              {totalElements} análisis
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0 sm:p-6">
+            <div className="overflow-x-auto max-w-full rounded-md border">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                        <span className="text-muted-foreground">Cargando análisis...</span>
-                      </div>
-                    </TableCell>
+                    <TableHead className="whitespace-nowrap">ID</TableHead>
+                    <TableHead className="whitespace-nowrap">Lote</TableHead>
+                    <TableHead className="whitespace-nowrap">Especie</TableHead>
+                    <TableHead className="whitespace-nowrap">Estado</TableHead>
+                    <TableHead className="whitespace-nowrap">Cumple Estándar</TableHead>
+                    <TableHead className="whitespace-nowrap">Acciones</TableHead>
                   </TableRow>
-                ) : filteredAnalysis.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
-                      <div className="flex flex-col items-center gap-2">
-                        <AlertTriangle className="h-8 w-8 text-muted-foreground" />
-                        <p className="text-muted-foreground">No se encontraron análisis DOSN</p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredAnalysis.map((analysis) => (
-                    <TableRow key={analysis.analisisID}>
-                      <TableCell className="font-medium whitespace-nowrap">
-                        {analysis.analisisID}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {analysis.lote || "-"}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {analysis.especie || "-"}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <Badge variant={getEstadoBadgeVariant(analysis.estado)}>
-                          {formatEstado(analysis.estado)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {analysis.cumpleEstandar !== undefined ? (
-                          <Badge
-                            variant={analysis.cumpleEstandar ? "default" : "destructive"}
-                            className="text-xs"
-                          >
-                            {analysis.cumpleEstandar ? "Sí" : "No"}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <Link href={`/listado/analisis/dosn/${analysis.analisisID}`}>
-                            <Button variant="ghost" size="sm" title="Ver detalles">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                          <Link href={`/listado/analisis/dosn/${analysis.analisisID}/editar`}>
-                            <Button variant="ghost" size="sm" title="Editar">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                          {user?.role === "administrador" && (
-                            analysis.activo ? (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                title="Desactivar"
-                                onClick={() => handleDesactivar(analysis.analisisID)}
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            ) : (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                title="Reactivar"
-                                onClick={() => handleReactivar(analysis.analisisID)}
-                                className="text-green-600 hover:text-green-700"
-                              >
-                                <RefreshCw className="h-4 w-4" />
-                              </Button>
-                            )
-                          )}
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8">
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                          <span className="text-muted-foreground">Cargando análisis...</span>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
+                  ) : filteredAnalysis.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8">
+                        <div className="flex flex-col items-center gap-2">
+                          <AlertTriangle className="h-8 w-8 text-muted-foreground" />
+                          <p className="text-muted-foreground">No se encontraron análisis DOSN</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredAnalysis.map((analysis) => (
+                      <TableRow key={analysis.analisisID}>
+                        <TableCell className="font-medium whitespace-nowrap">
+                          {analysis.analisisID}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {analysis.lote || "-"}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {analysis.especie || "-"}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          <Badge variant={getEstadoBadgeVariant(analysis.estado)}>
+                            {formatEstado(analysis.estado)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {analysis.cumpleEstandar !== undefined ? (
+                            <Badge
+                              variant={analysis.cumpleEstandar ? "default" : "destructive"}
+                              className="text-xs"
+                            >
+                              {analysis.cumpleEstandar ? "Sí" : "No"}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <Link href={`/listado/analisis/dosn/${analysis.analisisID}`}>
+                              <Button variant="ghost" size="sm" title="Ver detalles">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            {user?.role !== "observador" && (
+                              <Link href={`/listado/analisis/dosn/${analysis.analisisID}/editar`}>
+                                <Button variant="ghost" size="sm" title="Editar">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                            )}
+                            {user?.role === "administrador" && (
+                              analysis.activo ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  title="Desactivar"
+                                  onClick={() => handleDesactivar(analysis.analisisID)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  title="Reactivar"
+                                  onClick={() => handleReactivar(analysis.analisisID)}
+                                  className="text-green-600 hover:text-green-700"
+                                >
+                                  <RefreshCw className="h-4 w-4" />
+                                </Button>
+                              )
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            {/* Paginación: centrada en el listado DOSN */}
+            <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
+              <div className="text-sm text-muted-foreground">
+                {totalElements === 0 ? (
+                  <>Mostrando 0 de 0 resultados</>
+                ) : (
+                  <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
                 )}
-              </TableBody>
-            </Table>
-          </div>
-          {/* Paginación: centrada en el listado DOSN */}
-          <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
-            <div className="text-sm text-muted-foreground">
-              {totalElements === 0 ? (
-                <>Mostrando 0 de 0 resultados</>
-              ) : (
-                <>Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, totalElements)} de {totalElements} resultados</>
-              )}
+              </div>
+
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.max(totalPages, 1)}
+                onPageChange={(p) => fetchDosns(p)}
+                showRange={1}
+                alwaysShow={true}
+              />
             </div>
 
-            <Pagination
-              currentPage={currentPage}
-              totalPages={Math.max(totalPages, 1)}
-              onPageChange={(p) => fetchDosns(p)}
-              showRange={1}
-              alwaysShow={true}
-            />
-          </div>
-
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
       </div>
     </div>

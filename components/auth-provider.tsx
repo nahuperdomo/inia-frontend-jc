@@ -135,9 +135,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null)
       // Limpieza defensiva (por si quedó algo viejo)
       if (typeof window !== "undefined") {
-        try { localStorage.removeItem("inia-user") } catch {}
-        try { localStorage.removeItem("usuario") } catch {}
-        try { sessionStorage.clear() } catch {}
+        try { localStorage.removeItem("inia-user") } catch { }
+        try { localStorage.removeItem("usuario") } catch { }
+        try { sessionStorage.clear() } catch { }
       }
     }
   }

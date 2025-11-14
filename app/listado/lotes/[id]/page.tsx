@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { useAuth } from "@/components/auth-provider"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Package, 
-  ArrowLeft, 
-  Edit, 
+import {
+  Package,
+  ArrowLeft,
+  Edit,
   Calendar,
   Building,
   MapPin,
@@ -26,6 +27,7 @@ import { obtenerLotePorId } from "@/app/services/lote-service"
 export default function DetalleLotePage() {
   const params = useParams()
   const router = useRouter()
+  const { user } = useAuth()
   const [lote, setLote] = useState<LoteDTO | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -35,10 +37,10 @@ export default function DetalleLotePage() {
   useEffect(() => {
     const fetchLote = async () => {
       if (!loteId) return
-      
+
       setLoading(true)
       setError(null)
-      
+
       try {
         const data = await obtenerLotePorId(parseInt(loteId))
         setLote(data)
@@ -108,7 +110,7 @@ export default function DetalleLotePage() {
     <div className="w-full max-w-full overflow-x-hidden">
       <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
         <Toaster position="top-right" richColors closeButton />
-        
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
@@ -365,18 +367,22 @@ export default function DetalleLotePage() {
                 <CardTitle className="text-lg sm:text-xl">Acciones</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Link href={`/listado/lotes/${loteId}/editar`} className="w-full">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar Lote
-                  </Button>
-                </Link>
-                <Link href="/registro/analisis" className="w-full">
-                  <Button variant="outline" className="w-full justify-start">
-                    <TestTube className="h-4 w-4 mr-2" />
-                    Crear Análisis
-                  </Button>
-                </Link>
+                {user?.role !== "observador" && (
+                  <>
+                    <Link href={`/listado/lotes/${loteId}/editar`} className="w-full">
+                      <Button variant="outline" className="w-full justify-start">
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar Lote
+                      </Button>
+                    </Link>
+                    <Link href="/registro/analisis" className="w-full">
+                      <Button variant="outline" className="w-full justify-start">
+                        <TestTube className="h-4 w-4 mr-2" />
+                        Crear Análisis
+                      </Button>
+                    </Link>
+                  </>
+                )}
                 <Link href="/listado/lotes" className="w-full">
                   <Button variant="outline" className="w-full justify-start">
                     <Package className="h-4 w-4 mr-2" />

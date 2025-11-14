@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/components/auth-provider"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -30,6 +31,7 @@ const tipoAnalisisColors: Record<string, string> = {
 
 export default function AnalisisPendientesPage() {
   const router = useRouter()
+  const { user } = useAuth()
   const [pendientes, setPendientes] = useState<AnalisisPendiente[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -49,10 +51,10 @@ export default function AnalisisPendientesPage() {
       setLoading(true)
       setError(null)
       const data = await obtenerAnalisisPendientesPaginados(0, pageSize)
-      
+
       // Extraer metadata de paginación usando helper
       const pageData = extractPageMetadata<AnalisisPendiente>(data, 0)
-      
+
       setPendientes(pageData.content)
       setTotalPages(pageData.totalPages)
       setTotalElements(pageData.totalElements)
@@ -72,10 +74,10 @@ export default function AnalisisPendientesPage() {
       setLoading(true)
       setError(null)
       const data = await obtenerAnalisisPendientesPaginados(page, pageSize)
-      
+
       // Extraer metadata de paginación usando helper
       const pageData = extractPageMetadata<AnalisisPendiente>(data, page)
-      
+
       setPendientes(pageData.content)
       setTotalPages(pageData.totalPages)
       setTotalElements(pageData.totalElements)
@@ -142,7 +144,10 @@ export default function AnalisisPendientesPage() {
         <CardHeader>
           <CardTitle>Listado de Análisis Pendientes</CardTitle>
           <CardDescription>
-            Haga clic en "Crear Análisis" para iniciar el registro correspondiente
+            {user?.role === "observador"
+              ? "Análisis asignados que aún no han sido creados o requieren repetición"
+              : "Haga clic en \"Crear Análisis\" para iniciar el registro correspondiente"
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -169,7 +174,9 @@ export default function AnalisisPendientesPage() {
                       <TableHead>Especie</TableHead>
                       <TableHead>Cultivar</TableHead>
                       <TableHead>Tipo Análisis</TableHead>
-                      <TableHead className="text-right">Acción</TableHead>
+                      {user?.role !== "observador" && (
+                        <TableHead className="text-right">Acción</TableHead>
+                      )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -185,15 +192,17 @@ export default function AnalisisPendientesPage() {
                             {tipoAnalisisLabels[item.tipoAnalisis] || item.tipoAnalisis}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            onClick={() => handleCrearAnalisis(item.loteID, item.tipoAnalisis)}
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Crear Análisis
-                          </Button>
-                        </TableCell>
+                        {user?.role !== "observador" && (
+                          <TableCell className="text-right">
+                            <Button
+                              size="sm"
+                              onClick={() => handleCrearAnalisis(item.loteID, item.tipoAnalisis)}
+                            >
+                              <Plus className="h-4 w-4 mr-1" />
+                              Crear Análisis
+                            </Button>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>
