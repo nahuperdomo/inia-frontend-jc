@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">63.63% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>7/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>4/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">63.63% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>7/11</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -97,8 +97,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">32x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -106,18 +114,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -126,27 +126,27 @@
 /**
  * Convierte los estados de análisis a un formato legible
  */
-export function <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >formatearEstado(e</span></span>stado: EstadoAnalisis | string): string {
-<span class="cstat-no" title="statement not covered" >  switch (estado) {</span>
-    case "REGISTRADO":
+export function formatearEstado(estado: EstadoAnalisis | string): string {
+  switch (estado) {
+<span class="branch-0 cbranch-no" title="branch not covered" >    case "REGISTRADO":</span>
 <span class="cstat-no" title="statement not covered" >      return "Registrado"</span>
     case "EN_PROCESO":
-<span class="cstat-no" title="statement not covered" >      return "En Proceso"</span>
+      return "En Proceso"
     case "APROBADO":
-<span class="cstat-no" title="statement not covered" >      return "Aprobado"</span>
+      return "Aprobado"
     case "PENDIENTE_APROBACION":
-<span class="cstat-no" title="statement not covered" >      return "Pendiente de Aprobación"</span>
-    case "FINALIZADO":
+      return "Pendiente de Aprobación"
+<span class="branch-4 cbranch-no" title="branch not covered" >    case "FINALIZADO":</span>
 <span class="cstat-no" title="statement not covered" >      return "Finalizado"</span>
-    case "PENDIENTE":
+<span class="branch-5 cbranch-no" title="branch not covered" >    case "PENDIENTE":</span>
 <span class="cstat-no" title="statement not covered" >      return "Pendiente"</span>
-    case "PARA_REPETIR":
+<span class="branch-6 cbranch-no" title="branch not covered" >    case "PARA_REPETIR":</span>
 <span class="cstat-no" title="statement not covered" >      return "Para Repetir"</span>
     default:
       // Si viene con guiones bajos, reemplazarlos por espacios y capitalizar
-<span class="cstat-no" title="statement not covered" >      return estado</span>
+      return estado
         .split("_")
-        .map(<span class="fstat-no" title="function not covered" >palabra =&gt; <span class="cstat-no" title="statement not covered" >p</span>alabra.charAt(0) + palabra.slice(1).toLowerCase())</span>
+        .map(palabra =&gt; palabra.charAt(0) + palabra.slice(1).toLowerCase())
         .join(" ")
   }
 }
@@ -157,7 +157,7 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-13T23:48:47.817Z
+                at 2025-11-14T19:45:46.351Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

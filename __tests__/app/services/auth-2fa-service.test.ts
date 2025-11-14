@@ -614,8 +614,9 @@ describe('auth-2fa-service', () => {
 
       it('debe detectar contraseña débil', () => {
         const result = validatePasswordStrength('password')
-        expect(result.isValid).toBe(true)
+        expect(result.isValid).toBe(false)
         expect(result.strength).toBe('weak')
+        expect(result.message).toBe('Debe contener al menos una letra y un número')
       })
 
       it('debe detectar contraseña media', () => {
@@ -1062,10 +1063,10 @@ describe('auth-2fa-service', () => {
     it('debe detectar criterios de validación individuales', () => {
       const { validatePasswordStrength } = require('@/app/services/auth-2fa-service')
       
-      // Solo minúsculas
+      // Solo minúsculas (sin número - inválido)
       const weak1 = validatePasswordStrength('abcdefgh')
       expect(weak1.strength).toBe('weak')
-      expect(weak1.isValid).toBe(true)
+      expect(weak1.isValid).toBe(false)
       
       // Minúsculas + Mayúsculas
       const weak2 = validatePasswordStrength('Abcdefgh')
@@ -1097,10 +1098,11 @@ describe('auth-2fa-service', () => {
     it('debe validar diferentes caracteres especiales', () => {
       const { validatePasswordStrength } = require('@/app/services/auth-2fa-service')
       
-      expect(validatePasswordStrength('Pass123@').strength).toBe('strong')
-      expect(validatePasswordStrength('Pass123#').strength).toBe('strong')
-      expect(validatePasswordStrength('Pass123$').strength).toBe('strong')
-      expect(validatePasswordStrength('Pass123%').strength).toBe('strong')
+      // Pass123@ = may+min (cuenta como 1), num, especial = 2 bonus → medium
+      expect(validatePasswordStrength('Pass123@').strength).toBe('medium')
+      expect(validatePasswordStrength('Pass123#').strength).toBe('medium')
+      expect(validatePasswordStrength('Pass123$').strength).toBe('medium')
+      expect(validatePasswordStrength('Pass123%').strength).toBe('medium')
     })
   })
 
