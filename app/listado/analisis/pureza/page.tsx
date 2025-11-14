@@ -29,6 +29,7 @@ interface PurezaListadoDTO {
 import { toast } from "sonner"
 import { useAuth } from "@/components/auth-provider"
 import { extractPageMetadata } from "@/lib/utils/pagination-helper"
+import { formatearEstado } from "@/lib/utils/format-estado"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -179,23 +180,6 @@ export default function ListadoPurezaPage() {
         return "destructive"
       default:
         return "outline"
-    }
-  }
-
-  const formatEstado = (estado: EstadoAnalisis) => {
-    switch (estado) {
-      case "REGISTRADO":
-        return "Registrado"
-      case "EN_PROCESO":
-        return "En Proceso"
-      case "APROBADO":
-        return "Aprobado"
-      case "PENDIENTE_APROBACION":
-        return "Pend. Aprobación"
-      case "A_REPETIR":
-        return "A Repetir"
-      default:
-        return estado
     }
   }
 
@@ -384,7 +368,7 @@ export default function ListadoPurezaPage() {
                         </TableCell>
                         <TableCell>
                           <Badge variant={getEstadoBadgeVariant(analysis.estado)}>
-                            {formatEstado(analysis.estado)}
+                            {formatearEstado(analysis.estado)}
                           </Badge>
                         </TableCell>
                         <TableCell>
