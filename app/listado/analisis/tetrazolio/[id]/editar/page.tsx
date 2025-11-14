@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Loader2, AlertTriangle, TestTube, Target, Plus, Hash, Edit, X } from "lucide-react"
 import Link from "next/link"
-import { 
-  obtenerTetrazolioPorId, 
+import {
+  obtenerTetrazolioPorId,
   actualizarTetrazolio,
   finalizarAnalisis,
   aprobarAnalisis,
@@ -252,7 +252,7 @@ export default function EditarTetrazolioPage() {
 
       // Validar límite inferior basado en repeticiones ya creadas
       const minimo = Math.max(repeticiones.length, 2);
-      
+
       if (numValue < minimo) {
         toast.error(
           repeticiones.length > 0
@@ -276,7 +276,7 @@ export default function EditarTetrazolioPage() {
 
       return;
     }
-    
+
     // Cualquier otro campo
     setFormData((prev) => ({
       ...prev,
@@ -290,6 +290,18 @@ export default function EditarTetrazolioPage() {
         porcViablesRedondeo: parseFloat(String(porcentajesEditados.porcViablesRedondeo) || '0') || 0,
         porcNoViablesRedondeo: parseFloat(String(porcentajesEditados.porcNoViablesRedondeo) || '0') || 0,
         porcDurasRedondeo: parseFloat(String(porcentajesEditados.porcDurasRedondeo) || '0') || 0,
+      }
+
+      // Validar que la suma de porcentajes esté entre 95% y 105% (100 ± 5%)
+      const sumaPorcentajes = payload.porcViablesRedondeo + payload.porcNoViablesRedondeo + payload.porcDurasRedondeo
+      const diferencia = Math.abs(sumaPorcentajes - 100)
+      const porcentajeDiferencia = diferencia
+
+      if (porcentajeDiferencia > 5) {
+        toast.error(
+          `La suma de porcentajes (${sumaPorcentajes.toFixed(2)}%) debe estar entre 95% y 105%. Diferencia: ${diferencia.toFixed(2)}%`
+        )
+        return
       }
 
       console.log(" Guardando porcentajes redondeados:", payload)
@@ -310,13 +322,13 @@ export default function EditarTetrazolioPage() {
 
   const handleCrearRepeticion = async () => {
     if (!tetrazolio) return
-    
+
     // Validación de límite de repeticiones
     if (repeticiones.length >= (tetrazolio.numRepeticionesEsperadas || 8)) {
       toast.error(`Ya se han creado todas las repeticiones esperadas (${tetrazolio.numRepeticionesEsperadas})`)
       return
     }
-    
+
     // Validación de fecha nueva repetición: no puede ser futura
     if (nuevaRepeticion.fecha > hoy) {
       toast.error("La fecha de la repetición no puede ser posterior a hoy")
@@ -342,13 +354,13 @@ export default function EditarTetrazolioPage() {
     try {
       setCreatingRepeticion(true)
       console.log("➕ Creando nueva repetición para tetrazolio:", tetrazolio.analisisID)
-      
+
       await crearRepTetrazolioViabilidad(parseInt(tetrazolioId), nuevaRepeticion)
-      
+
       // Recargar repeticiones
       const repeticionesActualizadas = await obtenerRepeticionesPorTetrazolio(parseInt(tetrazolioId))
       setRepeticiones(repeticionesActualizadas)
-      
+
       // Limpiar formulario
       setNuevaRepeticion({
         fecha: new Date().toISOString().split("T")[0],
@@ -357,9 +369,9 @@ export default function EditarTetrazolioPage() {
         duras: '',
       })
       setShowAddRepeticion(false)
-      
+
       toast.success("Repetición creada exitosamente")
-      
+
       console.log(` Repetición creada. Total: ${repeticionesActualizadas.length}/${tetrazolio.numRepeticionesEsperadas}`)
     } catch (err: any) {
       console.error(" Error al crear repetición:", err)
@@ -411,7 +423,7 @@ export default function EditarTetrazolioPage() {
     }
 
     // ========== VALIDACIONES PARA CAMPOS "OTRO (ESPECIFICAR)" ==========
-    
+
     // Validar Pretratamiento
     if (formData.pretratamiento === "Otro (especificar)") {
       if (!formData.pretratamientoOtro || formData.pretratamientoOtro.trim() === "") {
@@ -498,9 +510,9 @@ export default function EditarTetrazolioPage() {
           ? parseFloat(formData.tincionTempOtro)
           : typeof formData.tincionTemp === "string"
             ? ((): number | undefined => {
-                const parsed = parseFloat(formData.tincionTemp)
-                return isNaN(parsed) ? undefined : parsed
-              })()
+              const parsed = parseFloat(formData.tincionTemp)
+              return isNaN(parsed) ? undefined : parsed
+            })()
             : formData.tincionTemp
 
       const requestData: TetrazolioRequestDTO = {
@@ -533,9 +545,9 @@ export default function EditarTetrazolioPage() {
       await actualizarTetrazolio(Number.parseInt(tetrazolioId), requestData)
 
       // Guardar porcentajes redondeados si están disponibles
-      if (puedeEditarPorcentajes && (porcentajesEditados.porcViablesRedondeo !== '' || 
-          porcentajesEditados.porcNoViablesRedondeo !== '' || 
-          porcentajesEditados.porcDurasRedondeo !== '')) {
+      if (puedeEditarPorcentajes && (porcentajesEditados.porcViablesRedondeo !== '' ||
+        porcentajesEditados.porcNoViablesRedondeo !== '' ||
+        porcentajesEditados.porcDurasRedondeo !== '')) {
         const payloadPorcentajes = {
           porcViablesRedondeo: parseFloat(String(porcentajesEditados.porcViablesRedondeo) || '0') || 0,
           porcNoViablesRedondeo: parseFloat(String(porcentajesEditados.porcNoViablesRedondeo) || '0') || 0,
@@ -558,7 +570,7 @@ export default function EditarTetrazolioPage() {
   // Finalizar análisis
   const handleFinalizarAnalisis = async () => {
     if (!tetrazolio) return
-    
+
     try {
       console.log(" Finalizando análisis Tetrazolio:", tetrazolio.analisisID)
       await finalizarAnalisis(tetrazolio.analisisID)
@@ -575,7 +587,7 @@ export default function EditarTetrazolioPage() {
   // Aprobar análisis (solo para análisis en PENDIENTE_APROBACION o A_REPETIR)
   const handleAprobar = async () => {
     if (!tetrazolio) return
-    
+
     try {
       console.log(" Aprobando análisis Tetrazolio:", tetrazolio.analisisID)
       await aprobarAnalisis(tetrazolio.analisisID)
@@ -592,7 +604,7 @@ export default function EditarTetrazolioPage() {
   // Marcar para repetir
   const handleMarcarParaRepetir = async () => {
     if (!tetrazolio) return
-    
+
     try {
       console.log(" Marcando análisis Tetrazolio para repetir:", tetrazolio.analisisID)
       await marcarParaRepetir(tetrazolio.analisisID)
@@ -609,7 +621,7 @@ export default function EditarTetrazolioPage() {
   // Finalizar y aprobar (solo para admin en estados no finalizados)
   const handleFinalizarYAprobar = async () => {
     if (!tetrazolio) return
-    
+
     try {
       console.log(" Finalizando y aprobando análisis Tetrazolio:", tetrazolio.analisisID)
       // Cuando el admin finaliza, el backend automáticamente lo aprueba
@@ -706,8 +718,8 @@ export default function EditarTetrazolioPage() {
                     </div>
                     Formulario de Edición
                   </CardTitle>
-                  <TablaToleranciasButton 
-                    pdfPath="/tablas-tolerancias/tabla-tetrazolio.pdf" 
+                  <TablaToleranciasButton
+                    pdfPath="/tablas-tolerancias/tabla-tetrazolio.pdf"
                     title="Tabla de Tolerancias"
                     className="w-full sm:w-auto"
                   />
@@ -795,7 +807,7 @@ export default function EditarTetrazolioPage() {
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   {tetrazolio.estado !== "APROBADO" && repeticiones.length < (tetrazolio.numRepeticionesEsperadas || 0) && (
-                    <Button 
+                    <Button
                       onClick={() => {
                         setNuevaRepeticion({
                           fecha: new Date().toISOString().split('T')[0],
@@ -893,9 +905,9 @@ export default function EditarTetrazolioPage() {
 
                     {/* Validación del total */}
                     {(() => {
-                      const total = 
-                        (parseInt(String(nuevaRepeticion.viablesNum) || '0') || 0) + 
-                        (parseInt(String(nuevaRepeticion.duras) || '0') || 0) + 
+                      const total =
+                        (parseInt(String(nuevaRepeticion.viablesNum) || '0') || 0) +
+                        (parseInt(String(nuevaRepeticion.duras) || '0') || 0) +
                         (parseInt(String(nuevaRepeticion.noViablesNum) || '0') || 0)
                       const esperado = tetrazolio?.numSemillasPorRep || 50
                       const diferencia = Math.abs(total - esperado)
@@ -946,7 +958,7 @@ export default function EditarTetrazolioPage() {
                       <Plus className="h-4 w-4 mr-2" />
                       {creatingRepeticion ? 'Creando...' : 'Crear Repetición'}
                     </Button>
-                    
+
                     <Button
                       type="button"
                       variant="outline"
@@ -1219,7 +1231,7 @@ export default function EditarTetrazolioPage() {
               </CardContent>
             </Card>
           )}
-                  {/* Card de Acciones */}
+          {/* Card de Acciones */}
           <AnalisisAccionesCard
             analisisId={tetrazolio.analisisID}
             tipoAnalisis="tetrazolio"

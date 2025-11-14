@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useConfirm } from '@/lib/hooks/useConfirm'
-import { 
-  obtenerGerminacionPorId, 
+import {
+  obtenerGerminacionPorId,
   obtenerTablasGerminacion,
   crearTablaGerminacion,
   finalizarGerminacion,
@@ -26,17 +26,16 @@ import { Label } from '@/components/ui/label'
 import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
 import { toast } from "sonner"
-import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 import { StickySaveButton } from "@/components/ui/sticky-save-button"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
   if (!fechaString) return ''
-  
+
   // Crear fecha como fecha local en lugar de UTC para evitar problemas de zona horaria
   const [year, month, day] = fechaString.split('-').map(Number)
   const fecha = new Date(year, month - 1, day) // month - 1 porque los meses son 0-indexed
-  
+
   return fecha.toLocaleDateString('es-UY', {
     year: 'numeric',
     month: '2-digit',
@@ -47,11 +46,11 @@ const formatearFechaLocal = (fechaString: string): string => {
 // Función para formatear fecha y hora (LocalDateTime del backend)
 const formatearFechaHora = (fechaString: string): string => {
   if (!fechaString) return ''
-  
+
   try {
     const fecha = new Date(fechaString)
     if (isNaN(fecha.getTime())) return fechaString // Si no se puede parsear, devolver el string original
-    
+
     return fecha.toLocaleString('es-UY', {
       year: 'numeric',
       month: '2-digit',
@@ -67,16 +66,16 @@ const formatearFechaHora = (fechaString: string): string => {
 // Función para convertir fecha del backend al formato YYYY-MM-DD para inputs
 const convertirFechaParaInput = (fechaString: string): string => {
   if (!fechaString) return ''
-  
+
   // Si la fecha ya está en formato YYYY-MM-DD, devolverla tal como está
   if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
     return fechaString
   }
-  
+
   // Si viene con hora o en otro formato, extraer solo la parte de fecha
   const fecha = new Date(fechaString)
   if (isNaN(fecha.getTime())) return '' // Fecha inválida
-  
+
   // Formatear como YYYY-MM-DD
   return fecha.toISOString().split('T')[0]
 }
@@ -94,7 +93,7 @@ export default function GerminacionDetailPage() {
   const [creatingTable, setCreatingTable] = useState(false)
   const [error, setError] = useState<string>("")
   const [editandoGerminacion, setEditandoGerminacion] = useState(false)
-  
+
   // Simplificado para solo campos editables
   const [germinacionEditada, setGerminacionEditada] = useState<{
     idLote: number
@@ -103,7 +102,7 @@ export default function GerminacionDetailPage() {
     idLote: 0,
     comentarios: ''
   })
-  
+
   const [germinacionOriginal, setGerminacionOriginal] = useState<{
     idLote: number
     comentarios: string
@@ -113,18 +112,18 @@ export default function GerminacionDetailPage() {
     try {
       setLoading(true)
       console.log(" Cargando germinación y tablas para ID:", germinacionId)
-      
+
       // Cargar datos en paralelo
       const [germinacionData, lotesData] = await Promise.all([
         obtenerGerminacionPorId(parseInt(germinacionId)),
         obtenerLotesActivos()
       ])
-      
+
       console.log(" Germinación cargada:", germinacionData)
       console.log(" Lotes cargados:", lotesData)
       setGerminacion(germinacionData)
       setLotes(lotesData)
-      
+
       // Cargar tablas usando el endpoint correcto
       try {
         const tablasData = await obtenerTablasGerminacion(parseInt(germinacionId))
@@ -158,12 +157,12 @@ export default function GerminacionDetailPage() {
     try {
       setCreatingTable(true)
       setError("")
-      
+
       console.log(" Creando nueva tabla para germinación:", germinacionId)
-      
+
       const nuevaTabla = await crearTablaGerminacion(parseInt(germinacionId))
       console.log(" Tabla creada:", nuevaTabla)
-      
+
       // Solo recargar las tablas en lugar de recargar todo
       const tablasData = await obtenerTablasGerminacion(parseInt(germinacionId))
       setTablas(tablasData)
@@ -190,9 +189,9 @@ export default function GerminacionDetailPage() {
 
     try {
       setError("")
-      
+
       console.log("✏️ Editando análisis:", germinacionId)
-      
+
       // Actualizar estado local para marcar como en proceso
       if (germinacion) {
         setGerminacion({
@@ -201,7 +200,7 @@ export default function GerminacionDetailPage() {
           fechaFin: undefined
         })
       }
-      
+
       console.log(" Análisis habilitado para edición")
     } catch (err: any) {
       console.error(" Error editando análisis:", err)
@@ -211,15 +210,15 @@ export default function GerminacionDetailPage() {
 
   const handleEditarGerminacion = () => {
     if (!germinacion) return
-    
+
     console.log(" Iniciando edición de germinación")
-    
+
     // Solo preparar los campos editables
     const datosEdicion = {
       idLote: germinacion.idLote || 0,
       comentarios: germinacion.comentarios || ''
     }
-    
+
     setGerminacionEditada(datosEdicion)
     setGerminacionOriginal({ ...datosEdicion })
     setEditandoGerminacion(true)
@@ -247,18 +246,18 @@ export default function GerminacionDetailPage() {
 
     try {
       console.log(" Guardando cambios en germinación:", germinacionId)
-      
+
       // Crear el DTO de edición con solo los campos permitidos
       const datosEdicion: GerminacionEditRequestDTO = {
         idLote: germinacionEditada.idLote,
         comentarios: germinacionEditada.comentarios
       }
-      
+
       console.log(" Datos a enviar:", JSON.stringify(datosEdicion, null, 2))
-      
+
       const germinacionActualizada = await actualizarGerminacion(parseInt(germinacionId), datosEdicion)
       console.log(" Germinación actualizada exitosamente")
-      
+
       // Actualizar estado local
       setGerminacion(germinacionActualizada)
       setEditandoGerminacion(false)
@@ -272,7 +271,7 @@ export default function GerminacionDetailPage() {
   // Finalizar análisis
   const handleFinalizarAnalisis = async () => {
     if (!germinacion) return
-    
+
     try {
       console.log("Finalizando análisis Germinación:", germinacion.analisisID)
       await finalizarGerminacion(germinacion.analisisID)
@@ -287,7 +286,7 @@ export default function GerminacionDetailPage() {
   // Aprobar análisis
   const handleAprobar = async () => {
     if (!germinacion) return
-    
+
     try {
       console.log(" Aprobando análisis Germinación:", germinacion.analisisID)
       await aprobarAnalisis(germinacion.analisisID)
@@ -302,7 +301,7 @@ export default function GerminacionDetailPage() {
   // Marcar para repetir
   const handleMarcarParaRepetir = async () => {
     if (!germinacion) return
-    
+
     try {
       console.log(" Marcando análisis Germinación para repetir:", germinacion.analisisID)
       await marcarParaRepetir(germinacion.analisisID)
@@ -317,7 +316,7 @@ export default function GerminacionDetailPage() {
   // Finalizar y aprobar
   const handleFinalizarYAprobar = async () => {
     if (!germinacion) return
-    
+
     try {
       console.log("Finalizando y aprobando análisis Germinación:", germinacion.analisisID)
       // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
@@ -362,7 +361,7 @@ export default function GerminacionDetailPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
       {/* Header Universal - Sin botón de edición */}
       <AnalisisHeaderBar
         tipoAnalisis="Germinación"
@@ -375,58 +374,52 @@ export default function GerminacionDetailPage() {
       {/* Error Display */}
       {error && (
         <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-4">
-            <p className="text-red-600">{error}</p>
+          <CardContent className="p-3 sm:p-4">
+            <p className="text-sm text-red-600">{error}</p>
           </CardContent>
         </Card>
       )}
 
       {/* Información del Análisis */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="p-3 sm:p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Beaker className="h-5 w-5" />
-              <CardTitle>Información del Análisis</CardTitle>
+              <Beaker className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+              <CardTitle className="text-base sm:text-lg">Información del Análisis</CardTitle>
             </div>
-            <div className="flex items-center gap-2">
-              <TablaToleranciasButton
-                pdfPath="/tablas-tolerancias/tabla-germinacion.pdf"
-                title="Tabla de Tolerancias"
-              />
-              {!editandoGerminacion && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleEditarGerminacion}
-                  className="min-w-fit"
-                >
-                  <Edit className="h-4 w-4 mr-1" />
-                  Editar
-                </Button>
-              )}
-            </div>
+            {!editandoGerminacion && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleEditarGerminacion}
+                className="min-w-fit text-xs sm:text-sm self-end sm:self-auto"
+              >
+                <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                Editar
+              </Button>
+            )}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-4 md:p-6">
           {editandoGerminacion ? (
-            <div className="space-y-6">
-              <div className="text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="text-xs sm:text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p><strong>Modo de Edición:</strong> Solo se pueden modificar los campos que se muestran a continuación. Los datos como fechas, número de días y repeticiones no son editables una vez creado el análisis.</p>
               </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-4">
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <div className="space-y-3 sm:space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Lote Asociado *</Label>
+                    <Label className="text-xs sm:text-sm font-medium">Lote Asociado *</Label>
                     <Select
                       value={germinacionEditada.idLote?.toString() || ""}
-                      onValueChange={(value) => setGerminacionEditada(prev => ({ 
-                        ...prev, 
-                        idLote: parseInt(value) 
+                      onValueChange={(value) => setGerminacionEditada(prev => ({
+                        ...prev,
+                        idLote: parseInt(value)
                       }))}
                     >
-                      <SelectTrigger className="h-11">
+                      <SelectTrigger className="h-10 sm:h-11 text-sm">
                         <SelectValue placeholder="Seleccionar lote..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -437,49 +430,49 @@ export default function GerminacionDetailPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-[10px] sm:text-xs text-gray-500">
                       Selecciona el lote que se analizará en este análisis de germinación
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Comentarios</Label>
+                    <Label className="text-xs sm:text-sm font-medium">Comentarios</Label>
                     <Input
                       value={germinacionEditada.comentarios}
-                      onChange={(e) => setGerminacionEditada(prev => ({ 
-                        ...prev, 
-                        comentarios: e.target.value 
+                      onChange={(e) => setGerminacionEditada(prev => ({
+                        ...prev,
+                        comentarios: e.target.value
                       }))}
                       placeholder="Comentarios adicionales sobre el análisis..."
-                      className="h-11"
+                      className="h-10 sm:h-11 text-sm"
                     />
-                    <p className="text-xs text-gray-500">
+                    <p className="text-[10px] sm:text-xs text-gray-500">
                       Información adicional o observaciones sobre el análisis
                     </p>
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {/* Información del lote seleccionado */}
                   {germinacionEditada.idLote && lotes.find(l => l.loteID === germinacionEditada.idLote) && (
                     <Card className="bg-gray-50">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm">Información del Lote</CardTitle>
+                      <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4">
+                        <CardTitle className="text-xs sm:text-sm">Información del Lote</CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-2">
+                      <CardContent className="space-y-2 p-3 sm:p-4 pt-0">
                         {(() => {
                           const selectedLoteInfo = lotes.find(l => l.loteID === germinacionEditada.idLote);
                           return selectedLoteInfo ? (
                             <>
-                              <div className="flex justify-between text-sm">
+                              <div className="flex justify-between text-xs sm:text-sm">
                                 <span className="text-muted-foreground">Ficha:</span>
                                 <span className="font-medium">{selectedLoteInfo.ficha}</span>
                               </div>
-                              <div className="flex justify-between text-sm">
+                              <div className="flex justify-between text-xs sm:text-sm">
                                 <span className="text-muted-foreground">Lote:</span>
                                 <span>{selectedLoteInfo.nomLote}</span>
                               </div>
-                              <div className="flex justify-between text-sm">
+                              <div className="flex justify-between text-xs sm:text-sm">
                                 <span className="text-muted-foreground">Activo:</span>
                                 <span>{selectedLoteInfo.activo ? "Sí" : "No"}</span>
                               </div>
@@ -491,23 +484,23 @@ export default function GerminacionDetailPage() {
                   )}
                 </div>
               </div>
-              
-              <div className="flex justify-end gap-3 pt-4 border-t">
+
+              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-3 sm:pt-4 border-t">
                 <Button
                   variant="outline"
                   onClick={handleCancelarEdicionGerminacion}
-                  className="min-w-24"
+                  className="min-w-full sm:min-w-24 text-sm"
                 >
                   Cancelar
                 </Button>
-                
+
                 <Button
                   onClick={handleGuardarGerminacion}
                   disabled={!hanCambiadoGerminacion()}
                   className={
                     !hanCambiadoGerminacion()
-                      ? 'bg-gray-400 hover:bg-gray-500 min-w-32'
-                      : 'bg-green-600 hover:bg-green-700 min-w-32'
+                      ? 'bg-gray-400 hover:bg-gray-500 min-w-full sm:min-w-32 text-sm'
+                      : 'bg-green-600 hover:bg-green-700 min-w-full sm:min-w-32 text-sm'
                   }
                 >
                   {!hanCambiadoGerminacion() ? 'Sin Cambios' : 'Guardar Cambios'}
@@ -515,48 +508,48 @@ export default function GerminacionDetailPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">ID Análisis</p>
-                <p className="font-semibold">{germinacion.analisisID}</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">ID Análisis</p>
+                <p className="font-semibold text-sm sm:text-base">{germinacion.analisisID}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Lote</p>
-                <p className="font-semibold">{germinacion.lote || "N/A"}</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Lote</p>
+                <p className="font-semibold text-sm sm:text-base">{germinacion.lote || "N/A"}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Estado</p>
-                <p className="font-semibold">{germinacion.estado}</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Estado</p>
+                <p className="font-semibold text-sm sm:text-base">{germinacion.estado}</p>
               </div>
               {germinacion.fechaInicio && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Fecha de Creación</p>
-                  <p className="font-semibold flex items-center gap-1">
-                    <CalendarDays className="h-4 w-4" />
-                    {formatearFechaHora(germinacion.fechaInicio)}
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Fecha de Creación</p>
+                  <p className="font-semibold text-xs sm:text-sm flex items-center gap-1">
+                    <CalendarDays className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <span className="truncate">{formatearFechaHora(germinacion.fechaInicio)}</span>
                   </p>
                 </div>
               )}
               {germinacion.fechaFin && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Fecha de Fin</p>
-                  <p className="font-semibold flex items-center gap-1">
-                    <CalendarDays className="h-4 w-4" />
-                    {formatearFechaHora(germinacion.fechaFin)}
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Fecha de Fin</p>
+                  <p className="font-semibold text-xs sm:text-sm flex items-center gap-1">
+                    <CalendarDays className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <span className="truncate">{formatearFechaHora(germinacion.fechaFin)}</span>
                   </p>
                 </div>
               )}
               {germinacion.comentarios && (
-                <div className="md:col-span-3">
-                  <p className="text-sm font-medium text-muted-foreground">Comentarios</p>
-                  <p className="font-semibold">{germinacion.comentarios}</p>
+                <div className="sm:col-span-2 md:col-span-3">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Comentarios</p>
+                  <p className="font-semibold text-sm sm:text-base break-words">{germinacion.comentarios}</p>
                 </div>
               )}
               {tablas.length > 0 && (
-                <div className="md:col-span-3">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">Tablas de Germinación</p>
-                  <p className="text-sm text-muted-foreground">
-                    Este análisis tiene {tablas.length} tabla{tablas.length !== 1 ? 's' : ''} de germinación. 
+                <div className="sm:col-span-2 md:col-span-3">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">Tablas de Germinación</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Este análisis tiene {tablas.length} tabla{tablas.length !== 1 ? 's' : ''} de germinación.
                     Los detalles de cada tabla se muestran en la sección inferior.
                   </p>
                 </div>
@@ -567,7 +560,7 @@ export default function GerminacionDetailPage() {
       </Card>
 
       {/* Sección de Tablas */}
-      <TablasGerminacionSection 
+      <TablasGerminacionSection
         tablas={tablas}
         germinacionId={parseInt(germinacionId)}
         isFinalized={germinacion.estado === 'APROBADO' || germinacion.estado === 'PENDIENTE_APROBACION'}

@@ -287,43 +287,43 @@ export default function GerminacionDetailPage() {
                           <CardContent className="p-6">
                             {/* Información de Fechas de la Tabla */}
                             {(tabla.fechaInicioGerm || tabla.fechaUltConteo || tabla.numDias) && (
-                              <div className="mb-6 bg-blue-50/50 border border-blue-200 rounded-lg p-4">
-                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                                  <Calendar className="h-4 w-4 text-blue-600" />
-                                  Fechas y Duración
+                              <div className="mb-4 sm:mb-6 bg-blue-50/50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                                <h4 className="text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 flex-shrink-0" />
+                                  <span className="truncate">Fechas y Duración</span>
                                 </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                                   {tabla.fechaInicioGerm && (
                                     <div>
-                                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Fecha Inicio</label>
-                                      <p className="text-sm font-medium mt-1">{formatearFechaLocal(tabla.fechaInicioGerm)}</p>
+                                      <label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Fecha Inicio</label>
+                                      <p className="text-xs sm:text-sm font-medium mt-1 break-words">{formatearFechaLocal(tabla.fechaInicioGerm)}</p>
                                     </div>
                                   )}
                                   {tabla.fechaUltConteo && (
                                     <div>
-                                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Fecha Último Conteo</label>
-                                      <p className="text-sm font-medium mt-1">{formatearFechaLocal(tabla.fechaUltConteo)}</p>
+                                      <label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Fecha Último Conteo</label>
+                                      <p className="text-xs sm:text-sm font-medium mt-1 break-words">{formatearFechaLocal(tabla.fechaUltConteo)}</p>
                                     </div>
                                   )}
                                   {tabla.numDias && (
                                     <div>
-                                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Días de Análisis</label>
-                                      <p className="text-sm font-medium mt-1">{tabla.numDias} días</p>
+                                      <label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Días de Análisis</label>
+                                      <p className="text-xs sm:text-sm font-medium mt-1">{tabla.numDias} días</p>
                                     </div>
                                   )}
                                 </div>
 
                                 {/* Fechas de Conteos */}
                                 {tabla.fechaConteos && tabla.fechaConteos.length > 0 && (
-                                  <div className="mt-4">
-                                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 block">
+                                  <div className="mt-3 sm:mt-4">
+                                    <label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 block">
                                       Cronograma de Conteos ({tabla.fechaConteos.length})
                                     </label>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1.5 sm:gap-2">
                                       {tabla.fechaConteos.map((fecha, idx) => (
-                                        <div key={idx} className="bg-white border border-blue-200 rounded px-2 py-1.5 text-center">
-                                          <p className="text-xs text-muted-foreground">C{idx + 1}</p>
-                                          <p className="text-xs font-medium">{new Date(fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}</p>
+                                        <div key={idx} className="bg-white border border-blue-200 rounded px-1.5 sm:px-2 py-1 sm:py-1.5 text-center">
+                                          <p className="text-[10px] sm:text-xs text-muted-foreground">C{idx + 1}</p>
+                                          <p className="text-[10px] sm:text-xs font-medium">{new Date(fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}</p>
                                         </div>
                                       ))}
                                     </div>
@@ -333,34 +333,34 @@ export default function GerminacionDetailPage() {
                             )}
 
                             {/* Información General de la Tabla */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
                               <div>
-                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Método</label>
-                                <p className="text-sm font-medium break-words">{tabla.metodo}</p>
+                                <label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Método</label>
+                                <p className="text-xs sm:text-sm font-medium break-words mt-0.5">{tabla.metodo}</p>
                               </div>
                               <div>
-                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Temperatura</label>
-                                <p className="text-sm font-medium flex items-center gap-1">
+                                <label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Temperatura</label>
+                                <p className="text-xs sm:text-sm font-medium flex items-center gap-1 mt-0.5">
                                   <Thermometer className="h-3 w-3 flex-shrink-0" />
                                   <span className="truncate">{tabla.temperatura}°C</span>
                                 </p>
                               </div>
                               <div>
-                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Semillas/Rep</label>
-                                <p className="text-sm font-medium">{tabla.numSemillasPRep}</p>
+                                <label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Semillas/Rep</label>
+                                <p className="text-xs sm:text-sm font-medium mt-0.5">{tabla.numSemillasPRep}</p>
                               </div>
                               <div>
-                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total Semillas</label>
-                                <p className="text-sm font-medium">{tabla.total}</p>
+                                <label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Total Semillas</label>
+                                <p className="text-xs sm:text-sm font-medium mt-0.5">{tabla.total}</p>
                               </div>
                               <div>
-                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Prefrío</label>
-                                <p className="text-sm font-medium break-words">
+                                <label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Prefrío</label>
+                                <p className="text-xs sm:text-sm font-medium break-words mt-0.5">
                                   {tabla.tienePrefrio ? (
                                     <>
                                       <span className="text-green-600 font-semibold">Sí</span>
-                                      {tabla.descripcionPrefrio && <span className="block text-xs mt-1">{tabla.descripcionPrefrio}</span>}
-                                      {tabla.diasPrefrio > 0 && <span className="text-xs text-muted-foreground">({tabla.diasPrefrio} días)</span>}
+                                      {tabla.descripcionPrefrio && <span className="block text-[10px] sm:text-xs mt-1">{tabla.descripcionPrefrio}</span>}
+                                      {tabla.diasPrefrio > 0 && <span className="text-[10px] sm:text-xs text-muted-foreground">({tabla.diasPrefrio} días)</span>}
                                     </>
                                   ) : (
                                     <span className="text-gray-500">No</span>
@@ -368,13 +368,13 @@ export default function GerminacionDetailPage() {
                                 </p>
                               </div>
                               <div>
-                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pretratamiento</label>
-                                <p className="text-sm font-medium break-words">
+                                <label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Pretratamiento</label>
+                                <p className="text-xs sm:text-sm font-medium break-words mt-0.5">
                                   {tabla.tienePretratamiento ? (
                                     <>
                                       <span className="text-green-600 font-semibold">Sí</span>
-                                      {tabla.descripcionPretratamiento && <span className="block text-xs mt-1">{tabla.descripcionPretratamiento}</span>}
-                                      {tabla.diasPretratamiento > 0 && <span className="text-xs text-muted-foreground">({tabla.diasPretratamiento} días)</span>}
+                                      {tabla.descripcionPretratamiento && <span className="block text-[10px] sm:text-xs mt-1">{tabla.descripcionPretratamiento}</span>}
+                                      {tabla.diasPretratamiento > 0 && <span className="text-[10px] sm:text-xs text-muted-foreground">({tabla.diasPretratamiento} días)</span>}
                                     </>
                                   ) : (
                                     <span className="text-gray-500">No</span>
@@ -383,20 +383,20 @@ export default function GerminacionDetailPage() {
                               </div>
                               {tabla.productoYDosis && (
                                 <div className="sm:col-span-2">
-                                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Producto y Dosis</label>
-                                  <p className="text-sm font-medium break-words">{tabla.productoYDosis}</p>
+                                  <label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Producto y Dosis</label>
+                                  <p className="text-xs sm:text-sm font-medium break-words mt-0.5">{tabla.productoYDosis}</p>
                                 </div>
                               )}
                             </div>
 
                             {/* Promedios por Conteo (Calculados desde repeticiones) */}
                             {tabla.repGerm && tabla.repGerm.length > 0 && tabla.numeroConteos && (
-                              <div className="mb-6">
-                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                                  <BarChart3 className="h-4 w-4" />
-                                  Promedios de Normales por Conteo (Calculados)
+                              <div className="mb-4 sm:mb-6">
+                                <h4 className="text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                                  <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                                  <span className="truncate">Promedios de Normales por Conteo</span>
                                 </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
                                   {Array.from({ length: tabla.numeroConteos }, (_, conteoIndex) => {
                                     const totalConteo = tabla.repGerm?.reduce((sum, rep) => {
                                       return sum + (rep.normales && rep.normales[conteoIndex] ? rep.normales[conteoIndex] : 0)
@@ -405,9 +405,9 @@ export default function GerminacionDetailPage() {
                                     const promedio = totalConteo / numRepeticiones
 
                                     return (
-                                      <div key={conteoIndex} className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                                        <p className="text-sm sm:text-base font-bold text-blue-600 break-words">{promedio.toFixed(4)}</p>
-                                        <p className="text-xs text-muted-foreground">Conteo {conteoIndex + 1}</p>
+                                      <div key={conteoIndex} className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3 text-center">
+                                        <p className="text-xs sm:text-sm md:text-base font-bold text-blue-600 break-words">{promedio.toFixed(4)}</p>
+                                        <p className="text-[10px] sm:text-xs text-muted-foreground">Conteo {conteoIndex + 1}</p>
                                       </div>
                                     )
                                   })}
@@ -417,43 +417,43 @@ export default function GerminacionDetailPage() {
 
                             {/* Promedios Sin Redondeo de todas las categorías */}
                             {tabla.repGerm && tabla.repGerm.length > 0 && (
-                              <div className="mb-6">
-                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                                  <Calculator className="h-4 w-4" />
-                                  Promedios Calculados (Sin Redondeo)
+                              <div className="mb-4 sm:mb-6">
+                                <h4 className="text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                                  <Calculator className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                                  <span className="truncate">Promedios Calculados (Sin Redondeo)</span>
                                 </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-                                    <p className="text-base sm:text-lg font-bold text-green-600 break-words">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
+                                  <div className="bg-green-50 border border-green-200 rounded-lg p-2 sm:p-3 text-center">
+                                    <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-green-600 break-words">
                                       {((tabla.repGerm?.reduce((sum, rep) => {
                                         return sum + (rep.normales ? rep.normales.reduce((s, n) => s + n, 0) : 0)
                                       }, 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
                                     </p>
-                                    <p className="text-xs text-muted-foreground">Promedio Normales</p>
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground">Prom. Normales</p>
                                   </div>
-                                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
-                                    <p className="text-base sm:text-lg font-bold text-orange-600 break-words">
+                                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 sm:p-3 text-center">
+                                    <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-orange-600 break-words">
                                       {((tabla.repGerm?.reduce((sum, rep) => sum + (rep.anormales || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
                                     </p>
-                                    <p className="text-xs text-muted-foreground">Promedio Anormales</p>
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground">Prom. Anormales</p>
                                   </div>
-                                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-                                    <p className="text-base sm:text-lg font-bold text-yellow-600 break-words">
+                                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 sm:p-3 text-center">
+                                    <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-yellow-600 break-words">
                                       {((tabla.repGerm?.reduce((sum, rep) => sum + (rep.duras || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
                                     </p>
-                                    <p className="text-xs text-muted-foreground">Promedio Duras</p>
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground">Prom. Duras</p>
                                   </div>
-                                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                                    <p className="text-base sm:text-lg font-bold text-blue-600 break-words">
+                                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3 text-center">
+                                    <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-blue-600 break-words">
                                       {((tabla.repGerm?.reduce((sum, rep) => sum + (rep.frescas || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
                                     </p>
-                                    <p className="text-xs text-muted-foreground">Promedio Frescas</p>
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground">Prom. Frescas</p>
                                   </div>
-                                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-                                    <p className="text-base sm:text-lg font-bold text-gray-600 break-words">
+                                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-2 sm:p-3 text-center">
+                                    <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-gray-600 break-words">
                                       {((tabla.repGerm?.reduce((sum, rep) => sum + (rep.muertas || 0), 0) || 0) / (tabla.repGerm?.length || 1)).toFixed(4)}
                                     </p>
-                                    <p className="text-xs text-muted-foreground">Promedio Muertas</p>
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground">Prom. Muertas</p>
                                   </div>
                                 </div>
                               </div>
@@ -461,10 +461,10 @@ export default function GerminacionDetailPage() {
 
                             {/* Porcentajes Calculados (Sin Redondeo) */}
                             {tabla.repGerm && tabla.repGerm.length > 0 && (
-                              <div className="mb-6">
-                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                                  <Calculator className="h-4 w-4" />
-                                  Porcentajes Calculados (Sin Redondeo)
+                              <div className="mb-4 sm:mb-6">
+                                <h4 className="text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                                  <Calculator className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                                  <span className="truncate">Porcentajes Calculados (Sin Redondeo)</span>
                                 </h4>
                                 {(() => {
                                   // Calcular totales reales desde las repeticiones
@@ -478,36 +478,36 @@ export default function GerminacionDetailPage() {
                                   const totalGeneral = totalNormales + totalAnormales + totalDuras + totalFrescas + totalMuertas
 
                                   return (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-                                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-                                        <p className="text-sm sm:text-base font-bold text-green-600 break-words">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
+                                      <div className="bg-green-50 border border-green-200 rounded-lg p-2 sm:p-3 text-center">
+                                        <p className="text-xs sm:text-sm md:text-base font-bold text-green-600 break-words">
                                           {totalGeneral > 0 ? ((totalNormales / totalGeneral) * 100).toFixed(4) : '0.0000'}%
                                         </p>
-                                        <p className="text-xs text-muted-foreground">% Normales</p>
+                                        <p className="text-[10px] sm:text-xs text-muted-foreground">% Normales</p>
                                       </div>
-                                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
-                                        <p className="text-sm sm:text-base font-bold text-orange-600 break-words">
+                                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 sm:p-3 text-center">
+                                        <p className="text-xs sm:text-sm md:text-base font-bold text-orange-600 break-words">
                                           {totalGeneral > 0 ? ((totalAnormales / totalGeneral) * 100).toFixed(4) : '0.0000'}%
                                         </p>
-                                        <p className="text-xs text-muted-foreground">% Anormales</p>
+                                        <p className="text-[10px] sm:text-xs text-muted-foreground">% Anormales</p>
                                       </div>
-                                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-                                        <p className="text-sm sm:text-base font-bold text-yellow-600 break-words">
+                                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 sm:p-3 text-center">
+                                        <p className="text-xs sm:text-sm md:text-base font-bold text-yellow-600 break-words">
                                           {totalGeneral > 0 ? ((totalDuras / totalGeneral) * 100).toFixed(4) : '0.0000'}%
                                         </p>
-                                        <p className="text-xs text-muted-foreground">% Duras</p>
+                                        <p className="text-[10px] sm:text-xs text-muted-foreground">% Duras</p>
                                       </div>
-                                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                                        <p className="text-sm sm:text-base font-bold text-blue-600 break-words">
+                                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3 text-center">
+                                        <p className="text-xs sm:text-sm md:text-base font-bold text-blue-600 break-words">
                                           {totalGeneral > 0 ? ((totalFrescas / totalGeneral) * 100).toFixed(4) : '0.0000'}%
                                         </p>
-                                        <p className="text-xs text-muted-foreground">% Frescas</p>
+                                        <p className="text-[10px] sm:text-xs text-muted-foreground">% Frescas</p>
                                       </div>
-                                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-                                        <p className="text-sm sm:text-base font-bold text-gray-600 break-words">
+                                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-2 sm:p-3 text-center">
+                                        <p className="text-xs sm:text-sm md:text-base font-bold text-gray-600 break-words">
                                           {totalGeneral > 0 ? ((totalMuertas / totalGeneral) * 100).toFixed(4) : '0.0000'}%
                                         </p>
-                                        <p className="text-xs text-muted-foreground">% Muertas</p>
+                                        <p className="text-[10px] sm:text-xs text-muted-foreground">% Muertas</p>
                                       </div>
                                     </div>
                                   )
@@ -521,44 +521,44 @@ export default function GerminacionDetailPage() {
                               tabla.porcentajeDurasConRedondeo !== undefined ||
                               tabla.porcentajeFrescasConRedondeo !== undefined ||
                               tabla.porcentajeMuertasConRedondeo !== undefined) && (
-                                <div className="mb-6">
-                                  <div className="flex items-start justify-between mb-3">
-                                    <h4 className="text-sm font-semibold">
+                                <div className="mb-4 sm:mb-6">
+                                  <div className="flex items-start justify-between mb-2 sm:mb-3">
+                                    <h4 className="text-xs sm:text-sm font-semibold">
                                       Porcentajes con Redondeo
                                     </h4>
-                                    <Button variant="outline" size="sm" className="h-8">
+                                    <Button variant="outline" size="sm" className="h-7 sm:h-8 text-xs">
                                       Editar
                                     </Button>
                                   </div>
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
                                     {tabla.porcentajeNormalesConRedondeo !== undefined && (
-                                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-                                        <p className="text-sm sm:text-base font-bold text-green-600 break-words">{tabla.porcentajeNormalesConRedondeo}%</p>
-                                        <p className="text-xs text-muted-foreground">Normales</p>
+                                      <div className="bg-green-50 border border-green-200 rounded-lg p-2 sm:p-3 text-center">
+                                        <p className="text-xs sm:text-sm md:text-base font-bold text-green-600 break-words">{tabla.porcentajeNormalesConRedondeo}%</p>
+                                        <p className="text-[10px] sm:text-xs text-muted-foreground">Normales</p>
                                       </div>
                                     )}
                                     {tabla.porcentajeAnormalesConRedondeo !== undefined && (
-                                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
-                                        <p className="text-sm sm:text-base font-bold text-orange-600 break-words">{tabla.porcentajeAnormalesConRedondeo}%</p>
-                                        <p className="text-xs text-muted-foreground">Anormales</p>
+                                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 sm:p-3 text-center">
+                                        <p className="text-xs sm:text-sm md:text-base font-bold text-orange-600 break-words">{tabla.porcentajeAnormalesConRedondeo}%</p>
+                                        <p className="text-[10px] sm:text-xs text-muted-foreground">Anormales</p>
                                       </div>
                                     )}
                                     {tabla.porcentajeDurasConRedondeo !== undefined && (
-                                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-                                        <p className="text-sm sm:text-base font-bold text-yellow-600 break-words">{tabla.porcentajeDurasConRedondeo}%</p>
-                                        <p className="text-xs text-muted-foreground">Duras</p>
+                                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 sm:p-3 text-center">
+                                        <p className="text-xs sm:text-sm md:text-base font-bold text-yellow-600 break-words">{tabla.porcentajeDurasConRedondeo}%</p>
+                                        <p className="text-[10px] sm:text-xs text-muted-foreground">Duras</p>
                                       </div>
                                     )}
                                     {tabla.porcentajeFrescasConRedondeo !== undefined && (
-                                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                                        <p className="text-sm sm:text-base font-bold text-blue-600 break-words">{tabla.porcentajeFrescasConRedondeo}%</p>
-                                        <p className="text-xs text-muted-foreground">Frescas</p>
+                                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3 text-center">
+                                        <p className="text-xs sm:text-sm md:text-base font-bold text-blue-600 break-words">{tabla.porcentajeFrescasConRedondeo}%</p>
+                                        <p className="text-[10px] sm:text-xs text-muted-foreground">Frescas</p>
                                       </div>
                                     )}
                                     {tabla.porcentajeMuertasConRedondeo !== undefined && (
-                                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-                                        <p className="text-sm sm:text-base font-bold text-gray-600 break-words">{tabla.porcentajeMuertasConRedondeo}%</p>
-                                        <p className="text-xs text-muted-foreground">Muertas</p>
+                                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-2 sm:p-3 text-center">
+                                        <p className="text-xs sm:text-sm md:text-base font-bold text-gray-600 break-words">{tabla.porcentajeMuertasConRedondeo}%</p>
+                                        <p className="text-[10px] sm:text-xs text-muted-foreground">Muertas</p>
                                       </div>
                                     )}
                                   </div>
@@ -567,34 +567,34 @@ export default function GerminacionDetailPage() {
 
                             {/* Repeticiones */}
                             {tabla.repGerm && tabla.repGerm.length > 0 && (
-                              <div className="mb-6">
-                                <div className="flex items-start justify-between mb-3">
+                              <div className="mb-4 sm:mb-6">
+                                <div className="flex items-start justify-between mb-2 sm:mb-3">
                                   <div>
-                                    <h4 className="text-sm font-semibold">
+                                    <h4 className="text-xs sm:text-sm font-semibold">
                                       Repeticiones de Tabla
                                     </h4>
-                                    <p className="text-xs text-muted-foreground mt-1">{tabla.repGerm.length} repeticiones</p>
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">{tabla.repGerm.length} repeticiones</p>
                                   </div>
-                                  <Button variant="outline" size="sm" className="h-8">
+                                  <Button variant="outline" size="sm" className="h-7 sm:h-8 text-xs">
                                     Editar
                                   </Button>
                                 </div>
-                                <div className="overflow-x-auto">
-                                  <div className="min-w-full">
+                                <div className="overflow-x-auto -mx-3 sm:mx-0">
+                                  <div className="min-w-full px-3 sm:px-0">
                                     {/* Vista móvil - cards */}
-                                    <div className="block sm:hidden space-y-3">
+                                    <div className="block md:hidden space-y-2 sm:space-y-3">
                                       {tabla.repGerm.map((rep) => (
-                                        <div key={rep.repGermID} className="bg-gray-50 border rounded-lg p-3">
+                                        <div key={rep.repGermID} className="bg-gray-50 border rounded-lg p-2 sm:p-3">
                                           <div className="flex justify-between items-center mb-2">
-                                            <span className="font-semibold text-sm">Rep {rep.numRep}</span>
-                                            <span className="text-xs text-muted-foreground font-semibold">Total: {rep.total}</span>
+                                            <span className="font-semibold text-xs sm:text-sm">Rep {rep.numRep}</span>
+                                            <span className="text-[10px] sm:text-xs text-muted-foreground font-semibold">Total: {rep.total}</span>
                                           </div>
-                                          <div className="grid grid-cols-2 gap-2 text-xs">
+                                          <div className="grid grid-cols-2 gap-2 text-[10px] sm:text-xs">
                                             <div>
                                               <span className="font-medium text-green-700">Normales:</span>
                                               <div className="flex flex-wrap gap-1 mt-1">
                                                 {rep.normales.map((valor, idx) => (
-                                                  <span key={idx} className="inline-block bg-green-100 text-green-800 px-1 py-0.5 rounded text-xs font-semibold">
+                                                  <span key={idx} className="inline-block bg-green-100 text-green-800 px-1 py-0.5 rounded text-[10px] sm:text-xs font-semibold">
                                                     {valor}
                                                   </span>
                                                 ))}
@@ -612,9 +612,9 @@ export default function GerminacionDetailPage() {
                                               <span className="font-medium text-blue-700">Frescas:</span>
                                               <span className="block mt-1 font-semibold">{rep.frescas}</span>
                                             </div>
-                                            <div>
+                                            <div className="col-span-2">
                                               <span className="font-medium text-gray-700">Muertas:</span>
-                                              <span className="block mt-1 font-semibold">{rep.muertas}</span>
+                                              <span className="ml-1 font-semibold">{rep.muertas}</span>
                                             </div>
                                           </div>
                                         </div>
@@ -622,40 +622,42 @@ export default function GerminacionDetailPage() {
                                     </div>
 
                                     {/* Vista desktop - tabla */}
-                                    <table className="hidden sm:table w-full text-sm">
-                                      <thead>
-                                        <tr className="border-b bg-muted/50">
-                                          <th className="text-left p-2 font-medium min-w-[50px]">Rep</th>
-                                          <th className="text-left p-2 font-medium min-w-[100px]">Normales</th>
-                                          <th className="text-left p-2 font-medium min-w-[80px]">Anormales</th>
-                                          <th className="text-left p-2 font-medium min-w-[60px]">Duras</th>
-                                          <th className="text-left p-2 font-medium min-w-[60px]">Frescas</th>
-                                          <th className="text-left p-2 font-medium min-w-[60px]">Muertas</th>
-                                          <th className="text-left p-2 font-medium min-w-[60px]">Total</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {tabla.repGerm.map((rep) => (
-                                          <tr key={rep.repGermID} className="border-b">
-                                            <td className="p-2 font-semibold">{rep.numRep}</td>
-                                            <td className="p-2">
-                                              <div className="flex flex-wrap gap-1 max-w-[150px]">
-                                                {rep.normales.map((valor, idx) => (
-                                                  <span key={idx} className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs whitespace-nowrap font-semibold">
-                                                    {valor}
-                                                  </span>
-                                                ))}
-                                              </div>
-                                            </td>
-                                            <td className="p-2 font-semibold">{rep.anormales}</td>
-                                            <td className="p-2 font-semibold">{rep.duras}</td>
-                                            <td className="p-2 font-semibold">{rep.frescas}</td>
-                                            <td className="p-2 font-semibold">{rep.muertas}</td>
-                                            <td className="p-2 font-bold text-gray-900">{rep.total}</td>
+                                    <div className="hidden md:block overflow-x-auto">
+                                      <table className="w-full text-xs sm:text-sm">
+                                        <thead>
+                                          <tr className="border-b bg-muted/50">
+                                            <th className="text-left p-2 font-medium min-w-[50px]">Rep</th>
+                                            <th className="text-left p-2 font-medium min-w-[100px]">Normales</th>
+                                            <th className="text-left p-2 font-medium min-w-[80px]">Anormales</th>
+                                            <th className="text-left p-2 font-medium min-w-[60px]">Duras</th>
+                                            <th className="text-left p-2 font-medium min-w-[60px]">Frescas</th>
+                                            <th className="text-left p-2 font-medium min-w-[60px]">Muertas</th>
+                                            <th className="text-left p-2 font-medium min-w-[60px]">Total</th>
                                           </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
+                                        </thead>
+                                        <tbody>
+                                          {tabla.repGerm.map((rep) => (
+                                            <tr key={rep.repGermID} className="border-b">
+                                              <td className="p-2 font-semibold">{rep.numRep}</td>
+                                              <td className="p-2">
+                                                <div className="flex flex-wrap gap-1 max-w-[150px]">
+                                                  {rep.normales.map((valor, idx) => (
+                                                    <span key={idx} className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs whitespace-nowrap font-semibold">
+                                                      {valor}
+                                                    </span>
+                                                  ))}
+                                                </div>
+                                              </td>
+                                              <td className="p-2 font-semibold">{rep.anormales}</td>
+                                              <td className="p-2 font-semibold">{rep.duras}</td>
+                                              <td className="p-2 font-semibold">{rep.frescas}</td>
+                                              <td className="p-2 font-semibold">{rep.muertas}</td>
+                                              <td className="p-2 font-bold text-gray-900">{rep.total}</td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -664,45 +666,45 @@ export default function GerminacionDetailPage() {
                             {/* Valores de Germinación por Instituto */}
                             {tabla.valoresGerm && tabla.valoresGerm.length > 0 && (
                               <div>
-                                <div className="flex items-start justify-between mb-3">
-                                  <h4 className="text-sm font-semibold">
+                                <div className="flex items-start justify-between mb-2 sm:mb-3">
+                                  <h4 className="text-xs sm:text-sm font-semibold">
                                     Valores INIA/INASE
                                   </h4>
-                                  <Button variant="outline" size="sm" className="h-8">
+                                  <Button variant="outline" size="sm" className="h-7 sm:h-8 text-xs">
                                     Editar
                                   </Button>
                                 </div>
-                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                                   {tabla.valoresGerm.map((valor, index) => (
-                                    <div key={index} className="border rounded-lg p-4 bg-purple-50/50 border-purple-200">
-                                      <div className="flex items-center gap-2 mb-3">
-                                        <Building className="h-4 w-4 text-purple-600 flex-shrink-0" />
-                                        <span className="font-medium text-purple-700 break-words">{valor.instituto}</span>
+                                    <div key={index} className="border rounded-lg p-3 sm:p-4 bg-purple-50/50 border-purple-200">
+                                      <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                                        <Building className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600 flex-shrink-0" />
+                                        <span className="font-medium text-purple-700 break-words text-xs sm:text-sm">{valor.instituto}</span>
                                       </div>
-                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 text-xs sm:text-sm">
                                         <div className="text-center">
-                                          <label className="text-xs text-muted-foreground block">Normales</label>
-                                          <p className="font-medium break-words">{valor.normales}%</p>
+                                          <label className="text-[10px] sm:text-xs text-muted-foreground block">Normales</label>
+                                          <p className="font-medium break-words text-xs sm:text-sm">{valor.normales}%</p>
                                         </div>
                                         <div className="text-center">
-                                          <label className="text-xs text-muted-foreground block">Anormales</label>
-                                          <p className="font-medium break-words">{valor.anormales}%</p>
+                                          <label className="text-[10px] sm:text-xs text-muted-foreground block">Anormales</label>
+                                          <p className="font-medium break-words text-xs sm:text-sm">{valor.anormales}%</p>
                                         </div>
                                         <div className="text-center">
-                                          <label className="text-xs text-muted-foreground block">Duras</label>
-                                          <p className="font-medium break-words">{valor.duras}%</p>
+                                          <label className="text-[10px] sm:text-xs text-muted-foreground block">Duras</label>
+                                          <p className="font-medium break-words text-xs sm:text-sm">{valor.duras}%</p>
                                         </div>
                                         <div className="text-center">
-                                          <label className="text-xs text-muted-foreground block">Frescas</label>
-                                          <p className="font-medium break-words">{valor.frescas}%</p>
+                                          <label className="text-[10px] sm:text-xs text-muted-foreground block">Frescas</label>
+                                          <p className="font-medium break-words text-xs sm:text-sm">{valor.frescas}%</p>
                                         </div>
                                         <div className="text-center">
-                                          <label className="text-xs text-muted-foreground block">Muertas</label>
-                                          <p className="font-medium break-words">{valor.muertas}%</p>
+                                          <label className="text-[10px] sm:text-xs text-muted-foreground block">Muertas</label>
+                                          <p className="font-medium break-words text-xs sm:text-sm">{valor.muertas}%</p>
                                         </div>
                                         <div className="text-center">
-                                          <label className="text-xs text-muted-foreground block">Germinación</label>
-                                          <p className="font-semibold text-base sm:text-lg text-green-600 break-words">{valor.germinacion}%</p>
+                                          <label className="text-[10px] sm:text-xs text-muted-foreground block">Germinación</label>
+                                          <p className="font-semibold text-sm sm:text-base md:text-lg text-green-600 break-words">{valor.germinacion}%</p>
                                         </div>
                                       </div>
                                     </div>

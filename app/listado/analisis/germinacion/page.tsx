@@ -288,34 +288,34 @@ export default function ListadoGerminacionPage() {
 
         {/* Filters */}
         <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col md:flex-row gap-4">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col gap-3">
               <form
                 onSubmit={(e) => {
                   e.preventDefault()
                   handleSearchClick()
                 }}
-                className="flex-1 flex gap-2"
+                className="flex gap-2"
               >
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
-                    placeholder="Buscar por ID análisis, Lote o Ficha..."
+                    placeholder="Buscar por ID, Lote o Ficha..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={handleSearchKeyDown}
-                    className="pl-10"
+                    className="pl-10 text-sm"
                   />
                 </div>
-                <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-4">
+                <Button type="button" onClick={handleSearchClick} variant="secondary" size="sm" className="px-3 flex-shrink-0">
                   <Search className="h-4 w-4" />
                 </Button>
               </form>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  className="flex-1 sm:flex-initial px-2 sm:px-3 py-2 border border-input bg-background rounded-md text-xs sm:text-sm"
                 >
                   <option value="all">Todos los estados</option>
                   <option value="REGISTRADO">Registrado</option>
@@ -327,15 +327,15 @@ export default function ListadoGerminacionPage() {
                 <select
                   value={filtroActivo}
                   onChange={(e) => setFiltroActivo(e.target.value)}
-                  className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  className="flex-1 sm:flex-initial px-2 sm:px-3 py-2 border border-input bg-background rounded-md text-xs sm:text-sm"
                 >
                   <option value="todos">Todos</option>
                   <option value="activos">Activos</option>
                   <option value="inactivos">Inactivos</option>
                 </select>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="flex-1 sm:flex-initial">
                   <Filter className="h-4 w-4 mr-2" />
-                  Filtros
+                  <span className="text-xs sm:text-sm">Filtros</span>
                 </Button>
               </div>
             </div>
@@ -343,11 +343,114 @@ export default function ListadoGerminacionPage() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Lista de Análisis de Germinación</CardTitle>
+          <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
+            <CardTitle className="text-base sm:text-lg">Lista de Análisis de Germinación</CardTitle>
           </CardHeader>
-          <CardContent className="p-0 sm:p-6">
-            <div className="overflow-x-auto max-w-full">
+          <CardContent className="p-0">
+            {/* Mobile Card View */}
+            <div className="block lg:hidden">
+              {filteredAnalysis.length === 0 ? (
+                <div className="text-center py-8 px-4">
+                  <AlertTriangle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No se encontraron análisis de germinación</p>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {filteredAnalysis.map((analysis) => (
+                    <div key={analysis.analisisID} className="p-3 sm:p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold text-sm">ID: {analysis.analisisID}</span>
+                            <Badge variant={getEstadoBadgeVariant(analysis.estado)} className="text-xs">
+                              {formatEstado(analysis.estado)}
+                            </Badge>
+                          </div>
+                          <div className="text-xs text-muted-foreground space-y-0.5">
+                            <div><span className="font-medium">Lote:</span> {analysis.lote || "-"}</div>
+                            {analysis.idLote && <div><span className="font-medium">ID Lote:</span> {analysis.idLote}</div>}
+                            <div><span className="font-medium">Especie:</span> {analysis.especie || "-"}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="bg-muted/50 rounded p-2">
+                          <div className="text-muted-foreground text-[10px] uppercase mb-0.5">Germ. INIA</div>
+                          <div className="font-semibold">
+                            {analysis.valorGerminacionINIA != null ? `${analysis.valorGerminacionINIA.toFixed(1)}%` : "-"}
+                          </div>
+                        </div>
+                        <div className="bg-muted/50 rounded p-2">
+                          <div className="text-muted-foreground text-[10px] uppercase mb-0.5">Germ. INASE</div>
+                          <div className="font-semibold">
+                            {analysis.valorGerminacionINASE != null ? `${analysis.valorGerminacionINASE.toFixed(1)}%` : "-"}
+                          </div>
+                        </div>
+                        <div className="bg-muted/50 rounded p-2">
+                          <div className="text-muted-foreground text-[10px] uppercase mb-0.5">Inicio</div>
+                          <div className="font-medium">{analysis.fechaInicioGerm ? formatearFechaLocal(analysis.fechaInicioGerm) : "-"}</div>
+                        </div>
+                        <div className="bg-muted/50 rounded p-2">
+                          <div className="text-muted-foreground text-[10px] uppercase mb-0.5">Final</div>
+                          <div className="font-medium">{analysis.fechaFinal ? formatearFechaLocal(analysis.fechaFinal) : "-"}</div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Badge variant={analysis.tienePrefrio ? "default" : "secondary"} className="text-xs flex-1 justify-center">
+                          Prefrío: {analysis.tienePrefrio ? "Sí" : "No"}
+                        </Badge>
+                        <Badge variant={analysis.tienePretratamiento ? "default" : "secondary"} className="text-xs flex-1 justify-center">
+                          Pretrat: {analysis.tienePretratamiento ? "Sí" : "No"}
+                        </Badge>
+                      </div>
+
+                      <div className="flex gap-1 pt-2 border-t">
+                        <Link href={`/listado/analisis/germinacion/${analysis.analisisID}`} className="flex-1">
+                          <Button variant="ghost" size="sm" className="w-full text-xs h-8">
+                            <Eye className="h-3 w-3 mr-1" />
+                            Ver
+                          </Button>
+                        </Link>
+                        {user?.role !== "observador" && (
+                          <Link href={`/listado/analisis/germinacion/${analysis.analisisID}/editar`} className="flex-1">
+                            <Button variant="ghost" size="sm" className="w-full text-xs h-8">
+                              <Edit className="h-3 w-3 mr-1" />
+                              Editar
+                            </Button>
+                          </Link>
+                        )}
+                        {user?.role === "administrador" && (
+                          analysis.activo ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 text-xs h-8 px-2"
+                              onClick={() => handleDesactivar(analysis.analisisID)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-green-600 hover:text-green-700 text-xs h-8 px-2"
+                              onClick={() => handleReactivar(analysis.analisisID)}
+                            >
+                              <RefreshCw className="h-3 w-3" />
+                            </Button>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -462,8 +565,8 @@ export default function ListadoGerminacionPage() {
               </Table>
             </div>
 
-            <div className="flex flex-col items-center justify-center mt-6 gap-2 text-center">
-              <div className="text-sm text-muted-foreground">
+            <div className="flex flex-col items-center justify-center mt-4 sm:mt-6 gap-2 text-center px-3 sm:px-6 pb-4 sm:pb-6">
+              <div className="text-xs sm:text-sm text-muted-foreground">
                 {totalElements === 0 ? (
                   <>Mostrando 0 de 0 resultados</>
                 ) : (
