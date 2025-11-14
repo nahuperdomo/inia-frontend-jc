@@ -45,8 +45,11 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
         // Si no se puede parsear como JSON, usar el texto como está
       }
 
+      // Extraer el mensaje de error del JSON (puede venir como 'message' o 'error')
+      const errorMessage = errorDetail?.message || errorDetail?.error || errorDetail?.mensaje;
+
       throw new Error(
-        errorDetail?.message || `Ocurrió un error inesperado (${res.status}). Por favor, inténtelo nuevamente.`
+        errorMessage || `Ocurrió un error inesperado (${res.status}). Por favor, inténtelo nuevamente.`
       );
     }
 

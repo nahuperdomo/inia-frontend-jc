@@ -266,7 +266,10 @@ export default function ReporteDosnPage() {
                         label={({ name, value }: any) => `${name}: ${value}`}
                       >
                         {dataMalezasEspecificas.map((entry, index) => {
-                          const indigoShades = ["#c7d2fe", "#a5b4fc", "#818cf8", "#6366f1", "#4f46e5"]
+                          const indigoShades = [
+                            "#4f46e5", "#a8b2daff", "#3730a3", "#9aa8edff", "#1e1b4b",
+                            "#818cf8", "#312e81", "#6366f1", "#4338ca", "#96a6f2ff"
+                          ]
                           return <Cell key={`cell-${index}`} fill={indigoShades[index % indigoShades.length]} />
                         })}
                       </Pie>
@@ -304,7 +307,10 @@ export default function ReporteDosnPage() {
                         label={({ name, value }: any) => `${name}: ${value}`}
                       >
                         {dataCultivosEspecificos.map((entry, index) => {
-                          const purpleShades = ["#e9d5ff", "#d8b4fe", "#c084fc", "#a855f7", "#9333ea"]
+                          const purpleShades = [
+                            "#a855f7", "#c7c0e5ff", "#7c3aed", "#c9a9ecff", "#5b21b6",
+                            "#c084fc", "#4c1d95", "#9333ea", "#6d28d9", "#a78bfa"
+                          ]
                           return <Cell key={`cell-${index}`} fill={purpleShades[index % purpleShades.length]} />
                         })}
                       </Pie>

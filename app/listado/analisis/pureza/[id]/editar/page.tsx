@@ -27,6 +27,7 @@ import { toast } from "sonner"
 import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
+import { StickySaveButton } from "@/components/ui/sticky-save-button"
 
 // Función helper para mostrar nombres legibles de tipos de listado
 const getTipoListadoDisplay = (tipo: TipoListado) => {
@@ -1492,6 +1493,15 @@ export default function EditarPurezaPage() {
             toast.success("Análisis finalizado exitosamente")
             router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
           }}
+        />
+
+        {/* Botón flotante para guardar cambios al hacer scroll */}
+        <StickySaveButton
+          onSave={handleSave}
+          isLoading={saving}
+          disabled={saving}
+          label="Guardar Cambios"
+          loadingLabel="Guardando..."
         />
       </div>
     </div>

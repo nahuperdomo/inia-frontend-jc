@@ -94,6 +94,22 @@ export const isValidDate = (value: string): string | null => {
 };
 
 /**
+ * Verifica si una fecha es válida (versión que valida incluso vacío si fue tocado)
+ * Para campos opcionales que necesitan mostrar error en tiempo real
+ */
+export const isValidDateOptional = (value: string): string | null => {
+    // Si está completamente vacío, es válido (campo opcional)
+    if (!value || value === '') return null;
+    
+    // Si tiene algún contenido, debe ser una fecha válida
+    const date = new Date(value);
+    if (isNaN(date.getTime())) {
+        return 'Fecha no válida';
+    }
+    return null;
+};
+
+/**
  * Verifica si una fecha no es posterior a la fecha actual
  */
 export const isPastOrPresent = (value: string): string | null => {
@@ -106,6 +122,27 @@ export const isPastOrPresent = (value: string): string | null => {
     
     if (date > today) {
         return 'La fecha no puede ser posterior a la fecha actual';
+    }
+    return null;
+};
+
+/**
+ * Verifica si una fecha no es anterior a la fecha actual
+ */
+export const isFutureOrPresent = (value: string): string | null => {
+    if (!value) return null;
+    
+    // Para inputs de tipo date, el valor viene en formato YYYY-MM-DD
+    // Crear la fecha en UTC para evitar problemas de timezone
+    const [year, month, day] = value.split('-').map(Number);
+    const inputDate = new Date(year, month - 1, day);
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    inputDate.setHours(0, 0, 0, 0);
+    
+    if (inputDate < today) {
+        return 'La fecha no puede ser anterior a la fecha actual';
     }
     return null;
 };

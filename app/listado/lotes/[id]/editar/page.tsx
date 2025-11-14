@@ -14,6 +14,7 @@ import { LoteFormData, loteValidationSchema } from "@/lib/validations/lotes-vali
 import { LoteRequestDTO } from "@/app/models/interfaces/lote"
 import { TipoAnalisis } from "@/app/models/types/enums"
 import useValidation from "@/lib/hooks/useValidation"
+import { StickySaveButton } from "@/components/ui/sticky-save-button"
 
 export default function EditarLotePage() {
   const params = useParams()
@@ -212,7 +213,10 @@ export default function EditarLotePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    await guardarCambios();
+  };
 
+  const guardarCambios = async () => {
     touchAll(formData);
 
     if (!isValid(formData)) {
@@ -340,6 +344,15 @@ export default function EditarLotePage() {
           </Button>
         </div>
       </form>
+
+      {/* Botón flotante que aparece al hacer scroll */}
+      <StickySaveButton
+        onSave={guardarCambios}
+        isLoading={isLoading}
+        disabled={isLoading}
+        label="Actualizar Lote"
+        loadingLabel="Actualizando..."
+      />
 
       <Toaster position="top-right" richColors closeButton />
     </div>

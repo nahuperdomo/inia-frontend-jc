@@ -25,6 +25,7 @@ import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-ca
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { StickySaveButton } from "@/components/ui/sticky-save-button"
 
 // Función utilitaria para formatear fechas
 const formatearFechaLocal = (fechaString: string): string => {
@@ -1227,6 +1228,15 @@ export default function EditarTetrazolioPage() {
             onMarcarParaRepetir={handleMarcarParaRepetir}
             onFinalizarYAprobar={handleFinalizarYAprobar}
             onFinalizar={handleFinalizarAnalisis}
+          />
+
+          {/* Botón flotante para guardar cambios al hacer scroll */}
+          <StickySaveButton
+            onSave={saveChanges}
+            isLoading={saving}
+            disabled={saving}
+            label="Guardar Cambios"
+            loadingLabel="Guardando..."
           />
         </div>
       </div>

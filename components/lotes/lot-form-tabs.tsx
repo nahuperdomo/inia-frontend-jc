@@ -88,10 +88,11 @@ export function LotFormTabs({
 
   // Función para manejar cambios y validación
   const handleFieldChange = async (field: keyof LoteFormData, value: any) => {
-    onInputChange(field, value);
-    
-    // Marcar el campo como tocado
+    // Primero marcar el campo como tocado
     setTouchedFields(prev => ({ ...prev, [field]: true }));
+    
+    // Actualizar el valor
+    onInputChange(field, value);
     
     // Validar el campo (asíncrono para ficha/nomLote, síncrono para otros)
     setIsValidating(true);
