@@ -27,11 +27,11 @@ export default function ForgotPasswordPage() {
 
     try {
       const result = await forgotPassword(email)
-      
+
       console.log('✅ [ForgotPassword] Código enviado exitosamente')
-      
+
       setIsSuccess(true)
-      
+
       toast.success('Código enviado', {
         description: 'Revisa tu correo electrónico',
         duration: 5000,
@@ -39,16 +39,16 @@ export default function ForgotPasswordPage() {
 
       // Redirigir a reset-password después de 2 segundos
       setTimeout(() => {
-        router.push(`/reset-password?email=${encodeURIComponent(email)}`)
+        router.push(`/restablecer-contrasena?email=${encodeURIComponent(email)}`)
       }, 2000)
 
     } catch (error: any) {
       console.error('❌ [ForgotPassword] Error:', error)
-      
+
       let errorMsg = 'Error al solicitar código'
-      
+
       const errorText = error.message || error.toString()
-      
+
       if (errorText.includes('no existe') || errorText.includes('No se encontró')) {
         errorMsg = 'No se encontró una cuenta con este email'
       } else if (errorText.includes('no tiene 2FA') || errorText.includes('2FA no habilitado')) {
@@ -56,9 +56,9 @@ export default function ForgotPasswordPage() {
       } else if (errorText.includes('inactivo')) {
         errorMsg = 'Esta cuenta está inactiva. Contacta al administrador'
       }
-      
+
       setErrorMessage(errorMsg)
-      
+
       toast.error('Error', {
         description: errorMsg,
         duration: 5000,
@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
               {isSuccess ? '¡Código Enviado!' : '¿Olvidaste tu contraseña?'}
             </CardTitle>
             <CardDescription className="text-pretty">
-              {isSuccess 
+              {isSuccess
                 ? 'Hemos enviado un código de recuperación a tu email'
                 : 'Te enviaremos un código de recuperación por email'
               }
@@ -112,7 +112,7 @@ export default function ForgotPasswordPage() {
                 </p>
               </div>
 
-              <Link href={`/reset-password?email=${encodeURIComponent(email)}`} className="w-full block">
+              <Link href={`/restablecer-contrasena?email=${encodeURIComponent(email)}`} className="w-full block">
                 <Button className="w-full">
                   Continuar al formulario de recuperación
                 </Button>
@@ -166,9 +166,9 @@ export default function ForgotPasswordPage() {
                   </p>
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full" 
+                <Button
+                  type="submit"
+                  className="w-full"
                   disabled={isLoading || !email}
                 >
                   {isLoading ? (

@@ -12,10 +12,10 @@ export function middleware(request: NextRequest) {
 
     // Lista de rutas públicas que no requieren autenticación
     const publicRoutes = [
-        '/login', 
+        '/login',
         '/registro/usuario',
-        '/forgot-password',
-        '/reset-password',
+        '/recuperar-contrasena',
+        '/restablecer-contrasena',
         '/admin-setup'  // Configuración inicial del admin (sin autenticación previa)
     ];
 

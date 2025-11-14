@@ -12,8 +12,8 @@ import { Progress } from "@/components/ui/progress"
 import { Leaf, ArrowLeft, CheckCircle2, AlertCircle, Eye, EyeOff, Shield, Mail, Key } from 'lucide-react'
 import { toast } from 'sonner'
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { 
-  resetPassword, 
+import {
+  resetPassword,
   validatePasswordStrength,
   validateRecoveryCodeFormat,
   validateTotpCodeFormat,
@@ -40,16 +40,16 @@ function ResetPasswordForm() {
   const passwordValidation = validatePasswordStrength(newPassword)
   const passwordsMatch = newPassword === confirmPassword && newPassword.length > 0
 
-  const isFormValid = 
-    email && 
-    validateRecoveryCodeFormat(recoveryCode) && 
+  const isFormValid =
+    email &&
+    validateRecoveryCodeFormat(recoveryCode) &&
     (useBackupCode ? validateBackupCodeFormat(totpCode) : validateTotpCodeFormat(totpCode)) &&
     passwordValidation.isValid &&
     passwordsMatch
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!isFormValid) {
       toast.error('Formulario incompleto', {
         description: 'Por favor completa todos los campos correctamente',
@@ -69,9 +69,9 @@ function ResetPasswordForm() {
       })
 
       console.log('✅ [ResetPassword] Contraseña actualizada')
-      
+
       setIsSuccess(true)
-      
+
       toast.success('Contraseña actualizada', {
         description: 'Tu contraseña ha sido cambiada exitosamente',
         duration: 5000,
@@ -84,11 +84,11 @@ function ResetPasswordForm() {
 
     } catch (error: any) {
       console.error('❌ [ResetPassword] Error:', error)
-      
+
       let errorMsg = 'Error al resetear contraseña'
-      
+
       const errorText = error.message || error.toString()
-      
+
       if (errorText.includes('código de recuperación') && errorText.includes('incorrecto')) {
         errorMsg = 'El código de recuperación es incorrecto'
       } else if (errorText.includes('expirado')) {
@@ -104,9 +104,9 @@ function ResetPasswordForm() {
       } else if (errorText.includes('no existe') || errorText.includes('No se encontró')) {
         errorMsg = 'No se encontró una cuenta con este email'
       }
-      
+
       setErrorMessage(errorMsg)
-      
+
       toast.error('Error', {
         description: errorMsg,
         duration: 5000,
@@ -130,7 +130,7 @@ function ResetPasswordForm() {
               {isSuccess ? '¡Contraseña Actualizada!' : 'Restablecer Contraseña'}
             </CardTitle>
             <CardDescription className="text-pretty">
-              {isSuccess 
+              {isSuccess
                 ? 'Ahora puedes iniciar sesión con tu nueva contraseña'
                 : 'Ingresa el código de recuperación y tu código 2FA'
               }
@@ -306,7 +306,7 @@ function ResetPasswordForm() {
 
                 <div className="border-t pt-4">
                   <p className="text-sm font-medium mb-3">Nueva contraseña</p>
-                  
+
                   {/* Nueva Contraseña */}
                   <div className="space-y-2 mb-3">
                     <Label htmlFor="newPassword">Contraseña</Label>
@@ -329,7 +329,7 @@ function ResetPasswordForm() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    
+
                     {/* Error si no es válida */}
                     {newPassword && !passwordValidation.isValid && (
                       <div className="flex items-center gap-2 text-red-600">
@@ -337,27 +337,25 @@ function ResetPasswordForm() {
                         <p className="text-sm">{passwordValidation.message}</p>
                       </div>
                     )}
-                    
+
                     {/* Indicador de fortaleza solo si es válida */}
                     {newPassword && passwordValidation.isValid && (
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <Progress 
+                          <Progress
                             value={
                               passwordValidation.strength === 'weak' ? 33 :
-                              passwordValidation.strength === 'medium' ? 66 : 100
+                                passwordValidation.strength === 'medium' ? 66 : 100
                             }
-                            className={`h-2 ${
-                              passwordValidation.strength === 'weak' ? 'bg-red-100' :
-                              passwordValidation.strength === 'medium' ? 'bg-yellow-100' : 'bg-green-100'
-                            }`}
+                            className={`h-2 ${passwordValidation.strength === 'weak' ? 'bg-red-100' :
+                                passwordValidation.strength === 'medium' ? 'bg-yellow-100' : 'bg-green-100'
+                              }`}
                           />
-                          <span className={`text-xs font-medium ${
-                            passwordValidation.strength === 'weak' ? 'text-red-600' :
-                            passwordValidation.strength === 'medium' ? 'text-yellow-600' : 'text-green-600'
-                          }`}>
+                          <span className={`text-xs font-medium ${passwordValidation.strength === 'weak' ? 'text-red-600' :
+                              passwordValidation.strength === 'medium' ? 'text-yellow-600' : 'text-green-600'
+                            }`}>
                             {passwordValidation.strength === 'weak' ? 'Débil' :
-                             passwordValidation.strength === 'medium' ? 'Media' : 'Fuerte'}
+                              passwordValidation.strength === 'medium' ? 'Media' : 'Fuerte'}
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground">
@@ -388,9 +386,9 @@ function ResetPasswordForm() {
                   </div>
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full" 
+                <Button
+                  type="submit"
+                  className="w-full"
                   disabled={isLoading || !isFormValid}
                 >
                   {isLoading ? (
@@ -414,12 +412,12 @@ function ResetPasswordForm() {
               </div>
 
               <div className="space-y-2">
-                <Link href="/forgot-password" className="w-full block">
+                <Link href="/recuperar-contrasena" className="w-full block">
                   <Button variant="ghost" className="w-full text-sm">
                     ¿No recibiste el código? Solicitar nuevo código
                   </Button>
                 </Link>
-                
+
                 <Link href="/login" className="w-full block">
                   <Button variant="ghost" className="w-full">
                     <ArrowLeft className="mr-2 h-4 w-4" />

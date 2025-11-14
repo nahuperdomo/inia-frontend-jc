@@ -89,7 +89,7 @@ export default function LoginPage() {
       if ('requiresCredentialChange' in result && result.requiresCredentialChange) {
         console.log('⚠️ [Login] Requiere cambio de credenciales (primer acceso admin)')
         console.log('🎫 [Login] Token recibido, redirigiendo...')
-        
+
         // Redirigir con el token en la URL (el token no es sensible, solo un ID temporal)
         window.location.href = `/admin-setup?token=${result.setupToken}`
         return
@@ -123,7 +123,7 @@ export default function LoginPage() {
       // Redirigir al dashboard
       setTimeout(() => {
         router.push("/dashboard")
-        
+
         // Fallback por si router.push no funciona
         setTimeout(() => {
           if (window.location.pathname === "/login") {
@@ -134,12 +134,12 @@ export default function LoginPage() {
 
     } catch (error: any) {
       console.error('❌ [Login] Error:', error)
-      
+
       let errorMsg = 'Error de autenticación'
       let errorDescription = 'Verifica tus credenciales e intenta nuevamente'
-      
+
       const errorText = error.message || error.toString()
-      
+
       if (errorText.includes('Credenciales incorrectas')) {
         errorMsg = 'Credenciales incorrectas'
         errorDescription = 'El usuario/email o contraseña son incorrectos'
@@ -153,9 +153,9 @@ export default function LoginPage() {
         errorMsg = 'Acceso no disponible'
         errorDescription = 'Contacta al administrador'
       }
-      
+
       setErrorMessage(`${errorMsg}: ${errorDescription}`)
-      
+
       toast.error(errorMsg, {
         description: errorDescription,
         duration: 5000
@@ -168,7 +168,7 @@ export default function LoginPage() {
   const handleSetupInitial2FA = async () => {
     try {
       const data = await setupInitial2FA(credentials.usuario, credentials.password)
-      
+
       console.log('✅ [Login] Setup 2FA iniciado')
       setSetupData({
         qrCodeUrl: data.data.qrCodeDataUrl,
@@ -176,7 +176,7 @@ export default function LoginPage() {
         email: data.email
       })
       setRequires2FASetup(true)
-      
+
       toast.info('Configuración de 2FA', {
         description: 'Escanea el código QR con Google Authenticator',
         duration: 5000,
@@ -199,22 +199,22 @@ export default function LoginPage() {
 
     try {
       const data = await verifyInitial2FA(setupData!.email, totpCode)
-      
+
       console.log('✅ [Login] 2FA activado y login exitoso')
       console.log('🎫 [Login] Códigos de respaldo recibidos:', data.totalCodes)
-      
+
       // Guardar códigos de respaldo para mostrar
       setBackupCodes(data.backupCodes)
       setShowBackupCodes(true)
-      
+
       // Refrescar contexto de autenticación
       await refresh()
-      
+
       toast.success('¡2FA Activado!', {
         description: 'Autenticación configurada correctamente. GUARDA los códigos de respaldo.',
         duration: 10000,
       })
-      
+
       // Redirigir al dashboard después de que guarde los códigos
       // El usuario cerrará el modal de códigos manualmente
     } catch (error: any) {
@@ -254,7 +254,7 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    
+
     toast.success('Descargado', {
       description: 'Códigos guardados en archivo de texto',
     })
@@ -313,9 +313,9 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Contraseña</Label>
-                    <Link 
-                      href="/forgot-password" 
-                      className="text-sm text-primary hover:underline"
+                    <Link
+                      href="/recuperar-contrasena"
+                      className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
                     >
                       ¿Olvidaste tu contraseña?
                     </Link>
@@ -591,8 +591,8 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
                 </AlertDescription>
               </Alert>
 
-              <Button 
-                onClick={handleSavedBackupCodes} 
+              <Button
+                onClick={handleSavedBackupCodes}
                 variant="default"
                 className="w-full"
               >

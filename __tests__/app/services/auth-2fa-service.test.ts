@@ -19,7 +19,7 @@ describe('auth-2fa-service', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    ;(global.fetch as jest.Mock).mockClear()
+      ; (global.fetch as jest.Mock).mockClear()
   })
 
   describe('login2FA', () => {
@@ -37,11 +37,11 @@ describe('auth-2fa-service', () => {
         },
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => mockResponse,
+        })
 
       const credentials: Login2FARequest = {
         usuario: 'test@test.com',
@@ -69,11 +69,11 @@ describe('auth-2fa-service', () => {
     it('debe retornar error con credenciales inválidas', async () => {
       const mockError = { error: 'Credenciales inválidas' }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        text: async () => JSON.stringify(mockError),
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          status: 401,
+          text: async () => JSON.stringify(mockError),
+        })
 
       const credentials: Login2FARequest = {
         usuario: 'test@test.com',
@@ -90,11 +90,11 @@ describe('auth-2fa-service', () => {
         userId: 1,
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        status: 403,
-        text: async () => JSON.stringify(mockResponse),
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          status: 403,
+          text: async () => JSON.stringify(mockResponse),
+        })
 
       const credentials: Login2FARequest = {
         usuario: 'test@test.com',
@@ -121,11 +121,11 @@ describe('auth-2fa-service', () => {
         },
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => mockResponse,
+        })
 
       const credentials: Login2FARequest = {
         usuario: 'test@test.com',
@@ -142,26 +142,26 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe manejar error de red', async () => {
-      ;(global.fetch as jest.Mock).mockRejectedValueOnce(
+      ; (global.fetch as jest.Mock).mockRejectedValueOnce(
         new Error('NetworkError: Failed to fetch')
       )
 
-      // Mock fallback a login tradicional
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          mensaje: 'Login exitoso',
-          usuario: {
-            id: 1,
-            nombre: 'Test User',
-            nombres: 'Test',
-            apellidos: 'User',
-            email: 'test@test.com',
-            roles: ['ANALISTA'],
-          },
-        }),
-      })
+        // Mock fallback a login tradicional
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            mensaje: 'Login exitoso',
+            usuario: {
+              id: 1,
+              nombre: 'Test User',
+              nombres: 'Test',
+              apellidos: 'User',
+              email: 'test@test.com',
+              roles: ['ANALISTA'],
+            },
+          }),
+        })
 
       const credentials: Login2FARequest = {
         usuario: 'test@test.com',
@@ -188,11 +188,11 @@ describe('auth-2fa-service', () => {
         email: 'test@test.com',
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => mockResponse,
+        })
 
       const result = await setupInitial2FA('test@test.com', 'password123')
 
@@ -213,7 +213,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe manejar error con credenciales inválidas', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 401,
         text: async () => JSON.stringify({ error: 'Credenciales inválidas' }),
@@ -243,11 +243,11 @@ describe('auth-2fa-service', () => {
         },
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => mockResponse,
+        })
 
       const result = await verifyInitial2FA('test@test.com', '123456')
 
@@ -268,7 +268,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe rechazar código inválido', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 400,
         text: async () => JSON.stringify({ error: 'Código TOTP inválido' }),
@@ -286,16 +286,16 @@ describe('auth-2fa-service', () => {
         mensaje: 'Código de recuperación enviado por email',
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => mockResponse,
+        })
 
       const result = await forgotPassword('test@test.com')
 
       expect(global.fetch).toHaveBeenCalledWith(
-        `${API_BASE_URL}/api/v1/auth/forgot-password`,
+        `${API_BASE_URL}/api/v1/auth/recuperar-contrasena`,
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({ email: 'test@test.com' }),
@@ -306,7 +306,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe rechazar email no registrado', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 404,
         text: async () => JSON.stringify({ error: 'Usuario no encontrado' }),
@@ -324,11 +324,11 @@ describe('auth-2fa-service', () => {
         mensaje: 'Contraseña actualizada exitosamente',
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => mockResponse,
+        })
 
       const result = await resetPassword({
         email: 'test@test.com',
@@ -341,7 +341,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe rechazar código de recuperación inválido', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 400,
         json: async () => ({ error: 'Código de recuperación inválido o expirado' }),
@@ -358,7 +358,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe rechazar código TOTP inválido', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 400,
         json: async () => ({ error: 'Código de autenticación inválido' }),
@@ -394,11 +394,11 @@ describe('auth-2fa-service', () => {
         totalCodes: 10,
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => mockResponse,
+        })
 
       const result = await regenerateBackupCodes('123456')
 
@@ -416,7 +416,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe rechazar código TOTP inválido', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 400,
         text: async () => JSON.stringify({ error: 'Código TOTP inválido' }),
@@ -432,11 +432,11 @@ describe('auth-2fa-service', () => {
         availableCodes: 8,
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => mockResponse,
+        })
 
       const { getBackupCodesCount } = await import('@/app/services/auth-2fa-service')
       const result = await getBackupCodesCount()
@@ -450,11 +450,11 @@ describe('auth-2fa-service', () => {
         warning: 'Quedan pocos códigos de respaldo',
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => mockResponse,
+        })
 
       const { getBackupCodesCount } = await import('@/app/services/auth-2fa-service')
       const result = await getBackupCodesCount()
@@ -481,11 +481,11 @@ describe('auth-2fa-service', () => {
         },
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => mockResponse,
+        })
 
       const { completeAdminSetup } = await import('@/app/services/auth-2fa-service')
       const result = await completeAdminSetup({
@@ -509,11 +509,11 @@ describe('auth-2fa-service', () => {
         totpSecret: 'SECRET123',
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => mockResponse,
+        })
 
       const { getAdminSetupData } = await import('@/app/services/auth-2fa-service')
       const result = await getAdminSetupData('valid-token')
@@ -523,7 +523,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe rechazar token inválido', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 401,
         json: async () => ({ error: 'Token inválido o expirado' }),
@@ -640,11 +640,11 @@ describe('auth-2fa-service', () => {
         mensaje: 'Debe cambiar credenciales',
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        status: 403,
-        text: async () => JSON.stringify(mockResponse),
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          status: 403,
+          text: async () => JSON.stringify(mockResponse),
+        })
 
       const credentials: Login2FARequest = {
         usuario: 'admin@test.com',
@@ -663,11 +663,11 @@ describe('auth-2fa-service', () => {
         mensaje: 'Debe configurar 2FA',
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        status: 403,
-        text: async () => JSON.stringify(mockResponse),
-      })
+        ; (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          status: 403,
+          text: async () => JSON.stringify(mockResponse),
+        })
 
       const credentials: Login2FARequest = {
         usuario: 'user@test.com',
@@ -680,7 +680,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe manejar respuesta 403 vacía', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 403,
         text: async () => '',
@@ -695,7 +695,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe manejar respuesta 403 con JSON inválido', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 403,
         text: async () => 'Invalid JSON {',
@@ -710,7 +710,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe manejar respuesta 403 desconocida', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 403,
         text: async () => JSON.stringify({ unknown: true }),
@@ -739,16 +739,16 @@ describe('auth-2fa-service', () => {
         },
       }
 
-      ;(global.fetch as jest.Mock)
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 404,
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => mockTradicionalResponse,
-        })
+        ; (global.fetch as jest.Mock)
+          .mockResolvedValueOnce({
+            ok: false,
+            status: 404,
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            json: async () => mockTradicionalResponse,
+          })
 
       const credentials: Login2FARequest = {
         usuario: 'test@test.com',
@@ -773,12 +773,12 @@ describe('auth-2fa-service', () => {
         },
       }
 
-      ;(global.fetch as jest.Mock)
-        .mockRejectedValueOnce(new Error('NetworkError'))
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => mockTradicionalResponse,
-        })
+        ; (global.fetch as jest.Mock)
+          .mockRejectedValueOnce(new Error('NetworkError'))
+          .mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockTradicionalResponse,
+          })
 
       const credentials: Login2FARequest = {
         usuario: 'test@test.com',
@@ -790,7 +790,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe manejar error en login tradicional', async () => {
-      ;(global.fetch as jest.Mock)
+      ; (global.fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: false,
           status: 404,
@@ -810,7 +810,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe manejar login tradicional con respuesta text', async () => {
-      ;(global.fetch as jest.Mock)
+      ; (global.fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: false,
           status: 404,
@@ -831,7 +831,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe usar mensaje por defecto en login tradicional sin respuesta', async () => {
-      ;(global.fetch as jest.Mock)
+      ; (global.fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: false,
           status: 404,
@@ -854,7 +854,7 @@ describe('auth-2fa-service', () => {
 
   describe('login2FA - Manejo de errores en respuestas', () => {
     it('debe manejar respuesta error vacía', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 401,
         text: async () => '',
@@ -869,7 +869,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe manejar respuesta error con JSON inválido', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 500,
         text: async () => 'Plain text error',
@@ -886,7 +886,7 @@ describe('auth-2fa-service', () => {
 
   describe('forgotPassword - Casos de error adicionales', () => {
     it('debe manejar respuesta error vacía', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 500,
         text: async () => '',
@@ -896,7 +896,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe manejar error con texto plano', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 500,
         text: async () => 'Server error occurred',
@@ -908,7 +908,7 @@ describe('auth-2fa-service', () => {
 
   describe('resetPassword - Mensajes de error personalizados', () => {
     it('debe personalizar mensaje de código de recuperación inválido', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 400,
         json: async () => ({ error: 'código de recuperación inválido' }),
@@ -923,7 +923,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe personalizar mensaje de código expirado', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 400,
         json: async () => ({ error: 'El código ha expirado' }),
@@ -938,7 +938,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe personalizar mensaje de código de autenticación inválido', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 400,
         json: async () => ({ error: 'código de autenticación inválido' }),
@@ -953,7 +953,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe personalizar mensaje de contraseña débil', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 400,
         json: async () => ({ error: 'La contraseña es muy débil' }),
@@ -968,7 +968,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe usar mensaje genérico si no coincide con patrones', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 500,
         json: async () => ({ error: 'Error desconocido del servidor' }),
@@ -985,7 +985,7 @@ describe('auth-2fa-service', () => {
 
   describe('setupInitial2FA - Casos de error adicionales', () => {
     it('debe manejar respuesta error vacía', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 500,
         text: async () => '',
@@ -997,7 +997,7 @@ describe('auth-2fa-service', () => {
 
   describe('getBackupCodesCount - Casos de error adicionales', () => {
     it('debe manejar respuesta error vacía', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 500,
         text: async () => '',
@@ -1008,7 +1008,7 @@ describe('auth-2fa-service', () => {
     })
 
     it('debe manejar error con texto plano', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 401,
         text: async () => 'No autorizado',
@@ -1061,16 +1061,16 @@ describe('auth-2fa-service', () => {
   describe('validatePasswordStrength - Casos completos', () => {
     it('debe detectar criterios de validación individuales', () => {
       const { validatePasswordStrength } = require('@/app/services/auth-2fa-service')
-      
+
       // Solo minúsculas
       const weak1 = validatePasswordStrength('abcdefgh')
       expect(weak1.strength).toBe('weak')
       expect(weak1.isValid).toBe(true)
-      
+
       // Minúsculas + Mayúsculas
       const weak2 = validatePasswordStrength('Abcdefgh')
       expect(weak2.strength).toBe('weak')
-      
+
       // Minúsculas + números
       const weak3 = validatePasswordStrength('abcdef12')
       expect(weak3.strength).toBe('weak')
@@ -1078,7 +1078,7 @@ describe('auth-2fa-service', () => {
 
     it('debe detectar contraseña con 3 criterios (medium)', () => {
       const { validatePasswordStrength } = require('@/app/services/auth-2fa-service')
-      
+
       // Minúsculas + Mayúsculas + números
       const medium = validatePasswordStrength('Password123')
       expect(medium.strength).toBe('medium')
@@ -1087,7 +1087,7 @@ describe('auth-2fa-service', () => {
 
     it('debe detectar contraseña con 4 criterios (strong)', () => {
       const { validatePasswordStrength } = require('@/app/services/auth-2fa-service')
-      
+
       // Minúsculas + Mayúsculas + números + símbolos
       const strong = validatePasswordStrength('Password123!')
       expect(strong.strength).toBe('strong')
@@ -1096,7 +1096,7 @@ describe('auth-2fa-service', () => {
 
     it('debe validar diferentes caracteres especiales', () => {
       const { validatePasswordStrength } = require('@/app/services/auth-2fa-service')
-      
+
       expect(validatePasswordStrength('Pass123@').strength).toBe('strong')
       expect(validatePasswordStrength('Pass123#').strength).toBe('strong')
       expect(validatePasswordStrength('Pass123$').strength).toBe('strong')
@@ -1106,7 +1106,7 @@ describe('auth-2fa-service', () => {
 
   describe('completeAdminSetup - Casos de error', () => {
     it('debe manejar error sin mensaje', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ; (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 400,
         json: async () => ({}),

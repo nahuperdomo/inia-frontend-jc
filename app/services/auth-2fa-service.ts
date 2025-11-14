@@ -137,7 +137,7 @@ export async function login2FA(
   console.log('📧 [Auth2FA] Usuario:', credentials.usuario);
   console.log('🔑 [Auth2FA] Tiene código TOTP:', !!credentials.totpCode);
   console.log('📱 [Auth2FA] Tiene fingerprint:', !!credentials.deviceFingerprint);
-  
+
   // Intentar primero con el endpoint nuevo de 2FA
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/login-2fa`, {
@@ -165,36 +165,36 @@ export async function login2FA(
     if (response.status === 403) {
       const responseText = await response.text();
       console.log('📄 [Auth2FA] Respuesta 403:', responseText);
-      
+
       if (!responseText || responseText.trim() === '') {
         console.error('❌ [Auth2FA] Respuesta vacía del backend en 403');
         throw new Error('Error del servidor: respuesta vacía. Verifica que el backend tenga el endpoint /api/v1/auth/login-2fa implementado correctamente.');
       }
-      
+
       try {
         const data = JSON.parse(responseText);
-        
+
         // Verificar si requiere cambio de credenciales (admin first-login)
         if ('requiresCredentialChange' in data && data.requiresCredentialChange) {
           console.log('⚠️ [Auth2FA] Requiere cambio de credenciales (admin)');
           console.log('👤 [Auth2FA] User ID:', data.userId);
           return data as RequiresCredentialChangeResponse;
         }
-        
+
         // Verificar si requiere setup de 2FA
         if ('requires2FASetup' in data && data.requires2FASetup) {
           console.log('⚠️ [Auth2FA] Requiere setup de 2FA');
           console.log('👤 [Auth2FA] User ID:', data.userId);
           return data as Requires2FASetupResponse;
         }
-        
+
         // Verificar si requiere código 2FA
         if ('requires2FA' in data && data.requires2FA) {
           console.log('🔐 [Auth2FA] Se requiere código 2FA');
           console.log('👤 [Auth2FA] User ID:', data.userId);
           return data as Requires2FAResponse;
         }
-        
+
         // Si no coincide con ningún tipo conocido
         console.error('❌ [Auth2FA] Respuesta 403 desconocida:', data);
         throw new Error('Respuesta inesperada del servidor');
@@ -213,11 +213,11 @@ export async function login2FA(
     // Error de autenticación (401) o cualquier otro error
     const responseText = await response.text();
     console.log('📄 [Auth2FA] Respuesta error:', responseText);
-    
+
     if (!responseText || responseText.trim() === '') {
       throw new Error(`Error del servidor (${response.status}): sin respuesta`);
     }
-    
+
     try {
       const errorData: ErrorResponse = JSON.parse(responseText);
       console.error('❌ [Auth2FA] Error:', errorData.error);
@@ -241,7 +241,7 @@ export async function login2FA(
  */
 async function loginTradicional(usuario: string, password: string): Promise<Login2FAResponse> {
   console.log('🔄 [Auth2FA] Usando login tradicional');
-  
+
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
     method: 'POST',
     headers: {
@@ -270,7 +270,7 @@ async function loginTradicional(usuario: string, password: string): Promise<Logi
   }
 
   const data = await response.json();
-  
+
   // Transformar respuesta al formato esperado
   return {
     mensaje: 'Login exitoso',
@@ -303,8 +303,8 @@ export async function forgotPassword(
   email: string
 ): Promise<ForgotPasswordResponse> {
   console.log('📧 [Auth2FA] Solicitando código de recuperación para:', email);
-  
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/forgot-password`, {
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/recuperar-contrasena`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -326,11 +326,11 @@ export async function forgotPassword(
   // Error - manejar respuesta vacía
   const responseText = await response.text();
   console.log('📄 [Auth2FA] Respuesta error:', responseText);
-  
+
   if (!responseText || responseText.trim() === '') {
     throw new Error(`Error del servidor (${response.status}): sin respuesta`);
   }
-  
+
   try {
     const errorData: ErrorResponse = JSON.parse(responseText);
     console.error('❌ [Auth2FA] Error:', errorData.error);
@@ -367,8 +367,8 @@ export async function resetPassword(
   console.log('🔐 [Auth2FA] Reseteando contraseña para:', data.email);
   console.log('🔑 [Auth2FA] Código de recuperación:', data.recoveryCode.substring(0, 4) + '****');
   console.log('🔐 [Auth2FA] Código TOTP proporcionado:', !!data.totpCode);
-  
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/reset-password`, {
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/restablecer-contrasena`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -390,10 +390,10 @@ export async function resetPassword(
   // Error
   const errorData: ErrorResponse = await response.json();
   console.error('❌ [Auth2FA] Error:', errorData.error);
-  
+
   // Personalizar mensajes de error
   let errorMessage = errorData.error || 'Error al resetear contraseña';
-  
+
   if (errorMessage.includes('código de recuperación inválido')) {
     errorMessage = 'El código de recuperación es incorrecto';
   } else if (errorMessage.includes('expirado')) {
@@ -403,7 +403,7 @@ export async function resetPassword(
   } else if (errorMessage.includes('contraseña')) {
     errorMessage = 'La contraseña debe tener mínimo 8 caracteres';
   }
-  
+
   throw new Error(errorMessage);
 }
 
@@ -430,7 +430,7 @@ export async function setupInitial2FA(
   email: string;
 }> {
   console.log('🔐 [Auth2FA] Setup inicial de 2FA para:', email);
-  
+
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/2fa/setup-initial`, {
     method: 'POST',
     headers: {
@@ -452,11 +452,11 @@ export async function setupInitial2FA(
   // Error
   const responseText = await response.text();
   console.log('📄 [Auth2FA] Respuesta error:', responseText);
-  
+
   if (!responseText || responseText.trim() === '') {
     throw new Error(`Error del servidor (${response.status}): sin respuesta`);
   }
-  
+
   try {
     const errorData: ErrorResponse = JSON.parse(responseText);
     console.error('❌ [Auth2FA] Error:', errorData.error);
@@ -493,7 +493,7 @@ export async function verifyInitial2FA(
   };
 }> {
   console.log('🔐 [Auth2FA] Verificando código inicial para:', email);
-  
+
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/2fa/verify-initial`, {
     method: 'POST',
     headers: {
@@ -516,11 +516,11 @@ export async function verifyInitial2FA(
   // Error
   const responseText = await response.text();
   console.log('📄 [Auth2FA] Respuesta error:', responseText);
-  
+
   if (!responseText || responseText.trim() === '') {
     throw new Error(`Error del servidor (${response.status}): sin respuesta`);
   }
-  
+
   try {
     const errorData: ErrorResponse = JSON.parse(responseText);
     console.error('❌ [Auth2FA] Error:', errorData.error);
@@ -552,7 +552,7 @@ export async function regenerateBackupCodes(
   totpCode: string
 ): Promise<BackupCodesResponse> {
   console.log('🔄 [Auth2FA] Regenerando códigos de respaldo...');
-  
+
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/2fa/backup-codes/regenerate`, {
     method: 'POST',
     headers: {
@@ -574,11 +574,11 @@ export async function regenerateBackupCodes(
   // Error
   const responseText = await response.text();
   console.log('📄 [Auth2FA] Respuesta error:', responseText);
-  
+
   if (!responseText || responseText.trim() === '') {
     throw new Error(`Error del servidor (${response.status}): sin respuesta`);
   }
-  
+
   try {
     const errorData: ErrorResponse = JSON.parse(responseText);
     console.error('❌ [Auth2FA] Error:', errorData.error);
@@ -599,7 +599,7 @@ export async function regenerateBackupCodes(
  */
 export async function getBackupCodesCount(): Promise<BackupCodesCountResponse> {
   console.log('🔢 [Auth2FA] Obteniendo conteo de códigos de respaldo...');
-  
+
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/2fa/backup-codes/count`, {
     method: 'GET',
     headers: {
@@ -622,11 +622,11 @@ export async function getBackupCodesCount(): Promise<BackupCodesCountResponse> {
   // Error
   const responseText = await response.text();
   console.log('📄 [Auth2FA] Respuesta error:', responseText);
-  
+
   if (!responseText || responseText.trim() === '') {
     throw new Error(`Error del servidor (${response.status}): sin respuesta`);
   }
-  
+
   try {
     const errorData: ErrorResponse = JSON.parse(responseText);
     console.error('❌ [Auth2FA] Error:', errorData.error);
@@ -667,13 +667,13 @@ export function validateBackupCodeFormat(code: string): boolean {
  */
 export function formatBackupCode(code: string): string {
   const cleanCode = code.replace(/[^A-Z0-9]/gi, '').toUpperCase();
-  
+
   if (cleanCode.length > 8) {
     return `${cleanCode.substring(0, 4)}-${cleanCode.substring(4, 8)}-${cleanCode.substring(8, 12)}`;
   } else if (cleanCode.length > 4) {
     return `${cleanCode.substring(0, 4)}-${cleanCode.substring(4)}`;
   }
-  
+
   return cleanCode;
 }
 
@@ -697,11 +697,11 @@ export function validateRecoveryCodeFormat(code: string): boolean {
  */
 export function formatRecoveryCode(code: string): string {
   const cleanCode = code.replace(/[^A-Z0-9]/gi, '').toUpperCase();
-  
+
   if (cleanCode.length > 4) {
     return `${cleanCode.substring(0, 4)}-${cleanCode.substring(4, 8)}`;
   }
-  
+
   return cleanCode;
 }
 
@@ -729,13 +729,13 @@ export function validatePasswordStrength(password: string): {
       message: 'Mínimo 8 caracteres',
     };
   }
-  
+
   // Requisito 2: Al menos una letra
   const hasLetter = /[a-zA-Z]/.test(password);
-  
+
   // Requisito 3: Al menos un número
   const hasNumber = /\d/.test(password);
-  
+
   // Validar requisitos obligatorios
   if (!hasLetter || !hasNumber) {
     return {
@@ -744,15 +744,15 @@ export function validatePasswordStrength(password: string): {
       message: 'Debe contener al menos una letra y un número',
     };
   }
-  
+
   // Criterios opcionales para medir fortaleza
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
   const isLong = password.length >= 12;
-  
+
   const bonusCriteria = [hasUpperCase && hasLowerCase, hasSpecialChar, isLong].filter(Boolean).length;
-  
+
   if (bonusCriteria === 0) {
     return {
       isValid: true,
@@ -760,7 +760,7 @@ export function validatePasswordStrength(password: string): {
       message: 'Contraseña débil',
     };
   }
-  
+
   if (bonusCriteria === 1 || bonusCriteria === 2) {
     return {
       isValid: true,
@@ -768,7 +768,7 @@ export function validatePasswordStrength(password: string): {
       message: 'Contraseña aceptable',
     };
   }
-  
+
   return {
     isValid: true,
     strength: 'strong',
@@ -788,7 +788,7 @@ export async function completeAdminSetup(
   data: CompleteAdminSetupRequest
 ): Promise<CompleteAdminSetupResponse> {
   console.log('🔐 [Auth2FA] Completando configuración inicial del admin...');
-  
+
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/admin/complete-setup`, {
     method: 'POST',
     headers: {
@@ -825,7 +825,7 @@ export async function completeAdminSetup(
  */
 export async function getAdminSetupData(token: string): Promise<AdminSetupData> {
   console.log('🎫 [Auth2FA] Obteniendo datos de configuración con token...');
-  
+
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/admin/setup-data/${token}`, {
     method: 'GET',
     headers: {
