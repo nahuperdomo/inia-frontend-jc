@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80.5% </span>
+                <span class="strong">81.35% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>95/118</span>
+                <span class='fraction'>96/118</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">63.88% </span>
+                <span class="strong">69.44% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>69/108</span>
+                <span class='fraction'>75/108</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.03% </span>
+                <span class="strong">83.92% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>93/112</span>
+                <span class='fraction'>94/112</span>
             </div>
         
             
@@ -883,17 +883,17 @@
 <span class="cline-any cline-yes">228x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">228x</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">228x</span>
+<span class="cline-any cline-yes">223x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">226x</span>
-<span class="cline-any cline-yes">226x</span>
+<span class="cline-any cline-yes">221x</span>
+<span class="cline-any cline-yes">221x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1579,8 +1579,8 @@ const formatearPorcentajeConRedondeo = (
   // IMPORTANTE: PRIMERO verificar el porcentaje SIN redondeo (es la fuente de verdad)
   if (porcentajeSinRedondeo !== undefined &amp;&amp; porcentajeSinRedondeo !== null) {
     // Si el porcentaje sin redondeo es &lt; 0.05 pero MAYOR que 0, mostrar "tr"
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (porcentajeSinRedondeo &gt; 0 &amp;&amp; porcentajeSinRedondeo &lt; 0.05) {
-<span class="cstat-no" title="statement not covered" >      return 'tr'</span>
+    if (porcentajeSinRedondeo &gt; 0 &amp;&amp; porcentajeSinRedondeo &lt; 0.05) {
+      return 'tr'
     }
     // Si el porcentaje sin redondeo es exactamente 0, mostrar 0.00
     if (porcentajeSinRedondeo === 0) {
@@ -1895,7 +1895,7 @@ export default function PurezaDetailPage() {
                       &lt;p className="text-xl font-bold text-amber-600"&gt;
                         {(() =&gt; {
                           const valor = formatearPorcentajeConRedondeo(pureza.redonMateriaInerte, porcentajesCalculados?.materiaInerte)
-                          return valor === 'tr' ? <span class="branch-0 cbranch-no" title="branch not covered" >'tr' : `</span>${valor}%`
+                          return valor === 'tr' ? 'tr' : `${valor}%`
                         })()}
                       &lt;/p&gt;
                     &lt;/div&gt;
@@ -1904,7 +1904,7 @@ export default function PurezaDetailPage() {
                       &lt;p className="text-xl font-bold text-purple-600"&gt;
                         {(() =&gt; {
                           const valor = formatearPorcentajeConRedondeo(pureza.redonOtrosCultivos, porcentajesCalculados?.otrosCultivos)
-                          return valor === 'tr' ? <span class="branch-0 cbranch-no" title="branch not covered" >'tr' : `</span>${valor}%`
+                          return valor === 'tr' ? 'tr' : `${valor}%`
                         })()}
                       &lt;/p&gt;
                     &lt;/div&gt;
@@ -1913,7 +1913,7 @@ export default function PurezaDetailPage() {
                       &lt;p className="text-xl font-bold text-orange-600"&gt;
                         {(() =&gt; {
                           const valor = formatearPorcentajeConRedondeo(pureza.redonMalezas, porcentajesCalculados?.malezas)
-                          return valor === 'tr' ? <span class="branch-0 cbranch-no" title="branch not covered" >'tr' : `</span>${valor}%`
+                          return valor === 'tr' ? 'tr' : `${valor}%`
                         })()}
                       &lt;/p&gt;
                     &lt;/div&gt;
@@ -1922,7 +1922,7 @@ export default function PurezaDetailPage() {
                       &lt;p className="text-xl font-bold text-pink-600"&gt;
                         {(() =&gt; {
                           const valor = formatearPorcentajeConRedondeo(pureza.redonMalezasToleradas, porcentajesCalculados?.malezasToleradas)
-                          return valor === 'tr' ? <span class="branch-0 cbranch-no" title="branch not covered" >'tr' : `</span>${valor}%`
+                          return valor === 'tr' ? 'tr' : `${valor}%`
                         })()}
                       &lt;/p&gt;
                     &lt;/div&gt;
@@ -1931,7 +1931,7 @@ export default function PurezaDetailPage() {
                       &lt;p className="text-xl font-bold text-red-600"&gt;
                         {(() =&gt; {
                           const valor = formatearPorcentajeConRedondeo(pureza.redonMalezasTolCero, porcentajesCalculados?.malezasTolCero)
-                          return valor === 'tr' ? <span class="branch-0 cbranch-no" title="branch not covered" >'tr' : `</span>${valor}%`
+                          return valor === 'tr' ? 'tr' : `${valor}%`
                         })()}
                       &lt;/p&gt;
                     &lt;/div&gt;
@@ -2161,7 +2161,7 @@ export default function PurezaDetailPage() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-14T02:56:07.149Z
+                at 2025-11-14T03:20:21.303Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>
