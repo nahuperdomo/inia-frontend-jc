@@ -103,33 +103,37 @@ describe('PurezaDetailPage Tests', () => {
     
     otrasSemillas: [
       {
+        listadoID: 1,
         listadoTipo: 'MAL_COMUNES',
         listadoInsti: 'INIA',
         listadoNum: 1,
         catalogo: {
           catalogoID: 1,
           nombreComun: 'Yuyo colorado',
-          nombreCientifico: 'Amaranthus quitensis'
+          nombreCientifico: 'Amaranthus quitensis',
+          activo: true
         }
       },
       {
+        listadoID: 2,
         listadoTipo: 'OTROS',
         listadoInsti: 'INIA',
         listadoNum: 2,
         especie: {
           especieID: 1,
           nombreComun: 'Avena',
-          nombreCientifico: 'Avena sativa'
+          nombreCientifico: 'Avena sativa',
+          activo: true
         }
       }
     ],
     
     historial: [
       {
-        fecha: '2024-03-01T10:00:00',
+        id: 1,
+        fechaHora: '2024-03-01T10:00:00',
         accion: 'CREACION',
-        usuarioNombre: 'Juan Pérez',
-        detalles: 'Análisis creado'
+        usuario: 'Juan Pérez'
       }
     ],
     activo: true

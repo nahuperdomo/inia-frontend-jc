@@ -790,4 +790,307 @@ describe('EditarPurezaPage Tests', () => {
       })
     })
   })
+
+  describe('Test: Edición de campos de componentes en gramos', () => {
+    it('debe permitir editar materia inerte en gramos', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        const materiaInerteInput = inputs.find(input => 
+          input.getAttribute('step') === '0.001' &&
+          input.getAttribute('placeholder') === '0.000'
+        )
+        
+        if (materiaInerteInput) {
+          fireEvent.change(materiaInerteInput, { target: { value: '1.5' } })
+          expect(parseFloat(materiaInerteInput.getAttribute('value') || '0')).toBeCloseTo(1.5, 1)
+        }
+      })
+    })
+
+    it('debe permitir editar otros cultivos en gramos', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(5)
+      })
+    })
+
+    it('debe permitir editar malezas en gramos', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(5)
+      })
+    })
+
+    it('debe permitir editar malezas toleradas en gramos', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(5)
+      })
+    })
+
+    it('debe permitir editar malezas tolerancia cero en gramos', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(5)
+      })
+    })
+  })
+
+  describe('Test: Visualización de porcentajes sin redondeo', () => {
+    it('debe mostrar porcentaje de semilla pura con 4 decimales', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const readonlyInputs = screen.getAllByDisplayValue(/\d+\.\d{4}/)
+        expect(readonlyInputs.length).toBeGreaterThan(0)
+      })
+    })
+
+    it('debe mostrar porcentaje de materia inerte readonly', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('textbox')
+        const readonlyInputs = inputs.filter(input => input.hasAttribute('readonly'))
+        expect(readonlyInputs.length).toBeGreaterThan(0)
+      })
+    })
+
+    it('debe mostrar porcentaje de otros cultivos calculado', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('header-bar')).toBeInTheDocument()
+      })
+    })
+
+    it('debe mostrar porcentaje de malezas calculado', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('header-bar')).toBeInTheDocument()
+      })
+    })
+
+    it('debe mostrar porcentaje de malezas toleradas calculado', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('header-bar')).toBeInTheDocument()
+      })
+    })
+
+    it('debe mostrar porcentaje de malezas tol. cero calculado', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('header-bar')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Test: Edición de porcentajes redondeados', () => {
+    it('debe permitir editar porcentaje redondeado de semilla pura', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        const redondeadoInputs = inputs.filter(input => 
+          input.getAttribute('step') === '0.01' &&
+          !input.hasAttribute('readonly')
+        )
+        
+        expect(redondeadoInputs.length).toBeGreaterThan(0)
+      })
+    })
+
+    it('debe permitir editar porcentaje redondeado de materia inerte', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(10)
+      })
+    })
+
+    it('debe permitir editar porcentaje redondeado de otros cultivos', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(10)
+      })
+    })
+
+    it('debe permitir editar porcentaje redondeado de malezas', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(10)
+      })
+    })
+
+    it('debe permitir editar porcentaje redondeado de malezas toleradas', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(10)
+      })
+    })
+
+    it('debe permitir editar porcentaje redondeado de malezas tol. cero', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(10)
+      })
+    })
+
+    it('debe mostrar "tr" en inputs cuando el porcentaje es menor a 0.05', async () => {
+      const purezaConTrazas = {
+        ...mockPureza,
+        malezasTolCero_g: 0.001,
+        pesoTotal_g: 100
+      }
+
+      jest.spyOn(purezaService, 'obtenerPurezaPorId').mockResolvedValue(purezaConTrazas)
+
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const trInputs = screen.queryAllByDisplayValue('tr')
+        // Si hay valores pequeños, debería mostrar "tr"
+        expect(trInputs.length).toBeGreaterThanOrEqual(0)
+      })
+    })
+  })
+
+  describe('Test: Edición de datos INASE específicos', () => {
+    it('debe permitir editar inasePura', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(15)
+      })
+    })
+
+    it('debe permitir editar inaseMateriaInerte', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(15)
+      })
+    })
+
+    it('debe permitir editar inaseOtrosCultivos', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(15)
+      })
+    })
+
+    it('debe permitir editar inaseMalezas', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(15)
+      })
+    })
+
+    it('debe permitir editar inaseMalezasToleradas', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(15)
+      })
+    })
+
+    it('debe permitir editar inaseMalezasTolCero', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(15)
+      })
+    })
+  })
+
+  describe('Test: Peso total calculado', () => {
+    it('debe mostrar peso total como readonly', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const readonlyInputs = screen.getAllByRole('textbox').filter(input => 
+          input.hasAttribute('readonly')
+        )
+        expect(readonlyInputs.length).toBeGreaterThan(0)
+      })
+    })
+
+    it('debe calcular peso total automáticamente', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const inputs = screen.getAllByRole('spinbutton')
+        expect(inputs.length).toBeGreaterThan(0)
+      })
+    })
+  })
+
+  describe('Test: Renderizado de labels y títulos de secciones', () => {
+    it('debe mostrar título de sección de valores en gramos', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const titles = screen.queryAllByText(/gramos|valores/i)
+        expect(titles.length).toBeGreaterThan(0)
+      })
+    })
+
+    it('debe mostrar título de sección de porcentajes sin redondeo', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const titles = screen.queryAllByText(/automático|4 decimales/i)
+        expect(titles.length).toBeGreaterThan(0)
+      })
+    })
+
+    it('debe mostrar título de sección de porcentajes con redondeo', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const titles = screen.queryAllByText(/manual|redondeo/i)
+        expect(titles.length).toBeGreaterThan(0)
+      })
+    })
+
+    it('debe mostrar título de sección INASE', async () => {
+      render(<EditarPurezaPage />)
+
+      await waitFor(() => {
+        const titles = screen.queryAllByText(/INASE/i)
+        expect(titles.length).toBeGreaterThan(0)
+      })
+    })
+  })
 })

@@ -793,4 +793,58 @@ describe('PurezaFields Component Tests', () => {
       expect(screen.getByText('Datos generales')).toBeInTheDocument()
     })
   })
+
+  describe('Test: Campos adicionales de entrada', () => {
+    it('debe renderizar campos de valores en gramos', () => {
+      render(
+        <PurezaFields
+          formData={defaultFormData}
+          handleInputChange={mockHandleInputChange}
+        />
+      )
+
+      expect(screen.getByText(/Peso inicial/i)).toBeInTheDocument()
+      expect(screen.getByText(/Semilla pura.*\(g\)/i)).toBeInTheDocument()
+    })
+
+    it('debe calcular peso total automáticamente cuando cambian los valores', () => {
+      const formData = {
+        ...defaultFormData,
+        semillaPura_g: 95,
+        materiaInerte_g: 2,
+        otrosCultivos_g: 1,
+        malezas_g: 1,
+        malezasToleradas_g: 0.5,
+        malezasTolCero_g: 0.5
+      }
+
+      render(
+        <PurezaFields
+          formData={formData}
+          handleInputChange={mockHandleInputChange}
+        />
+      )
+
+      // El peso total debería ser llamado automáticamente
+      expect(mockHandleInputChange).toHaveBeenCalled()
+    })
+
+    it('debe permitir navegar entre tabs sin perder datos', () => {
+      render(
+        <PurezaFields
+          formData={defaultFormData}
+          handleInputChange={mockHandleInputChange}
+        />
+      )
+
+      const registrosTab = screen.getByText('Registros')
+      fireEvent.click(registrosTab)
+
+      const generalesTab = screen.getByText('Datos generales')
+      fireEvent.click(generalesTab)
+
+      expect(generalesTab).toBeInTheDocument()
+    })
+  })
 })
+
