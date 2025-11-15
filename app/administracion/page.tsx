@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, Shield, ArrowRight, Database, Contact } from "lucide-react"
+import { Users, Shield, ArrowRight, Database, Contact, Upload } from "lucide-react"
 import Link from "next/link"
 
 export default function AdministracionPage() {
@@ -144,6 +144,47 @@ export default function AdministracionPage() {
                                     </div>
                                     <Button className="w-full" variant="outline">
                                         Gestionar Contactos
+                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </Link>
+
+                    {/* Importar Legados */}
+                    <Link href="/administracion/importar-legados" className="group">
+                        <Card className="h-full hover:shadow-lg transition-all hover:scale-105 cursor-pointer border-2 hover:border-primary/50">
+                            <CardHeader className="pb-3">
+                                <div className="flex items-start gap-3">
+                                    <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20 group-hover:scale-110 transition-transform">
+                                        <Upload className="h-6 w-6 md:h-7 md:w-7 text-green-600 dark:text-green-400" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <CardTitle className="text-lg md:text-xl mb-1">Importar Legados</CardTitle>
+                                        <CardDescription className="text-xs md:text-sm">
+                                            Importar datos históricos desde Excel
+                                        </CardDescription>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-3">
+                                    <div className="text-xs md:text-sm text-muted-foreground space-y-1">
+                                        <div className="flex items-start gap-2">
+                                            <span className="text-primary mt-0.5">•</span>
+                                            <span>Validar archivos Excel</span>
+                                        </div>
+                                        <div className="flex items-start gap-2">
+                                            <span className="text-primary mt-0.5">•</span>
+                                            <span>Importar datos históricos</span>
+                                        </div>
+                                        <div className="flex items-start gap-2">
+                                            <span className="text-primary mt-0.5">•</span>
+                                            <span>Ver errores de importación</span>
+                                        </div>
+                                    </div>
+                                    <Button className="w-full" variant="outline">
+                                        Importar Legados
                                         <ArrowRight className="ml-2 h-4 w-4" />
                                     </Button>
                                 </div>
