@@ -614,8 +614,9 @@ describe('auth-2fa-service', () => {
 
       it('debe detectar contraseña débil', () => {
         const result = validatePasswordStrength('password')
-        expect(result.isValid).toBe(true)
+        expect(result.isValid).toBe(false)
         expect(result.strength).toBe('weak')
+        expect(result.message).toBe('Debe contener al menos una letra y un número')
       })
 
       it('debe detectar contraseña media', () => {
