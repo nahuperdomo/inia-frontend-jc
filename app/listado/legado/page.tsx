@@ -37,12 +37,8 @@ export default function ListadoLegadoPage() {
         pageSize,
         searchTerm,
         filterEspecie
-      )
+      )      const pageData = extractPageMetadata<LegadoListadoDTO>(data, page)
 
-      console.log("DEBUG obtenerLegadosPaginadas response:", data)
-
-      const pageData = extractPageMetadata<LegadoListadoDTO>(data, page)
-      
       setLegados(pageData.content)
       setTotalPages(pageData.totalPages)
       setTotalElements(pageData.totalElements)

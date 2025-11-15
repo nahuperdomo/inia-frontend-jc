@@ -60,12 +60,12 @@ export default function AnalisisPorAprobarPage() {
     try {
       setLoading(true)
       setError(null)
-      
+
       // Verificar rol del usuario
       const perfil: any = await obtenerPerfil()
       const rol = perfil?.rol || perfil?.role || perfil?.usuario?.rol || "USER"
       setUserRole(rol)
-      
+
       if (rol !== "ADMIN") {
         setError("No tiene permisos para ver esta sección")
         setLoading(false)
@@ -74,10 +74,10 @@ export default function AnalisisPorAprobarPage() {
 
       // Cargar primera página
       const data = await obtenerAnalisisPorAprobarPaginados(0, pageSize)
-      
+
       // Extraer metadata de paginación usando helper
       const pageData = extractPageMetadata<AnalisisPorAprobar>(data, 0)
-      
+
       setPorAprobar(pageData.content)
       setTotalPages(pageData.totalPages)
       setTotalElements(pageData.totalElements)
@@ -97,10 +97,10 @@ export default function AnalisisPorAprobarPage() {
       setLoading(true)
       setError(null)
       const data = await obtenerAnalisisPorAprobarPaginados(page, pageSize)
-      
+
       // Extraer metadata de paginación usando helper
       const pageData = extractPageMetadata<AnalisisPorAprobar>(data, page)
-      
+
       setPorAprobar(pageData.content)
       setTotalPages(pageData.totalPages)
       setTotalElements(pageData.totalElements)

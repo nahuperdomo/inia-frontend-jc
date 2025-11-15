@@ -4,7 +4,7 @@ export default function Loading() {
       <div className="flex items-center gap-2">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-600 border-t-transparent" />
       </div>
-      
+
       <div className="grid gap-6">
         {/* Skeleton para información del análisis */}
         <div className="border rounded-lg p-6 space-y-4">
@@ -21,7 +21,7 @@ export default function Loading() {
             ))}
           </div>
         </div>
-        
+
         {/* Skeleton para repeticiones */}
         <div className="border rounded-lg p-6 space-y-4">
           <div className="flex items-center gap-2">

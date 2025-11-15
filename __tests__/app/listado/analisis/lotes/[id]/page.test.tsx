@@ -24,7 +24,6 @@ import DetalleLotePage from '@/app/listado/lotes/[id]/page'
 import * as loteService from '@/app/services/lote-service'
 import { LoteDTO } from '@/app/models/interfaces/lote'
 import { TipoAnalisis } from '@/app/models/types/enums'
-import { toast } from 'sonner'
 
 // Mock de servicios
 jest.mock('@/app/services/lote-service')

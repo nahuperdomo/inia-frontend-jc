@@ -9,9 +9,9 @@ import {
 } from '@/app/services/catalogo-service'
 import { obtenerTodosCultivares } from '@/app/services/cultivar-service'
 import { obtenerTodasEspecies } from '@/app/services/especie-service'
-import { 
-  obtenerEmpresas as obtenerEmpresasBase, 
-  obtenerClientes as obtenerClientesBase 
+import {
+  obtenerEmpresas as obtenerEmpresasBase,
+  obtenerClientes as obtenerClientesBase
 } from '@/app/services/contacto-service'
 
 // Adaptar datos para formularios - SOLO ACTIVOS para registros

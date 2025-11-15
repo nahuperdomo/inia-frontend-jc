@@ -1,11 +1,11 @@
 import { apiFetch } from "@/lib/api-client";
-import { 
-  ReporteGeneralDTO, 
-  ReporteGerminacionDTO, 
-  ReportePMSDTO, 
-  ReportePurezaDTO, 
+import {
+  ReporteGeneralDTO,
+  ReporteGerminacionDTO,
+  ReportePMSDTO,
+  ReportePurezaDTO,
   ReporteTetrazolioDTO,
-  FiltrosReporte 
+  FiltrosReporte
 } from "@/app/models/interfaces/reportes";
 
 export async function obtenerReporteGeneral(filtros?: FiltrosReporte): Promise<ReporteGeneralDTO> {

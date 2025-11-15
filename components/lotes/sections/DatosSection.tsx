@@ -71,7 +71,7 @@ export function DatosSection({ lot }: DatosSectionProps) {
                         </div>
                     </div>
                 </div>
-                
+
                 {/* Datos de Humedad */}
                 {lot.datosHumedad && lot.datosHumedad.length > 0 && (
                     <div className="mt-6 pt-6 border-t">
@@ -81,15 +81,15 @@ export function DatosSection({ lot }: DatosSectionProps) {
                                 // Soportar ambos formatos: DatosHumedadDTO y el formato del request
                                 const nombre = humedad.humedadNombre || humedad.tipoHumedadNombre || `Humedad ${index + 1}`;
                                 const valor = humedad.porcentaje ?? humedad.valor;
-                                
+
                                 return (
                                     <div key={index} className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
                                         <div className="text-xs font-medium text-blue-700 mb-1">
                                             {nombre}
                                         </div>
                                         <div className="text-2xl font-bold text-blue-900">
-                                            {valor !== undefined && valor !== null 
-                                                ? `${valor}%` 
+                                            {valor !== undefined && valor !== null
+                                                ? `${valor}%`
                                                 : 'N/A'}
                                         </div>
                                         {humedad.observaciones && (

@@ -39,13 +39,13 @@ export default function Configuracion2FAPage() {
   const [loading, setLoading] = useState(false)
   const [has2FA, setHas2FA] = useState(false)
   const [checkingStatus, setCheckingStatus] = useState(true)
-  
+
   // Setup 2FA
   const [showSetup, setShowSetup] = useState(false)
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null)
   const [secret, setSecret] = useState<string | null>(null)
   const [verificationCode, setVerificationCode] = useState('')
-  
+
   // Dispositivos de confianza
   const [trustedDevices, setTrustedDevices] = useState<TrustedDevice[]>([])
   const [loadingDevices, setLoadingDevices] = useState(false)
@@ -76,9 +76,7 @@ export default function Configuracion2FAPage() {
       })
 
       if (response.ok) {
-        const data: Status2FAResponse = await response.json()
-        console.log('📊 Status 2FA:', data)
-        setHas2FA(data.totpEnabled || false)
+        const data: Status2FAResponse = await response.json()        setHas2FA(data.totpEnabled || false)
       } else {
         console.warn('⚠️ No se pudo verificar estado 2FA, asumiendo false')
         setHas2FA(false)
@@ -99,10 +97,7 @@ export default function Configuracion2FAPage() {
       })
 
       if (response.ok) {
-        const data = await response.json()
-        console.log('📱 Dispositivos de confianza recibidos:', data)
-        
-        // El backend devuelve { devices: [...], count: X }
+        const data = await response.json()        // El backend devuelve { devices: [...], count: X }
         const devices = data.devices || data
         setTrustedDevices(Array.isArray(devices) ? devices : [])
       } else {
@@ -121,7 +116,7 @@ export default function Configuracion2FAPage() {
     try {
       const data = await getBackupCodesCount()
       setAvailableCodesCount(data.availableCodes)
-      
+
       if (data.warning) {
         toast.warning('Códigos de respaldo', {
           description: data.warning,
@@ -134,24 +129,16 @@ export default function Configuracion2FAPage() {
 
   const handleSetup2FA = async () => {
     try {
-      setLoading(true)
-      console.log('🔐 Iniciando setup 2FA...')
-      console.log('📡 URL:', `${API_BASE_URL}/api/v1/auth/2fa/setup`)
-      
-      const response = await fetch(`${API_BASE_URL}/api/v1/auth/2fa/setup`, {
+      setLoading(true)      const response = await fetch(`${API_BASE_URL}/api/v1/auth/2fa/setup`, {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-      })
-
-      console.log('📡 Status:', response.status)
-
-      if (!response.ok) {
+      })      if (!response.ok) {
         const errorText = await response.text()
         console.error('❌ Error response:', errorText)
-        
+
         let errorMessage = 'Error al generar código QR'
         try {
           const errorData = JSON.parse(errorText)
@@ -159,35 +146,20 @@ export default function Configuracion2FAPage() {
         } catch {
           errorMessage = errorText || errorMessage
         }
-        
+
         throw new Error(errorMessage)
       }
 
-      const responseText = await response.text()
-      console.log('📄 Response:', responseText)
-      
-      if (!responseText) {
+      const responseText = await response.text()      if (!responseText) {
         throw new Error('Respuesta vacía del servidor')
       }
-      
-      const data = JSON.parse(responseText)
-      console.log('✅ Data recibida:', data)
-      
-      // El backend responde con { data: { secret, qrCodeDataUrl, ... }, mensaje: "..." }
-      const setupData = data.data || data
-      
-      if (setupData.secret && setupData.qrCodeDataUrl) {
-        console.log('✅ Configurando QR y secret...')
-        console.log('QR URL length:', setupData.qrCodeDataUrl.length)
-        console.log('Secret:', setupData.secret)
-        
-        setQrCodeUrl(setupData.qrCodeDataUrl)
-        setSecret(setupData.secret)
-        setShowSetup(true)
-        
-        console.log('✅ Estados actualizados - showSetup debería ser true')
 
-        toast.success('Código QR generado', {
+      const data = JSON.parse(responseText)      // El backend responde con { data: { secret, qrCodeDataUrl, ... }, mensaje: "..." }
+      const setupData = data.data || data
+
+      if (setupData.secret && setupData.qrCodeDataUrl) {        setQrCodeUrl(setupData.qrCodeDataUrl)
+        setSecret(setupData.secret)
+        setShowSetup(true)        toast.success('Código QR generado', {
           description: 'Escanea el código con Google Authenticator',
         })
       } else {
@@ -225,11 +197,9 @@ export default function Configuracion2FAPage() {
       }
 
       const data = await response.json()
-      
+
       // Verificar si el backend devolvió códigos de respaldo
-      if (data.backupCodes && data.backupCodes.length > 0) {
-        console.log('🎫 Códigos de respaldo recibidos:', data.backupCodes.length)
-        setBackupCodes(data.backupCodes)
+      if (data.backupCodes && data.backupCodes.length > 0) {        setBackupCodes(data.backupCodes)
         setShowBackupCodes(true)
         setAvailableCodesCount(data.backupCodes.length)
       }
@@ -269,12 +239,12 @@ export default function Configuracion2FAPage() {
     try {
       setLoading(true)
       const data = await regenerateBackupCodes(regenerateCode)
-      
+
       setBackupCodes(data.backupCodes)
       setShowBackupCodes(true)
       setAvailableCodesCount(data.totalCodes)
       setRegenerateCode('')
-      
+
       toast.success('Códigos regenerados', {
         description: `${data.totalCodes} nuevos códigos generados. Los anteriores fueron invalidados.`,
         duration: 5000,
@@ -317,7 +287,7 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    
+
     toast.success('Descargado', {
       description: 'Códigos guardados en archivo de texto',
     })
@@ -387,11 +357,7 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
         </div>
       </div>
     )
-  }
-
-  console.log('🎨 Render - showSetup:', showSetup, 'qrCodeUrl:', !!qrCodeUrl, 'has2FA:', has2FA)
-
-  return (
+  }  return (
     <>
       <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6">
         {/* Estado actual del 2FA */}
@@ -562,11 +528,11 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
                   <Copy className="w-4 h-4 mr-2" />
                   Copiar al portapapeles
                 </Button>
-                <Button 
+                <Button
                   onClick={() => {
                     setShowBackupCodes(false)
                     setBackupCodes([])
-                  }} 
+                  }}
                   variant="secondary"
                 >
                   Ya los guardé
@@ -625,8 +591,8 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
                 />
               </div>
 
-              <Button 
-                onClick={handleRegenerateBackupCodes} 
+              <Button
+                onClick={handleRegenerateBackupCodes}
                 disabled={loading || regenerateCode.length !== 6}
                 variant="outline"
               >

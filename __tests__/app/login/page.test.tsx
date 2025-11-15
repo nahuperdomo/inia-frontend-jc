@@ -2,7 +2,11 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import LoginPage from '@/app/login/page'
 
-// Mock del router de Next.js
+
+
+import { login2FA } from '@/app/services/auth-2fa-service'
+
+// Mock de next/navigation
 const mockPush = jest.fn()
 const mockReplace = jest.fn()
 
@@ -44,7 +48,7 @@ jest.mock('sonner', () => ({
   },
 }))
 
-import { login2FA } from '@/app/services/auth-2fa-service'
+
 
 describe('Login Page', () => {
   const mockLogin2FA = login2FA as jest.MockedFunction<typeof login2FA>
@@ -146,7 +150,7 @@ describe('Login Page', () => {
   it('debe deshabilitar el botón durante el proceso de login', async () => {
     // Arrange
     const user = userEvent.setup()
-    mockLogin2FA.mockImplementation(() => 
+    mockLogin2FA.mockImplementation(() =>
       new Promise(resolve => setTimeout(() => resolve({ success: true } as any), 100))
     )
 
@@ -163,7 +167,7 @@ describe('Login Page', () => {
 
     // Assert - El botón debería estar deshabilitado durante la carga
     expect(submitButton).toBeDisabled()
-    
+
     await waitFor(() => {
       expect(submitButton).not.toBeDisabled()
     }, { timeout: 2000 })

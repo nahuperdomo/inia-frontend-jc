@@ -16,15 +16,15 @@ import type { AnalisisHistorialDTO } from "@/app/models/interfaces/analisis"
 function formatearFechaHistorial(fecha: any): string {
   try {
     if (!fecha) return "Sin fecha"
-    
+
     const date = new Date(fecha)
-    
+
     // Verificar que la fecha sea válida
     if (isNaN(date.getTime())) {
       console.error("Fecha inválida:", fecha)
       return "Fecha inválida"
     }
-    
+
     return date.toLocaleDateString("es-ES", {
       day: "numeric",
       month: "long",
@@ -57,7 +57,7 @@ export function HistorialModal({ open, onOpenChange, analisisId, analisisTipo }:
     const fetchHistorial = async () => {
       setLoading(true)
       setError(null)
-      
+
       try {
         // Obtener el análisis completo según el tipo
         let data
@@ -143,12 +143,12 @@ export function HistorialModal({ open, onOpenChange, analisisId, analisisTipo }:
                   {index !== historial.length - 1 && (
                     <div className="absolute left-[7px] top-6 bottom-0 w-0.5 bg-border" />
                   )}
-                  
+
                   <div className="bg-muted/30 rounded-lg p-4 space-y-2">
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-1 flex-1">
                         <p className="font-semibold text-base">
-                          {item.estadoAnterior && item.estadoNuevo 
+                          {item.estadoAnterior && item.estadoNuevo
                             ? `${item.estadoAnterior} → ${item.estadoNuevo}`
                             : item.accion}
                         </p>

@@ -29,9 +29,7 @@ export function usePersistentForm<T extends Record<string, any>>(options: UsePer
   const getStorage = () => {
     if (typeof window === "undefined") return null
     return storage === "local" ? window.localStorage : window.sessionStorage
-  }
-
-  // Cargar datos del storage
+  }
   const loadFromStorage = useCallback((): T => {
     try {
       const storageInstance = getStorage()

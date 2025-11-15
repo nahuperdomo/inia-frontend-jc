@@ -9,35 +9,7 @@ import {
   AlertTriangle,
 } from "lucide-react"
 import type { EstadoAnalisis } from "@/app/models/types/enums"
-
-// Función utilitaria para formatear fechas correctamente
-const formatearFechaLocal = (fechaString: string): string => {
-  if (!fechaString) return ''
-  
-  try {
-    // Si la fecha ya está en formato YYYY-MM-DD, usarla directamente
-    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
-      const [year, month, day] = fechaString.split('-').map(Number)
-      const fecha = new Date(year, month - 1, day)
-      return fecha.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    }
-    
-    // Si viene en otro formato (LocalDateTime), parsearlo
-    const fecha = new Date(fechaString)
-    return fecha.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  } catch (error) {
-    console.warn("Error al formatear fecha:", fechaString, error)
-    return fechaString
-  }
-}
+import { formatearFechaLocal } from "@/lib/utils/format-helpers"
 
 interface AnalisisInfoGeneralCardProps {
   analisisID: number
@@ -70,8 +42,8 @@ export function AnalisisInfoGeneralCard({
 }: AnalisisInfoGeneralCardProps) {
   // Mostrar fecha de finalización solo en estados finales
   const mostrarFechaFin = fechaFin && (
-    estado === 'PENDIENTE_APROBACION' || 
-    estado === 'APROBADO' || 
+    estado === 'PENDIENTE_APROBACION' ||
+    estado === 'APROBADO' ||
     estado === 'A_REPETIR'
   )
 

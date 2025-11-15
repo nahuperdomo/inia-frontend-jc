@@ -25,12 +25,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const cargarDatos = async () => {
       // Obtener rol desde el backend usando cookies HttpOnly automáticamente
-      try {
-        console.log(" Dashboard - Obteniendo perfil del usuario desde backend...")
-        const perfil = await obtenerPerfil()
-        console.log(" Dashboard - Perfil obtenido del backend:", perfil)
-        
-        // Extraer rol soportando varias formas que el backend pueda devolver:
+      try {        const perfil = await obtenerPerfil()        // Extraer rol soportando varias formas que el backend pueda devolver:
         // - perfil.roles: string[]
         // - perfil.rol o perfil.role: string
         // - perfil.usuario.roles / perfil.usuario.rol
@@ -58,14 +53,9 @@ export default function DashboardPage() {
         }
 
         // Normalizar
-        if (roleFromBackend) roleFromBackend = roleFromBackend.trim()
-        console.log(' Dashboard - Rol de usuario del backend (resuelto):', roleFromBackend)
-
-        // Actualizar estado React (NO guardar en localStorage/cookies client-side)
+        if (roleFromBackend) roleFromBackend = roleFromBackend.trim():', roleFromBackend)
         if (roleFromBackend) {
-          setUserRole(roleFromBackend)
-          console.log(' Dashboard - Rol actualizado en estado:', roleFromBackend)
-        }
+          setUserRole(roleFromBackend)        }
       } catch (error) {
         console.error(" Error al obtener perfil del backend:", error)
         console.error(" Detalles del error:", error)
@@ -75,9 +65,7 @@ export default function DashboardPage() {
 
       // Cargar estadísticas
       try {
-        const data = await obtenerEstadisticasDashboard()
-        console.log(" Dashboard - Estadísticas cargadas:", data)
-        setStats(data)
+        const data = await obtenerEstadisticasDashboard()        setStats(data)
       } catch (statsError) {
         console.error(" Error al cargar estadísticas:", statsError)
         toast.error("Error al cargar estadísticas del dashboard")
@@ -91,10 +79,7 @@ export default function DashboardPage() {
 
   // Usar useMemo para crear quickStats de forma reactiva cuando cambie userRole, loading o stats
   const quickStats = useMemo(() => {
-    const isAdmin = userRole?.trim().toUpperCase() === "ADMIN"
-    console.log(" Dashboard - userRole:", userRole, "| isAdmin:", isAdmin)
-    
-    const stats_array: Array<{
+    const isAdmin = userRole?.trim().toUpperCase() === "ADMIN"    const stats_array: Array<{
       label: string
       value: string
       icon: any
@@ -113,9 +98,7 @@ export default function DashboardPage() {
     ]
 
     // Solo agregar "Análisis por aprobar" si es ADMIN (segunda posición, a la izquierda)
-    if (isAdmin) {
-      console.log(" Dashboard - Agregando card de Análisis por Aprobar")
-      stats_array.push({
+    if (isAdmin) {      stats_array.push({
         label: "Análisis por Aprobar",
         value: loading ? "..." : stats?.analisisPorAprobar.toString() || "0",
         icon: AlertCircle,
@@ -123,9 +106,7 @@ export default function DashboardPage() {
         bgColor: "bg-red-50",
         href: "/dashboard/analisis-por-aprobar",
       })
-    } else {
-      console.log(" Dashboard - No se muestra card de Análisis por Aprobar")
-    }
+    } else {    }
 
     // Agregar los no clicables al final (a la derecha)
     stats_array.push(
@@ -219,8 +200,8 @@ export default function DashboardPage() {
           {quickStats.map((stat, index) => {
             const content = (
               <Card className={`transition-all ${
-                stat.href 
-                  ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:border-primary/50 border-2' 
+                stat.href
+                  ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:border-primary/50 border-2'
                   : 'opacity-90'
               }`}>
                 <CardContent className="p-4 md:p-6">
@@ -239,7 +220,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             )
-            
+
             return stat.href ? (
               <Link key={index} href={stat.href} className="group">
                 {content}

@@ -26,34 +26,7 @@ import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { StickySaveButton } from "@/components/ui/sticky-save-button"
-
-// Función utilitaria para formatear fechas
-const formatearFechaLocal = (fechaString: string): string => {
-  if (!fechaString) return ''
-
-  const [year, month, day] = fechaString.split('-').map(Number)
-  const fecha = new Date(year, month - 1, day)
-
-  return fecha.toLocaleDateString('es-UY', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  })
-}
-
-// Función utilitaria para convertir fecha para input
-const convertirFechaParaInput = (fechaString: string): string => {
-  if (!fechaString) return ''
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
-    return fechaString
-  }
-
-  const fecha = new Date(fechaString)
-  if (isNaN(fecha.getTime())) return ''
-
-  return fecha.toISOString().split('T')[0]
-}
+import { formatearFechaLocal, convertirFechaParaInput } from "@/lib/utils/format-helpers"
 
 export default function EditarTetrazolioPage() {
   const params = useParams()
@@ -140,18 +113,10 @@ export default function EditarTetrazolioPage() {
         setLoading(true)
         setError(null)
 
-        const targetId = Number.parseInt(tetrazolioId)
-        console.log("Cargando Tetrazolio con ID:", targetId)
+        const targetId = Number.parseInt(tetrazolioId)        const tetrazolioData = await obtenerTetrazolioPorId(targetId)        setTetrazolio(tetrazolioData)
 
-        const tetrazolioData = await obtenerTetrazolioPorId(targetId)
-        console.log("Tetrazolio cargado exitosamente:", tetrazolioData)
-        setTetrazolio(tetrazolioData)
-
-        // Cargar repeticiones
         try {
-          const repeticionesData = await obtenerRepeticionesPorTetrazolio(targetId)
-          console.log("Repeticiones cargadas:", repeticionesData)
-          setRepeticiones(repeticionesData)
+          const repeticionesData = await obtenerRepeticionesPorTetrazolio(targetId)          setRepeticiones(repeticionesData)
         } catch (repError) {
           console.warn("Error al cargar repeticiones:", repError)
           setRepeticiones([])
@@ -302,10 +267,7 @@ export default function EditarTetrazolioPage() {
           `La suma de porcentajes (${sumaPorcentajes.toFixed(2)}%) debe estar entre 95% y 105%. Diferencia: ${diferencia.toFixed(2)}%`
         )
         return
-      }
-
-      console.log(" Guardando porcentajes redondeados:", payload)
-      const tetrazolioActualizado = await actualizarPorcentajesRedondeados(parseInt(tetrazolioId), payload)
+      } const tetrazolioActualizado = await actualizarPorcentajesRedondeados(parseInt(tetrazolioId), payload)
 
       setTetrazolio(tetrazolioActualizado)
       setPorcentajesEditados({
@@ -352,10 +314,7 @@ export default function EditarTetrazolioPage() {
     }
 
     try {
-      setCreatingRepeticion(true)
-      console.log("➕ Creando nueva repetición para tetrazolio:", tetrazolio.analisisID)
-
-      await crearRepTetrazolioViabilidad(parseInt(tetrazolioId), nuevaRepeticion)
+      setCreatingRepeticion(true)      await crearRepTetrazolioViabilidad(parseInt(tetrazolioId), nuevaRepeticion)
 
       // Recargar repeticiones
       const repeticionesActualizadas = await obtenerRepeticionesPorTetrazolio(parseInt(tetrazolioId))
@@ -371,8 +330,6 @@ export default function EditarTetrazolioPage() {
       setShowAddRepeticion(false)
 
       toast.success("Repetición creada exitosamente")
-
-      console.log(` Repetición creada. Total: ${repeticionesActualizadas.length}/${tetrazolio.numRepeticionesEsperadas}`)
     } catch (err: any) {
       console.error(" Error al crear repetición:", err)
       toast.error(err.message || "Error al crear repetición")
@@ -528,7 +485,6 @@ export default function EditarTetrazolioPage() {
         viabilidadInase: Number(formData.viabilidadInase) || undefined,
       }
 
-      // Guardar cambios de repeticiones editadas
       for (const rep of repeticiones) {
         await actualizarRepTetrazolioViabilidad(
           Number.parseInt(tetrazolioId),
@@ -572,7 +528,6 @@ export default function EditarTetrazolioPage() {
     if (!tetrazolio) return
 
     try {
-      console.log(" Finalizando análisis Tetrazolio:", tetrazolio.analisisID)
       await finalizarAnalisis(tetrazolio.analisisID)
       toast.success("Análisis finalizado exitosamente")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
@@ -589,7 +544,6 @@ export default function EditarTetrazolioPage() {
     if (!tetrazolio) return
 
     try {
-      console.log(" Aprobando análisis Tetrazolio:", tetrazolio.analisisID)
       await aprobarAnalisis(tetrazolio.analisisID)
       toast.success("Análisis aprobado exitosamente")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
@@ -606,7 +560,6 @@ export default function EditarTetrazolioPage() {
     if (!tetrazolio) return
 
     try {
-      console.log(" Marcando análisis Tetrazolio para repetir:", tetrazolio.analisisID)
       await marcarParaRepetir(tetrazolio.analisisID)
       toast.success("Análisis marcado para repetir")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
@@ -622,9 +575,7 @@ export default function EditarTetrazolioPage() {
   const handleFinalizarYAprobar = async () => {
     if (!tetrazolio) return
 
-    try {
-      console.log(" Finalizando y aprobando análisis Tetrazolio:", tetrazolio.analisisID)
-      // Cuando el admin finaliza, el backend automáticamente lo aprueba
+    try {      // Cuando el admin finaliza, el backend automáticamente lo aprueba
       // No necesitamos llamar a aprobarAnalisis por separado
       await finalizarAnalisis(tetrazolio.analisisID)
       toast.success("Análisis finalizado y aprobado exitosamente")

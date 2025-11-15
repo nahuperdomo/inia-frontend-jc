@@ -23,7 +23,7 @@ export function useAsyncValidation(loteId?: number) {
       setState(prev => ({ ...prev, fichaError: undefined }));
       return null;
     }
-    
+
     // Clear previous timeout
     if (fichaTimeoutRef.current) {
       clearTimeout(fichaTimeoutRef.current);
@@ -55,7 +55,7 @@ export function useAsyncValidation(loteId?: number) {
       setState(prev => ({ ...prev, nomLoteError: undefined }));
       return null;
     }
-    
+
     // Clear previous timeout
     if (nomLoteTimeoutRef.current) {
       clearTimeout(nomLoteTimeoutRef.current);

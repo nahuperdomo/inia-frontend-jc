@@ -21,7 +21,7 @@ import EditarPurezaPage from '@/app/listado/analisis/pureza/[id]/editar/page'
 import * as purezaService from '@/app/services/pureza-service'
 import * as malezasService from '@/app/services/malezas-service'
 import * as especieService from '@/app/services/especie-service'
-import { PurezaDTO, PurezaRequestDTO } from '@/app/models'
+import { PurezaDTO } from '@/app/models'
 import { EstadoAnalisis } from '@/app/models/types/enums'
 import { toast } from 'sonner'
 
@@ -103,7 +103,7 @@ describe('EditarPurezaPage Tests', () => {
     fechaInicio: '2024-03-01',
     comentarios: 'Comentario inicial',
     cumpleEstandar: true,
-    
+
     fecha: '2024-03-01',
     pesoInicial_g: 100.000,
     semillaPura_g: 95.500,
@@ -113,7 +113,7 @@ describe('EditarPurezaPage Tests', () => {
     malezasToleradas_g: 0.300,
     malezasTolCero_g: 0.200,
     pesoTotal_g: 100.000,
-    
+
     redonSemillaPura: 95.5,
     redonMateriaInerte: 2.5,
     redonOtrosCultivos: 1.0,
@@ -121,7 +121,7 @@ describe('EditarPurezaPage Tests', () => {
     redonMalezasToleradas: 0.3,
     redonMalezasTolCero: 0.2,
     redonPesoTotal: 100.0,
-    
+
     inasePura: 95.0,
     inaseMateriaInerte: 2.8,
     inaseOtrosCultivos: 1.2,
@@ -129,7 +129,7 @@ describe('EditarPurezaPage Tests', () => {
     inaseMalezasToleradas: 0.3,
     inaseMalezasTolCero: 0.2,
     inaseFecha: '2024-03-10',
-    
+
     otrasSemillas: [],
     historial: [],
     activo: true
@@ -197,7 +197,7 @@ describe('EditarPurezaPage Tests', () => {
 
     it('debe mostrar loading mientras carga', () => {
       jest.spyOn(purezaService, 'obtenerPurezaPorId')
-        .mockImplementation(() => new Promise(() => {}))
+        .mockImplementation(() => new Promise(() => { }))
 
       render(<EditarPurezaPage />)
 
@@ -224,7 +224,7 @@ describe('EditarPurezaPage Tests', () => {
       await waitFor(() => {
         const fechaInput = screen.getByDisplayValue('2024-03-01')
         expect(fechaInput).toBeInTheDocument()
-        
+
         fireEvent.change(fechaInput, { target: { value: '2024-03-15' } })
         expect(fechaInput).toHaveValue('2024-03-15')
       })
@@ -235,10 +235,10 @@ describe('EditarPurezaPage Tests', () => {
 
       await waitFor(() => {
         const inputs = screen.getAllByRole('spinbutton')
-        const pesoInicialInput = inputs.find(input => 
+        const pesoInicialInput = inputs.find(input =>
           input.closest('div')?.textContent?.includes('Peso inicial')
         )
-        
+
         if (pesoInicialInput) {
           fireEvent.change(pesoInicialInput, { target: { value: '105' } })
           expect(pesoInicialInput).toHaveValue(105)
@@ -251,11 +251,11 @@ describe('EditarPurezaPage Tests', () => {
 
       await waitFor(() => {
         const inputs = screen.getAllByRole('spinbutton')
-        const semillaPuraInput = inputs.find(input => 
+        const semillaPuraInput = inputs.find(input =>
           input.getAttribute('step') === '0.001' &&
           input.closest('div')?.textContent?.includes('Semilla pura')
         )
-        
+
         if (semillaPuraInput) {
           fireEvent.change(semillaPuraInput, { target: { value: '96.5' } })
           expect(semillaPuraInput).toHaveValue(96.5)
@@ -640,13 +640,13 @@ describe('EditarPurezaPage Tests', () => {
 
       await waitFor(() => {
         const inputs = screen.getAllByRole('spinbutton')
-        
+
         // Encontrar un input de INASE (step 0.01, no readonly)
-        const inaseInputs = inputs.filter(input => 
+        const inaseInputs = inputs.filter(input =>
           input.getAttribute('step') === '0.01' &&
           !input.hasAttribute('readonly')
         )
-        
+
         expect(inaseInputs.length).toBeGreaterThan(0)
       })
     })
@@ -797,11 +797,11 @@ describe('EditarPurezaPage Tests', () => {
 
       await waitFor(() => {
         const inputs = screen.getAllByRole('spinbutton')
-        const materiaInerteInput = inputs.find(input => 
+        const materiaInerteInput = inputs.find(input =>
           input.getAttribute('step') === '0.001' &&
           input.getAttribute('placeholder') === '0.000'
         )
-        
+
         if (materiaInerteInput) {
           fireEvent.change(materiaInerteInput, { target: { value: '1.5' } })
           expect(parseFloat(materiaInerteInput.getAttribute('value') || '0')).toBeCloseTo(1.5, 1)
@@ -905,11 +905,11 @@ describe('EditarPurezaPage Tests', () => {
 
       await waitFor(() => {
         const inputs = screen.getAllByRole('spinbutton')
-        const redondeadoInputs = inputs.filter(input => 
+        const redondeadoInputs = inputs.filter(input =>
           input.getAttribute('step') === '0.01' &&
           !input.hasAttribute('readonly')
         )
-        
+
         expect(redondeadoInputs.length).toBeGreaterThan(0)
       })
     })
@@ -1039,7 +1039,7 @@ describe('EditarPurezaPage Tests', () => {
       render(<EditarPurezaPage />)
 
       await waitFor(() => {
-        const readonlyInputs = screen.getAllByRole('textbox').filter(input => 
+        const readonlyInputs = screen.getAllByRole('textbox').filter(input =>
           input.hasAttribute('readonly')
         )
         expect(readonlyInputs.length).toBeGreaterThan(0)

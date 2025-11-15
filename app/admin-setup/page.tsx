@@ -11,8 +11,8 @@ import { Label } from "@/components/ui/label"
 import { Leaf, Shield, Smartphone, Download, Copy, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react"
 import { toast } from 'sonner'
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { 
-  completeAdminSetup, 
+import {
+  completeAdminSetup,
   getAdminSetupData,
   type AdminSetupData,
   validatePasswordStrength,
@@ -45,7 +45,7 @@ export default function AdminSetupPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   // NO usar useAuth() aquí porque el usuario aún no está autenticado
-  
+
   // Usar ref para evitar doble llamada en Strict Mode (React 18)
   const hasLoadedRef = useRef(false)
 
@@ -54,30 +54,23 @@ export default function AdminSetupPage() {
     if (hasLoadedRef.current) {
       return
     }
-    
+
     async function loadSetupData() {
       // Obtener token de los query params
       const token = searchParams.get('token')
-      
+
       if (!token) {
         console.error('❌ [AdminSetup] No se encontró token')
         router.push('/login')
         return
       }
 
-      try {
-        console.log('🎫 [AdminSetup] Obteniendo datos con token...')
-        
-        // Marcar como cargado ANTES de hacer la llamada
+      try {        // Marcar como cargado ANTES de hacer la llamada
         hasLoadedRef.current = true
-        
+
         // Solicitar datos al backend usando el token (un solo uso)
         const setupData = await getAdminSetupData(token)
-        setSetupInfo(setupData)
-        
-        console.log('✅ [AdminSetup] Datos de configuración cargados de forma segura')
-        
-        // Limpiar token de la URL por seguridad
+        setSetupInfo(setupData)        // Limpiar token de la URL por seguridad
         window.history.replaceState({}, '', '/admin-setup')
       } catch (error: any) {
         console.error('❌ [AdminSetup] Error obteniendo datos:', error)
@@ -85,7 +78,7 @@ export default function AdminSetupPage() {
           description: error.message || 'Token inválido o expirado',
           duration: 5000,
         })
-        
+
         // Redirigir al login después de 2 segundos
         setTimeout(() => router.push('/login'), 2000)
       }
@@ -118,7 +111,7 @@ export default function AdminSetupPage() {
 
   const validateEmailField = async () => {
     const email = formData.newEmail.trim()
-    
+
     if (!email) {
       return
     }
@@ -181,20 +174,12 @@ export default function AdminSetupPage() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(formData.newEmail)) {
         throw new Error('El formato del email no es válido')
-      }
-
-      console.log('🔐 [AdminSetup] Completando configuración...')
-
-      const result = await completeAdminSetup({
+      }      const result = await completeAdminSetup({
         currentPassword: formData.currentPassword,
         newEmail: formData.newEmail,
         newPassword: formData.newPassword,
         totpCode: formData.totpCode
-      })
-
-      console.log('✅ [AdminSetup] Configuración completada exitosamente')
-      
-      // Mostrar códigos de respaldo
+      })      // Mostrar códigos de respaldo
       setBackupCodes(result.backupCodes)
       setShowBackupCodes(true)
 
@@ -205,9 +190,9 @@ export default function AdminSetupPage() {
 
     } catch (error: any) {
       console.error('❌ [AdminSetup] Error:', error)
-      
+
       const errorMsg = error.message || 'Error al completar configuración'
-      
+
       toast.error('Error', {
         description: errorMsg,
         duration: 5000,
@@ -466,12 +451,12 @@ export default function AdminSetupPage() {
                     <Smartphone className="h-5 w-5 text-green-600" />
                     Configurar Google Authenticator
                   </h3>
-                  
+
                   <div className="space-y-3">
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       1. Descarga Google Authenticator en tu teléfono
                     </p>
-                    
+
                     <div className="flex gap-2">
                       <a
                         href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2"
@@ -546,7 +531,7 @@ export default function AdminSetupPage() {
             <Button
               type="submit"
               className="w-full bg-green-600 hover:bg-green-700"
-              disabled={isLoading || !formData.newEmail || !formData.newPassword || 
+              disabled={isLoading || !formData.newEmail || !formData.newPassword ||
                         formData.newPassword !== formData.confirmPassword || formData.totpCode.length !== 6 ||
                         Object.keys(validationErrors).length > 0}
             >

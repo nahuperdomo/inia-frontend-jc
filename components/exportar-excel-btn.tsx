@@ -43,7 +43,7 @@ export function BotonExportarExcel({
       });
     } catch (error) {
       console.error('Error al exportar Excel:', error);
-      
+
       if (error instanceof Error) {
         toast.error('Error al exportar Excel', {
           description: error.message

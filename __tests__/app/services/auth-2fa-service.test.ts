@@ -8,7 +8,6 @@ import {
   type Login2FARequest,
   type Login2FAResponse,
   type Requires2FAResponse,
-  type Requires2FASetupResponse,
 } from '@/app/services/auth-2fa-service'
 
 // Mock global fetch

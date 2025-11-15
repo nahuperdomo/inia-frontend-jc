@@ -26,71 +26,27 @@ import type { EstadoAnalisis, TipoListado } from "@/app/models/types/enums"
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 import { AnalisisInfoGeneralCard } from "@/components/analisis/analisis-info-general-card"
-import { formatearEstado } from "@/lib/utils/format-estado"
+import { formatEstado as formatearEstado, formatearFechaLocal, getEstadoBadgeVariant, getTipoListadoDisplay, getTipoListadoBadgeColor } from "@/lib/utils/format-helpers"
 
-// Función helper para mostrar nombres legibles de tipos de listado
-const getTipoListadoDisplay = (tipo: TipoListado) => {
-  switch (tipo) {
-    case "MAL_TOLERANCIA_CERO":
-      return "Maleza Tolerancia Cero"
-    case "MAL_TOLERANCIA":
-      return "Maleza Tolerancia"
-    case "MAL_COMUNES":
-      return "Malezas Comunes"
-    case "BRASSICA":
-      return "Brassica"
-    case "OTROS":
-      return "Otros Cultivos"
-    default:
-      return tipo
-  }
+export default function PurezaDetailPage() {
+  return fecha.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
 }
 
-// Función helper para obtener el color del badge según el tipo
-const getTipoListadoBadgeColor = (tipo: TipoListado) => {
-  switch (tipo) {
-    case "MAL_TOLERANCIA_CERO":
-      return "bg-red-100 text-red-700 border-red-200"
-    case "MAL_TOLERANCIA":
-      return "bg-orange-100 text-orange-700 border-orange-200"
-    case "MAL_COMUNES":
-      return "bg-yellow-100 text-yellow-700 border-yellow-200"
-    case "BRASSICA":
-      return "bg-purple-100 text-purple-700 border-purple-200"
-    case "OTROS":
-      return "bg-green-100 text-green-700 border-green-200"
-    default:
-      return "bg-gray-100 text-gray-700 border-gray-200"
-  }
-}
-
-// Función utilitaria para formatear fechas correctamente
-const formatearFechaLocal = (fechaString: string): string => {
-  if (!fechaString) return ''
-
-  try {
-    // Si la fecha ya está en formato YYYY-MM-DD, usarla directamente
-    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
-      const [year, month, day] = fechaString.split('-').map(Number)
-      const fecha = new Date(year, month - 1, day) // month - 1 porque los meses son 0-indexed
-      return fecha.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    }
-
-    // Si viene en otro formato, parsearlo de manera segura
-    const fecha = new Date(fechaString)
-    return fecha.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+// Si viene en otro formato, parsearlo de manera segura
+const fecha = new Date(fechaString)
+return fecha.toLocaleDateString('es-ES', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+})
   } catch (error) {
-    console.warn("Error al formatear fecha:", fechaString, error)
-    return fechaString
-  }
+  console.warn("Error al formatear fecha:", fechaString, error)
+  return fechaString
+}
 }
 
 // Función para mostrar "tr" si el valor es menor a 0.05
@@ -171,21 +127,6 @@ export default function PurezaDetailPage() {
       fetchPureza()
     }
   }, [purezaId])
-
-  const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
-    switch (estado) {
-      case "REGISTRADO":
-        return "default"
-      case "EN_PROCESO":
-        return "secondary"
-      case "APROBADO":
-        return "outline"
-      case "PENDIENTE_APROBACION":
-        return "destructive"
-      default:
-        return "outline"
-    }
-  }
 
   if (loading) {
     return (

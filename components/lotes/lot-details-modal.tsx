@@ -63,10 +63,10 @@ export function LotDetailsModal({
             <DialogTitle className="text-xl sm:text-2xl font-bold break-words">
               {lot.ficha || `Lote #${lot.loteID}`}
             </DialogTitle>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-2 bg-transparent w-full sm:w-auto" 
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 bg-transparent w-full sm:w-auto"
               onClick={handleEditClick}
             >
               <Edit className="h-4 w-4" />

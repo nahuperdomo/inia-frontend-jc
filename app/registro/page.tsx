@@ -19,9 +19,7 @@ export default function RegistroPage() {
       try {
         // Cargar estadísticas
         const stats = await obtenerEstadisticasLotes()
-        setEstadisticas(stats)
-
-        // Cargar lotes recientes (últimos 5)
+        setEstadisticas(stats)
         const response = await obtenerLotesPaginadas(0, 5, undefined, true)
         setLotesRecientes(response.content || [])
       } catch (error) {

@@ -14,6 +14,7 @@ import { toast } from "sonner"
 import { useAuth } from "@/components/auth-provider"
 import { EstadoAnalisis } from "@/app/models"
 import { extractPageMetadata } from "@/lib/utils/pagination-helper"
+import { formatearFechaLocal, getEstadoBadgeVariant, formatEstado } from "@/lib/utils/format-helpers"
 
 interface TetrazolioListadoDTO {
   analisisID: number
@@ -140,63 +141,6 @@ export default function ListadoTetrazolioPage() {
   const promedioViabilidad = tetrazoliosConDatos.length > 0
     ? tetrazoliosConDatos.reduce((sum, t) => sum + (t.viabilidadConRedondeo || 0), 0) / tetrazoliosConDatos.length
     : 0
-
-  const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
-    switch (estado) {
-      case "APROBADO":
-        return "default"
-      case "EN_PROCESO":
-        return "secondary"
-      case "REGISTRADO":
-        return "outline"
-      case "PENDIENTE_APROBACION":
-        return "destructive"
-      case "A_REPETIR":
-        return "destructive"
-      default:
-        return "outline"
-    }
-  }
-
-  const formatEstado = (estado: EstadoAnalisis) => {
-    switch (estado) {
-      case "REGISTRADO":
-        return "Registrado"
-      case "EN_PROCESO":
-        return "En Proceso"
-      case "APROBADO":
-        return "Aprobado"
-      case "PENDIENTE_APROBACION":
-        return "Pend. Aprobación"
-      case "A_REPETIR":
-        return "A Repetir"
-      default:
-        return estado
-    }
-  }
-
-  const formatearFechaLocal = (fechaString: string | undefined): string => {
-    if (!fechaString) return '-'
-    try {
-      if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
-        const [year, month, day] = fechaString.split('-').map(Number)
-        const fecha = new Date(year, month - 1, day)
-        return fecha.toLocaleDateString('es-ES', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit'
-        })
-      }
-      const fecha = new Date(fechaString)
-      return fecha.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      })
-    } catch (error) {
-      return fechaString
-    }
-  }
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages) {

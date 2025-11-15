@@ -146,13 +146,13 @@ export default function ReportesPage() {
               <p className="text-sm text-muted-foreground mb-3">
                 Exporta todos los lotes activos del sistema en formato Excel
               </p>
-              <BotonExportarExcel 
-                variant="default" 
+              <BotonExportarExcel
+                variant="default"
                 textoBoton="Exportar Todos los Lotes"
                 className="w-full sm:w-auto"
               />
             </div>
-            
+
             <div className="p-4 bg-background rounded-lg border">
               <h4 className="font-medium mb-2">Exportación con Filtros Avanzados</h4>
               <p className="text-sm text-muted-foreground mb-3">
@@ -160,7 +160,7 @@ export default function ReportesPage() {
               </p>
               <DialogExportarConFiltros />
             </div>
-            
+
             <div className="p-4 bg-muted/50 rounded-lg">
               <h4 className="font-medium mb-2 flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600" />
@@ -280,9 +280,9 @@ export default function ReportesPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="periodo" stroke="#6b7280" />
                   <YAxis stroke="#6b7280" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'white',
                       border: '1px solid #e5e7eb',
                       borderRadius: '8px',
                       boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
@@ -322,9 +322,9 @@ export default function ReportesPage() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'white',
                       border: '1px solid #e5e7eb',
                       borderRadius: '8px',
                       boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
@@ -353,9 +353,9 @@ export default function ReportesPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="tipo" stroke="#6b7280" />
                 <YAxis stroke="#6b7280" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'

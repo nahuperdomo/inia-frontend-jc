@@ -1,6 +1,6 @@
 /**
  * Input2FA Component
- * 
+ *
  * Input especializado para códigos de autenticación de dos factores.
  * - Acepta solo 6 dígitos numéricos
  * - Auto-foco y auto-advance entre dígitos
@@ -52,7 +52,7 @@ export function Input2FA({
   const handleChange = (index: number, newValue: string) => {
     // Permitir solo dígitos
     const sanitized = newValue.replace(/[^0-9]/g, '');
-    
+
     if (sanitized.length === 0) {
       // Borrado
       const newDigits = [...digits];
@@ -83,10 +83,10 @@ export function Input2FA({
       const newDigits = sanitized.split('').slice(0, 6);
       setDigits(newDigits);
       onChange(newDigits.join(''));
-      
+
       // Focus en el último input
       inputRefs.current[5]?.focus();
-      
+
       // Llamar onComplete
       onComplete?.(newDigits.join(''));
     } else if (sanitized.length > 1) {
@@ -94,21 +94,21 @@ export function Input2FA({
       const newDigits = [...digits];
       const remainingSlots = 6 - index;
       const digitsToPaste = sanitized.slice(0, remainingSlots).split('');
-      
+
       digitsToPaste.forEach((digit, offset) => {
         if (index + offset < 6) {
           newDigits[index + offset] = digit;
         }
       });
-      
+
       setDigits(newDigits);
       onChange(newDigits.join(''));
-      
+
       // Focus en el siguiente input vacío o el último
       const nextEmptyIndex = newDigits.findIndex((d, i) => i > index && d === '');
       const focusIndex = nextEmptyIndex !== -1 ? nextEmptyIndex : Math.min(5, index + digitsToPaste.length);
       inputRefs.current[focusIndex]?.focus();
-      
+
       // Si completamos, llamar onComplete
       if (newDigits.every(d => d !== '')) {
         onComplete?.(newDigits.join(''));
@@ -150,16 +150,16 @@ export function Input2FA({
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text');
     const sanitized = pastedData.replace(/[^0-9]/g, '').slice(0, 6);
-    
+
     if (sanitized.length > 0) {
       const newDigits = sanitized.padEnd(6, '').split('').slice(0, 6);
       setDigits(newDigits);
       onChange(sanitized);
-      
+
       // Focus en el último dígito ingresado o el primero vacío
       const focusIndex = Math.min(sanitized.length, 5);
       inputRefs.current[focusIndex]?.focus();
-      
+
       // Si completamos, llamar onComplete
       if (sanitized.length === 6) {
         onComplete?.(sanitized);
@@ -224,12 +224,12 @@ export function InputRecoveryCode({
 }: InputRecoveryCodeProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    
+
     // Auto-formatear con guión
     if (newValue.length > 4) {
       newValue = `${newValue.slice(0, 4)}-${newValue.slice(4, 8)}`;
     }
-    
+
     // Limitar a 9 caracteres (incluyendo el guión)
     if (newValue.length <= 9) {
       onChange(newValue);
@@ -240,12 +240,12 @@ export function InputRecoveryCode({
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text');
     let sanitized = pastedData.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
-    
+
     // Formatear con guión
     if (sanitized.length > 4) {
       sanitized = `${sanitized.slice(0, 4)}-${sanitized.slice(4, 8)}`;
     }
-    
+
     onChange(sanitized);
   };
 

@@ -74,7 +74,7 @@ export function ConfirmDialog() {
             </div>
           </div>
         </div>
-        
+
         <div className="p-6 flex gap-3 justify-end bg-gray-50 rounded-b-lg">
           <Button
             variant="outline"

@@ -17,8 +17,8 @@ import {
 
 // funciones de RepGerm
 export async function crearRepGerm(
-  germinacionId: number, 
-  tablaId: number, 
+  germinacionId: number,
+  tablaId: number,
   solicitud: RepGermRequestDTO
 ): Promise<RepGermDTO> {
   return apiFetch(`/api/germinacion/${germinacionId}/tabla/${tablaId}/repeticion`, {
@@ -28,17 +28,17 @@ export async function crearRepGerm(
 }
 
 export async function obtenerRepGermPorId(
-  germinacionId: number, 
-  tablaId: number, 
+  germinacionId: number,
+  tablaId: number,
   repeticionId: number
 ): Promise<RepGermDTO> {
   return apiFetch(`/api/germinacion/${germinacionId}/tabla/${tablaId}/repeticion/${repeticionId}`);
 }
 
 export async function actualizarRepGerm(
-  germinacionId: number, 
-  tablaId: number, 
-  repeticionId: number, 
+  germinacionId: number,
+  tablaId: number,
+  repeticionId: number,
   solicitud: RepGermRequestDTO
 ): Promise<RepGermDTO> {
   return apiFetch(`/api/germinacion/${germinacionId}/tabla/${tablaId}/repeticion/${repeticionId}`, {
@@ -48,8 +48,8 @@ export async function actualizarRepGerm(
 }
 
 export async function eliminarRepGerm(
-  germinacionId: number, 
-  tablaId: number, 
+  germinacionId: number,
+  tablaId: number,
   repeticionId: number
 ): Promise<string> {
   return apiFetch(`/api/germinacion/${germinacionId}/tabla/${tablaId}/repeticion/${repeticionId}`, {
@@ -58,14 +58,14 @@ export async function eliminarRepGerm(
 }
 
 export async function obtenerRepeticionesPorTabla(
-  germinacionId: number, 
+  germinacionId: number,
   tablaId: number
 ): Promise<RepGermDTO[]> {
   return apiFetch(`/api/germinacion/${germinacionId}/tabla/${tablaId}/repeticion`);
 }
 
 export async function contarRepeticionesPorTabla(
-  germinacionId: number, 
+  germinacionId: number,
   tablaId: number
 ): Promise<number> {
   return apiFetch(`/api/germinacion/${germinacionId}/tabla/${tablaId}/repeticion/contar`);

@@ -12,7 +12,6 @@ import {
     XCircle,
     AlertCircle,
     Loader2,
-    Download,
     Info
 } from "lucide-react"
 import Link from "next/link"

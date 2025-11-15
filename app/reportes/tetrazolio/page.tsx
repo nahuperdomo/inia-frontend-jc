@@ -24,12 +24,7 @@ export default function ReporteTetrazolioPage() {
         fechaInicio: fechaInicio || undefined,
         fechaFin: fechaFin || undefined,
       }
-      const data = await obtenerReporteTetrazolio(filtros)
-      console.log('Respuesta del backend Tetrazolio:', data)
-      console.log('viabilidadIniaPorEspecie:', data?.viabilidadIniaPorEspecie)
-      console.log('viabilidadInasePorEspecie:', data?.viabilidadInasePorEspecie)
-      console.log('totalTetrazolios:', data?.totalTetrazolios)
-      setReporte(data)
+      const data = await obtenerReporteTetrazolio(filtros)      setReporte(data)
     } catch (error) {
       console.error("Error al cargar reporte:", error)
     } finally {
@@ -53,12 +48,7 @@ export default function ReporteTetrazolioPage() {
         especie: key,
         viabilidad: Number(value) || 0,
       }))
-    : []
-
-  console.log('dataViabilidadInia procesada:', dataViabilidadInia)
-  console.log('dataViabilidadInase procesada:', dataViabilidadInase)
-
-  return (
+    : []  return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
@@ -138,18 +128,18 @@ export default function ReporteTetrazolioPage() {
             <ResponsiveContainer width="100%" height={350}>
               <BarChart data={dataViabilidadInia} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis 
-                  dataKey="especie" 
+                <XAxis
+                  dataKey="especie"
                   stroke="#6b7280"
                   angle={-45}
                   textAnchor="end"
                   height={80}
                 />
                 <YAxis stroke="#6b7280" />
-                <Tooltip 
+                <Tooltip
                   formatter={(value) => [`${Number(value).toFixed(2)}%`, "Viabilidad INIA"]}
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
+                  contentStyle={{
+                    backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
@@ -176,18 +166,18 @@ export default function ReporteTetrazolioPage() {
             <ResponsiveContainer width="100%" height={350}>
               <BarChart data={dataViabilidadInase} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis 
-                  dataKey="especie" 
+                <XAxis
+                  dataKey="especie"
                   stroke="#6b7280"
                   angle={-45}
                   textAnchor="end"
                   height={80}
                 />
                 <YAxis stroke="#6b7280" />
-                <Tooltip 
+                <Tooltip
                   formatter={(value) => [`${Number(value).toFixed(2)}%`, "Viabilidad INASE"]}
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
+                  contentStyle={{
+                    backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'

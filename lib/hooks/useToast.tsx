@@ -22,7 +22,7 @@ const notifyListeners = () => {
 export const showToast = (type: ToastType, title: string, message?: string, duration = 3000) => {
   const id = Math.random().toString(36).substring(7)
   const newToast: Toast = { id, type, title, message }
-  
+
   toastsState = [...toastsState, newToast]
   notifyListeners()
 

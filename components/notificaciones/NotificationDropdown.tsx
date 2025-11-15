@@ -66,16 +66,16 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
             const updatePosition = () => {
                 if (triggerRef.current) {
                     const rect = triggerRef.current.getBoundingClientRect();
-                    const dropdownWidth = window.innerWidth < 340 
-                        ? window.innerWidth - 32 
-                        : window.innerWidth < 360 
-                        ? 256 
-                        : window.innerWidth < 440 
-                        ? 288 
+                    const dropdownWidth = window.innerWidth < 340
+                        ? window.innerWidth - 32
+                        : window.innerWidth < 360
+                        ? 256
+                        : window.innerWidth < 440
+                        ? 288
                         : 320;
 
                     let left = 0;
-                    let top = rect.bottom + 8;
+                    const top = rect.bottom + 8;
 
                     // En pantallas pequeñas, centrar respecto al botón
                     if (window.innerWidth < 640) {
@@ -247,7 +247,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                             )}
                             {/* ✨ NUEVO: Indicador de WebSocket */}
                             {websocket.isConnected && (
-                                <span 
+                                <span
                                     className="flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-medium bg-green-100 text-green-700 rounded-full"
                                     title="Notificaciones en tiempo real activas"
                                 >

@@ -153,41 +153,23 @@ export default function RegistroAnalisisPage() {
   // Estado específico para Pureza (3 listas separadas)
   const [purezaMalezasList, setPurezaMalezasList] = useState<any[]>([]);
   const [purezaCultivosList, setPurezaCultivosList] = useState<any[]>([]);
-  const [purezaBrassicasList, setPurezaBrassicasList] = useState<any[]>([]);
-
-  // Key para forzar reset del componente PurezaFields después de un registro exitoso
-  const [purezaFormKey, setPurezaFormKey] = useState(0);
-
-  // Funciones de callback con logs para debugging - memoizadas para evitar re-renders infinitos
-  const handleMalezasChange = useCallback((list: any[]) => {
-    console.log(" DEBUG - handleMalezasChange llamado con:", list);
-    setMalezasList(list);
+  const [purezaBrassicasList, setPurezaBrassicasList] = useState<any[]>([]);
+  const [purezaFormKey, setPurezaFormKey] = useState(0);
+  const handleMalezasChange = useCallback((list: any[]) => {    setMalezasList(list);
   }, []);
 
-  const handleCultivosChange = useCallback((list: any[]) => {
-    console.log(" DEBUG - handleCultivosChange llamado con:", list);
-    setCultivosList(list);
+  const handleCultivosChange = useCallback((list: any[]) => {    setCultivosList(list);
   }, []);
 
-  const handleBrassicasChange = useCallback((list: any[]) => {
-    console.log(" DEBUG - handleBrassicasChange llamado con:", list);
-    setBrassicasList(list);
+  const handleBrassicasChange = useCallback((list: any[]) => {    setBrassicasList(list);
+  }, []);
+  const handlePurezaMalezasChange = useCallback((list: any[]) => {    setPurezaMalezasList(list);
   }, []);
 
-  // Callbacks específicos para Pureza (3 listas separadas)
-  const handlePurezaMalezasChange = useCallback((list: any[]) => {
-    console.log(" DEBUG - handlePurezaMalezasChange llamado con:", list);
-    setPurezaMalezasList(list);
+  const handlePurezaCultivosChange = useCallback((list: any[]) => {    setPurezaCultivosList(list);
   }, []);
 
-  const handlePurezaCultivosChange = useCallback((list: any[]) => {
-    console.log(" DEBUG - handlePurezaCultivosChange llamado con:", list);
-    setPurezaCultivosList(list);
-  }, []);
-
-  const handlePurezaBrassicasChange = useCallback((list: any[]) => {
-    console.log(" DEBUG - handlePurezaBrassicasChange llamado con:", list);
-    setPurezaBrassicasList(list);
+  const handlePurezaBrassicasChange = useCallback((list: any[]) => {    setPurezaBrassicasList(list);
   }, []);
 
   const [mostrarValidacionDosn, setMostrarValidacionDosn] = useState(false)
@@ -403,15 +385,7 @@ export default function RegistroAnalisisPage() {
         obj[`${prefix}Reducido`] ? "REDUCIDO" : null,
         obj[`${prefix}Limitado`] ? "LIMITADO" : null,
         obj[`${prefix}ReducidoLimitado`] ? "REDUCIDO_LIMITADO" : null,
-      ].filter(Boolean);
-
-      // Debug: Verificar estados de los arrays antes de procesar
-      console.log(" DEBUG - Estados de arrays antes de procesar:");
-      console.log("  - malezasList.length:", malezasList.length);
-      console.log("  - cultivosList.length:", cultivosList.length);
-      console.log("  - brassicasList.length:", brassicasList.length);
-
-      // Agregar otrosCultivos
+      ].filter(Boolean);
       const cultivosListWithOtros = [...cultivosList];
       if (formData.otrosCultivos && formData.otrosCultivos !== "") {
         // Validar que si hay otros cultivos, también estén los datos requeridos
@@ -458,22 +432,10 @@ export default function RegistroAnalisisPage() {
         cuscutaRegistros: formData.cuscutaRegistros || [],
         // Listados
         listados,
-      };
-
-      // Debug logs para verificar datos antes de enviar
-      console.log("📋 DEBUG - Datos de DOSN antes de enviar:");
-      console.log("  - listados finales:", listados);
-      console.log("  - payload.listados:", payload.listados);
-      console.log("  - fechaINIA:", payload.fechaINIA);
-      console.log("  - gramosAnalizadosINIA:", payload.gramosAnalizadosINIA);
-      console.log("  - tipoINIA:", payload.tipoINIA);
-
-      // Validación adicional para asegurar que hay datos para enviar
+      };
       if (listados.length === 0) {
         console.warn("⚠️ WARNING: No hay listados para enviar. Esto podría ser normal si el análisis no requiere listados.");
-      } else {
-        console.log(`✅ Se enviarán ${listados.length} listados al backend`);
-      }
+      } else {      }
 
       // Validar que los datos críticos no estén vacíos o inválidos
       if (!payload.fechaINIA || payload.fechaINIA === "") {
@@ -676,20 +638,9 @@ export default function RegistroAnalisisPage() {
 
     try {
       // Verificar cookies (debug)
-      const cookies = document.cookie;
-      console.log("Cookies disponibles:", cookies);
-      const accessTokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('accessToken='));
-      console.log("accessToken en cookies:", accessTokenCookie ? " Existe" : " No existe");
-
-      console.log("Enviando payload:", payload);
-
-      // PRUEBA: Intentar hacer una llamada a un endpoint que sabemos que funciona
-      if (selectedAnalysisType === "GERMINACION") {
-        console.log(" PRUEBA: Vamos a probar primero obtener lotes para verificar auth...");
-        try {
-          const lotesTest = await obtenerLotesActivos();
-          console.log(" Test de auth exitoso - lotes obtenidos:", lotesTest.length);
-        } catch (authError) {
+      const cookies = document.cookie;      const accessTokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('accessToken='));      // PRUEBA: Intentar hacer una llamada a un endpoint que sabemos que funciona
+      if (selectedAnalysisType === "GERMINACION") {        try {
+          const lotesTest = await obtenerLotesActivos();        } catch (authError) {
           console.error(" Test de auth falló:", authError);
           throw new Error("Problema de autenticación detectado");
         }
@@ -706,9 +657,7 @@ export default function RegistroAnalisisPage() {
         setTimeout(() => {
           router.push(`/listado/analisis/germinacion/${result.analisisID}/editar`);
         }, 1500);
-      } else if (selectedAnalysisType === "PMS") {
-        console.log(" Intentando crear PMS...");
-        const result = await crearPms(payload);
+      } else if (selectedAnalysisType === "PMS") {        const result = await crearPms(payload);
 
         toast.success('Análisis de PMS registrado exitosamente', {
           description: `Se ha creado el análisis para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
@@ -721,9 +670,7 @@ export default function RegistroAnalisisPage() {
       } else if (selectedAnalysisType === "TETRAZOLIO") {
         // Verificar autenticación antes de crear tetrazolio
         try {
-          const lotesTest = await obtenerLotesActivos();
-          console.log(" Test de auth exitoso - lotes obtenidos:", lotesTest.length);
-        } catch (authError) {
+          const lotesTest = await obtenerLotesActivos();        } catch (authError) {
           console.error(" Test de auth falló:", authError);
           throw new Error("Problema de autenticación detectado");
         }
@@ -742,11 +689,7 @@ export default function RegistroAnalisisPage() {
           router.push(`/listado/analisis/tetrazolio/${result.analisisID}/editar`);
         }, 1500);
       } else {
-        // Registrar otros tipos (DOSN, Pureza, etc.)
-        console.log(" PAYLOAD COMPLETO A ENVIAR:", JSON.stringify(payload, null, 2));
-        console.log(" Tipo de análisis:", selectedAnalysisType);
-
-        const result = await registrarAnalisis(payload, selectedAnalysisType);
+        // Registrar otros tipos (DOSN, Pureza, etc.));        const result = await registrarAnalisis(payload, selectedAnalysisType);
 
         toast.success('Análisis registrado exitosamente', {
           description: `Se ha registrado el análisis de ${getAnalysisTypeName(selectedAnalysisType)} para el lote ${selectedLoteInfo?.ficha || formData.loteid}`,
@@ -840,9 +783,7 @@ export default function RegistroAnalisisPage() {
 
   const [lotes, setLotes] = useState<LoteSimpleDTO[]>([])
   const [lotesLoading, setLotesLoading] = useState(false)
-  const [lotesError, setLotesError] = useState<string | null>(null)
-
-  // Cargar lotes cuando cambia el tipo de análisis
+  const [lotesError, setLotesError] = useState<string | null>(null)
   // Preseleccionar tipo de análisis y lote desde URL
   useEffect(() => {
     const tipoParam = searchParams.get('tipo')

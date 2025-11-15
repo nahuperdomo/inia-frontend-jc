@@ -1,8 +1,7 @@
 import { apiFetch } from "./api";
 import {
   PurezaDTO,
-  PurezaRequestDTO,
-  MalezasCatalogoDTO
+  PurezaRequestDTO
 } from "../models";
 
 // Pureza specific interfaces extending base classes
@@ -55,7 +54,7 @@ export async function obtenerPurezasPaginadas(
     page: page.toString(),
     size: size.toString(),
   });
-  
+
   if (search) params.append("search", search);
   if (activo !== undefined) params.append("activo", activo.toString());
   if (estado) params.append("estado", estado);

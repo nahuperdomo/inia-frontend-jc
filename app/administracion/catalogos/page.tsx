@@ -9,13 +9,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { extractPageMetadata } from "@/lib/utils/pagination-helper"
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Search, 
-  Database, 
-  Leaf, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Search,
+  Database,
+  Leaf,
   Sprout,
   Loader2,
   AlertCircle,
@@ -42,7 +42,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -85,7 +85,7 @@ import {
 import type { CatalogoDTO, EspecieDTO, CultivarDTO, MalezasCatalogoDTO } from "@/app/models"
 
 // Tipo de catálogo
-type TipoCatalogo = 
+type TipoCatalogo =
   | "HUMEDAD"
   | "ORIGEN"
   | "ESTADO"
@@ -112,19 +112,19 @@ export default function CatalogosPage() {
   const [catalogoPagina, setCatalogoPagina] = useState(0)
   const [catalogoTotalPages, setCatalogoTotalPages] = useState(0)
   const [catalogoTotalElements, setCatalogoTotalElements] = useState(0)
-  
+
   const [especiePagina, setEspeciePagina] = useState(0)
   const [especieTotalPages, setEspecieTotalPages] = useState(0)
   const [especieTotalElements, setEspecieTotalElements] = useState(0)
-  
+
   const [cultivarPagina, setCultivarPagina] = useState(0)
   const [cultivarTotalPages, setCultivarTotalPages] = useState(0)
   const [cultivarTotalElements, setCultivarTotalElements] = useState(0)
-  
+
   const [malezasPagina, setMalezasPagina] = useState(0)
   const [malezasTotalPages, setMalezasTotalPages] = useState(0)
   const [malezasTotalElements, setMalezasTotalElements] = useState(0)
-  
+
   const pageSize = 10
 
   // Estados de filtros
@@ -263,7 +263,7 @@ export default function CatalogosPage() {
       setLoading(true)
       const activoValue = filtroCatalogo === "todos" ? undefined : filtroCatalogo === "activos"
       const searchValue = search !== undefined ? search : searchTerm
-      
+
       const data = await obtenerCatalogosPaginados(
         page,
         pageSize,
@@ -273,7 +273,7 @@ export default function CatalogosPage() {
       )
 
       const pageData = extractPageMetadata<CatalogoDTO>(data, page)
-      
+
       setCatalogos(pageData.content)
       setCatalogoTotalPages(pageData.totalPages)
       setCatalogoTotalElements(pageData.totalElements)
@@ -293,7 +293,7 @@ export default function CatalogosPage() {
       setLoading(true)
       const activoValue = filtroEspecie === "todos" ? undefined : filtroEspecie === "activos"
       const searchValue = search !== undefined ? search : searchTerm
-      
+
       const data = await obtenerEspeciesPaginadas(
         page,
         pageSize,
@@ -302,7 +302,7 @@ export default function CatalogosPage() {
       )
 
       const pageData = extractPageMetadata<EspecieDTO>(data, page)
-      
+
       setEspecies(pageData.content)
       setEspecieTotalPages(pageData.totalPages)
       setEspecieTotalElements(pageData.totalElements)
@@ -332,7 +332,7 @@ export default function CatalogosPage() {
       setLoading(true)
       const activoValue = filtroCultivar === "todos" ? undefined : filtroCultivar === "activos"
       const searchValue = search !== undefined ? search : searchTerm
-      
+
       const data = await obtenerCultivaresPaginados(
         page,
         pageSize,
@@ -341,7 +341,7 @@ export default function CatalogosPage() {
       )
 
       const pageData = extractPageMetadata<CultivarDTO>(data, page)
-      
+
       setCultivares(pageData.content)
       setCultivarTotalPages(pageData.totalPages)
       setCultivarTotalElements(pageData.totalElements)
@@ -361,7 +361,7 @@ export default function CatalogosPage() {
       setLoading(true)
       const activoValue = filtroMalezas === "todos" ? undefined : filtroMalezas === "activos"
       const searchValue = search !== undefined ? search : searchTerm
-      
+
       const data = await obtenerMalezasPaginadas(
         page,
         pageSize,
@@ -370,7 +370,7 @@ export default function CatalogosPage() {
       )
 
       const pageData = extractPageMetadata<MalezasCatalogoDTO>(data, page)
-      
+
       setMalezas(pageData.content)
       setMalezasTotalPages(pageData.totalPages)
       setMalezasTotalElements(pageData.totalElements)
@@ -574,7 +574,7 @@ export default function CatalogosPage() {
   const handleCreateCultivar = async () => {
     // Cargar especies activas antes de abrir el diálogo
     await loadEspeciesActivas()
-    
+
     setCultivarForm({
       nombre: "",
       especieID: especiesActivas.length > 0 ? especiesActivas[0].especieID : 0
@@ -588,7 +588,7 @@ export default function CatalogosPage() {
   const handleEditCultivar = async (cultivar: CultivarDTO) => {
     // Cargar especies activas antes de abrir el diálogo
     await loadEspeciesActivas()
-    
+
     setCultivarForm({
       nombre: cultivar.nombre || "",
       especieID: cultivar.especieID || 0
@@ -776,7 +776,7 @@ export default function CatalogosPage() {
   return (
     <div className="min-h-screen bg-muted/30">
       <Toaster position="top-right" richColors closeButton />
-      
+
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background border-b">
         <div className="container max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
@@ -811,7 +811,7 @@ export default function CatalogosPage() {
                   Crea, edita y gestiona los catálogos maestros del sistema
                 </CardDescription>
               </div>
-              <form 
+              <form
                 onSubmit={(e) => {
                   e.preventDefault()
                   handleSearchClick()
@@ -1353,31 +1353,31 @@ export default function CatalogosPage() {
           <DialogHeader>
             <DialogTitle>
               {dialogMode === "create" ? "Crear" : "Editar"}{" "}
-              {entityType === "catalogo" 
-                ? "Catálogo" 
-                : entityType === "especie" 
-                ? "Especie" 
+              {entityType === "catalogo"
+                ? "Catálogo"
+                : entityType === "especie"
+                ? "Especie"
                 : entityType === "cultivar"
                 ? "Cultivar"
                 : "Maleza"
               }
             </DialogTitle>
             <DialogDescription>
-              {dialogMode === "create" 
+              {dialogMode === "create"
                 ? `Complete los datos para crear ${
-                    entityType === "catalogo" 
-                      ? "un nuevo catálogo" 
-                      : entityType === "especie" 
-                      ? "una nueva especie" 
+                    entityType === "catalogo"
+                      ? "un nuevo catálogo"
+                      : entityType === "especie"
+                      ? "una nueva especie"
                       : entityType === "cultivar"
                       ? "un nuevo cultivar"
                       : "una nueva maleza"
                   }`
                 : `Modifique los datos ${
-                    entityType === "catalogo" 
-                      ? "del catálogo" 
-                      : entityType === "especie" 
-                      ? "de la especie" 
+                    entityType === "catalogo"
+                      ? "del catálogo"
+                      : entityType === "especie"
+                      ? "de la especie"
                       : entityType === "cultivar"
                       ? "del cultivar"
                       : "de la maleza"

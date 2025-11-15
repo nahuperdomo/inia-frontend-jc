@@ -68,7 +68,7 @@ export default function EditarLotePage() {
       try {
         setLoading(true)
         const data = await obtenerLotePorId(parseInt(loteId))
-        
+
         // Verificar si el lote está inactivo
         if (!data.activo) {
           setLoteInactivo(true)
@@ -83,14 +83,14 @@ export default function EditarLotePage() {
           setLoading(false)
           return
         }
-        
+
         // Guardar tipos originales
         const tiposOriginalesLimpios = (data.tiposAnalisisAsignados || [])
           .filter(tipo => tipo != null)
           .filter((tipo, index, array) => array.indexOf(tipo) === index)
-        
+
         setTiposOriginales(tiposOriginalesLimpios)
-        
+
         // Verificar cuáles tipos NO se pueden remover
         const noRemovibles = new Set<TipoAnalisis>()
         if (tiposOriginalesLimpios.length > 0) {
@@ -107,9 +107,9 @@ export default function EditarLotePage() {
             }
           }
         }
-        
+
         setTiposNoRemovibles(noRemovibles)
-        
+
         setFormData({
           ficha: data.ficha,
           nomLote: data.nomLote || "",
@@ -126,7 +126,7 @@ export default function EditarLotePage() {
           remitente: data.remitente || "",
           observaciones: data.observaciones || "",
           kilosLimpios: data.kilosLimpios || "",
-          datosHumedad: data.datosHumedad && data.datosHumedad.length > 0 
+          datosHumedad: data.datosHumedad && data.datosHumedad.length > 0
             ? data.datosHumedad.map(h => ({
                 tipoHumedadID: h.humedadID || "",
                 valor: h.porcentaje || "",
@@ -140,10 +140,7 @@ export default function EditarLotePage() {
           estadoID: data.estadoID || "",
           fechaCosecha: data.fechaCosecha || "",
           tiposAnalisisAsignados: data.tiposAnalisisAsignados || [],
-        })
-        
-        console.log("Lote cargado para edición:", data);
-        console.log("Tipos no removibles:", Array.from(noRemovibles));
+        }));
       } catch (error) {
         console.error('Error al cargar lote:', error);
         toast.error('Error al cargar lote', {
@@ -183,10 +180,10 @@ export default function EditarLotePage() {
     // Si se están modificando los tipos de análisis, validar que no se remuevan tipos no removibles
     if (field === 'tiposAnalisisAsignados') {
       const nuevosTipos = value as TipoAnalisis[]
-      
+
       // Verificar si se está intentando remover algún tipo no removible
       const tiposARemover = tiposOriginales.filter(tipo => !nuevosTipos.includes(tipo))
-      
+
       for (const tipo of tiposARemover) {
         if (tiposNoRemovibles.has(tipo)) {
           const labels: Record<TipoAnalisis, string> = {
@@ -196,18 +193,18 @@ export default function EditarLotePage() {
             TETRAZOLIO: "Tetrazolio",
             DOSN: "DOSN"
           }
-          
+
           toast.error(`No se puede remover ${labels[tipo]}`, {
             description: 'Ya existen análisis creados de este tipo. No se puede remover.',
             duration: 5000,
           })
-          
+
           // No actualizar el estado, mantener los tipos actuales
           return
         }
       }
     }
-    
+
     setFormData((prev) => ({ ...prev, [field]: value }));
   }, [loteId, tiposOriginales, tiposNoRemovibles]);
 

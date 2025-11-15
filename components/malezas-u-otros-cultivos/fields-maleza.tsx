@@ -147,7 +147,7 @@ export default function MalezaFields({ titulo, registros, onChangeListados, cont
         {malezas.map((maleza, index) => {
           const isDisabled = registros && registros.length > 0
           const isNoContiene = maleza.tipoMaleza === "NO_CONTIENE"
-          
+
           return (
             <Card key={index} className="bg-background border shadow-sm transition-all duration-200">
               <CardContent className="p-4">

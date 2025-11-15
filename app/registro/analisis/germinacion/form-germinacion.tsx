@@ -45,7 +45,7 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
           />
         </div>
       </CardHeader>
-      
+
       <CardContent>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex gap-3">
@@ -57,7 +57,7 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
                 Configuración de Tablas de Germinación
               </h4>
               <p className="text-sm text-blue-700 leading-relaxed">
-                Después de registrar este análisis, podrás crear y configurar las <strong>tablas de germinación</strong> de forma individual. 
+                Después de registrar este análisis, podrás crear y configurar las <strong>tablas de germinación</strong> de forma individual.
                 Cada tabla tendrá sus propias configuraciones de:
               </p>
               <ul className="text-sm text-blue-700 space-y-1 ml-4 list-disc">
@@ -67,7 +67,7 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
                 <li>Método, temperatura y tratamientos</li>
               </ul>
               <p className="text-sm text-blue-700 leading-relaxed mt-3">
-                <strong>Tip:</strong> Esto te permite tener diferentes condiciones experimentales 
+                <strong>Tip:</strong> Esto te permite tener diferentes condiciones experimentales
                 en un mismo análisis de germinación.
               </p>
             </div>
@@ -76,7 +76,7 @@ export default function GerminacionFields({ formData, handleInputChange }: Props
 
         <div className="mt-4 bg-muted/50 rounded-lg p-4 border border-muted">
           <p className="text-sm text-muted-foreground">
-             <strong>Nota:</strong> Solo necesitas seleccionar el lote y opcionalmente agregar comentarios 
+             <strong>Nota:</strong> Solo necesitas seleccionar el lote y opcionalmente agregar comentarios
             para este análisis. La configuración detallada se realiza al crear cada tabla.
           </p>
         </div>

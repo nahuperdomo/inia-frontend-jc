@@ -86,7 +86,7 @@ export function TiposAnalisisSelector({
             )}
           </Badge>
         ))}
-        
+
         {!disabled && tiposDisponibles.length > 0 && (
           <div className="relative" ref={dropdownRef}>
             <Button
@@ -100,7 +100,7 @@ export function TiposAnalisisSelector({
               Agregar análisis
               <ChevronDown className="h-3 w-3 ml-1" />
             </Button>
-            
+
             {isOpen && (
               <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[200px]">
                 {tiposDisponibles.map((tipo) => (
@@ -118,11 +118,11 @@ export function TiposAnalisisSelector({
           </div>
         )}
       </div>
-      
+
       {error && (
         <p className="text-sm text-destructive">{error}</p>
       )}
-      
+
       {tiposSeleccionados.length === 0 && !error && (
         <p className="text-sm text-muted-foreground">
           Selecciona los tipos de análisis que se realizarán para este lote

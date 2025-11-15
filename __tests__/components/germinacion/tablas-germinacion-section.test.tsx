@@ -2,7 +2,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { TablasGerminacionSection } from '@/components/germinacion/tablas-germinacion-section'
 import { TablaGermDTO } from '@/app/models/interfaces/repeticiones'
 import * as germinacionService from '@/app/services/germinacion-service'
-import * as valoresGermService from '@/app/services/valores-germ-service'
 
 // Mock de los servicios
 jest.mock('@/app/services/germinacion-service')

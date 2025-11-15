@@ -35,7 +35,7 @@ export function LotFormTabs({
   const validateSyncField = (field: keyof LoteFormData, value: any, allData: LoteFormData): string | null => {
     const validator = loteValidationSchema[field];
     if (!validator) return null;
-    
+
     if (typeof validator === 'function') {
       return validator(value, allData);
     }
@@ -49,7 +49,7 @@ export function LotFormTabs({
     } else if (field === "nomLote") {
       return await validateNomLote(value);
     }
-    
+
     // Validaciones síncronas
     const syncError = validateSyncField(field as keyof LoteFormData, value, formData);
     if (syncError) {
@@ -65,10 +65,10 @@ export function LotFormTabs({
         return newErrors;
       });
     }
-    
+
     return null;
   };
-  
+
   // Use React Query hook for all catalogs - centralized caching
   const { data: catalogsData, isLoading: catalogsLoading, isError, refetch } = useAllCatalogs()
 
@@ -90,10 +90,10 @@ export function LotFormTabs({
   const handleFieldChange = async (field: keyof LoteFormData, value: any) => {
     // Primero marcar el campo como tocado
     setTouchedFields(prev => ({ ...prev, [field]: true }));
-    
+
     // Actualizar el valor
     onInputChange(field, value);
-    
+
     // Validar el campo (asíncrono para ficha/nomLote, síncrono para otros)
     setIsValidating(true);
     await validateField(field, value);
@@ -103,7 +103,7 @@ export function LotFormTabs({
   const getError = (field: keyof LoteFormData) => {
     // Solo mostrar errores si el campo ha sido tocado
     if (!touchedFields[field]) return undefined;
-    
+
     if (field === "ficha") return fichaError;
     if (field === "nomLote") return nomLoteError;
     return fieldErrors[field];
@@ -114,55 +114,55 @@ export function LotFormTabs({
   }
 
   // Memoized options to avoid recalculating on every render
-  const cultivaresOptions = useMemo(() => 
+  const cultivaresOptions = useMemo(() =>
     catalogsData.cultivares.map(cultivar => ({
       id: cultivar.id,
       nombre: cultivar.nombre
     })), [catalogsData.cultivares])
 
-  const empresasOptions = useMemo(() => 
+  const empresasOptions = useMemo(() =>
     catalogsData.empresas.map(empresa => ({
       id: empresa.id,
       nombre: empresa.nombre
     })), [catalogsData.empresas])
 
-  const clientesOptions = useMemo(() => 
+  const clientesOptions = useMemo(() =>
     catalogsData.clientes.map(cliente => ({
       id: cliente.id,
       nombre: cliente.nombre
     })), [catalogsData.clientes])
 
-  const depositosOptions = useMemo(() => 
+  const depositosOptions = useMemo(() =>
     catalogsData.depositos.map((deposito: any) => ({
       id: deposito.id,
       nombre: deposito.nombre
     })), [catalogsData.depositos])
 
-  const tiposHumedadOptions = useMemo(() => 
+  const tiposHumedadOptions = useMemo(() =>
     catalogsData.tiposHumedad.map((tipo: any) => ({
       id: tipo.id,
       nombre: tipo.nombre
     })), [catalogsData.tiposHumedad])
 
-  const origenesOptions = useMemo(() => 
+  const origenesOptions = useMemo(() =>
     catalogsData.origenes.map((origen: any) => ({
       id: origen.id,
       nombre: origen.nombre
     })), [catalogsData.origenes])
 
-  const estadosOptions = useMemo(() => 
+  const estadosOptions = useMemo(() =>
     catalogsData.estados.map((estado: any) => ({
       id: estado.id,
       nombre: estado.nombre
     })), [catalogsData.estados])
 
-  const articulosOptions = useMemo(() => 
+  const articulosOptions = useMemo(() =>
     catalogsData.articulos.map((articulo: any) => ({
       id: articulo.id,
       nombre: articulo.nombre
     })), [catalogsData.articulos])
 
-  const unidadesEmbolsadoOptions = useMemo(() => 
+  const unidadesEmbolsadoOptions = useMemo(() =>
     catalogsData.unidadesEmbolsado.map((unidad: any) => ({
       id: unidad.id,
       nombre: unidad.nombre

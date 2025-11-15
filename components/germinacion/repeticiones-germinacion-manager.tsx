@@ -7,11 +7,11 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { useConfirm } from '@/lib/hooks/useConfirm'
 import { TablaGermDTO, RepGermDTO, RepGermRequestDTO } from '@/app/models/interfaces/repeticiones'
-import { 
-  obtenerRepeticionesDeTabla, 
-  crearRepeticion, 
-  actualizarRepeticion, 
-  eliminarRepeticion 
+import {
+  obtenerRepeticionesDeTabla,
+  crearRepeticion,
+  actualizarRepeticion,
+  eliminarRepeticion
 } from '@/app/services/germinacion-service'
 import { Plus, Save, Trash2, Calculator } from 'lucide-react'
 
@@ -38,14 +38,7 @@ export function RepeticionesGerminacionManager({
   const cargarRepeticiones = async () => {
     try {
       setLoading(true)
-      setError("")
-      
-      console.log(" Cargando repeticiones para tabla:", tabla.tablaGermID)
-      
-      const data = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
-      console.log(" Repeticiones cargadas:", data)
-      
-      setRepeticiones(data)
+      setError("")      const data = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)      setRepeticiones(data)
     } catch (err: any) {
       console.error(" Error cargando repeticiones:", err)
       setError(err?.message || "Error al cargar repeticiones")
@@ -60,10 +53,7 @@ export function RepeticionesGerminacionManager({
 
   const handleCrearRepeticion = async () => {
     try {
-      setError("")
-      console.log("🆕 Creando nueva repetición para tabla:", tabla.tablaGermID)
-      
-      const numeroRepeticion = repeticiones.length + 1
+      setError("")      const numeroRepeticion = repeticiones.length + 1
       const nuevaRepeticion: RepGermRequestDTO = {
         numRep: numeroRepeticion,
         // Valores iniciales
@@ -74,11 +64,8 @@ export function RepeticionesGerminacionManager({
         frescas: 0,
         total: 0
       }
-      
-      await crearRepeticion(germinacionId, tabla.tablaGermID, nuevaRepeticion)
-      console.log(" Repetición creada")
-      
-      // Recargar repeticiones y notificar actualización
+
+      await crearRepeticion(germinacionId, tabla.tablaGermID, nuevaRepeticion)      // Recargar repeticiones y notificar actualización
       const repeticionesActualizadas = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
       setRepeticiones(repeticionesActualizadas)
       onRepeticionesUpdated(repeticionesActualizadas)
@@ -91,11 +78,7 @@ export function RepeticionesGerminacionManager({
   const handleGuardarRepeticion = async (repeticion: RepGermDTO) => {
     try {
       setGuardando(repeticion.repGermID)
-      setError("")
-      
-      console.log(" Guardando repetición:", repeticion.repGermID)
-      
-      const solicitud: RepGermRequestDTO = {
+      setError("")      const solicitud: RepGermRequestDTO = {
         numRep: repeticion.numRep,
         normales: repeticion.normales,
         anormales: repeticion.anormales,
@@ -104,11 +87,8 @@ export function RepeticionesGerminacionManager({
         frescas: repeticion.frescas,
         total: repeticion.total
       }
-      
-      await actualizarRepeticion(germinacionId, tabla.tablaGermID, repeticion.repGermID, solicitud)
-      console.log(" Repetición guardada")
-      
-      // Recargar datos y notificar
+
+      await actualizarRepeticion(germinacionId, tabla.tablaGermID, repeticion.repGermID, solicitud)      // Recargar datos y notificar
       const repeticionesActualizadas = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
       setRepeticiones(repeticionesActualizadas)
       onRepeticionesUpdated(repeticionesActualizadas)
@@ -135,14 +115,7 @@ export function RepeticionesGerminacionManager({
 
     try {
       setEliminando(repId)
-      setError("")
-      
-      console.log("️ Eliminando repetición:", repId)
-      
-      await eliminarRepeticion(germinacionId, tabla.tablaGermID, repId)
-      console.log(" Repetición eliminada")
-      
-      // Recargar datos y notificar
+      setError("")      await eliminarRepeticion(germinacionId, tabla.tablaGermID, repId)      // Recargar datos y notificar
       const repeticionesActualizadas = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
       setRepeticiones(repeticionesActualizadas)
       onRepeticionesUpdated(repeticionesActualizadas)
@@ -155,7 +128,7 @@ export function RepeticionesGerminacionManager({
   }
 
   const actualizarValorRepeticion = (repId: number, campo: string, valor: number) => {
-    setRepeticiones(prev => 
+    setRepeticiones(prev =>
       prev.map(rep => {
         if (rep.repGermID === repId) {
           if (campo === 'normales') {
@@ -174,10 +147,10 @@ export function RepeticionesGerminacionManager({
 
   const calcularTotalRepeticion = (rep: RepGermDTO): number => {
     const normalesSum = Array.isArray(rep.normales) ? rep.normales.reduce((sum: number, val: number) => sum + (val || 0), 0) : 0
-    return normalesSum + 
-           (rep.anormales || 0) + 
-           (rep.muertas || 0) + 
-           (rep.duras || 0) + 
+    return normalesSum +
+           (rep.anormales || 0) +
+           (rep.muertas || 0) +
+           (rep.duras || 0) +
            (rep.frescas || 0)
   }
 
@@ -211,7 +184,7 @@ export function RepeticionesGerminacionManager({
         <h4 className="font-semibold text-lg">
           Repeticiones ({repeticiones.length})
         </h4>
-        
+
         <Button onClick={handleCrearRepeticion} size="sm">
           <Plus className="h-4 w-4 mr-2" />
           Agregar Repetición
@@ -244,7 +217,7 @@ export function RepeticionesGerminacionManager({
                       Germinación: {calcularPorcentajeGerminacion(rep)}%
                     </Badge>
                   </div>
-                  
+
                   {!isFinalized && (
                     <div className="flex items-center gap-2">
                       <Button
@@ -261,7 +234,7 @@ export function RepeticionesGerminacionManager({
                           </>
                         )}
                       </Button>
-                      
+
                       <Button
                         variant="destructive"
                         onClick={() => handleEliminarRepeticion(rep.repGermID)}
@@ -278,7 +251,7 @@ export function RepeticionesGerminacionManager({
                   )}
                 </div>
               </CardHeader>
-              
+
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div>
@@ -289,14 +262,14 @@ export function RepeticionesGerminacionManager({
                       min="0"
                       value={(rep.normales && rep.normales[0]) || 0}
                       onChange={(e) => actualizarValorRepeticion(
-                        rep.repGermID, 
-                        'normales', 
+                        rep.repGermID,
+                        'normales',
                         parseInt(e.target.value) || 0
                       )}
                       className="text-center font-semibold"
                     />
                   </div>
-                  
+
                   <div>
                     <label htmlFor={`anormales-${rep.repGermID}`} className="text-sm font-medium">Anormales</label>
                     <Input
@@ -305,14 +278,14 @@ export function RepeticionesGerminacionManager({
                       min="0"
                       value={rep.anormales || 0}
                       onChange={(e) => actualizarValorRepeticion(
-                        rep.repGermID, 
-                        'anormales', 
+                        rep.repGermID,
+                        'anormales',
                         parseInt(e.target.value) || 0
                       )}
                       className="text-center"
                     />
                   </div>
-                  
+
                   <div>
                     <label htmlFor={`muertas-${rep.repGermID}`} className="text-sm font-medium">Muertas</label>
                     <Input
@@ -321,14 +294,14 @@ export function RepeticionesGerminacionManager({
                       min="0"
                       value={rep.muertas || 0}
                       onChange={(e) => actualizarValorRepeticion(
-                        rep.repGermID, 
-                        'muertas', 
+                        rep.repGermID,
+                        'muertas',
                         parseInt(e.target.value) || 0
                       )}
                       className="text-center"
                     />
                   </div>
-                  
+
                   <div>
                     <label htmlFor={`duras-${rep.repGermID}`} className="text-sm font-medium">Duras</label>
                     <Input
@@ -337,14 +310,14 @@ export function RepeticionesGerminacionManager({
                       min="0"
                       value={rep.duras || 0}
                       onChange={(e) => actualizarValorRepeticion(
-                        rep.repGermID, 
-                        'duras', 
+                        rep.repGermID,
+                        'duras',
                         parseInt(e.target.value) || 0
                       )}
                       className="text-center"
                     />
                   </div>
-                  
+
                   <div>
                     <label htmlFor={`frescas-${rep.repGermID}`} className="text-sm font-medium">Frescas</label>
                     <Input
@@ -353,8 +326,8 @@ export function RepeticionesGerminacionManager({
                       min="0"
                       value={rep.frescas || 0}
                       onChange={(e) => actualizarValorRepeticion(
-                        rep.repGermID, 
-                        'frescas', 
+                        rep.repGermID,
+                        'frescas',
                         parseInt(e.target.value) || 0
                       )}
                       className="text-center"

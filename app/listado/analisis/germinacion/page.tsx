@@ -14,34 +14,20 @@ import Pagination from "@/components/pagination"
 import { toast } from "sonner"
 import { useAuth } from "@/components/auth-provider"
 import { extractPageMetadata } from "@/lib/utils/pagination-helper"
-
-// Función utilitaria para formatear fechas correctamente
-const formatearFechaLocal = (fechaString: string): string => {
-  if (!fechaString) return ''
-
-  try {
-    // Si la fecha ya está en formato YYYY-MM-DD, usarla directamente
-    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
-      const [year, month, day] = fechaString.split('-').map(Number)
-      const fecha = new Date(year, month - 1, day) // month - 1 porque los meses son 0-indexed
-      return fecha.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      })
+import { formatearFechaLocal, getEstadoBadgeVariant, formatEstado } from "@/lib/utils/format-helpers"
     }
 
-    // Si viene en otro formato, parsearlo de manera segura
-    const fecha = new Date(fechaString)
-    return fecha.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    })
+// Si viene en otro formato, parsearlo de manera segura
+const fecha = new Date(fechaString)
+return fecha.toLocaleDateString('es-ES', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+})
   } catch (error) {
-    console.warn("Error al formatear fecha:", fechaString, error)
-    return fechaString
-  }
+  console.warn("Error al formatear fecha:", fechaString, error)
+  return fechaString
+}
 }
 
 const formatearFechaHora = (fechaString: string): string => {
@@ -116,11 +102,7 @@ export default function ListadoGerminacionPage() {
       // Extraer metadata de paginación usando helper
       const pageData = extractPageMetadata<GerminacionListadoDTO>(data, page)
 
-      // Log para debug
-      console.log("Datos recibidos del backend:", pageData.content)
-      if (pageData.content.length > 0) {
-        console.log("Primera germinación:", pageData.content[0])
-      }
+      // Log para debug      if (pageData.content.length > 0) {      }
 
       setGerminaciones(pageData.content)
       setTotalPages(pageData.totalPages)
@@ -168,39 +150,6 @@ export default function ListadoGerminacionPage() {
   const inProgressAnalysis = germinaciones.filter(g => g.estado === "EN_PROCESO" || g.estado === "REGISTRADO").length
   const pendingAnalysis = germinaciones.filter(g => g.estado === "PENDIENTE_APROBACION").length
   const complianceRate = germinaciones.length > 0 ? Math.round((germinaciones.filter(g => g.cumpleNorma === true).length / germinaciones.length) * 100) : 0
-
-  const getEstadoBadgeVariant = (estado: string) => {
-    switch (estado) {
-      case "APROBADO":
-        return "default"
-      case "EN_PROCESO":
-      case "REGISTRADO":
-        return "secondary"
-      case "PENDIENTE_APROBACION":
-        return "outline"
-      case "A_REPETIR":
-        return "destructive"
-      default:
-        return "outline"
-    }
-  }
-
-  const formatEstado = (estado: string) => {
-    switch (estado) {
-      case "REGISTRADO":
-        return "Registrado"
-      case "EN_PROCESO":
-        return "En Proceso"
-      case "APROBADO":
-        return "Aprobado"
-      case "PENDIENTE_APROBACION":
-        return "Pend. Aprobación"
-      case "A_REPETIR":
-        return "A Repetir"
-      default:
-        return estado
-    }
-  }
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages) {

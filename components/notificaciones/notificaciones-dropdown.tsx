@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { 
-  obtenerMisNotificacionesNoLeidas, 
+import {
+  obtenerMisNotificacionesNoLeidas,
   contarMisNotificacionesNoLeidas,
   marcarComoLeida,
   marcarTodasMisNotificacionesComoLeidas,
@@ -133,9 +133,9 @@ export function NotificacionesDropdown({}: NotificacionesDropdownProps) {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <Button 
-        variant="ghost" 
-        size="sm" 
+      <Button
+        variant="ghost"
+        size="sm"
         className="relative"
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -153,9 +153,9 @@ export function NotificacionesDropdown({}: NotificacionesDropdownProps) {
             <div className="flex items-center justify-between p-4 pb-2">
               <span className="font-semibold">Notificaciones</span>
               {count > 0 && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={handleMarcarTodasComoLeidas}
                   className="text-xs h-auto p-1"
                 >
@@ -164,7 +164,7 @@ export function NotificacionesDropdown({}: NotificacionesDropdownProps) {
               )}
             </div>
             <Separator />
-            
+
             {loading ? (
               <div className="p-4 text-center text-sm text-muted-foreground">
                 Cargando...
@@ -176,8 +176,8 @@ export function NotificacionesDropdown({}: NotificacionesDropdownProps) {
             ) : (
               <div className="max-h-96 overflow-y-auto">
                 {notificaciones.slice(0, 10).map((notificacion) => (
-                  <div 
-                    key={notificacion.id} 
+                  <div
+                    key={notificacion.id}
                     className="p-3 border-b last:border-b-0 hover:bg-muted/50"
                   >
                     <div className="flex items-start gap-3">
@@ -218,7 +218,7 @@ export function NotificacionesDropdown({}: NotificacionesDropdownProps) {
                 ))}
               </div>
             )}
-            
+
             {notificaciones.length > 10 && (
               <>
                 <Separator />

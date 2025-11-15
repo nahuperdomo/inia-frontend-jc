@@ -1,12 +1,12 @@
 /**
  * Cliente WebSocket para notificaciones en tiempo real
- * 
+ *
  * ¿Qué hace este archivo?
  * - Gestiona la conexión WebSocket con el backend
  * - Maneja suscripciones a canales de notificaciones
  * - Proporciona sistema de eventos para componentes React
  * - Reconexión automática en caso de pérdida de conexión
- * 
+ *
  * Tecnologías usadas:
  * - STOMP: Protocolo de mensajería sobre WebSocket
  * - SockJS: Fallback cuando WebSocket no está disponible
@@ -24,11 +24,11 @@ import type { NotificacionDTO } from '@/app/models/interfaces/notificacion';
  * - mark-all-read: Todas marcadas como leídas
  * - delete: Notificación eliminada
  */
-export type NotificationEventType = 
-  | 'notification' 
-  | 'count' 
-  | 'mark-read' 
-  | 'mark-all-read' 
+export type NotificationEventType =
+  | 'notification'
+  | 'count'
+  | 'mark-read'
+  | 'mark-all-read'
   | 'delete';
 
 /**
@@ -41,7 +41,7 @@ export interface NotificationWebSocketEvent {
 
 /**
  * Clase singleton para gestionar la conexión WebSocket
- * 
+ *
  * ¿Por qué singleton?
  * - Solo debe haber UNA conexión WebSocket por usuario
  * - Evita múltiples conexiones que consumen recursos
@@ -79,11 +79,11 @@ class NotificationWebSocket {
 
   /**
    * Conectar al WebSocket del backend
-   * 
+   *
    * @param token Token JWT para autenticación
    * @param userId ID del usuario actual
    * @returns Promise que resuelve cuando la conexión está establecida
-   * 
+   *
    * Flujo:
    * 1. Valida si ya está conectado
    * 2. Crea cliente STOMP con SockJS
@@ -94,55 +94,45 @@ class NotificationWebSocket {
   connect(token: string, userId: string): Promise<void> {
     return new Promise((resolve, reject) => {
       // Si ya está conectado, no reconectar
-      if (this.client?.connected) {
-        console.log('✅ WebSocket ya conectado');
-        resolve();
+      if (this.client?.connected) {        resolve();
         return;
       }
 
       this.userId = userId;
-      
-      // URL del WebSocket (usa variable de entorno)
-      const wsUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/ws/notifications`;
-      
-      console.log('🔌 Conectando a WebSocket:', wsUrl);
 
-      // Crear cliente STOMP
+      // URL del WebSocket (usa variable de entorno)
+      const wsUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/ws/notifications`;      // Crear cliente STOMP
       this.client = new Client({
         // Factory para crear la conexión WebSocket
         // SockJS proporciona fallback si WebSocket falla
         webSocketFactory: () => new SockJS(wsUrl) as any,
-        
+
         // Headers de conexión (incluye JWT para autenticación)
         connectHeaders: {
           Authorization: `Bearer ${token}`,
         },
-        
+
         // Debug solo en desarrollo
         debug: (str) => {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('[WS Debug]', str);
-          }
+          if (process.env.NODE_ENV === 'development') {          }
         },
-        
+
         // Configuración de reconexión automática
         reconnectDelay: this.reconnectDelay,
-        
+
         // Heartbeat (mantener conexión viva)
         // Envía/recibe ping cada 4 segundos
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
-        
+
         /**
          * Callback cuando la conexión se establece exitosamente
          */
-        onConnect: () => {
-          console.log('✅ WebSocket conectado exitosamente');
-          this.reconnectAttempts = 0; // Reset intentos
+        onConnect: () => {          this.reconnectAttempts = 0; // Reset intentos
           this.setupSubscriptions(); // Configurar canales
           resolve();
         },
-        
+
         /**
          * Callback cuando hay un error STOMP
          */
@@ -151,7 +141,7 @@ class NotificationWebSocket {
           console.error('Detalles:', frame.body);
           reject(new Error(frame.headers['message']));
         },
-        
+
         /**
          * Callback cuando se cierra la conexión WebSocket
          */
@@ -159,13 +149,11 @@ class NotificationWebSocket {
           console.warn('⚠️ WebSocket cerrado');
           this.handleReconnect();
         },
-        
+
         /**
          * Callback cuando se desconecta (manual o error)
          */
-        onDisconnect: () => {
-          console.log('🔌 WebSocket desconectado');
-        },
+        onDisconnect: () => {        },
       });
 
       // Activar el cliente (iniciar conexión)
@@ -175,9 +163,9 @@ class NotificationWebSocket {
 
   /**
    * Configurar suscripciones a canales del backend
-   * 
+   *
    * Se ejecuta automáticamente después de conectar
-   * 
+   *
    * Canales suscritos:
    * - /user/queue/notifications - Notificaciones personales
    * - /user/queue/notifications/count - Contador actualizado
@@ -185,18 +173,12 @@ class NotificationWebSocket {
    * - /user/queue/notifications/deleted - Notif eliminada
    */
   private setupSubscriptions(): void {
-    if (!this.client || !this.userId) return;
-
-    console.log('📡 Configurando suscripciones WebSocket...');
-
-    // Suscripción 1: Notificaciones nuevas
+    if (!this.client || !this.userId) return;    // Suscripción 1: Notificaciones nuevas
     const notificationSub = this.client.subscribe(
       `/user/queue/notifications`,
       (message) => {
         try {
-          const notification: NotificacionDTO = JSON.parse(message.body);
-          console.log('📩 Nueva notificación recibida:', notification.nombre);
-          this.emit('notification', notification);
+          const notification: NotificacionDTO = JSON.parse(message.body);          this.emit('notification', notification);
         } catch (error) {
           console.error('Error parseando notificación:', error);
         }
@@ -209,9 +191,7 @@ class NotificationWebSocket {
       `/user/queue/notifications/count`,
       (message) => {
         try {
-          const count: number = JSON.parse(message.body);
-          console.log('🔢 Contador actualizado:', count);
-          this.emit('count', count);
+          const count: number = JSON.parse(message.body);          this.emit('count', count);
         } catch (error) {
           console.error('Error parseando contador:', error);
         }
@@ -224,9 +204,7 @@ class NotificationWebSocket {
       `/user/queue/notifications/mark-read`,
       (message) => {
         try {
-          const notificationId: number = JSON.parse(message.body);
-          console.log('✓ Notificación marcada como leída:', notificationId);
-          this.emit('mark-read', { id: notificationId });
+          const notificationId: number = JSON.parse(message.body);          this.emit('mark-read', { id: notificationId });
         } catch (error) {
           console.error('Error parseando mark-read:', error);
         }
@@ -239,53 +217,41 @@ class NotificationWebSocket {
       `/user/queue/notifications/deleted`,
       (message) => {
         try {
-          const notificationId: number = JSON.parse(message.body);
-          console.log('🗑️ Notificación eliminada:', notificationId);
-          this.emit('delete', { id: notificationId });
+          const notificationId: number = JSON.parse(message.body);          this.emit('delete', { id: notificationId });
         } catch (error) {
           console.error('Error parseando deleted:', error);
         }
       }
     );
-    this.subscriptions.set('user-deleted', deletedSub);
-
-    console.log('✅ Suscripciones configuradas:', this.subscriptions.size);
-  }
+    this.subscriptions.set('user-deleted', deletedSub);  }
 
   /**
    * Desconectar del WebSocket
-   * 
+   *
    * Limpia todas las suscripciones y cierra la conexión
    * Útil al hacer logout o cambiar de usuario
    */
-  disconnect(): void {
-    console.log('🔌 Desconectando WebSocket...');
-    
-    // Desuscribirse de todos los canales
+  disconnect(): void {    // Desuscribirse de todos los canales
     this.subscriptions.forEach((sub) => sub.unsubscribe());
     this.subscriptions.clear();
-    
+
     // Desactivar el cliente
     this.client?.deactivate();
     this.client = null;
-    this.userId = null;
-    
-    console.log('✅ WebSocket desconectado');
-  }
+    this.userId = null;  }
 
   /**
    * Registrar un listener para un tipo de evento
-   * 
+   *
    * @param event Tipo de evento a escuchar
    * @param callback Función que se ejecuta cuando ocurre el evento
    * @returns Función para desuscribir el listener
-   * 
+   *
    * Ejemplo de uso:
    * ```typescript
    * const unsubscribe = ws.on('notification', (notif) => {
-   *   console.log('Nueva notificación:', notif);
-   * });
-   * 
+   *   * });
+   *
    * // Más tarde, cuando no necesites más el listener:
    * unsubscribe();
    * ```
@@ -295,7 +261,7 @@ class NotificationWebSocket {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
-    
+
     // Agregar callback al Set
     this.listeners.get(event)!.add(callback);
 
@@ -307,7 +273,7 @@ class NotificationWebSocket {
 
   /**
    * Emitir un evento a todos los listeners registrados
-   * 
+   *
    * @param event Tipo de evento
    * @param data Datos del evento
    */
@@ -326,7 +292,7 @@ class NotificationWebSocket {
 
   /**
    * Manejar reconexión automática
-   * 
+   *
    * Se ejecuta cuando se pierde la conexión
    * Intenta reconectar con backoff exponencial
    */
@@ -336,11 +302,9 @@ class NotificationWebSocket {
       return;
     }
 
-    this.reconnectAttempts++;
-    console.log(
-      `🔄 Intentando reconectar (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
+    this.reconnectAttempts++;...`
     );
-    
+
     // El cliente STOMP maneja la reconexión automáticamente
     // con el reconnectDelay configurado
   }
@@ -362,11 +326,11 @@ class NotificationWebSocket {
 
 /**
  * Exportar instancia singleton
- * 
+ *
  * Uso en componentes:
  * ```typescript
  * import { notificationWebSocket } from '@/lib/websocket/notification-websocket';
- * 
+ *
  * await notificationWebSocket.connect(token, userId);
  * ```
  */

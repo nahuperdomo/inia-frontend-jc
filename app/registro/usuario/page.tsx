@@ -186,7 +186,7 @@ export default function RegistroUsuarioPage() {
 
         // Validar en tiempo real mientras el usuario escribe (sin verificar unicidad)
         validateField(field, value, false)
-        
+
         // Si el usuario está escribiendo, marcar el campo como tocado
         if (value.length > 0 && !touched[field]) {
             setTouched(prev => ({ ...prev, [field]: true }))
@@ -360,7 +360,7 @@ export default function RegistroUsuarioPage() {
                                         required
                                         autoComplete="new-password"
                                     />
-                                    
+
                                     {/* Error si no es válida */}
                                     {passwordStrength && !passwordStrength.isValid && (
                                         <div className="flex items-center gap-2 mt-2 text-red-600 dark:text-red-400">
@@ -368,7 +368,7 @@ export default function RegistroUsuarioPage() {
                                             <p className="text-sm">{passwordStrength.message}</p>
                                         </div>
                                     )}
-                                    
+
                                     {/* Indicador de fortaleza solo si es válida */}
                                     {passwordStrength && passwordStrength.isValid && (
                                         <div className="flex items-center gap-2 mt-2">
@@ -390,7 +390,7 @@ export default function RegistroUsuarioPage() {
                                             </span>
                                         </div>
                                     )}
-                                    
+
                                     {errors.password && touched.password && (
                                         <div className="flex items-start gap-1 mt-1">
                                             <AlertCircle className="h-3 w-3 text-red-500 mt-0.5 flex-shrink-0" />

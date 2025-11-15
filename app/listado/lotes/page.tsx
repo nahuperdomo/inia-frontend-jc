@@ -105,11 +105,7 @@ export default function ListadoLotesPage() {
         searchTerm,
         activoFilter,
         filterCultivar
-      )
-
-      console.log("DEBUG obtenerLotesPaginadas response:", data)
-
-      const pageData = extractPageMetadata<LoteSimpleDTO>(data, page)
+      )      const pageData = extractPageMetadata<LoteSimpleDTO>(data, page)
 
       setLotes(pageData.content)
       setTotalPages(pageData.totalPages)

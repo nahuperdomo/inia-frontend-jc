@@ -94,7 +94,7 @@ export default function DosnFields({
 
   //  NO persistir datos generales - solo usar el estado del formulario padre
   // Los datos generales (fechas, gramos, tipos de análisis) NO deben guardarse en sessionStorage
-  
+
   // Función simple para manejar cambios - sin persistencia
   const handleFieldChange = (field: string, value: any) => {
     if (handleInputChange) {

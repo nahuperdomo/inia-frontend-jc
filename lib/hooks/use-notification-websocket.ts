@@ -1,13 +1,13 @@
 /**
  * Hook de React para usar WebSocket de notificaciones
- * 
+ *
  * ¿Qué hace este hook?
  * - Conecta al WebSocket cuando el componente se monta
  * - Escucha eventos de notificaciones en tiempo real
  * - Maneja reconexión automática
  * - Desconecta cuando el componente se desmonta
  * - Proporciona estado de conexión
- * 
+ *
  * Este hook encapsula toda la lógica de WebSocket para que
  * los componentes solo se preocupen por los datos recibidos.
  */
@@ -53,7 +53,7 @@ interface UseNotificationWebSocketProps {
 
 /**
  * Hook para gestionar WebSocket de notificaciones
- * 
+ *
  * @example
  * ```tsx
  * function MyComponent() {
@@ -61,15 +61,14 @@ interface UseNotificationWebSocketProps {
  *     token: userToken,
  *     userId: currentUser.id,
  *     onNotification: (notif) => {
- *       console.log('Nueva notificación:', notif);
- *       // Actualizar estado local
+ * *       // Actualizar estado local
  *     },
  *     onCountUpdate: (count) => {
  *       setBadgeCount(count);
  *     },
  *     showToasts: true
  *   });
- * 
+ *
  *   return (
  *     <div>
  *       {isConnected ? '🟢 Conectado' : '🔴 Desconectado'}
@@ -88,18 +87,18 @@ export function useNotificationWebSocket({
   onDelete,
   showToasts = true,
 }: UseNotificationWebSocketProps = {}): UseNotificationWebSocketReturn {
-  
+
   // Estados
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Ref para evitar múltiples conexiones
   const isConnecting = useRef(false);
   const hasConnected = useRef(false);
 
   /**
    * Función para conectar al WebSocket
-   * 
+   *
    * Usa useCallback para estabilizar la referencia
    * Solo se crea una vez y se memoriza
    */
@@ -111,32 +110,21 @@ export function useNotificationWebSocket({
     }
 
     // Evitar múltiples intentos simultáneos
-    if (isConnecting.current) {
-      console.log('⏳ Ya hay una conexión en progreso...');
-      return;
+    if (isConnecting.current) {      return;
     }
 
     // Si ya está conectado, no reconectar
-    if (notificationWebSocket.isConnected && hasConnected.current) {
-      console.log('✅ WebSocket ya está conectado');
-      setIsConnected(true);
+    if (notificationWebSocket.isConnected && hasConnected.current) {      setIsConnected(true);
       return;
     }
 
     try {
       isConnecting.current = true;
-      setError(null);
-
-      console.log('🔌 Iniciando conexión WebSocket...');
-      
-      // Conectar al WebSocket
+      setError(null);      // Conectar al WebSocket
       await notificationWebSocket.connect(token, userId.toString());
-      
-      setIsConnected(true);
-      hasConnected.current = true;
-      console.log('✅ WebSocket conectado desde hook');
 
-    } catch (err: any) {
+      setIsConnected(true);
+      hasConnected.current = true;    } catch (err: any) {
       console.error('❌ Error conectando WebSocket:', err);
       setError(err.message || 'Error de conexión');
       setIsConnected(false);
@@ -149,19 +137,17 @@ export function useNotificationWebSocket({
 
   /**
    * Función para reconectar manualmente
-   * 
+   *
    * Útil para botón de "Reconectar" en la UI
    */
-  const reconnect = useCallback(async () => {
-    console.log('🔄 Reconectando WebSocket...');
-    notificationWebSocket.disconnect();
+  const reconnect = useCallback(async () => {    notificationWebSocket.disconnect();
     hasConnected.current = false;
     await connect();
   }, [connect]);
 
   /**
    * Efecto: Conectar al montar el componente
-   * 
+   *
    * Se ejecuta cuando:
    * - El componente se monta
    * - Cambia el token o userId
@@ -170,30 +156,21 @@ export function useNotificationWebSocket({
     connect();
 
     // Cleanup: Desconectar al desmontar
-    return () => {
-      console.log('🧹 Limpiando conexión WebSocket del hook');
-      // NO desconectamos aquí porque puede ser usado por otros componentes
+    return () => {      // NO desconectamos aquí porque puede ser usado por otros componentes
       // Solo el Provider principal debe desconectar
     };
   }, [connect]);
 
   /**
    * Efecto: Suscribirse a eventos de notificaciones
-   * 
+   *
    * Se ejecuta cuando:
    * - Se conecta el WebSocket
    * - Cambian los callbacks
    */
   useEffect(() => {
-    if (!isConnected) return;
-
-    console.log('📡 Suscribiendo a eventos WebSocket...');
-
-    // Suscripción a nuevas notificaciones
-    const unsubNotification = notificationWebSocket.on('notification', (notification: NotificacionDTO) => {
-      console.log('📩 Nueva notificación recibida:', notification.nombre);
-      
-      // Mostrar toast si está habilitado
+    if (!isConnected) return;    // Suscripción a nuevas notificaciones
+    const unsubNotification = notificationWebSocket.on('notification', (notification: NotificacionDTO) => {      // Mostrar toast si está habilitado
       if (showToasts) {
         toast.success(notification.nombre, {
           description: notification.mensaje,
@@ -212,27 +189,19 @@ export function useNotificationWebSocket({
     });
 
     // Suscripción a actualizaciones de contador
-    const unsubCount = notificationWebSocket.on('count', (count: number) => {
-      console.log('🔢 Contador actualizado:', count);
-      onCountUpdate?.(count);
+    const unsubCount = notificationWebSocket.on('count', (count: number) => {      onCountUpdate?.(count);
     });
 
     // Suscripción a notificación marcada como leída
-    const unsubMarkRead = notificationWebSocket.on('mark-read', (data: { id: number }) => {
-      console.log('✓ Notificación marcada como leída:', data.id);
-      onMarkAsRead?.(data.id);
+    const unsubMarkRead = notificationWebSocket.on('mark-read', (data: { id: number }) => {      onMarkAsRead?.(data.id);
     });
 
     // Suscripción a notificación eliminada
-    const unsubDelete = notificationWebSocket.on('delete', (data: { id: number }) => {
-      console.log('🗑️ Notificación eliminada:', data.id);
-      onDelete?.(data.id);
+    const unsubDelete = notificationWebSocket.on('delete', (data: { id: number }) => {      onDelete?.(data.id);
     });
 
     // Cleanup: Desuscribirse cuando cambien las dependencias
-    return () => {
-      console.log('🧹 Desuscribiendo de eventos WebSocket');
-      unsubNotification();
+    return () => {      unsubNotification();
       unsubCount();
       unsubMarkRead();
       unsubDelete();
@@ -241,7 +210,7 @@ export function useNotificationWebSocket({
 
   /**
    * Efecto: Monitorear estado de conexión
-   * 
+   *
    * Actualiza el estado cuando el WebSocket se desconecta
    */
   useEffect(() => {

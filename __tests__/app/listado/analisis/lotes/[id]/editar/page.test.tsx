@@ -19,14 +19,13 @@
  */
 
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import EditarLotePage from '@/app/listado/lotes/[id]/editar/page'
 import * as loteService from '@/app/services/lote-service'
 import * as lotesAsyncValidation from '@/lib/validations/lotes-async-validation'
-import { LoteDTO, LoteRequestDTO } from '@/app/models/interfaces/lote'
+import { LoteDTO } from '@/app/models/interfaces/lote'
 import { TipoAnalisis } from '@/app/models/types/enums'
-import { toast } from 'sonner'
 
 // Mock de servicios
 jest.mock('@/app/services/lote-service')

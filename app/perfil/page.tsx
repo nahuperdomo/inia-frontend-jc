@@ -89,10 +89,10 @@ export default function PerfilPage() {
 
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }))
-        
+
         // Marcar campo como tocado inmediatamente
         setTouched(prev => ({ ...prev, [field]: true }))
-        
+
         // Actualizar indicador de fortaleza de contraseña en tiempo real
         if (field === 'contraseniaNueva') {
             if (value) {
@@ -122,7 +122,7 @@ export default function PerfilPage() {
                 })
             }
         }
-        
+
         // Limpiar error del campo al escribir (excepto para contraseniaNueva que se maneja arriba)
         if (errors[field] && field !== 'contraseniaNueva') {
             setErrors(prev => {
@@ -227,7 +227,7 @@ export default function PerfilPage() {
 
             // Actualizar el perfil local
             setPerfil(response.usuario)
-            
+
             // Limpiar campos de contraseña
             setFormData(prev => ({
                 ...prev,
@@ -243,10 +243,10 @@ export default function PerfilPage() {
             // Limpiar estados de validación
             setErrors({})
             setTouched({})
-            
+
             // Desactivar modo edición
             setIsEditMode(false)
-            
+
             // Recargar la página para refrescar el token y los permisos
             setTimeout(() => {
                 window.location.reload()
@@ -267,7 +267,7 @@ export default function PerfilPage() {
 
     const hasChanges = (): boolean => {
         if (!perfil) return false
-        
+
         return (
             formData.nombre !== perfil.nombre ||
             formData.nombres !== perfil.nombres ||
@@ -359,7 +359,7 @@ export default function PerfilPage() {
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-xs text-muted-foreground mb-1">Estado</p>
-                                        <Badge 
+                                        <Badge
                                             variant={perfil.activo ? "default" : "secondary"}
                                             className="inline-flex"
                                         >
@@ -579,7 +579,7 @@ export default function PerfilPage() {
                                                     {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                 </button>
                                             </div>
-                                            
+
                                             {/* Error si no es válida */}
                                             {passwordStrength && formData.contraseniaNueva && !passwordStrength.isValid && (
                                                 <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
@@ -587,7 +587,7 @@ export default function PerfilPage() {
                                                     <p className="text-sm break-words">{passwordStrength.message}</p>
                                                 </div>
                                             )}
-                                            
+
                                             {/* Indicador de fortaleza solo si es válida */}
                                             {passwordStrength && formData.contraseniaNueva && passwordStrength.isValid && (
                                                 <div className="flex items-center gap-2">
@@ -609,7 +609,7 @@ export default function PerfilPage() {
                                                     </span>
                                                 </div>
                                             )}
-                                            
+
                                             {!passwordStrength && !formData.contraseniaNueva && (
                                                 <p className="text-xs text-muted-foreground">
                                                     Mínimo 8 caracteres, con letra y número

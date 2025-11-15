@@ -1,8 +1,8 @@
 import { apiFetch } from "./api";
-import type { 
-  NotificacionDTO, 
-  NotificacionRequestDTO, 
-  PaginatedNotificaciones 
+import type {
+  NotificacionDTO,
+  NotificacionRequestDTO,
+  PaginatedNotificaciones
 } from "@/app/models/interfaces/notificacion";
 
 // Crear notificación manual (solo administradores)
@@ -17,7 +17,7 @@ export async function crearNotificacion(request: NotificacionRequestDTO): Promis
 
 // Obtener MIS notificaciones con paginación
 export async function obtenerMisNotificaciones(
-  page: number = 0, 
+  page: number = 0,
   size: number = 10
 ): Promise<PaginatedNotificaciones> {
   return apiFetch(`/api/notificaciones/mis-notificaciones?page=${page}&size=${size}`);
@@ -44,8 +44,8 @@ export async function marcarTodasMisNotificacionesComoLeidas(): Promise<void> {
 
 // Obtener notificaciones de un usuario específico (solo admin o el mismo usuario)
 export async function obtenerNotificacionesPorUsuario(
-  usuarioId: number, 
-  page: number = 0, 
+  usuarioId: number,
+  page: number = 0,
   size: number = 10
 ): Promise<PaginatedNotificaciones> {
   return apiFetch(`/api/notificaciones/usuario/${usuarioId}?page=${page}&size=${size}`);

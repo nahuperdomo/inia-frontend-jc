@@ -19,7 +19,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ListadoTetrazolioPage from '@/app/listado/analisis/tetrazolio/page';
 import * as tetrazolioService from '@/app/services/tetrazolio-service';
-import { toast } from 'sonner';
 import { EstadoAnalisis } from '@/app/models';
 
 // Mock de servicios

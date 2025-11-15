@@ -102,7 +102,7 @@ export default function ListadoPage() {
     const cargarEstadisticas = async () => {
       try {
         setLoading(true)
-        
+
         // Cargar todos los datos para contar correctamente
         const [lotesResp, purezasResp, germinacionesResp, tetrazoliosResp, pmsResp, dosnResp] = await Promise.all([
           obtenerLotesPaginadas(0, 9999).catch(() => ({ content: [], totalElements: 0 })),
@@ -257,7 +257,7 @@ export default function ListadoPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {listingOptions.map((option) => {
             const IconComponent = option.icon
-            
+
             // Obtener el conteo real según el tipo
             let count = option.count
             if (!loading) {
@@ -285,7 +285,7 @@ export default function ListadoPage() {
                   break
               }
             }
-            
+
             return (
               <Link key={option.id} href={option.href}>
                 <Card className={`${option.color} transition-all duration-200 cursor-pointer hover:shadow-md`}>

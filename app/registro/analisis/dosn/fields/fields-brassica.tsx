@@ -106,10 +106,10 @@ export default function BrassicaSection({ registros, onChangeListados, contexto 
                     <Sprout className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium text-sm">Registro {index + 1}</span>
                     {brassica.contiene && (
-                      <Badge 
+                      <Badge
                         className={
-                          brassica.contiene === "si" 
-                            ? "bg-purple-100 text-purple-700 border-purple-200" 
+                          brassica.contiene === "si"
+                            ? "bg-purple-100 text-purple-700 border-purple-200"
                             : "bg-gray-100 text-gray-700 border-gray-200"
                         }
                       >

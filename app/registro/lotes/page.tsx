@@ -76,8 +76,7 @@ export default function RegistroLotesPage() {
     try {
       const response = await obtenerLotesActivos();
       // Limitar a los últimos 5 lotes
-      setRecentLots(response.slice(0, 5));
-      console.log("Lotes recientes cargados:", response.slice(0, 5));
+      setRecentLots(response.slice(0, 5)););
     } catch (error) {
       console.error('Error al cargar lotes:', error);
     }

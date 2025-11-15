@@ -4,7 +4,6 @@ import '@testing-library/jest-dom';
 import ListadoPMSPage from '@/app/listado/analisis/pms/page';
 import { obtenerPmsPaginadas, desactivarPms, activarPms } from '@/app/services/pms-service';
 import { useAuth } from '@/components/auth-provider';
-import { toast } from 'sonner';
 
 // Mocks
 jest.mock('@/app/services/pms-service');
@@ -130,7 +129,7 @@ describe('ListadoPMSPage Component', () => {
 
     it('debe mostrar el botón de volver', () => {
       render(<ListadoPMSPage />);
-      
+
       const volverButtons = screen.getAllByText((content, element) => {
         return element?.tagName.toLowerCase() === 'span' && /volver/i.test(content);
       });
@@ -170,7 +169,7 @@ describe('ListadoPMSPage Component', () => {
 
     it('debe mostrar mensaje de carga mientras se obtienen los datos', () => {
       render(<ListadoPMSPage />);
-      
+
       expect(screen.getByText('Cargando análisis...')).toBeInTheDocument();
     });
 
@@ -233,14 +232,14 @@ describe('ListadoPMSPage Component', () => {
   describe('Filtros y búsqueda', () => {
     it('debe renderizar el campo de búsqueda', () => {
       render(<ListadoPMSPage />);
-      
+
       const searchInput = screen.getByPlaceholderText(/Buscar por ID análisis/i);
       expect(searchInput).toBeInTheDocument();
     });
 
     it('debe actualizar el término de búsqueda al escribir', async () => {
       render(<ListadoPMSPage />);
-      
+
       const searchInput = screen.getByPlaceholderText(/Buscar por ID análisis/i);
       fireEvent.change(searchInput, { target: { value: 'LOTE-001' } });
 
@@ -249,7 +248,7 @@ describe('ListadoPMSPage Component', () => {
 
     it('debe buscar al presionar Enter', async () => {
       render(<ListadoPMSPage />);
-      
+
       const searchInput = screen.getByPlaceholderText(/Buscar por ID análisis/i);
       fireEvent.change(searchInput, { target: { value: 'LOTE-001' } });
       fireEvent.keyDown(searchInput, { key: 'Enter', code: 'Enter' });
@@ -268,16 +267,16 @@ describe('ListadoPMSPage Component', () => {
 
     it('debe buscar al hacer clic en el botón de búsqueda', async () => {
       render(<ListadoPMSPage />);
-      
+
       const searchInput = screen.getByPlaceholderText(/Buscar por ID análisis/i);
       fireEvent.change(searchInput, { target: { value: 'LOTE-002' } });
-      
+
       const searchButtons = screen.getAllByRole('button');
       const searchButton = searchButtons.find(btn => {
         const svg = btn.querySelector('svg');
         return svg?.classList.contains('lucide-search');
       });
-      
+
       if (searchButton) {
         fireEvent.click(searchButton);
 
@@ -296,20 +295,20 @@ describe('ListadoPMSPage Component', () => {
 
     it('debe renderizar el selector de estado', () => {
       render(<ListadoPMSPage />);
-      
+
       expect(screen.getByText('Todos los estados')).toBeInTheDocument();
     });
 
     it('debe renderizar el selector de activos/inactivos', () => {
       render(<ListadoPMSPage />);
-      
+
       const activoSelect = screen.getByDisplayValue('Todos');
       expect(activoSelect).toBeInTheDocument();
     });
 
     it('debe filtrar por activos cuando se selecciona', async () => {
       render(<ListadoPMSPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('LOTE-001')).toBeInTheDocument();
       });
@@ -331,7 +330,7 @@ describe('ListadoPMSPage Component', () => {
 
     it('debe filtrar por inactivos cuando se selecciona', async () => {
       render(<ListadoPMSPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('LOTE-001')).toBeInTheDocument();
       });
@@ -484,7 +483,7 @@ describe('ListadoPMSPage Component', () => {
 
       const buttons = screen.getAllByRole('button');
       const desactivarButton = buttons.find(btn => btn.getAttribute('title') === 'Desactivar');
-      
+
       if (desactivarButton) {
         fireEvent.click(desactivarButton);
         expect(global.confirm).toHaveBeenCalledWith('¿Está seguro de desactivar este análisis PMS?');
@@ -502,7 +501,7 @@ describe('ListadoPMSPage Component', () => {
 
       const buttons = screen.getAllByRole('button');
       const desactivarButton = buttons.find(btn => btn.getAttribute('title') === 'Desactivar');
-      
+
       if (desactivarButton) {
         fireEvent.click(desactivarButton);
 
@@ -523,7 +522,7 @@ describe('ListadoPMSPage Component', () => {
 
       const buttons = screen.getAllByRole('button');
       const desactivarButton = buttons.find(btn => btn.getAttribute('title') === 'Desactivar');
-      
+
       if (desactivarButton) {
         fireEvent.click(desactivarButton);
 
@@ -543,7 +542,7 @@ describe('ListadoPMSPage Component', () => {
 
       const buttons = screen.getAllByRole('button');
       const desactivarButton = buttons.find(btn => btn.getAttribute('title') === 'Desactivar');
-      
+
       if (desactivarButton) {
         fireEvent.click(desactivarButton);
         expect(mockDesactivarPms).not.toHaveBeenCalled();
@@ -565,7 +564,7 @@ describe('ListadoPMSPage Component', () => {
 
       const buttons = screen.getAllByRole('button');
       const reactivarButton = buttons.find(btn => btn.getAttribute('title') === 'Reactivar');
-      
+
       if (reactivarButton) {
         fireEvent.click(reactivarButton);
 
@@ -586,7 +585,7 @@ describe('ListadoPMSPage Component', () => {
 
       const buttons = screen.getAllByRole('button');
       const reactivarButton = buttons.find(btn => btn.getAttribute('title') === 'Reactivar');
-      
+
       if (reactivarButton) {
         fireEvent.click(reactivarButton);
 

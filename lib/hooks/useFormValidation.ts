@@ -10,7 +10,7 @@ type ValidationResult = {
 
 /**
  * Custom hook para gestionar la validación de formularios
- * 
+ *
  * @param initialData Datos iniciales del formulario
  * @param schema Esquema de validación Zod
  * @returns Funciones y estados para manejar la validación

@@ -23,13 +23,13 @@ export interface DosnDTO extends AnalisisDTO {
   fechaINIA?: string; // LocalDate as string
   gramosAnalizadosINIA?: number; // BigDecimal as number
   tipoINIA?: TipoDOSN[];
-  
+
   fechaINASE?: string; // LocalDate as string
   gramosAnalizadosINASE?: number; // BigDecimal as number
   tipoINASE?: TipoDOSN[];
-  
+
   cuscutaRegistros?: CuscutaRegistroDTO[];
-  
+
   listados?: ListadoDTO[];
 }
 
@@ -39,13 +39,13 @@ export interface DosnRequestDTO extends AnalisisRequestDTO {
   fechaINIA?: string; // LocalDate as string
   gramosAnalizadosINIA?: number; // BigDecimal as number
   tipoINIA?: TipoDOSN[];
-  
+
   fechaINASE?: string; // LocalDate as string
   gramosAnalizadosINASE?: number; // BigDecimal as number
   tipoINASE?: TipoDOSN[];
-  
+
   cuscutaRegistros?: CuscutaRegistroRequestDTO[];
-  
+
   listados?: ListadoRequestDTO[];
 }
 

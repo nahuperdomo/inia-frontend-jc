@@ -60,7 +60,7 @@ export function Combobox({
             className
           )}
         >
-          <span className={cn(!selected && "text-muted-foreground")}> 
+          <span className={cn(!selected && "text-muted-foreground")}>
             {selected ? String(selected[labelKey] ?? selected.nombre) : placeholder}
           </span>
           <ChevronDownIcon className="size-4 opacity-50" />

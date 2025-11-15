@@ -10,14 +10,10 @@ export function useOnlineStatus() {
         setIsOnline(navigator.onLine)
 
         const handleOnline = () => {
-            setIsOnline(true)
-            console.log(' Conexión restaurada')
-        }
+            setIsOnline(true)        }
 
         const handleOffline = () => {
-            setIsOnline(false)
-            console.log(' Sin conexión a internet')
-        }
+            setIsOnline(false)        }
 
         window.addEventListener('online', handleOnline)
         window.addEventListener('offline', handleOffline)

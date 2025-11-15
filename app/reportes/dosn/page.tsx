@@ -30,7 +30,7 @@ export default function ReporteDosnPage() {
       }
       const data = await obtenerReporteDosn(filtros)
       setReporte(data)
-      
+
       // Auto-seleccionar la primera especie si existe
       if (data.contaminantesPorEspecie && Object.keys(data.contaminantesPorEspecie).length > 0) {
         const primeraEspecie = Object.keys(data.contaminantesPorEspecie)[0]
@@ -45,7 +45,7 @@ export default function ReporteDosnPage() {
 
   const cargarContaminantes = async (especie: string) => {
     if (!especie) return
-    
+
     setIsLoadingContaminantes(true)
     try {
       const filtros = {
@@ -207,7 +207,7 @@ export default function ReporteDosnPage() {
               searchPlaceholder="Buscar especie..."
             />
           </div>
-          
+
           {isLoadingContaminantes ? (
             <div className="h-[300px] flex items-center justify-center text-muted-foreground">
               Cargando contaminantes...
@@ -232,10 +232,10 @@ export default function ReporteDosnPage() {
                         <Cell fill="#818cf8" />
                         <Cell fill="#c084fc" />
                       </Pie>
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value) => `${Number(value)}`}
-                        contentStyle={{ 
-                          backgroundColor: 'white', 
+                        contentStyle={{
+                          backgroundColor: 'white',
                           border: '1px solid #e5e7eb',
                           borderRadius: '8px',
                           boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
@@ -273,10 +273,10 @@ export default function ReporteDosnPage() {
                           return <Cell key={`cell-${index}`} fill={indigoShades[index % indigoShades.length]} />
                         })}
                       </Pie>
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value) => `${Number(value)}`}
-                        contentStyle={{ 
-                          backgroundColor: 'white', 
+                        contentStyle={{
+                          backgroundColor: 'white',
                           border: '1px solid #e5e7eb',
                           borderRadius: '8px',
                           boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
@@ -314,10 +314,10 @@ export default function ReporteDosnPage() {
                           return <Cell key={`cell-${index}`} fill={purpleShades[index % purpleShades.length]} />
                         })}
                       </Pie>
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value) => `${Number(value)}`}
-                        contentStyle={{ 
-                          backgroundColor: 'white', 
+                        contentStyle={{
+                          backgroundColor: 'white',
                           border: '1px solid #e5e7eb',
                           borderRadius: '8px',
                           boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
@@ -354,18 +354,18 @@ export default function ReporteDosnPage() {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={dataCumpleEstandar} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis 
-                  dataKey="especie" 
+                <XAxis
+                  dataKey="especie"
                   stroke="#6b7280"
                   angle={-45}
                   textAnchor="end"
                   height={80}
                 />
                 <YAxis stroke="#6b7280" />
-                <Tooltip 
+                <Tooltip
                   formatter={(value) => [`${Number(value).toFixed(1)}%`, "Cumplimiento"]}
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
+                  contentStyle={{
+                    backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
@@ -392,18 +392,18 @@ export default function ReporteDosnPage() {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={dataMalezas} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis 
-                  dataKey="especie" 
+                <XAxis
+                  dataKey="especie"
                   stroke="#6b7280"
                   angle={-45}
                   textAnchor="end"
                   height={80}
                 />
                 <YAxis stroke="#6b7280" />
-                <Tooltip 
+                <Tooltip
                   formatter={(value) => [`${Number(value).toFixed(2)}%`, "Malezas"]}
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
+                  contentStyle={{
+                    backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
@@ -430,18 +430,18 @@ export default function ReporteDosnPage() {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={dataOtrasSemillas} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis 
-                  dataKey="especie" 
+                <XAxis
+                  dataKey="especie"
                   stroke="#6b7280"
                   angle={-45}
                   textAnchor="end"
                   height={80}
                 />
                 <YAxis stroke="#6b7280" />
-                <Tooltip 
+                <Tooltip
                   formatter={(value) => [`${Number(value).toFixed(2)}%`, "Otras Semillas"]}
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
+                  contentStyle={{
+                    backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'

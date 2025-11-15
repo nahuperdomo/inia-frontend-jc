@@ -29,7 +29,7 @@ interface PurezaListadoDTO {
 import { toast } from "sonner"
 import { useAuth } from "@/components/auth-provider"
 import { extractPageMetadata } from "@/lib/utils/pagination-helper"
-import { formatearEstado } from "@/lib/utils/format-estado"
+import { formatearFechaLocal, getEstadoBadgeVariant, formatEstado, formatEstado as formatearEstado } from "@/lib/utils/format-helpers"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -109,10 +109,7 @@ export default function ListadoPurezaPage() {
         activoFilter,
         selectedStatus !== "all" ? selectedStatus : undefined,
         undefined
-      )
-      console.log("DEBUG obtenerPurezasPaginadas response:", data)
-
-      // Extraer metadata de paginación usando helper
+      )      // Extraer metadata de paginación usando helper
       const pageData = extractPageMetadata<PurezaListadoDTO>(data, page)
 
       setPurezas(pageData.content)
@@ -165,23 +162,6 @@ export default function ListadoPurezaPage() {
   const promedioPureza = purezasConDatos.length > 0
     ? purezasConDatos.reduce((sum, p) => sum + (p.redonSemillaPura || 0), 0) / purezasConDatos.length
     : 0
-
-  const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
-    switch (estado) {
-      case "APROBADO":
-        return "default"
-      case "EN_PROCESO":
-        return "secondary"
-      case "REGISTRADO":
-        return "outline"
-      case "PENDIENTE_APROBACION":
-        return "destructive"
-      case "A_REPETIR":
-        return "destructive"
-      default:
-        return "outline"
-    }
-  }
 
   return (
     <div className="w-full max-w-full overflow-x-hidden">

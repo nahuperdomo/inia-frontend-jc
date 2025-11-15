@@ -54,9 +54,9 @@ export default function CuscutaSection({ formData, handleInputChange }: Props) {
         cuscutaNum: r.numero ? parseInt(r.numero) : undefined,
         fechaCuscuta: new Date().toISOString().split('T')[0] // Fecha actual por defecto
       }))
-    
+
     handleInputChange("cuscutaRegistros", registrosValidos)
-    
+
     // Mantener cuscutaCumple para validación
     const tieneNoContiene = registros.some(r => r.contiene === "no")
     const tieneSiContiene = registros.some(r => r.contiene === "si")

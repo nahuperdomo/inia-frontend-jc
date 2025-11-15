@@ -13,8 +13,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Loader2, AlertTriangle, Plus, Trash2, Leaf, CheckCircle2, Scale, FlaskConical, Microscope, PieChart, Calendar, Calculator, Percent, Building2, FileText, XCircle } from "lucide-react"
 import Link from "next/link"
-import { 
-  obtenerPurezaPorId, 
+import {
+  obtenerPurezaPorId,
   actualizarPureza,
   finalizarAnalisis,
   aprobarAnalisis,
@@ -28,38 +28,7 @@ import { AnalisisHeaderBar } from "@/components/analisis/analisis-header-bar"
 import { AnalisisAccionesCard } from "@/components/analisis/analisis-acciones-card"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 import { StickySaveButton } from "@/components/ui/sticky-save-button"
-
-// Función helper para mostrar nombres legibles de tipos de listado
-const getTipoListadoDisplay = (tipo: TipoListado) => {
-  switch (tipo) {
-    case "MAL_TOLERANCIA_CERO":
-      return "Maleza Tolerancia Cero"
-    case "MAL_TOLERANCIA":
-      return "Maleza Tolerancia"
-    case "MAL_COMUNES":
-      return "Malezas Comunes"
-    case "OTROS":
-      return "Otros Cultivos"
-    default:
-      return tipo
-  }
-}
-
-// Función helper para obtener el color del badge según el tipo
-const getTipoListadoBadgeColor = (tipo: TipoListado) => {
-  switch (tipo) {
-    case "MAL_TOLERANCIA_CERO":
-      return "bg-red-100 text-red-700 border-red-200"
-    case "MAL_TOLERANCIA":
-      return "bg-orange-100 text-orange-700 border-orange-200"
-    case "MAL_COMUNES":
-      return "bg-yellow-100 text-yellow-700 border-yellow-200"
-    case "OTROS":
-      return "bg-green-100 text-green-700 border-green-200"
-    default:
-      return "bg-gray-100 text-gray-700 border-gray-200"
-  }
-}
+import { getTipoListadoDisplay, getTipoListadoBadgeColor } from "@/lib/utils/format-helpers"
 
 export default function EditarPurezaPage() {
   const params = useParams()
@@ -94,7 +63,7 @@ export default function EditarPurezaPage() {
     malezasToleradas_g: 0,
     malezasTolCero_g: 0,
     pesoTotal_g: 0,
-    
+
     redonSemillaPura: 0,
     redonMateriaInerte: 0,
     redonOtrosCultivos: 0,
@@ -102,7 +71,7 @@ export default function EditarPurezaPage() {
     redonMalezasToleradas: 0,
     redonMalezasTolCero: 0,
     redonPesoTotal: 0,
-    
+
     inasePura: 0,
     inaseMateriaInerte: 0,
     inaseOtrosCultivos: 0,
@@ -110,7 +79,7 @@ export default function EditarPurezaPage() {
     inaseMalezasToleradas: 0,
     inaseMalezasTolCero: 0,
     inaseFecha: "",
-    
+
     cumpleEstandar: "",
     observacionesPureza: "",
     listados: [] as any[],
@@ -122,16 +91,10 @@ export default function EditarPurezaPage() {
         setLoading(true)
         setError(null)
 
-        const targetId = Number.parseInt(purezaId)
-        console.log("Cargando Pureza con ID:", targetId)
-
-        const purezaData = await obtenerPurezaPorId(targetId)
-        console.log("Pureza cargada exitosamente:", purezaData)
-        setPureza(purezaData)
+        const targetId = Number.parseInt(purezaId)        const purezaData = await obtenerPurezaPorId(targetId)        setPureza(purezaData)
 
         // Cargar catálogos
         try {
-          console.log("Cargando catálogos de malezas...")
           const catalogosData = await malezasService.obtenerTodasMalezas()
           if (Array.isArray(catalogosData)) {
             setCatalogos(catalogosData)
@@ -143,7 +106,6 @@ export default function EditarPurezaPage() {
 
         // Cargar especies
         try {
-          console.log("Cargando especies...")
           const especiesData = await obtenerTodasEspecies(true)
           if (Array.isArray(especiesData)) {
             setEspecies(especiesData)
@@ -179,7 +141,7 @@ export default function EditarPurezaPage() {
           malezasToleradas_g: purezaData.malezasToleradas_g || 0,
           malezasTolCero_g: purezaData.malezasTolCero_g || 0,
           pesoTotal_g: purezaData.pesoTotal_g || 0,
-          
+
           redonSemillaPura: purezaData.redonSemillaPura || 0,
           redonMateriaInerte: purezaData.redonMateriaInerte || 0,
           redonOtrosCultivos: purezaData.redonOtrosCultivos || 0,
@@ -187,7 +149,7 @@ export default function EditarPurezaPage() {
           redonMalezasToleradas: purezaData.redonMalezasToleradas || 0,
           redonMalezasTolCero: purezaData.redonMalezasTolCero || 0,
           redonPesoTotal: purezaData.redonPesoTotal || 0,
-          
+
           inasePura: purezaData.inasePura || 0,
           inaseMateriaInerte: purezaData.inaseMateriaInerte || 0,
           inaseOtrosCultivos: purezaData.inaseOtrosCultivos || 0,
@@ -195,7 +157,7 @@ export default function EditarPurezaPage() {
           inaseMalezasToleradas: purezaData.inaseMalezasToleradas || 0,
           inaseMalezasTolCero: purezaData.inaseMalezasTolCero || 0,
           inaseFecha: formatDateForInput(purezaData.inaseFecha),
-          
+
           cumpleEstandar: purezaData.cumpleEstandar === true ? "si" : purezaData.cumpleEstandar === false ? "no" : "",
           observacionesPureza: purezaData.comentarios || "",
           listados: purezaData.otrasSemillas?.map((listado) => ({
@@ -368,7 +330,7 @@ export default function EditarPurezaPage() {
         idLote: pureza.idLote || 0,
         comentarios: formData.observacionesPureza || undefined,
         cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : undefined,
-        
+
         fecha: formData.fecha,
         pesoInicial_g: formData.pesoInicial_g || 0,
         semillaPura_g: formData.semillaPura_g || 0,
@@ -378,7 +340,7 @@ export default function EditarPurezaPage() {
         malezasToleradas_g: formData.malezasToleradas_g || 0,
         malezasTolCero_g: formData.malezasTolCero_g || 0,
         pesoTotal_g: formData.pesoTotal_g || 0,
-        
+
         redonSemillaPura: formData.redonSemillaPura || 0,
         redonMateriaInerte: formData.redonMateriaInerte || 0,
         redonOtrosCultivos: formData.redonOtrosCultivos || 0,
@@ -386,7 +348,7 @@ export default function EditarPurezaPage() {
         redonMalezasToleradas: formData.redonMalezasToleradas || 0,
         redonMalezasTolCero: formData.redonMalezasTolCero || 0,
         redonPesoTotal: formData.redonPesoTotal || 0,
-        
+
         inasePura: formData.inasePura || 0,
         inaseMateriaInerte: formData.inaseMateriaInerte || 0,
         inaseOtrosCultivos: formData.inaseOtrosCultivos || 0,
@@ -394,7 +356,7 @@ export default function EditarPurezaPage() {
         inaseMalezasToleradas: formData.inaseMalezasToleradas || 0,
         inaseMalezasTolCero: formData.inaseMalezasTolCero || 0,
         inaseFecha: formData.inaseFecha || undefined,
-        
+
         otrasSemillas: formData.listados.map((listado) => ({
           listadoTipo: listado.listadoTipo,
           listadoInsti: listado.listadoInsti,
@@ -418,9 +380,8 @@ export default function EditarPurezaPage() {
   // Finalizar análisis
   const handleFinalizarAnalisis = async () => {
     if (!pureza) return
-    
+
     try {
-      console.log(" Finalizando análisis Pureza:", pureza.analisisID)
       await finalizarAnalisis(pureza.analisisID)
       toast.success("Análisis finalizado exitosamente")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
@@ -435,9 +396,8 @@ export default function EditarPurezaPage() {
   // Aprobar análisis (solo para análisis en PENDIENTE_APROBACION o A_REPETIR)
   const handleAprobar = async () => {
     if (!pureza) return
-    
+
     try {
-      console.log(" Aprobando análisis Pureza:", pureza.analisisID)
       await aprobarAnalisis(pureza.analisisID)
       toast.success("Análisis aprobado exitosamente")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
@@ -452,9 +412,8 @@ export default function EditarPurezaPage() {
   // Marcar para repetir
   const handleMarcarParaRepetir = async () => {
     if (!pureza) return
-    
+
     try {
-      console.log(" Marcando análisis Pureza para repetir:", pureza.analisisID)
       await marcarParaRepetir(pureza.analisisID)
       toast.success("Análisis marcado para repetir")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
@@ -469,10 +428,8 @@ export default function EditarPurezaPage() {
   // Finalizar y aprobar (solo para admin en estados no finalizados)
   const handleFinalizarYAprobar = async () => {
     if (!pureza) return
-    
-    try {
-      console.log(" Finalizando y aprobando análisis Pureza:", pureza.analisisID)
-      // Cuando el admin finaliza, el backend automáticamente lo aprueba
+
+    try {      // Cuando el admin finaliza, el backend automáticamente lo aprueba
       // No necesitamos llamar a aprobarAnalisis por separado
       await finalizarAnalisis(pureza.analisisID)
       toast.success("Análisis finalizado y aprobado exitosamente")
@@ -1318,8 +1275,8 @@ export default function EditarPurezaPage() {
                       onClick={() => {
                         // Validar según el tipo
                         const isOtrosCultivos = newListado.listadoTipo === "OTROS"
-                        const hasRequiredFields = newListado.listadoTipo && 
-                          newListado.listadoInsti && 
+                        const hasRequiredFields = newListado.listadoTipo &&
+                          newListado.listadoInsti &&
                           (isOtrosCultivos ? newListado.idEspecie : newListado.idCatalogo)
 
                         if (hasRequiredFields) {
@@ -1359,7 +1316,7 @@ export default function EditarPurezaPage() {
                     <Button
                       onClick={() => {
                         setShowAddListado(false)
-                        setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0 , idEspecie: 0 })
+                        setNewListado({ listadoTipo: "", listadoInsti: "", listadoNum: 0, idCatalogo: 0, idEspecie: 0 })
                       }}
                       size="sm"
                       variant="outline"
@@ -1426,7 +1383,7 @@ export default function EditarPurezaPage() {
                               ) : (
                                 <>
                                   <div className="font-medium break-words">
-                                    {listado.listadoTipo === "OTROS" 
+                                    {listado.listadoTipo === "OTROS"
                                       ? (listado.especieNombre || "--")
                                       : (listado.catalogoNombre || "--")
                                     }
@@ -1463,9 +1420,9 @@ export default function EditarPurezaPage() {
                     </TableBody>
                   </Table>
                 </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Card de Acciones */}

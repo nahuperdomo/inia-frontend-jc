@@ -26,11 +26,7 @@ export default function ForgotPasswordPage() {
     setErrorMessage(null)
 
     try {
-      const result = await forgotPassword(email)
-
-      console.log('✅ [ForgotPassword] Código enviado exitosamente')
-
-      setIsSuccess(true)
+      const result = await forgotPassword(email)      setIsSuccess(true)
 
       toast.success('Código enviado', {
         description: 'Revisa tu correo electrónico',

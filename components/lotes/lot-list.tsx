@@ -104,9 +104,9 @@ export function LotList({ lots = [], onViewDetails }: LotListProps) {
                     <Badge className={`${getStatusColor(lot.activo ? "Activo" : "Inactivo")} text-xs whitespace-nowrap`}>
                       {lot.activo ? "Activo" : "Inactivo"}
                     </Badge>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => onViewDetails(lot)}
                       className="text-xs sm:text-sm whitespace-nowrap"
                     >

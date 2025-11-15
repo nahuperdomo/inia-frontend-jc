@@ -1,5 +1,5 @@
 import { apiFetch } from "./api";
-import { 
+import {
   MalezasCatalogoDTO,
   MalezasCatalogoRequestDTO
 } from "../models";
@@ -75,16 +75,16 @@ export async function obtenerMalezasPaginadas(
     page: page.toString(),
     size: size.toString(),
   });
-  
+
   if (search) params.append("search", search);
   if (activo !== undefined) params.append("activo", activo.toString());
 
   const response = await apiFetch(`/api/malezas/listado?${params.toString()}`);
-  
+
   // Manejar ambos formatos de respuesta (con y sin objeto 'page')
   const content = response.content || [];
   const pageMeta = response.page ? response.page : response;
-  
+
   return {
     content,
     totalElements: pageMeta.totalElements || 0,

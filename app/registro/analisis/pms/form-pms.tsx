@@ -36,12 +36,12 @@ const validarSemillaBrozosa = (): boolean => {
 
 export default function PmsFields({ formData, handleInputChange }: Props) {
   const data = formData || {}
-  
+
   // Validaciones
   // Usar el mismo nombre de campo que el formulario padre (`numRepeticionesEsperadasPms`)
   const repeticionesValidas = validarNumeroRepeticiones(data.numRepeticionesEsperadasPms)
   const semillaBrozosaValida = validarSemillaBrozosa()
-  
+
   const esFormularioValido = repeticionesValidas && semillaBrozosaValida
 
   // Establecer valores por defecto SOLO UNA VEZ al montar el componente
@@ -89,7 +89,7 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
             <Hash className="h-5 w-5 text-blue-600" />
             <h3 className="text-lg font-semibold">Configuración de Repeticiones</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="numRepeticionesEsperadas" className="text-sm font-medium flex items-center gap-2">
@@ -155,7 +155,7 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
             <Info className="h-5 w-5 text-blue-600" />
             <h3 className="text-lg font-semibold">Tipo de Semilla</h3>
           </div>
-          
+
           <div className="space-y-4">
             <div className="p-4 border border-orange-300 rounded-lg">
               <div className="flex items-start space-x-4">
@@ -166,8 +166,8 @@ export default function PmsFields({ formData, handleInputChange }: Props) {
                   className="h-6 w-6 mt-1"
                 />
                 <div className="space-y-2 flex-1">
-                  <Label 
-                    htmlFor="esSemillaBrozosa" 
+                  <Label
+                    htmlFor="esSemillaBrozosa"
                     className="text-base font-semibold cursor-pointer flex items-center gap-2"
                   >
                     <Info className="h-5 w-5" />

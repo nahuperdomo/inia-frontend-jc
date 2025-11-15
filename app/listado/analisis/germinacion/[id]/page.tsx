@@ -27,7 +27,7 @@ import type { EstadoAnalisis } from "@/app/models/types/enums"
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 import { AnalisisInfoGeneralCard } from "@/components/analisis/analisis-info-general-card"
-import { formatearEstado } from "@/lib/utils/format-estado"
+import { formatEstado as formatearEstado, formatearFechaLocal, getEstadoBadgeVariant } from "@/lib/utils/format-helpers"
 
 // Función utilitaria para formatear fechas correctamente
 const formatearFechaLocal = (fechaString: string): string => {
@@ -72,7 +72,6 @@ export default function GerminacionDetailPage() {
       try {
         setLoading(true)
 
-        // Cargar datos en paralelo
         const [germinacionData, tablasData] = await Promise.all([
           obtenerGerminacionPorId(Number.parseInt(germinacionId)),
           obtenerTablasGerminacion(Number.parseInt(germinacionId)).catch(() => []) // Si no hay tablas, devolver array vacío
@@ -92,21 +91,6 @@ export default function GerminacionDetailPage() {
       fetchData()
     }
   }, [germinacionId])
-
-  const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
-    switch (estado) {
-      case "REGISTRADO":
-        return "default"
-      case "EN_PROCESO":
-        return "secondary"
-      case "APROBADO":
-        return "outline"
-      case "PENDIENTE_APROBACION":
-        return "destructive"
-      default:
-        return "outline"
-    }
-  }
 
   if (loading) {
     return (

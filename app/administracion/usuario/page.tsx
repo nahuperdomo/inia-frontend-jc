@@ -65,25 +65,25 @@ const ROLES_LABELS: Record<string, string> = {
 export default function UsuarioValidacionPage() {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(true)
-    
+
     // Estado de solicitudes pendientes con paginación
     const [solicitudesPendientes, setSolicitudesPendientes] = useState<AuthUsuarioDTO[]>([])
     const [currentPagePendientes, setCurrentPagePendientes] = useState(0)
     const [totalPagesPendientes, setTotalPagesPendientes] = useState(0)
     const [totalElementsPendientes, setTotalElementsPendientes] = useState(0)
     const [searchTermPendientes, setSearchTermPendientes] = useState("")
-    
+
     // Estado de usuarios registrados con paginación
     const [usuariosRegistrados, setUsuariosRegistrados] = useState<AuthUsuarioDTO[]>([])
     const [currentPageUsuarios, setCurrentPageUsuarios] = useState(0)
     const [totalPagesUsuarios, setTotalPagesUsuarios] = useState(0)
     const [totalElementsUsuarios, setTotalElementsUsuarios] = useState(0)
     const [searchTermUsuarios, setSearchTermUsuarios] = useState("")
-    
+
     // Stats globales
     const [statsUsuariosActivos, setStatsUsuariosActivos] = useState(0)
     const [statsAdministradores, setStatsAdministradores] = useState(0)
-    
+
     const [selectedUser, setSelectedUser] = useState<AuthUsuarioDTO | null>(null)
     const [selectedRegisteredUser, setSelectedRegisteredUser] = useState<AuthUsuarioDTO | null>(null)
     const [selectedRole, setSelectedRole] = useState<string>("")
@@ -95,7 +95,7 @@ export default function UsuarioValidacionPage() {
     const [activeTab, setActiveTab] = useState<"pendientes" | "registrados">("pendientes")
     const [roleFilter, setRoleFilter] = useState<string>("all")
     const [statusFilter, setStatusFilter] = useState<string>("all")
-    
+
     const pageSize = 10
 
     useEffect(() => {
@@ -105,7 +105,7 @@ export default function UsuarioValidacionPage() {
             fetchUsuariosRegistrados(0)
         }
     }, [activeTab])
-    
+
     useEffect(() => {
         if (activeTab === "registrados") {
             setCurrentPageUsuarios(0)
@@ -117,10 +117,10 @@ export default function UsuarioValidacionPage() {
         setIsLoading(true)
         try {
             const data = await listarSolicitudesPendientesPaginadas(page, pageSize, searchTermPendientes)
-            
+
             // Extraer metadata de paginación usando helper
             const pageData = extractPageMetadata<AuthUsuarioDTO>(data, page)
-            
+
             setSolicitudesPendientes(pageData.content)
             setTotalPagesPendientes(pageData.totalPages)
             setTotalElementsPendientes(pageData.totalElements)
@@ -139,15 +139,15 @@ export default function UsuarioValidacionPage() {
         setIsLoading(true)
         try {
             const data = await listarUsuariosPaginados(page, pageSize, searchTermUsuarios, roleFilter, statusFilter)
-            
+
             // Extraer metadata de paginación usando helper
             const pageData = extractPageMetadata<AuthUsuarioDTO>(data, page)
-            
+
             setUsuariosRegistrados(pageData.content)
             setTotalPagesUsuarios(pageData.totalPages)
             setTotalElementsUsuarios(pageData.totalElements)
             setCurrentPageUsuarios(pageData.currentPage)
-            
+
             // Calcular stats solo si es la primera carga (sin búsqueda)
             if (!searchTermUsuarios) {
                 const activos = pageData.content.filter(u => u.activo).length || 0
@@ -155,7 +155,7 @@ export default function UsuarioValidacionPage() {
                     const rol = getRolFromUsuario(u)
                     return rol && rol.toUpperCase() === "ADMIN"
                 }).length || 0
-                
+
                 // Si tenemos todos los usuarios en una página, usar ese conteo
                 // Si no, hacer una aproximación basada en la proporción
                 if (pageData.totalElements <= pageSize) {
@@ -231,7 +231,7 @@ export default function UsuarioValidacionPage() {
             setShowApprovalDialog(false)
             setSelectedUser(null)
             setSelectedRole("")
-            
+
             // Recargar la página actual
             fetchSolicitudesPendientes(currentPagePendientes)
 
@@ -258,7 +258,7 @@ export default function UsuarioValidacionPage() {
 
             setShowRejectDialog(false)
             setSelectedUser(null)
-            
+
             // Recargar la página actual
             fetchSolicitudesPendientes(currentPagePendientes)
 
@@ -333,7 +333,7 @@ export default function UsuarioValidacionPage() {
             setShowEditDialog(false)
             setSelectedRegisteredUser(null)
             setSelectedRole("")
-            
+
             // Recargar la página actual
             fetchUsuariosRegistrados(currentPageUsuarios)
 
@@ -362,7 +362,7 @@ export default function UsuarioValidacionPage() {
 
             setShowDeleteDialog(false)
             setSelectedRegisteredUser(null)
-            
+
             // Recargar la página actual
             fetchUsuariosRegistrados(currentPageUsuarios)
 

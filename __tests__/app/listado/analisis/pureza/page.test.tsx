@@ -18,7 +18,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import ListadoPurezaPage from '@/app/listado/analisis/pureza/page'
 import * as purezaService from '@/app/services/pureza-service'
-import { toast } from 'sonner'
 import { EstadoAnalisis } from '@/app/models'
 
 // Mock de servicios
@@ -347,8 +346,8 @@ describe('ListadoPurezaPage Tests', () => {
       // El botón de búsqueda no tiene texto, solo un ícono
       // Buscar el botón que contiene un SVG y está cerca del input de búsqueda
       const buttons = screen.getAllByRole('button')
-      const searchButton = buttons.find(btn => 
-        btn.querySelector('svg') && 
+      const searchButton = buttons.find(btn =>
+        btn.querySelector('svg') &&
         !btn.textContent?.includes('Volver') &&
         !btn.textContent?.includes('Nuevo') &&
         !btn.textContent?.includes('Filtros') &&
@@ -357,7 +356,7 @@ describe('ListadoPurezaPage Tests', () => {
         !btn.textContent?.includes('First') &&
         !btn.textContent?.includes('Next')
       )
-      
+
       if (searchButton) {
         fireEvent.click(searchButton)
       }
@@ -410,7 +409,7 @@ describe('ListadoPurezaPage Tests', () => {
       await waitFor(() => {
         const searchInput = screen.getByPlaceholderText(/Buscar por ID análisis, Lote o Ficha/i)
         fireEvent.change(searchInput, { target: { value: 'Maíz' } })
-        
+
         const searchButtons = screen.getAllByRole('button')
         const searchButton = searchButtons.find(btn => btn.querySelector('svg'))
         if (searchButton) {
@@ -551,8 +550,8 @@ describe('ListadoPurezaPage Tests', () => {
 
       await waitFor(() => {
         const verButtons = screen.getAllByRole('link', { name: '' }).filter(
-          link => link.getAttribute('href')?.includes('/listado/analisis/pureza/') && 
-          !link.getAttribute('href')?.includes('/editar')
+          link => link.getAttribute('href')?.includes('/listado/analisis/pureza/') &&
+            !link.getAttribute('href')?.includes('/editar')
         )
         expect(verButtons.length).toBeGreaterThan(0)
       })
@@ -586,7 +585,7 @@ describe('ListadoPurezaPage Tests', () => {
   describe('Test: Desactivar/Reactivar (Solo Admin)', () => {
     it('debe mostrar botón de desactivar para administrador', async () => {
       mockUser.role = 'administrador'
-      
+
       render(<ListadoPurezaPage />)
 
       await waitFor(() => {
@@ -599,7 +598,7 @@ describe('ListadoPurezaPage Tests', () => {
 
     it('no debe mostrar botón de desactivar para usuario normal', async () => {
       mockUser.role = 'analista'
-      
+
       render(<ListadoPurezaPage />)
 
       await waitFor(() => {
@@ -612,7 +611,7 @@ describe('ListadoPurezaPage Tests', () => {
 
     it('debe desactivar un análisis correctamente', async () => {
       mockUser.role = 'administrador'
-      const mockDesactivar = jest.spyOn(purezaService, 'desactivarPureza')
+      jest.spyOn(purezaService, 'desactivarPureza')
         .mockResolvedValue(undefined)
 
       render(<ListadoPurezaPage />)
@@ -646,7 +645,7 @@ describe('ListadoPurezaPage Tests', () => {
         const deleteButton = screen.getAllByRole('button').find(
           btn => btn.getAttribute('title') === 'Desactivar'
         )
-        
+
         if (deleteButton) {
           fireEvent.click(deleteButton)
         }
@@ -672,7 +671,7 @@ describe('ListadoPurezaPage Tests', () => {
       await waitFor(() => {
         const table = screen.getByRole('table')
         const rows = table.querySelectorAll('tbody tr')
-        
+
         // La segunda fila no tiene fecha de fin
         const secondRow = rows[1]
         expect(secondRow.textContent).toContain('-')

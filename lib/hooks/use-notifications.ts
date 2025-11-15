@@ -38,7 +38,7 @@ interface UseNotificationsReturn {
     deleteNotification: (id: number) => Promise<void>;
     loadMore: () => Promise<void>;
     goToPage: (page: number) => Promise<void>;
-    
+
     // NUEVO: Métodos para WebSocket
     addNotification: (notification: NotificacionDTO) => void;
     updateUnreadCount: (count: number | ((prev: number) => number)) => void;
@@ -85,7 +85,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
         } catch (err: any) {
             // Si el error es 403 (no autenticado), no mostrar toast ni setear error visible
             const is403 = err?.message?.includes('403') || err?.message?.includes('Forbidden');
-            
+
             if (!is403) {
                 const errorMessage = 'Error al cargar notificaciones';
                 setError(errorMessage);
@@ -112,7 +112,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
         } catch (err: any) {
             // Si el error es 403 (no autenticado), no mostrar toast
             const is403 = err?.message?.includes('403') || err?.message?.includes('Forbidden');
-            
+
             if (!is403 && showToasts) {
                 toast.error('Error al cargar notificaciones no leídas');
             }
@@ -131,9 +131,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
     // Marcar como leída
     const markAsRead = useCallback(async (id: number) => {
         try {
-            await marcarComoLeida(id);
-
-            // Actualizar estado local
+            await marcarComoLeida(id);
             setNotifications(prev =>
                 prev.map(notif =>
                     notif.id === id ? { ...notif, leido: true } : notif
@@ -162,9 +160,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
     // Marcar todas como leídas
     const markAllAsRead = useCallback(async () => {
         try {
-            await marcarTodasMisNotificacionesComoLeidas();
-
-            // Actualizar estado local
+            await marcarTodasMisNotificacionesComoLeidas();
             setNotifications(prev =>
                 prev.map(notif => ({ ...notif, leido: true }))
             );
@@ -188,9 +184,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
     // Eliminar notificación
     const deleteNotification = useCallback(async (id: number) => {
         try {
-            await eliminarNotificacion(id);
-
-            // Actualizar estado local
+            await eliminarNotificacion(id);
             setNotifications(prev => prev.filter(notif => notif.id !== id));
             setUnreadNotifications(prev => prev.filter(notif => notif.id !== id));
             setUnreadCount(prev => {
@@ -223,9 +217,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
         if (page >= 0 && page < totalPages) {
             await loadNotifications(page, false);
         }
-    }, [totalPages, loadNotifications]);
-
-    // Cargar datos iniciales
+    }, [totalPages, loadNotifications]);
     useEffect(() => {
         refreshNotifications();
     }, []);
@@ -244,13 +236,13 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
     // NUEVO: Agregar notificación desde WebSocket
     const addNotification = useCallback((notification: NotificacionDTO) => {
         setNotifications(prev => [notification, ...prev]);
-        
+
         // Si es no leída, agregar a la lista de no leídas
         if (!notification.leido) {
             setUnreadNotifications(prev => [notification, ...prev]);
             setUnreadCount(prev => prev + 1);
         }
-        
+
         // Actualizar total de elementos
         setTotalElements(prev => prev + 1);
     }, []);
@@ -269,7 +261,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
         setNotifications(prev => prev.filter(n => n.id !== id));
         setUnreadNotifications(prev => prev.filter(n => n.id !== id));
         setTotalElements(prev => Math.max(0, prev - 1));
-        
+
         // Actualizar contador si era no leída
         const wasUnread = notifications.find(n => n.id === id && !n.leido);
         if (wasUnread) {
@@ -297,7 +289,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
         deleteNotification,
         loadMore,
         goToPage,
-        
+
         // NUEVO: Para WebSocket
         addNotification,
         updateUnreadCount,

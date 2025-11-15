@@ -66,11 +66,7 @@ function ResetPasswordForm() {
         recoveryCode: recoveryCode.replace(/-/g, ''), // Remover guión
         totpCode,
         newPassword,
-      })
-
-      console.log('✅ [ResetPassword] Contraseña actualizada')
-
-      setIsSuccess(true)
+      })      setIsSuccess(true)
 
       toast.success('Contraseña actualizada', {
         description: 'Tu contraseña ha sido cambiada exitosamente',

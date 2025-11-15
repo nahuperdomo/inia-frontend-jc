@@ -29,7 +29,7 @@ interface ApiOptions extends RequestInit {
 
 /**
  * Cliente API para realizar peticiones al backend
- * 
+ *
  * @param endpoint Ruta del endpoint API (debe comenzar con /)
  * @param options Opciones de fetch
  * @returns Respuesta procesada (JSON o texto)

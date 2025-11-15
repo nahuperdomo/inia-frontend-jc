@@ -5,7 +5,7 @@ export interface PmsDTO extends AnalisisDTO {
   numRepeticionesEsperadas?: number;
   numTandas?: number;
   esSemillaBrozosa?: boolean;
-  
+
   // Calculated fields
   promedio100g?: number; // BigDecimal as number
   desvioStd?: number; // BigDecimal as number

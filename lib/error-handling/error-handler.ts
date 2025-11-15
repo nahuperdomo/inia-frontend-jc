@@ -53,7 +53,7 @@ export interface ApiError {
 
 /**
  * Función para manejar errores en la aplicación
- * 
+ *
  * @param error El error capturado
  * @param type Tipo de error
  */
@@ -82,7 +82,7 @@ export function handleError(error: unknown, type = ErrorType.UNKNOWN): void {
 
 /**
  * Función para manejar errores de API
- * 
+ *
  * @param error Error de API
  */
 export function handleApiError(error: ApiError): void {

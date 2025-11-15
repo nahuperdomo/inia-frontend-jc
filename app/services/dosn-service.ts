@@ -1,9 +1,9 @@
 import { apiFetch } from "./api";
-import { 
-  DosnDTO, 
-  DosnRequestDTO, 
+import {
+  DosnDTO,
+  DosnRequestDTO,
   ResponseListadoDosn,
-  MalezasCatalogoDTO 
+  MalezasCatalogoDTO
 } from "../models";
 
 // DOSN functions
@@ -64,7 +64,7 @@ export async function obtenerDosnPaginadas(
     page: page.toString(),
     size: size.toString(),
   });
-  
+
   if (search) params.append("search", search);
   if (activo !== undefined) params.append("activo", activo.toString());
   if (estado) params.append("estado", estado);

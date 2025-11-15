@@ -15,6 +15,7 @@ import { EstadoAnalisis } from "@/app/models"
 import { toast, Toaster } from "sonner"
 import { useAuth } from "@/components/auth-provider"
 import { extractPageMetadata } from "@/lib/utils/pagination-helper"
+import { formatearFechaLocal, getEstadoBadgeVariant, formatEstado } from "@/lib/utils/format-helpers"
 
 interface DosnListadoDTO {
   analisisID: number
@@ -78,10 +79,7 @@ export default function ListadoDOSNPage() {
         activoFilter,
         selectedStatus !== "all" ? selectedStatus : undefined,
         undefined
-      )
-      console.log("DEBUG obtenerDosnPaginadas response:", data)
-
-      // Extraer metadata de paginación usando helper
+      )      // Extraer metadata de paginación usando helper
       const pageData = extractPageMetadata<DosnListadoDTO>(data, page)
 
       setDosns(pageData.content)
@@ -127,49 +125,6 @@ export default function ListadoDOSNPage() {
   const inProgressAnalysis = dosns.filter(d => d.estado === "EN_PROCESO" || d.estado === "REGISTRADO").length
   const complianceAnalysis = dosns.filter(d => d.cumpleEstandar === true).length
   const complianceRate = dosns.length > 0 ? Math.round((complianceAnalysis / dosns.length) * 100) : 0
-
-  // Helper functions
-  const getEstadoBadgeVariant = (estado: EstadoAnalisis) => {
-    switch (estado) {
-      case "APROBADO":
-        return "default"
-      case "EN_PROCESO":
-      case "REGISTRADO":
-        return "secondary"
-      case "PENDIENTE_APROBACION":
-        return "outline"
-      case "A_REPETIR":
-        return "destructive"
-      default:
-        return "outline"
-    }
-  }
-
-  const formatEstado = (estado: EstadoAnalisis) => {
-    switch (estado) {
-      case "APROBADO":
-        return "Aprobado"
-      case "EN_PROCESO":
-        return "En Proceso"
-      case "REGISTRADO":
-        return "Registrado"
-      case "PENDIENTE_APROBACION":
-        return "Pendiente Aprobación"
-      case "A_REPETIR":
-        return "A Repetir"
-      default:
-        return estado
-    }
-  }
-
-  const formatearFechaLocal = (fechaStr: string | undefined) => {
-    if (!fechaStr) return "-"
-    const fecha = new Date(fechaStr)
-    const year = fecha.getFullYear()
-    const month = String(fecha.getMonth() + 1).padStart(2, "0")
-    const day = String(fecha.getDate()).padStart(2, "0")
-    return `${day}/${month}/${year}`
-  }
 
   return (
     <div className="w-full max-w-full overflow-x-hidden">

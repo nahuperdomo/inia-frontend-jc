@@ -1039,8 +1039,8 @@ describe('GerminacionEditPage', () => {
 
   describe('handleCrearTabla', () => {
     it('crea una nueva tabla y recarga tablas', async () => {
-      const mockCrear = jest.spyOn(germinacionService, 'crearTablaGerminacion').mockResolvedValue(mockTabla)
-      const mockObtenerTablas = jest.spyOn(germinacionService, 'obtenerTablasGerminacion').mockResolvedValue([mockTabla, { ...mockTabla, tablaGermID: 2 }])
+      jest.spyOn(germinacionService, 'crearTablaGerminacion').mockResolvedValue(mockTabla)
+      jest.spyOn(germinacionService, 'obtenerTablasGerminacion').mockResolvedValue([mockTabla, { ...mockTabla, tablaGermID: 2 }])
 
       render(<GerminacionEditPage />)
 

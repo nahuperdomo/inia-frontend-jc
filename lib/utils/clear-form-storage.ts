@@ -22,10 +22,7 @@ export function clearDosnStorage() {
   dosnKeys.forEach((key) => {
     sessionStorage.removeItem(key)
     localStorage.removeItem(key)
-  })
-
-  console.log(" Storage de registros DOSN limpiado exitosamente")
-}
+  })}
 
 /**
  * Limpia todos los datos persistidos del formulario Germinación
@@ -41,10 +38,7 @@ export function clearGerminacionStorage() {
   germinacionKeys.forEach((key) => {
     sessionStorage.removeItem(key)
     localStorage.removeItem(key)
-  })
-
-  console.log(" Storage de Germinación limpiado exitosamente")
-}
+  })}
 
 /**
  * Limpia todos los datos persistidos del formulario Tetrazolio
@@ -60,10 +54,7 @@ export function clearTetrazolioStorage() {
   tetrazolioKeys.forEach((key) => {
     sessionStorage.removeItem(key)
     localStorage.removeItem(key)
-  })
-
-  console.log(" Storage de Tetrazolio limpiado exitosamente")
-}
+  })}
 
 /**
  * Limpia todos los datos persistidos del formulario Pureza
@@ -81,10 +72,7 @@ export function clearPurezaStorage() {
   purezaKeys.forEach((key) => {
     sessionStorage.removeItem(key)
     localStorage.removeItem(key)
-  })
-
-  console.log(" Storage de Pureza limpiado exitosamente")
-}
+  })}
 
 /**
  * Limpia todo el storage de formularios
@@ -93,6 +81,4 @@ export function clearAllFormsStorage() {
   clearDosnStorage()
   clearGerminacionStorage()
   clearTetrazolioStorage()
-  clearPurezaStorage()
-  console.log(" Todos los storages de formularios limpiados")
-}
+  clearPurezaStorage()}

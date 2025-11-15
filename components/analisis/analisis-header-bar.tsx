@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Edit, Save } from "lucide-react"
 import Link from "next/link"
+import { getEstadoBadgeVariant, formatEstado } from "@/lib/utils/format-helpers"
 
 interface AnalisisHeaderBarProps {
   tipoAnalisis: string // "Tetrazolio", "PMS", "DOSN", "Pureza"
@@ -18,42 +19,6 @@ interface AnalisisHeaderBarProps {
   tieneCambios?: boolean
   // Ocultar botón de editar/guardar (para Germinación)
   ocultarBotonEdicion?: boolean
-}
-
-const getEstadoBadgeVariant = (estado: string) => {
-  switch (estado) {
-    case "APROBADO":
-      return "default"
-    case "EN_PROCESO":
-    case "REGISTRADO":
-    case "PENDIENTE_APROBACION":
-      return "secondary"
-    case "PARA_REPETIR":
-    case "A_REPETIR":
-      return "destructive"
-    default:
-      return "outline"
-  }
-}
-
-const getEstadoLabel = (estado: string) => {
-  switch (estado) {
-    case "APROBADO":
-      return "Aprobado"
-    case "EN_PROCESO":
-      return "En Proceso"
-    case "REGISTRADO":
-      return "Registrado"
-    case "PENDIENTE_APROBACION":
-      return "Pendiente Aprobación"
-    case "PARA_REPETIR":
-    case "A_REPETIR":
-      return "Para Repetir"
-    case "FINALIZADO":
-      return "Finalizado"
-    default:
-      return estado
-  }
 }
 
 export function AnalisisHeaderBar({
@@ -86,7 +51,7 @@ export function AnalisisHeaderBar({
                   Análisis de {tipoAnalisis} #{analisisId}
                 </h1>
                 <Badge variant={getEstadoBadgeVariant(estado)}>
-                  {getEstadoLabel(estado)}
+                  {formatEstado(estado)}
                 </Badge>
               </div>
             </div>

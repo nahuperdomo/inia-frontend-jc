@@ -57,16 +57,16 @@ type Props = {
 
 const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCultivos }: Props) => {
     const [activeTab, setActiveTab] = useState("generales");
-    
+
     //  Extraer listas de registros SOLO si vienen con estructura completa del backend (modo edición)
     // Si malezas/cultivos está vacío o undefined, MalezaFields usará su propio estado interno
-    const malezas = (formData.malezas && formData.malezas.length > 0 && formData.malezas[0]?.catalogo) 
-        ? formData.malezas 
+    const malezas = (formData.malezas && formData.malezas.length > 0 && formData.malezas[0]?.catalogo)
+        ? formData.malezas
         : undefined;
-    const cultivos = (formData.cultivos && formData.cultivos.length > 0 && formData.cultivos[0]?.catalogo) 
-        ? formData.cultivos 
+    const cultivos = (formData.cultivos && formData.cultivos.length > 0 && formData.cultivos[0]?.catalogo)
+        ? formData.cultivos
         : undefined;
-    
+
     // Calcular peso total automáticamente (suma de todos los componentes)
     const pesoTotalCalculado = useMemo(() => {
         const semillaPura = parseFloat(formData.semillaPura_g as string) || 0;
@@ -99,17 +99,7 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
         const otrosCultivos = parseFloat(formData.otrosCultivos_g as string) || 0;
         const malezas = parseFloat(formData.malezas_g as string) || 0;
         const malezasToleradas = parseFloat(formData.malezasToleradas_g as string) || 0;
-        const malezasTolCero = parseFloat(formData.malezasTolCero_g as string) || 0;
-
-        console.log('=== DEBUG PORCENTAJES ===');
-        console.log('Peso total:', pesoTotal, 'tipo:', typeof formData.pesoTotal_g);
-        console.log('Semilla pura gramos:', semillaPura);
-        console.log('Materia inerte gramos:', materiaInerte);
-        console.log('Malezas tolerancia cero gramos:', malezasTolCero);
-        
-        if (pesoTotal === 0 || isNaN(pesoTotal)) {
-            console.log('Peso total es 0 o NaN, retornando 0s');
-            return {
+        const malezasTolCero = parseFloat(formData.malezasTolCero_g as string) || 0;        if (pesoTotal === 0 || isNaN(pesoTotal)) {            return {
                 semillaPura: 0,
                 materiaInerte: 0,
                 otrosCultivos: 0,
@@ -118,7 +108,7 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                 malezasTolCero: 0,
             };
         }
-        
+
         const result = {
             semillaPura: (semillaPura / pesoTotal) * 100,
             materiaInerte: (materiaInerte / pesoTotal) * 100,
@@ -126,11 +116,7 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
             malezas: (malezas / pesoTotal) * 100,
             malezasToleradas: (malezasToleradas / pesoTotal) * 100,
             malezasTolCero: (malezasTolCero / pesoTotal) * 100,
-        };
-        
-        console.log('Resultado porcentajes:', result);
-        
-        return result;
+        };        return result;
     }, [
         formData.pesoTotal_g,
         formData.semillaPura_g,
@@ -192,16 +178,16 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
     //  Validaciones de peso (del backend)
     const pesoInicialNum = parseFloat(formData.pesoInicial_g as string) || 0;
     const pesoTotalNum = parseFloat(formData.pesoTotal_g as string) || 0;
-    
+
     // Validación: peso inicial debe ser mayor a cero
     const pesoInicialValido = pesoInicialNum > 0;
-    
+
     // Validación: peso total no puede ser mayor al inicial
     const pesoTotalMayorQueInicial = pesoTotalNum > 0 && pesoTotalNum > pesoInicialNum;
-    
+
     // Validación: advertencia si se pierde más del 5% de la muestra
-    const porcentajePerdida = pesoInicialNum > 0 && pesoTotalNum > 0 
-        ? ((pesoInicialNum - pesoTotalNum) / pesoInicialNum) * 100 
+    const porcentajePerdida = pesoInicialNum > 0 && pesoTotalNum > 0
+        ? ((pesoInicialNum - pesoTotalNum) / pesoInicialNum) * 100
         : 0;
     const perdidaExcedeLimite = porcentajePerdida > 5.0;
 
@@ -421,7 +407,7 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                                         <Alert className="border-amber-200 bg-amber-50">
                                             <AlertTriangle className="h-4 w-4 text-amber-600" />
                                             <AlertDescription className="text-amber-800">
-                                                La muestra ha perdido <strong>{porcentajePerdida.toFixed(2)}%</strong> de su peso inicial 
+                                                La muestra ha perdido <strong>{porcentajePerdida.toFixed(2)}%</strong> de su peso inicial
                                                 ({(pesoInicialNum - pesoTotalNum).toFixed(2)}g), lo cual excede el límite recomendado del 5%.
                                             </AlertDescription>
                                         </Alert>
@@ -689,7 +675,7 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
                                 </div>
 
 
-                                
+
                             </div>
 
                             {/* Card 4: Porcentajes INASE */}

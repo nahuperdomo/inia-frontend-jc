@@ -1,4 +1,3 @@
-import { apiFetch } from "./api";
 
 interface ImportacionResponse {
     exitoso: boolean;

@@ -34,7 +34,6 @@ import {
 } from '@/app/services/lote-service'
 import { apiFetch } from '@/app/services/api'
 import { LoteDTO, LoteRequestDTO, LoteSimpleDTO } from '@/app/models'
-import { TipoAnalisis } from '@/app/models/types/enums'
 
 // Mock de apiFetch
 jest.mock('@/app/services/api')

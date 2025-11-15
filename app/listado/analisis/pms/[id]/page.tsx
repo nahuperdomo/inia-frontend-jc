@@ -25,7 +25,7 @@ import { obtenerRepeticionesPorPms, eliminarRepPms } from "@/app/services/repeti
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 import { AnalisisInfoGeneralCard } from "@/components/analisis/analisis-info-general-card"
-import { formatearEstado } from "@/lib/utils/format-estado"
+import { formatEstado as formatearEstado, formatearFechaLocal, getEstadoBadgeVariant } from "@/lib/utils/format-helpers"
 
 export default function DetallePMSPage() {
   const params = useParams()
@@ -39,7 +39,6 @@ export default function DetallePMSPage() {
   const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
-  // Cargar datos del análisis
   useEffect(() => {
     const fetchData = async () => {
       if (!id) return
@@ -136,22 +135,6 @@ export default function DetallePMSPage() {
       toast.error('Error al eliminar repetición', {
         description: err?.message || "No se pudo eliminar la repetición",
       })
-    }
-  }
-
-  const getEstadoBadgeVariant = (estado: string) => {
-    switch (estado) {
-      case "APROBADO":
-        return "default"
-      case "EN_PROCESO":
-      case "FINALIZADO":
-      case "PENDIENTE_APROBACION":
-        return "secondary"
-      case "PENDIENTE":
-      case "PARA_REPETIR":
-        return "destructive"
-      default:
-        return "outline"
     }
   }
 
@@ -321,8 +304,8 @@ export default function DetallePMSPage() {
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Coef. Variación:</span>
                     <span className={`font-bold text-lg ${analisis.coefVariacion && analisis.coefVariacion <= 4
-                        ? 'text-green-600'
-                        : 'text-red-600'
+                      ? 'text-green-600'
+                      : 'text-red-600'
                       }`}>
                       {analisis.coefVariacion ? `${analisis.coefVariacion.toFixed(2)}%` : "-"}
                     </span>
@@ -339,8 +322,8 @@ export default function DetallePMSPage() {
 
                 {analisis.coefVariacion && (
                   <div className={`p-3 rounded text-sm ${analisis.coefVariacion <= 4
-                      ? 'bg-green-50 text-green-800 border border-green-200'
-                      : 'bg-red-50 text-red-800 border border-red-200'
+                    ? 'bg-green-50 text-green-800 border border-green-200'
+                    : 'bg-red-50 text-red-800 border border-red-200'
                     }`}>
                     <div className="flex items-center gap-2">
                       {analisis.coefVariacion <= 4 ? (

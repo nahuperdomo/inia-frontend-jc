@@ -9,11 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { extractPageMetadata } from "@/lib/utils/pagination-helper"
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Search, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Search,
   Building2,
   Users,
   Loader2,
@@ -36,7 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -99,7 +99,7 @@ export default function ContactosPage() {
       setLoading(true)
       const empresaActivo = filtroEmpresa === "todos" ? undefined : filtroEmpresa === "activos"
       const searchValue = search !== undefined ? search : searchTerm
-      
+
       const response = await obtenerContactosPaginados(
         page,
         10,
@@ -107,9 +107,9 @@ export default function ContactosPage() {
         empresaActivo,
         "EMPRESA"
       )
-      
+
       const pageData = extractPageMetadata<ContactoDTO>(response, page)
-      
+
       setEmpresas(pageData.content)
       setEmpresaTotalPages(pageData.totalPages)
       setEmpresaTotalElements(pageData.totalElements)
@@ -129,7 +129,7 @@ export default function ContactosPage() {
       setLoading(true)
       const clienteActivo = filtroCliente === "todos" ? undefined : filtroCliente === "activos"
       const searchValue = search !== undefined ? search : searchTerm
-      
+
       const response = await obtenerContactosPaginados(
         page,
         10,
@@ -137,9 +137,9 @@ export default function ContactosPage() {
         clienteActivo,
         "CLIENTE"
       )
-      
+
       const pageData = extractPageMetadata<ContactoDTO>(response, page)
-      
+
       setClientes(pageData.content)
       setClienteTotalPages(pageData.totalPages)
       setClienteTotalElements(pageData.totalElements)
@@ -393,7 +393,7 @@ export default function ContactosPage() {
   return (
     <div className="min-h-screen bg-muted/30">
       <Toaster position="top-right" richColors closeButton />
-      
+
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background border-b">
         <div className="container max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
@@ -428,7 +428,7 @@ export default function ContactosPage() {
                   Crea, edita y gestiona empresas y clientes del sistema
                 </CardDescription>
               </div>
-              <form 
+              <form
                 onSubmit={(e) => {
                   e.preventDefault()
                   handleSearchClick()
@@ -778,7 +778,7 @@ export default function ContactosPage() {
               {dialogMode === "create" ? "Nuevo" : "Editar"} {tipoContacto === "EMPRESA" ? "Empresa" : "Cliente"}
             </DialogTitle>
             <DialogDescription>
-              {dialogMode === "create" 
+              {dialogMode === "create"
                 ? `Complete la información para crear ${tipoContacto === "EMPRESA" ? "una nueva empresa" : "un nuevo cliente"}.`
                 : `Modifique los datos ${tipoContacto === "EMPRESA" ? "de la empresa" : "del cliente"}.`
               }

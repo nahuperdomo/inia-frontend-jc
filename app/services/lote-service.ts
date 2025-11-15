@@ -1,6 +1,6 @@
 import { apiFetch } from "./api";
-import { 
-  LoteDTO, 
+import {
+  LoteDTO,
   LoteRequestDTO,
   LoteSimpleDTO,
   ResponseListadoLoteSimple
@@ -65,9 +65,9 @@ export async function puedeRemoverTipoAnalisis(loteID: number, tipoAnalisis: Tip
     return response;
   } catch (error) {
     console.error('Error al verificar si puede remover tipo de análisis:', error);
-    return { 
-      puedeRemover: false, 
-      razon: 'Error al verificar el estado del análisis' 
+    return {
+      puedeRemover: false,
+      razon: 'Error al verificar el estado del análisis'
     };
   }
 }
@@ -100,17 +100,17 @@ export async function validarLoteElegible(loteID: number, tipoAnalisis: TipoAnal
   }
 }
 export async function obtenerLotesPaginadas(
-  page: number = 0, 
+  page: number = 0,
   size: number = 10,
   searchTerm?: string,
   activo?: boolean | null,
   cultivar?: string
-): Promise<{ 
-  content: LoteSimpleDTO[]; 
-  totalElements: number; 
-  totalPages: number; 
+): Promise<{
+  content: LoteSimpleDTO[];
+  totalElements: number;
+  totalPages: number;
   number: number;
-  last: boolean; 
+  last: boolean;
   first: boolean;
 }> {
   const params = new URLSearchParams();
@@ -118,19 +118,19 @@ export async function obtenerLotesPaginadas(
   params.append('size', size.toString());
   // Ordenar por ID descendente (más reciente primero)
   params.append('sort', 'loteID,desc');
-  
+
   if (searchTerm && searchTerm.trim()) {
     params.append('search', searchTerm.trim());
   }
-  
+
   if (activo !== null && activo !== undefined) {
     params.append('activo', activo.toString());
   }
-  
+
   if (cultivar && cultivar !== 'todos') {
     params.append('cultivar', cultivar);
   }
-  
+
   return apiFetch(`/api/lotes/listado?${params.toString()}`);
 }
 

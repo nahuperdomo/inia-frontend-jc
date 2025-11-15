@@ -24,12 +24,7 @@ export default function ReporteGerminacionPage() {
         fechaInicio: fechaInicio || undefined,
         fechaFin: fechaFin || undefined,
       }
-      const data = await obtenerReporteGerminacion(filtros)
-      console.log('Respuesta del backend:', data)
-      console.log('mediaGerminacionPorEspecie:', data?.mediaGerminacionPorEspecie)
-      console.log('tiempoPromedioPrimerConteo:', data?.tiempoPromedioPrimerConteo)
-      console.log('tiempoPromedioUltimoConteo:', data?.tiempoPromedioUltimoConteo)
-      setReporte(data)
+      const data = await obtenerReporteGerminacion(filtros)      setReporte(data)
     } catch (error) {
       console.error("Error al cargar reporte:", error)
     } finally {
@@ -140,18 +135,18 @@ export default function ReporteGerminacionPage() {
             <ResponsiveContainer width="100%" height={350}>
               <BarChart data={dataGerminacionEspecie} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis 
-                  dataKey="especie" 
+                <XAxis
+                  dataKey="especie"
                   stroke="#6b7280"
                   angle={-45}
                   textAnchor="end"
                   height={80}
                 />
                 <YAxis stroke="#6b7280" />
-                <Tooltip 
+                <Tooltip
                   formatter={(value) => [`${Number(value).toFixed(2)}%`, "Germinación"]}
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
+                  contentStyle={{
+                    backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
@@ -186,18 +181,18 @@ export default function ReporteGerminacionPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={dataPrimerConteo} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis 
-                    dataKey="especie" 
+                  <XAxis
+                    dataKey="especie"
                     stroke="#6b7280"
                     angle={-45}
                     textAnchor="end"
                     height={80}
                   />
                   <YAxis stroke="#6b7280" />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value) => [`${Number(value).toFixed(1)} días`, "Días"]}
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
+                    contentStyle={{
+                      backgroundColor: 'white',
                       border: '1px solid #e5e7eb',
                       borderRadius: '8px',
                       boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
@@ -227,18 +222,18 @@ export default function ReporteGerminacionPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={dataUltimoConteo} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis 
-                    dataKey="especie" 
+                  <XAxis
+                    dataKey="especie"
                     stroke="#6b7280"
                     angle={-45}
                     textAnchor="end"
                     height={80}
                   />
                   <YAxis stroke="#6b7280" />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value) => [`${Number(value).toFixed(1)} días`, "Días"]}
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
+                    contentStyle={{
+                      backgroundColor: 'white',
                       border: '1px solid #e5e7eb',
                       borderRadius: '8px',
                       boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'

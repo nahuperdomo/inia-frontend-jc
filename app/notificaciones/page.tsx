@@ -294,9 +294,7 @@ export default function NotificationsPage() {
                                         onMarkAsRead={markAsRead}
                                         onDelete={deleteNotification}
                                         onViewDetails={(notif) => {
-                                            // Aquí puedes implementar navegación a detalles específicos
-                                            console.log('Ver detalles:', notif);
-                                        }}
+                                            // Aquí puedes implementar navegación a detalles específicos                                        }}
                                         className="border rounded-lg hover:shadow-md transition-shadow"
                                     />
                                 ))}

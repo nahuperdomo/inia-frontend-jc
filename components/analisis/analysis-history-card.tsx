@@ -13,15 +13,15 @@ import { useAuth } from "@/components/auth-provider"
 function formatearFechaHistorial(fecha: any): string {
   try {
     if (!fecha) return "Sin fecha"
-    
+
     const date = new Date(fecha)
-    
+
     // Verificar que la fecha sea válida
     if (isNaN(date.getTime())) {
       console.error("Fecha inválida:", fecha)
       return "Fecha inválida"
     }
-    
+
     return date.toLocaleDateString("es-ES", {
       day: "numeric",
       month: "short",
@@ -44,7 +44,7 @@ interface AnalysisHistoryCardProps {
 export function AnalysisHistoryCard({ analisisId, analisisTipo, historial }: AnalysisHistoryCardProps) {
   const [showModal, setShowModal] = useState(false)
   const { user, isLoading } = useAuth()
-  
+
   // Mostrar solo los últimos 6 registros
   const historialMostrado = historial.slice(0, 6)
   const tieneMarRegistros = historial.length > 6
@@ -56,7 +56,7 @@ export function AnalysisHistoryCard({ analisisId, analisisTipo, historial }: Ana
 
   // Solo mostrar para administradores y si hay historial
   const esAdmin = user?.role === "administrador"
-  
+
   if (!user || !esAdmin || historial.length === 0) {
     return null
   }
@@ -83,7 +83,7 @@ export function AnalysisHistoryCard({ analisisId, analisisTipo, historial }: Ana
                 <div className="space-y-1">
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm font-semibold leading-tight">
-                      {item.estadoAnterior && item.estadoNuevo 
+                      {item.estadoAnterior && item.estadoNuevo
                         ? `${item.estadoAnterior} → ${item.estadoNuevo}`
                         : item.accion}
                     </p>
@@ -95,7 +95,7 @@ export function AnalysisHistoryCard({ analisisId, analisisTipo, historial }: Ana
                 </div>
               </div>
             ))}
-            
+
             {tieneMarRegistros && (
               <div className="pt-2 border-t">
                 <Button

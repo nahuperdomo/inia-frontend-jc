@@ -21,8 +21,8 @@ export function CalidadSection({ lot }: CalidadSectionProps) {
                 {lot.tiposAnalisisAsignados && lot.tiposAnalisisAsignados.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                         {lot.tiposAnalisisAsignados.map((tipo, index) => (
-                            <span 
-                                key={index} 
+                            <span
+                                key={index}
                                 className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
                             >
                                 {tipo}

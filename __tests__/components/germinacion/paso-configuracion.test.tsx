@@ -19,7 +19,7 @@
  * - Test: Validaciones
  */
 
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TablasGerminacionSection } from '@/components/germinacion/tablas-germinacion-section'
 import { TablaGermDTO } from '@/app/models/interfaces/repeticiones'

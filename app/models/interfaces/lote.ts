@@ -26,23 +26,23 @@ export interface LoteDTO {
   remitente?: string;
   observaciones?: string;
   kilosLimpios?: number; // BigDecimal as number
-  
+
   // Datos de humedad con información completa
   datosHumedad?: DatosHumedadDTO[];
-  
+
   // Número de artículo con información completa
   numeroArticuloID?: number;
   numeroArticuloValor?: string;
-  
+
   origenID?: number;
   origenValor?: string;
   estadoID?: number;
   estadoValor?: string;
   fechaCosecha?: string; // LocalDate as string
-  
+
   // Lista de tipos de análisis asignados
   tiposAnalisisAsignados?: TipoAnalisis[];
-  
+
   activo?: boolean;
 }
 

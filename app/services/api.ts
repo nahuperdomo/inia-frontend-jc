@@ -6,27 +6,17 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
  * El backend envía tokens en cookies HttpOnly (no accesibles desde JavaScript).
  * fetch() con credentials: 'include' envía automáticamente estas cookies.
  */
-export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  console.log(` API Call: ${endpoint}`);
-  console.log(` URL completa: ${API_BASE_URL}${endpoint}`);
-
-  const headers = {
+export async function apiFetch(endpoint: string, options: RequestInit = {}) {  const headers = {
     "Content-Type": "application/json",
     ...(options.headers || {}),
   };
 
-  // NO se lee ni se envía token manualmente — las cookies HttpOnly se envían automáticamente
-  console.log(` Headers enviados:`, headers);
-
-  try {
+  // NO se lee ni se envía token manualmente — las cookies HttpOnly se envían automáticamente  try {
     const res = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers,
       credentials: "include", // CRÍTICO: envía cookies automáticamente (incluyendo accessToken HttpOnly)
       ...options,
-    });
-
-    console.log(` Response status: ${res.status}`);
-    console.log(` Response headers:`, Object.fromEntries(res.headers.entries()));
+    });));
 
     if (!res.ok) {
       const errorText = await res.text();

@@ -12,12 +12,12 @@ import type { LegadoDTO } from "@/app/models/interfaces/legado"
 
 import Link from "next/link"
 
-import { 
-  ArrowLeft, 
-  FileSpreadsheet, 
-  Package, 
-  FileText, 
-  BarChart3, 
+import {
+  ArrowLeft,
+  FileSpreadsheet,
+  Package,
+  FileText,
+  BarChart3,
   Calculator,
   Building,
   Calendar,
@@ -46,10 +46,7 @@ export default function LegadoDetailPage() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const data = await legadoService.getById(Number.parseInt(legadoId))
-        console.log("Datos del legado recibidos:", data)
-        console.log("Familia:", data.familia)
-        setLegado(data)
+        const data = await legadoService.getById(Number.parseInt(legadoId))        setLegado(data)
       } catch (err) {
         setError("Error al cargar los detalles del registro legado")
         console.error("Error fetching legado:", err)
@@ -201,10 +198,10 @@ export default function LegadoDetailPage() {
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <p className="text-lg font-medium">
                         {legado.lote.fechaRecibo
-                          ? new Date(legado.lote.fechaRecibo).toLocaleDateString("es-ES", { 
-                              year: "numeric", 
-                              month: "long", 
-                              day: "numeric" 
+                          ? new Date(legado.lote.fechaRecibo).toLocaleDateString("es-ES", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric"
                             })
                           : "-"}
                       </p>

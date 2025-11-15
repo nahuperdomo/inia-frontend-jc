@@ -87,7 +87,7 @@ export interface GestionarUsuarioRequest {
 }
 
 export interface ActualizarPerfilRequest {
-  nombre?: string; 
+  nombre?: string;
   nombres?: string;
   apellidos?: string;
   email?: string;

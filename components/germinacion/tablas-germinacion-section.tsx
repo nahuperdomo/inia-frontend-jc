@@ -157,9 +157,7 @@ export function TablasGerminacionSection({
 
     try {
       setEliminandoTabla(tablaId)
-      await eliminarTablaGerminacion(germinacionId, tablaId)
-
-      // Actualizar estado local en lugar de recargar
+      await eliminarTablaGerminacion(germinacionId, tablaId)
       setTablasLocales(prev => prev.filter(tabla => tabla.tablaGermID !== tablaId))
 
       // Cerrar expansión si era la tabla eliminada
@@ -193,9 +191,7 @@ export function TablasGerminacionSection({
 
     try {
       setFinalizandoTabla(tablaId)
-      await finalizarTabla(germinacionId, tablaId)
-
-      // Actualizar estado local en lugar de recargar
+      await finalizarTabla(germinacionId, tablaId)
       setTablasLocales(prev =>
         prev.map(tabla =>
           tabla.tablaGermID === tablaId
@@ -255,8 +251,7 @@ export function TablasGerminacionSection({
 
     if (!confirmed) return
 
-    try {
-      // Actualizar estado local para marcar como no finalizada
+    try {
       setTablasLocales(prev =>
         prev.map(tabla =>
           tabla.tablaGermID === tablaId
@@ -550,9 +545,7 @@ export function TablasGerminacionSection({
       // Limpiar errores si todo está bien
       setErroresValidacionNuevaTabla({})
 
-      const tablaCreada = await crearTablaGerminacion(germinacionId, nuevaTabla)
-
-      // Actualizar estado local
+      const tablaCreada = await crearTablaGerminacion(germinacionId, nuevaTabla)
       setTablasLocales(prev => [...prev, tablaCreada])
 
       // Resetear formulario con valores vacíos
@@ -648,9 +641,7 @@ export function TablasGerminacionSection({
     }
 
     try {
-      await actualizarPorcentajes(germinacionId, tablaId, porcentajes)
-
-      // Actualizar estado local
+      await actualizarPorcentajes(germinacionId, tablaId, porcentajes)
       setTablasLocales(prev =>
         prev.map(tabla =>
           tabla.tablaGermID === tablaId
@@ -854,9 +845,7 @@ export function TablasGerminacionSection({
       await new Promise(resolve => setTimeout(resolve, 500))
 
       // Recargar las repeticiones actualizadas desde el servidor
-      const tablaActualizada = await obtenerTablaPorId(germinacionId, tablaId)
-
-      // Actualizar estado local con los datos completos del servidor
+      const tablaActualizada = await obtenerTablaPorId(germinacionId, tablaId)
       setTablasLocales(prev =>
         prev.map(tabla =>
           tabla.tablaGermID === tablaId

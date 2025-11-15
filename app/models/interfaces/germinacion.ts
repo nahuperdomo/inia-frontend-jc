@@ -33,7 +33,7 @@ export interface GerminacionListadoDTO {
   usuarioModificador?: string;
   cumpleNorma: boolean; // true si NO está "A REPETIR"
   activo?: boolean; // Campo para soft delete
-  
+
   // Nuevos campos de TablaGerm
   valorGerminacionINIA?: number;
   valorGerminacionINASE?: number;

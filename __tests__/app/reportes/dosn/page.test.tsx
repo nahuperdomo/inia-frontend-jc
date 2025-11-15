@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ReporteDosnPage from '@/app/reportes/dosn/page';
 import { obtenerReporteDosn, obtenerContaminantesDosn } from '@/app/services/reporte-service';

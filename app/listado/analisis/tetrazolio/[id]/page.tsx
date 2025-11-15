@@ -29,37 +29,10 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import Link from 'next/link'
+import { formatearFechaLocal, getEstadoBadgeVariant, formatEstado as formatearEstado, convertirFechaParaInput } from '@/lib/utils/format-helpers'
 import { AnalysisHistoryCard } from "@/components/analisis/analysis-history-card"
 import { TablaToleranciasButton } from "@/components/analisis/tabla-tolerancias-button"
 import { AnalisisInfoGeneralCard } from "@/components/analisis/analisis-info-general-card"
-import { formatearEstado } from "@/lib/utils/format-estado"
-
-// Función utilitaria para formatear fechas
-const formatearFechaLocal = (fechaString: string): string => {
-  if (!fechaString) return ''
-
-  const [year, month, day] = fechaString.split('-').map(Number)
-  const fecha = new Date(year, month - 1, day)
-
-  return fecha.toLocaleDateString('es-UY', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  })
-}
-
-const convertirFechaParaInput = (fechaString: string): string => {
-  if (!fechaString) return ''
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
-    return fechaString
-  }
-
-  const fecha = new Date(fechaString)
-  if (isNaN(fecha.getTime())) return ''
-
-  return fecha.toISOString().split('T')[0]
-}
 
 export default function TetrazolioDetailPage() {
   const params = useParams()
@@ -75,17 +48,13 @@ export default function TetrazolioDetailPage() {
   const cargarDatos = async () => {
     try {
       setLoading(true)
-      console.log(" Cargando tetrazolio y repeticiones para ID:", tetrazolioId)
 
       const tetrazolioData = await obtenerTetrazolioPorId(parseInt(tetrazolioId))
 
-      console.log(" Tetrazolio cargado:", tetrazolioData)
       setTetrazolio(tetrazolioData)
 
-      // Cargar repeticiones
       try {
         const repeticionesData = await obtenerRepeticionesPorTetrazolio(parseInt(tetrazolioId))
-        console.log(" Repeticiones cargadas:", repeticionesData)
         setRepeticiones(repeticionesData)
       } catch (repError) {
         console.warn("️ Error al cargar repeticiones:", repError)
@@ -107,20 +76,8 @@ export default function TetrazolioDetailPage() {
   }, [tetrazolioId])
 
   const getEstadoBadge = (estado: string) => {
-    const variants = {
-      "REGISTRADO": { variant: "default" as const },
-      "PENDIENTE": { variant: "outline" as const },
-      "EN_PROCESO": { variant: "secondary" as const },
-      "FINALIZADO": { variant: "secondary" as const },
-      "PENDIENTE_APROBACION": { variant: "destructive" as const },
-      "APROBADO": { variant: "default" as const },
-      "PARA_REPETIR": { variant: "destructive" as const }
-    }
-
-    const config = variants[estado as keyof typeof variants] || variants["PENDIENTE"]
-
     return (
-      <Badge variant={config.variant}>
+      <Badge variant={getEstadoBadgeVariant(estado)}>
         {formatearEstado(estado)}
       </Badge>
     )
