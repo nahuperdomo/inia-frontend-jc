@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useConfirm } from "@/lib/hooks/useConfirm"
 import { useAuth } from "@/components/auth-provider"
+import { toast } from "sonner"
 
 import {
   ArrowLeft,
@@ -154,9 +155,13 @@ export default function PurezaDetailPage() {
         setLoading(true)
         const data = await obtenerPurezaPorId(Number.parseInt(purezaId))
         setPureza(data)
-      } catch (err) {
-        setError("Error al cargar los detalles del análisis de Pureza")
-        console.error("Error fetching Pureza:", err)
+      } catch (err: any) {
+        const errorMsg = "Error al cargar los detalles del análisis de Pureza";
+        setError(errorMsg)
+        console.error("❌ Error fetching Pureza:", err)
+        toast.error(errorMsg, {
+          description: err?.message || "No se pudo cargar la información del análisis. Intente recargar la página."
+        });
       } finally {
         setLoading(false)
       }

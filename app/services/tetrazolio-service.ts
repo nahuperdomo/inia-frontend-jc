@@ -1,16 +1,22 @@
 import { apiFetch } from "./api";
-import { 
-  TetrazolioDTO, 
-  TetrazolioRequestDTO, 
-  ResponseListadoTetrazolio 
+import {
+  TetrazolioDTO,
+  TetrazolioRequestDTO,
+  ResponseListadoTetrazolio
 } from "../models";
 
 // Tetrazolio functions
 export async function crearTetrazolio(solicitud: TetrazolioRequestDTO): Promise<TetrazolioDTO> {
-  return apiFetch("/api/tetrazolios", {
-    method: "POST",
-    body: JSON.stringify(solicitud),
-  });
+  try {
+    const result = await apiFetch("/api/tetrazolios", {
+      method: "POST",
+      body: JSON.stringify(solicitud),
+    });
+    return result;
+  } catch (error: any) {
+    console.error('❌ Error al crear tetrazolio:', error);
+    throw new Error(error.message || 'Error al crear el análisis de tetrazolio. Verifique los datos e intente nuevamente.');
+  }
 }
 
 export async function obtenerTodosTetrazolio(): Promise<TetrazolioDTO[]> {
@@ -70,7 +76,7 @@ export async function marcarParaRepetir(id: number): Promise<TetrazolioDTO> {
 }
 
 export async function actualizarPorcentajesRedondeados(
-  id: number, 
+  id: number,
   porcentajes: {
     porcViablesRedondeo: number;
     porcNoViablesRedondeo: number;
@@ -95,7 +101,7 @@ export async function obtenerTetrazoliosPaginadas(
     page: page.toString(),
     size: size.toString(),
   });
-  
+
   if (search) params.append("search", search);
   if (activo !== undefined) params.append("activo", activo.toString());
   if (estado) params.append("estado", estado);

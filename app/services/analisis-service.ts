@@ -39,10 +39,17 @@ export async function registrarAnalisis(payload: any, tipo: string) {
     console.log("  - Tipo de análisis:", tipo);
   }
 
-  return apiFetch(endpoint, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  try {
+    const result = await apiFetch(endpoint, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return result;
+  } catch (error: any) {
+    console.error(`❌ Error al registrar análisis de ${tipo}:`, error);
+    // Re-lanzar el error con un mensaje más descriptivo
+    throw new Error(error.message || `Error al registrar el análisis de ${tipo}. Verifique los datos e intente nuevamente.`);
+  }
 }
 
 // Obtener todos los análisis de un lote

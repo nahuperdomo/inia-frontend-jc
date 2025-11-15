@@ -1,15 +1,21 @@
 import { apiFetch } from "./api";
-import { 
-  PmsDTO, 
-  PmsRequestDTO 
+import {
+  PmsDTO,
+  PmsRequestDTO
 } from "../models";
 
 // PMS functions
 export async function crearPms(solicitud: PmsRequestDTO): Promise<PmsDTO> {
-  return apiFetch("/api/pms", {
-    method: "POST",
-    body: JSON.stringify(solicitud),
-  });
+  try {
+    const result = await apiFetch("/api/pms", {
+      method: "POST",
+      body: JSON.stringify(solicitud),
+    });
+    return result;
+  } catch (error: any) {
+    console.error('❌ Error al crear PMS:', error);
+    throw new Error(error.message || 'Error al crear el análisis de PMS. Verifique los datos e intente nuevamente.');
+  }
 }
 
 export async function obtenerTodosPms(): Promise<PmsDTO[]> {
@@ -62,7 +68,7 @@ export async function obtenerPmsPaginadas(
     page: page.toString(),
     size: size.toString(),
   });
-  
+
   if (search) params.append("search", search);
   if (activo !== undefined) params.append("activo", activo.toString());
   if (estado) params.append("estado", estado);

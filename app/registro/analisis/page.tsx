@@ -16,7 +16,7 @@ import DosnFields from "@/app/registro/analisis/dosn/form-dosn"
 import GerminacionFields from "@/app/registro/analisis/germinacion/form-germinacion"
 import PmsFields from "@/app/registro/analisis/pms/form-pms"
 import TetrazolioFields from "@/app/registro/analisis/tetrazolio/form-tetrazolio"
-import { obtenerLotesActivos , obtenerLotesElegibles } from "@/app/services/lote-service"
+import { obtenerLotesActivos, obtenerLotesElegibles } from "@/app/services/lote-service"
 
 import { LoteSimpleDTO } from "@/app/models"
 import { registrarAnalisis } from "@/app/services/analisis-service"
@@ -154,7 +154,7 @@ export default function RegistroAnalisisPage() {
   const [purezaMalezasList, setPurezaMalezasList] = useState<any[]>([]);
   const [purezaCultivosList, setPurezaCultivosList] = useState<any[]>([]);
   const [purezaBrassicasList, setPurezaBrassicasList] = useState<any[]>([]);
-  
+
   // Key para forzar reset del componente PurezaFields después de un registro exitoso
   const [purezaFormKey, setPurezaFormKey] = useState(0);
 
@@ -353,6 +353,7 @@ export default function RegistroAnalisisPage() {
   const handleSubmit = async () => {
     setLoading(true)
 
+    // Validaciones básicas
     if (!selectedAnalysisType) {
       setLoading(false)
       toast.error('Tipo de análisis requerido', {
@@ -364,6 +365,16 @@ export default function RegistroAnalisisPage() {
       setLoading(false)
       toast.error('Lote requerido', {
         description: 'Selecciona un lote para realizar el análisis.'
+      });
+      return
+    }
+
+    // Validar que el lote existe en la lista de lotes elegibles
+    const loteValido = lotes.find(l => l.loteID.toString() === formData.loteid);
+    if (!loteValido) {
+      setLoading(false)
+      toast.error('Lote no válido', {
+        description: 'El lote seleccionado no está disponible. Por favor, selecciona otro lote.'
       });
       return
     }
@@ -403,6 +414,15 @@ export default function RegistroAnalisisPage() {
       // Agregar otrosCultivos
       const cultivosListWithOtros = [...cultivosList];
       if (formData.otrosCultivos && formData.otrosCultivos !== "") {
+        // Validar que si hay otros cultivos, también estén los datos requeridos
+        if (!formData.otrosCultivosNum || !formData.otrosCultivosIdCatalogo) {
+          toast.error('Datos incompletos de otros cultivos', {
+            description: 'Si especifica otros cultivos, debe completar el número y seleccionar del catálogo.'
+          });
+          setLoading(false);
+          return;
+        }
+
         cultivosListWithOtros.push({
           listadoTipo: "OTROS",
           listadoInsti: formData.otrosCultivosInsti || "INIA",
@@ -441,17 +461,54 @@ export default function RegistroAnalisisPage() {
       };
 
       // Debug logs para verificar datos antes de enviar
-      console.log(" DEBUG - Datos de DOSN antes de enviar:");
+      console.log("📋 DEBUG - Datos de DOSN antes de enviar:");
       console.log("  - listados finales:", listados);
       console.log("  - payload.listados:", payload.listados);
+      console.log("  - fechaINIA:", payload.fechaINIA);
+      console.log("  - gramosAnalizadosINIA:", payload.gramosAnalizadosINIA);
+      console.log("  - tipoINIA:", payload.tipoINIA);
 
       // Validación adicional para asegurar que hay datos para enviar
       if (listados.length === 0) {
-        console.warn("️ WARNING: No hay listados para enviar. Esto podría ser normal si el análisis no requiere listados.");
+        console.warn("⚠️ WARNING: No hay listados para enviar. Esto podría ser normal si el análisis no requiere listados.");
       } else {
-        console.log(` Se enviarán ${listados.length} listados al backend`);
+        console.log(`✅ Se enviarán ${listados.length} listados al backend`);
+      }
+
+      // Validar que los datos críticos no estén vacíos o inválidos
+      if (!payload.fechaINIA || payload.fechaINIA === "") {
+        toast.error('Fecha INIA requerida', {
+          description: 'Debe ingresar una fecha válida para el análisis INIA.'
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (!payload.gramosAnalizadosINIA || payload.gramosAnalizadosINIA <= 0) {
+        toast.error('Gramos INIA inválidos', {
+          description: 'Debe ingresar una cantidad de gramos válida para INIA (mayor a 0).'
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (!payload.tipoINIA || payload.tipoINIA.length === 0) {
+        toast.error('Tipo de análisis INIA requerido', {
+          description: 'Debe seleccionar al menos un tipo de análisis INIA (Completo, Reducido, Limitado o Reducido-Limitado).'
+        });
+        setLoading(false);
+        return;
       }
     } else if (selectedAnalysisType === "PUREZA") {
+      // Validaciones específicas para Pureza
+      if (!formData.pesoTotal || parseFloat((formData as any).pesoTotal_g) <= 0) {
+        toast.error('Peso total inválido', {
+          description: 'El peso total debe ser mayor a 0.'
+        });
+        setLoading(false);
+        return;
+      }
+
       // Combinar las 3 listas igual que DOSN (simple y directo)
       const otrasSemillas = [
         ...purezaMalezasList.map((m) => ({
@@ -468,7 +525,7 @@ export default function RegistroAnalisisPage() {
         comentarios: formData.observacionesPureza || "",
         estado: "REGISTRADO",
         cumpleEstandar: formData.cumpleEstandar === "si" ? true : formData.cumpleEstandar === "no" ? false : null,
-        
+
         // Datos en gramos
         fecha: formData.fecha,
         pesoInicial_g: parseFloat((formData as any).pesoInicial_g) || 0,
@@ -502,6 +559,15 @@ export default function RegistroAnalisisPage() {
         otrasSemillas,
       };
     } else if (selectedAnalysisType === "GERMINACION") {
+      // Validaciones específicas para Germinación
+      if (!formData.loteid || isNaN(parseInt(formData.loteid))) {
+        toast.error('Lote inválido', {
+          description: 'Debe seleccionar un lote válido.'
+        });
+        setLoading(false);
+        return;
+      }
+
       payload = {
         idLote: parseInt(formData.loteid),
         comentarios: formData.comentarios || "",
@@ -679,7 +745,7 @@ export default function RegistroAnalisisPage() {
         // Registrar otros tipos (DOSN, Pureza, etc.)
         console.log(" PAYLOAD COMPLETO A ENVIAR:", JSON.stringify(payload, null, 2));
         console.log(" Tipo de análisis:", selectedAnalysisType);
-        
+
         const result = await registrarAnalisis(payload, selectedAnalysisType);
 
         toast.success('Análisis registrado exitosamente', {
@@ -717,14 +783,55 @@ export default function RegistroAnalisisPage() {
         }, 1500);
       }
     } catch (err: any) {
-      console.error("Error al registrar análisis:", err);
+      console.error("❌ Error al registrar análisis:", err);
       console.error("Status del error:", err?.status);
       console.error("Mensaje completo:", err?.message || err);
 
-      const errorMsg = err?.message || "Error al registrar análisis";
+      // Extraer mensaje de error más específico
+      let errorMsg = "Error al registrar análisis. Por favor, intente nuevamente.";
+      let errorDescription = "";
 
-      toast.error('Error al registrar análisis', {
-        description: errorMsg,
+      if (err?.message) {
+        // Si el error tiene un mensaje, usarlo
+        errorMsg = err.message;
+      } else if (typeof err === 'string') {
+        errorMsg = err;
+      }
+
+      // Agregar contexto según el tipo de análisis
+      if (selectedAnalysisType === "GERMINACION") {
+        errorDescription = "Verifique que todos los datos del análisis de germinación sean correctos.";
+      } else if (selectedAnalysisType === "PMS") {
+        errorDescription = "Verifique que el número de repeticiones esté entre 4 y 20.";
+      } else if (selectedAnalysisType === "TETRAZOLIO") {
+        errorDescription = "Verifique que todos los campos requeridos estén completos y sean válidos.";
+      } else if (selectedAnalysisType === "DOSN") {
+        errorDescription = "Verifique que al menos un tipo de análisis INIA esté seleccionado.";
+      } else if (selectedAnalysisType === "PUREZA") {
+        errorDescription = "Verifique que los datos de peso y porcentajes sean correctos.";
+      }
+
+      // Detectar errores comunes
+      if (errorMsg.includes("401") || errorMsg.includes("Unauthorized")) {
+        errorMsg = "Sesión expirada";
+        errorDescription = "Por favor, inicie sesión nuevamente.";
+      } else if (errorMsg.includes("403") || errorMsg.includes("Forbidden")) {
+        errorMsg = "Sin permisos";
+        errorDescription = "No tiene permisos para realizar esta acción.";
+      } else if (errorMsg.includes("400") || errorMsg.includes("Bad Request")) {
+        errorMsg = "Datos inválidos";
+        errorDescription = errorDescription || "Verifique que todos los campos tengan valores válidos.";
+      } else if (errorMsg.includes("404") || errorMsg.includes("Not Found")) {
+        errorMsg = "Recurso no encontrado";
+        errorDescription = "El lote o análisis no existe. Recargue la página e intente nuevamente.";
+      } else if (errorMsg.includes("500") || errorMsg.includes("Internal Server Error")) {
+        errorMsg = "Error del servidor";
+        errorDescription = "Ocurrió un error en el servidor. Contacte al administrador si el problema persiste.";
+      }
+
+      toast.error(errorMsg, {
+        description: errorDescription,
+        duration: 5000,
       });
     } finally {
       setLoading(false)
@@ -740,19 +847,19 @@ export default function RegistroAnalisisPage() {
   useEffect(() => {
     const tipoParam = searchParams.get('tipo')
     const loteIdParam = searchParams.get('loteId')
-    
+
     if (tipoParam) {
       const tipoValido = analysisTypes.find(type => type.id === tipoParam)
       if (tipoValido) {
         setSelectedAnalysisType(tipoParam as TipoAnalisis)
-        
+
         // Guardar loteId para preselección posterior
         if (loteIdParam) {
           sessionStorage.setItem('preselectedLoteId', loteIdParam)
         }
       }
     }
-    
+
     // Limpiar la URL sin parámetros
     if (tipoParam || loteIdParam) {
       router.replace('/registro/analisis', { scroll: false })

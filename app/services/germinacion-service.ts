@@ -1,7 +1,7 @@
 import { apiFetch } from "./api";
-import { 
-  GerminacionDTO, 
-  GerminacionRequestDTO, 
+import {
+  GerminacionDTO,
+  GerminacionRequestDTO,
   GerminacionEditRequestDTO,
   ResponseListadoGerminacion,
   GerminacionListadoDTO
@@ -16,11 +16,16 @@ import {
 
 // Germinacion functions
 export async function crearGerminacion(solicitud: GerminacionRequestDTO): Promise<GerminacionDTO> {
-  // Probando con plural como los otros endpoints
-  return apiFetch("/api/germinaciones", {
-    method: "POST",
-    body: JSON.stringify(solicitud),
-  });
+  try {
+    const result = await apiFetch("/api/germinaciones", {
+      method: "POST",
+      body: JSON.stringify(solicitud),
+    });
+    return result;
+  } catch (error: any) {
+    console.error('❌ Error al crear germinación:', error);
+    throw new Error(error.message || 'Error al crear el análisis de germinación. Verifique los datos e intente nuevamente.');
+  }
 }
 
 export async function obtenerTodasGerminaciones(): Promise<GerminacionDTO[]> {
@@ -40,7 +45,7 @@ export async function obtenerGerminacionesPaginadas(
     page: page.toString(),
     size: size.toString(),
   });
-  
+
   if (search) params.append("search", search);
   if (activo !== undefined) params.append("activo", activo.toString());
   if (estado) params.append("estado", estado);
@@ -125,7 +130,7 @@ export async function crearTablaGerminacion(germinacionId: number, solicitud?: P
     prefrio: "No",
     pretratamiento: "Ninguno",
   };
-  
+
   return apiFetch(`/api/germinacion/${germinacionId}/tabla`, {
     method: "POST",
     body: JSON.stringify({ ...defaultSolicitud, ...solicitud })
@@ -133,8 +138,8 @@ export async function crearTablaGerminacion(germinacionId: number, solicitud?: P
 }
 
 export async function actualizarTablaGerminacion(
-  germinacionId: number, 
-  tablaId: number, 
+  germinacionId: number,
+  tablaId: number,
   solicitud: TablaGermRequestDTO
 ): Promise<TablaGermDTO> {
   return apiFetch(`/api/germinacion/${germinacionId}/tabla/${tablaId}`, {
@@ -156,8 +161,8 @@ export async function finalizarTabla(germinacionId: number, tablaId: number): Pr
 }
 
 export async function actualizarPorcentajes(
-  germinacionId: number, 
-  tablaId: number, 
+  germinacionId: number,
+  tablaId: number,
   porcentajes: PorcentajesRedondeoRequestDTO
 ): Promise<TablaGermDTO> {
   return apiFetch(`/api/germinacion/${germinacionId}/tabla/${tablaId}/porcentajes`, {
@@ -179,7 +184,7 @@ export async function contarTablasPorGerminacion(germinacionId: number): Promise
 // ============================================
 
 export async function obtenerRepeticionesDeTabla(
-  germinacionId: number, 
+  germinacionId: number,
   tablaId: number
 ): Promise<RepGermDTO[]> {
   // Endpoint correcto según RepGermController
@@ -187,8 +192,8 @@ export async function obtenerRepeticionesDeTabla(
 }
 
 export async function crearRepeticion(
-  germinacionId: number, 
-  tablaId: number, 
+  germinacionId: number,
+  tablaId: number,
   solicitud: RepGermRequestDTO
 ): Promise<RepGermDTO> {
   return apiFetch(`/api/germinacion/${germinacionId}/tabla/${tablaId}/repeticion`, {
@@ -198,9 +203,9 @@ export async function crearRepeticion(
 }
 
 export async function actualizarRepeticion(
-  germinacionId: number, 
-  tablaId: number, 
-  repId: number, 
+  germinacionId: number,
+  tablaId: number,
+  repId: number,
   solicitud: RepGermRequestDTO
 ): Promise<RepGermDTO> {
   return apiFetch(`/api/germinacion/${germinacionId}/tabla/${tablaId}/repeticion/${repId}`, {
@@ -210,8 +215,8 @@ export async function actualizarRepeticion(
 }
 
 export async function eliminarRepeticion(
-  germinacionId: number, 
-  tablaId: number, 
+  germinacionId: number,
+  tablaId: number,
   repId: number
 ): Promise<void> {
   return apiFetch(`/api/germinacion/${germinacionId}/tabla/${tablaId}/repeticion/${repId}`, {
@@ -220,7 +225,7 @@ export async function eliminarRepeticion(
 }
 
 export async function contarRepeticionesPorTabla(
-  germinacionId: number, 
+  germinacionId: number,
   tablaId: number
 ): Promise<number> {
   return apiFetch(`/api/germinacion/${germinacionId}/tabla/${tablaId}/repeticion/contar`);
