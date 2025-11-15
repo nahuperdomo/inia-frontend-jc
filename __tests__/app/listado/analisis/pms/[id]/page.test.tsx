@@ -28,21 +28,49 @@ jest.mock('next/link', () => {
   };
 });
 
+// Mock de useAuth
+const mockUseAuth = {
+  user: { role: 'administrador', nombre: 'Test User' },
+  logout: jest.fn(),
+};
+
+jest.mock('@/components/auth-provider', () => ({
+  useAuth: () => mockUseAuth,
+}));
+
 // Mock de componentes que usan AuthProvider
 jest.mock('@/components/analisis/analysis-history-card', () => ({
-  AnalysisHistoryCard: () => <div data-testid="analysis-history-card">History Card</div>,
+  AnalysisHistoryCard: ({ analisisId, analisisTipo, historial }: any) => (
+    <div data-testid="analysis-history-card">
+      <span>History Card</span>
+      <span>Análisis ID: {analisisId}</span>
+      <span>Tipo: {analisisTipo}</span>
+      <span>Historial: {historial?.length || 0}</span>
+    </div>
+  ),
 }));
 
 jest.mock('@/components/analisis/tabla-tolerancias-button', () => ({
-  TablaToleranciasButton: () => <button data-testid="tabla-tolerancias">Tabla Tolerancias</button>,
+  TablaToleranciasButton: ({ pdfPath, title, className }: any) => (
+    <button data-testid="tabla-tolerancias" className={className}>
+      {title}
+      <span>{pdfPath}</span>
+    </button>
+  ),
 }));
 
 jest.mock('@/components/analisis/analisis-info-general-card', () => ({
-  AnalisisInfoGeneralCard: ({ lote, especieNombre, cultivarNombre }: any) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
+  AnalisisInfoGeneralCard: ({ lote, especieNombre, cultivarNombre, analisisID, estado, ficha, fechaInicio, fechaFin, comentarios }: any) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
     <div data-testid="info-general-card">
-      <div>{lote}</div>
-      <div>{especieNombre}</div>
-      <div>{cultivarNombre}</div>
+      <div>Análisis ID: {analisisID}</div>
+      <div>Estado: {estado}</div>
+      <div>Lote: {lote}</div>
+      <div>Ficha: {ficha}</div>
+      <div>Especie: {especieNombre}</div>
+      <div>Cultivar: {cultivarNombre}</div>
+      {fechaInicio && <div>Fecha Inicio: {fechaInicio}</div>}
+      {fechaFin && <div>Fecha Fin: {fechaFin}</div>}
+      {comentarios && <div>Comentarios: {comentarios}</div>}
     </div>
   ),
 }));
@@ -140,7 +168,7 @@ describe('DetallePMSPage Component', () => {
   describe('Renderizado inicial', () => {
     it('debe mostrar mensaje de carga inicialmente', () => {
       render(<DetallePMSPage />);
-      
+
       expect(screen.getByText('Cargando análisis...')).toBeInTheDocument();
     });
 
@@ -416,7 +444,7 @@ describe('DetallePMSPage Component', () => {
     it('debe llamar a finalizarAnalisis y actualizar el estado', async () => {
       const analisisActualizado = { ...mockPmsData, estado: 'PENDIENTE_APROBACION' };
       mockFinalizarAnalisis.mockResolvedValue(analisisActualizado);
-      
+
       render(<DetallePMSPage />);
 
       await waitFor(() => {
@@ -431,7 +459,7 @@ describe('DetallePMSPage Component', () => {
 
     it('debe manejar error al finalizar análisis', async () => {
       mockFinalizarAnalisis.mockRejectedValue(new Error('Error al finalizar'));
-      
+
       try {
         await mockFinalizarAnalisis(1);
       } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -450,7 +478,7 @@ describe('DetallePMSPage Component', () => {
 
     it('debe manejar error al aprobar análisis', async () => {
       mockAprobarAnalisis.mockRejectedValue(new Error('Error al aprobar'));
-      
+
       try {
         await mockAprobarAnalisis(1);
       } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -469,7 +497,7 @@ describe('DetallePMSPage Component', () => {
 
     it('debe manejar error al marcar para repetir', async () => {
       mockMarcarParaRepetir.mockRejectedValue(new Error('Error al marcar'));
-      
+
       try {
         await mockMarcarParaRepetir(1);
       } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -487,7 +515,7 @@ describe('DetallePMSPage Component', () => {
 
     it('debe manejar error al eliminar repetición', async () => {
       mockEliminarRepPms.mockRejectedValue(new Error('Error al eliminar'));
-      
+
       try {
         await mockEliminarRepPms(1, 1);
       } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -576,13 +604,55 @@ describe('DetallePMSPage Component', () => {
   });
 
   describe('Componentes adicionales', () => {
-    it('debe renderizar el componente AnalisisInfoGeneralCard', async () => {
+    it('debe renderizar el componente AnalisisInfoGeneralCard con todas las props', async () => {
       render(<DetallePMSPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Trigo')).toBeInTheDocument();
-        expect(screen.getByText('Cultivar Test')).toBeInTheDocument();
+        expect(screen.getByText('Especie: Trigo')).toBeInTheDocument();
+        expect(screen.getByText('Cultivar: Cultivar Test')).toBeInTheDocument();
+        expect(screen.getByText('Lote: LOTE-001')).toBeInTheDocument();
+        expect(screen.getByText('Ficha: F-001')).toBeInTheDocument();
       });
+    });
+
+    it('debe renderizar el componente AnalysisHistoryCard con props correctas', async () => {
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Análisis ID: 1')).toBeInTheDocument();
+        expect(screen.getByText('Tipo: pms')).toBeInTheDocument();
+      });
+    });
+
+    it('debe renderizar TablaToleranciasButton con props correctas', async () => {
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Tabla de Tolerancias')).toBeInTheDocument();
+        expect(screen.getByText('/tablas-tolerancias/tabla-pms.pdf')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Permisos de usuario', () => {
+    it('debe mostrar botón de editar para administrador', async () => {
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Editar análisis')).toBeInTheDocument();
+      });
+    });
+
+    it('no debe mostrar botón de editar para observador', async () => {
+      mockUseAuth.user = { role: 'observador', nombre: 'Observer' };
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Editar análisis')).not.toBeInTheDocument();
+      });
+
+      // Restaurar
+      mockUseAuth.user = { role: 'administrador', nombre: 'Test User' };
     });
   });
 
@@ -649,6 +719,156 @@ describe('DetallePMSPage Component', () => {
 
       await waitFor(() => {
         expect(screen.getByText('42.12g')).toBeInTheDocument();
+      });
+    });
+
+    it('debe formatear promedio100g con 2 decimales', async () => {
+      mockObtenerPmsPorId.mockResolvedValue({
+        ...mockPmsData,
+        promedio100g: 42.678,
+      });
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('42.68g')).toBeInTheDocument();
+      });
+    });
+
+    it('debe formatear desvioStd con 3 decimales', async () => {
+      mockObtenerPmsPorId.mockResolvedValue({
+        ...mockPmsData,
+        desvioStd: 0.56789,
+      });
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('0.568')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Renderizado de Toaster', () => {
+    it('debe renderizar el componente Toaster', async () => {
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('toaster')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Textos descriptivos', () => {
+    it('debe mostrar descripción de repeticiones', async () => {
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Datos de pesaje por repetición y tanda')).toBeInTheDocument();
+      });
+    });
+
+    it('debe mostrar texto explicativo del CV cuando es válido', async () => {
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('El coeficiente de variación debe ser ≤ 4% para ser válido')).toBeInTheDocument();
+      });
+    });
+
+    it('debe mostrar texto explicativo del CV cuando es inválido', async () => {
+      mockObtenerPmsPorId.mockResolvedValue({ ...mockPmsData, coefVariacion: 5.5 });
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('El coeficiente de variación debe ser ≤ 4% para ser válido')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Títulos de secciones', () => {
+    it('debe mostrar título de Resultados con icono', async () => {
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Resultados')).toBeInTheDocument();
+      });
+    });
+
+    it('debe mostrar mensaje cuando no hay CV calculado', async () => {
+      mockObtenerPmsPorId.mockResolvedValue({
+        ...mockPmsData,
+        coefVariacion: undefined,
+      });
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Criterio Cumplido')).not.toBeInTheDocument();
+        expect(screen.queryByText('Criterio No Cumplido')).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Valores de numTandas', () => {
+    it('debe mostrar numTandas cuando está definido', async () => {
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        const numTandas = screen.getAllByText('1');
+        expect(numTandas.length).toBeGreaterThan(0);
+      });
+    });
+
+    it('debe mostrar guión cuando numTandas es undefined', async () => {
+      mockObtenerPmsPorId.mockResolvedValue({
+        ...mockPmsData,
+        numTandas: undefined,
+      });
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Número de Tandas:')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Estado FINALIZADO', () => {
+    it('debe manejar correctamente estado FINALIZADO', async () => {
+      mockObtenerPmsPorId.mockResolvedValue({ ...mockPmsData, estado: 'FINALIZADO' });
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Finalizado')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Estado PENDIENTE', () => {
+    it('debe manejar correctamente estado PENDIENTE', async () => {
+      mockObtenerPmsPorId.mockResolvedValue({ ...mockPmsData, estado: 'PENDIENTE' });
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Pendiente')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Historial vacío', () => {
+    it('debe manejar historial vacío correctamente', async () => {
+      mockObtenerPmsPorId.mockResolvedValue({ ...mockPmsData, historial: [] });
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Historial: 0')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Comentarios presentes', () => {
+    it('debe mostrar comentarios cuando están presentes', async () => {
+      render(<DetallePMSPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Comentarios: Comentario de prueba')).toBeInTheDocument();
       });
     });
   });

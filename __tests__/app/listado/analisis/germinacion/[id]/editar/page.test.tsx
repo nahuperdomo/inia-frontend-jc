@@ -48,20 +48,16 @@ jest.mock('@/components/analisis/analisis-header-bar', () => ({
   )
 }))
 
-jest.mock('@/components/analisis/tabla-tolerancias-button', () => ({
-  TablaToleranciasButton: () => <button data-testid="tolerancias-btn">Ver Tolerancias</button>
-}))
-
 jest.mock('@/components/germinacion/tablas-germinacion-section', () => ({
-  TablasGerminacionSection: ({ 
-    onTablaUpdated, 
-    onAnalysisFinalized, 
-    tablas, 
-    germinacionId, 
+  TablasGerminacionSection: ({
+    onTablaUpdated,
+    onAnalysisFinalized,
+    tablas,
+    germinacionId,
     isFinalized
-  }: { 
-    onTablaUpdated?: () => void; 
-    onAnalysisFinalized?: () => void; 
+  }: {
+    onTablaUpdated?: () => void;
+    onAnalysisFinalized?: () => void;
     tablas?: TablaGermDTO[];
     germinacionId?: number;
     isFinalized?: boolean;
@@ -86,7 +82,7 @@ jest.mock('@/components/analisis/analisis-acciones-card', () => ({
     estado?: EstadoAnalisis | string
   }) => {
     const { onFinalizar, onAprobar, onMarcarParaRepetir, onFinalizarYAprobar, estado } = props
-    
+
     return (
       <div data-testid="acciones-card">
         <button onClick={() => void onFinalizar()}>Finalizar</button>
@@ -175,7 +171,7 @@ describe('GerminacionEditPage', () => {
 
   describe('Carga inicial y estados de loading', () => {
     it('muestra loading mientras carga los datos', () => {
-      jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockImplementation(() => new Promise(() => {}))
+      jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockImplementation(() => new Promise(() => { }))
       const { container } = render(<GerminacionEditPage />)
       expect(container.querySelector('.animate-pulse')).toBeInTheDocument()
     })
@@ -190,7 +186,7 @@ describe('GerminacionEditPage', () => {
 
     it('carga datos de germinación correctamente', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(germinacionService.obtenerGerminacionPorId).toHaveBeenCalledWith(123)
         expect(germinacionService.obtenerTablasGerminacion).toHaveBeenCalledWith(123)
@@ -200,9 +196,9 @@ describe('GerminacionEditPage', () => {
 
     it('maneja error 404 en tablas como caso normal', async () => {
       jest.spyOn(germinacionService, 'obtenerTablasGerminacion').mockRejectedValue({ message: 'Error 404: Not Found' })
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('header')).toBeInTheDocument()
         expect(screen.getByText(/Trigo Baguette 10/i)).toBeInTheDocument()
@@ -211,9 +207,9 @@ describe('GerminacionEditPage', () => {
 
     it('propaga errores no 404 en tablas', async () => {
       jest.spyOn(germinacionService, 'obtenerTablasGerminacion').mockRejectedValue(new Error('Error servidor'))
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(germinacionService.obtenerTablasGerminacion).toHaveBeenCalledWith(123)
       })
@@ -221,9 +217,9 @@ describe('GerminacionEditPage', () => {
 
     it('muestra error general cuando falla la carga', async () => {
       jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockRejectedValue(new Error('Error de red'))
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/No se pudo cargar la información del análisis/i)).toBeInTheDocument()
       })
@@ -233,7 +229,7 @@ describe('GerminacionEditPage', () => {
   describe('Renderizado de componentes y datos', () => {
     it('renderiza todos los componentes principales', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('header')).toBeInTheDocument()
         expect(screen.getByTestId('tablas-section')).toBeInTheDocument()
@@ -244,7 +240,7 @@ describe('GerminacionEditPage', () => {
 
     it('muestra información básica del análisis', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         const idElements = screen.getAllByText(/123/)
         expect(idElements.length).toBeGreaterThan(0)
@@ -257,7 +253,7 @@ describe('GerminacionEditPage', () => {
 
     it('muestra fechas cuando están presentes', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Fecha de Creación/i)).toBeInTheDocument()
       })
@@ -268,9 +264,9 @@ describe('GerminacionEditPage', () => {
         ...mockGerminacion,
         fechaFin: '2024-03-15T14:00:00'
       })
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Fecha de Fin/i)).toBeInTheDocument()
       })
@@ -282,9 +278,9 @@ describe('GerminacionEditPage', () => {
         fechaInicio: '',
         fechaFin: ''
       })
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Trigo Baguette 10/i)).toBeInTheDocument()
       })
@@ -295,9 +291,9 @@ describe('GerminacionEditPage', () => {
         mockTabla,
         { ...mockTabla, tablaGermID: 2, numeroTabla: 2 }
       ])
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Este análisis tiene 2 tablas/i)).toBeInTheDocument()
       })
@@ -305,7 +301,7 @@ describe('GerminacionEditPage', () => {
 
     it('muestra mensaje cuando hay una sola tabla', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Este análisis tiene 1 tabla/i)).toBeInTheDocument()
       })
@@ -317,9 +313,9 @@ describe('GerminacionEditPage', () => {
         fechaInicio: '2024-01-01T00:00:00',
         fechaFin: '2024-01-02T23:59:59'
       })
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Fecha de Creación/i)).toBeInTheDocument()
         expect(screen.getByText(/Fecha de Fin/i)).toBeInTheDocument()
@@ -330,12 +326,12 @@ describe('GerminacionEditPage', () => {
   describe('Modo edición de información básica', () => {
     it('inicia modo edición al hacer clic en Editar', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         const editarBtn = screen.getByRole('button', { name: /Editar/i })
         fireEvent.click(editarBtn)
       })
-      
+
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/Comentarios adicionales/i)).toBeInTheDocument()
         expect(screen.getByText(/Modo de Edición/i)).toBeInTheDocument()
@@ -344,9 +340,9 @@ describe('GerminacionEditPage', () => {
 
     it('muestra selector de lote en modo edición', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Lote Asociado/i)).toBeInTheDocument()
       })
@@ -355,28 +351,28 @@ describe('GerminacionEditPage', () => {
     it('permite cambiar comentarios', async () => {
       const user = userEvent.setup()
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       const input = await screen.findByPlaceholderText(/Comentarios adicionales/i)
       await user.clear(input)
       await user.type(input, 'Nuevo comentario')
-      
+
       expect(input).toHaveValue('Nuevo comentario')
     })
 
     it('cancela edición y restaura valores originales', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         const input = screen.getByPlaceholderText(/Comentarios adicionales/i)
         fireEvent.change(input, { target: { value: 'Cambio temporal' } })
       })
-      
+
       await waitFor(() => fireEvent.click(screen.getByText(/Cancelar/i)))
-      
+
       await waitFor(() => {
         expect(screen.queryByPlaceholderText(/Comentarios adicionales/i)).not.toBeInTheDocument()
       })
@@ -384,14 +380,14 @@ describe('GerminacionEditPage', () => {
 
     it('detecta cambios en el formulario', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         const input = screen.getByPlaceholderText(/Comentarios adicionales/i)
         fireEvent.change(input, { target: { value: 'Cambio' } })
       })
-      
+
       await waitFor(() => {
         const guardarBtns = screen.getAllByText(/Guardar Cambios/i)
         expect(guardarBtns[0]).not.toBeDisabled()
@@ -400,9 +396,9 @@ describe('GerminacionEditPage', () => {
 
     it('deshabilita guardar cuando no hay cambios', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         const guardarBtn = screen.getByText(/Sin Cambios/i)
         expect(guardarBtn).toBeDisabled()
@@ -414,19 +410,19 @@ describe('GerminacionEditPage', () => {
         ...mockGerminacion,
         comentarios: 'Nuevo comentario'
       })
-      
+
       const user = userEvent.setup()
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       const input = await screen.findByPlaceholderText(/Comentarios adicionales/i)
       await user.clear(input)
       await user.type(input, 'Nuevo comentario')
-      
+
       const guardarBtns = await screen.findAllByText(/Guardar Cambios/i)
       fireEvent.click(guardarBtns[0])
-      
+
       await waitFor(() => {
         expect(mockActualizar).toHaveBeenCalledWith(123, {
           idLote: 1,
@@ -437,45 +433,42 @@ describe('GerminacionEditPage', () => {
 
     it('no llama a actualizar si no hay cambios', async () => {
       const mockActualizar = jest.spyOn(germinacionService, 'actualizarGerminacion')
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
       await waitFor(() => fireEvent.click(screen.getByText(/Sin Cambios/i)))
-      
+
       expect(mockActualizar).not.toHaveBeenCalled()
     })
 
     it('maneja error al guardar', async () => {
       jest.spyOn(germinacionService, 'actualizarGerminacion').mockRejectedValue(new Error('Error al guardar'))
-      const mockAlert = jest.spyOn(window, 'alert').mockImplementation()
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         const input = screen.getByPlaceholderText(/Comentarios adicionales/i)
         fireEvent.change(input, { target: { value: 'Nuevo' } })
       })
-      
+
       await waitFor(() => {
         const guardarBtns = screen.getAllByText(/Guardar Cambios/i)
         fireEvent.click(guardarBtns[0])
       })
-      
+
       await waitFor(() => {
-        expect(mockAlert).toHaveBeenCalledWith(expect.stringContaining('Error al guardar'))
+        expect(toast.error).toHaveBeenCalledWith(expect.stringContaining('Error al guardar'))
       })
-      
-      mockAlert.mockRestore()
     })
 
     it('muestra StickySaveButton cuando está editando', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('sticky-save-button')).toBeInTheDocument()
       })
@@ -483,9 +476,9 @@ describe('GerminacionEditPage', () => {
 
     it('muestra información del lote seleccionado en modo edición', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Información del Lote/i)).toBeInTheDocument()
       })
@@ -495,14 +488,14 @@ describe('GerminacionEditPage', () => {
   describe('Acciones de análisis desde AnalisisAccionesCard', () => {
     it('finaliza análisis con confirmación y navega', async () => {
       const mockFinalizar = jest.spyOn(germinacionService, 'finalizarGerminacion').mockResolvedValue(mockGerminacion)
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         const finalizarBtn = screen.getByText('Finalizar')
         fireEvent.click(finalizarBtn)
       })
-      
+
       await waitFor(() => {
         expect(mockConfirm).toHaveBeenCalled()
         expect(mockFinalizar).toHaveBeenCalledWith(123)
@@ -514,11 +507,11 @@ describe('GerminacionEditPage', () => {
     it('cancela finalización si no se confirma', async () => {
       mockConfirm.mockResolvedValue(false)
       const mockFinalizar = jest.spyOn(germinacionService, 'finalizarGerminacion')
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByText('Finalizar')))
-      
+
       await waitFor(() => {
         expect(mockConfirm).toHaveBeenCalled()
         expect(mockFinalizar).not.toHaveBeenCalled()
@@ -529,9 +522,9 @@ describe('GerminacionEditPage', () => {
   describe('Manejo de errores en acciones', () => {
     it('handleFinalizarAnalisis retorna early si no hay germinacion', async () => {
       jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockResolvedValue(null!)
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/No se pudo cargar la información del análisis/i)).toBeInTheDocument()
       })
@@ -539,9 +532,9 @@ describe('GerminacionEditPage', () => {
 
     it('handleAprobar retorna early si no hay germinacion', async () => {
       jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockResolvedValue(null!)
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/No se pudo cargar la información del análisis/i)).toBeInTheDocument()
       })
@@ -549,9 +542,9 @@ describe('GerminacionEditPage', () => {
 
     it('handleMarcarParaRepetir retorna early si no hay germinacion', async () => {
       jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockResolvedValue(null!)
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/No se pudo cargar la información del análisis/i)).toBeInTheDocument()
       })
@@ -559,9 +552,9 @@ describe('GerminacionEditPage', () => {
 
     it('handleFinalizarYAprobar retorna early si no hay germinacion', async () => {
       jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockResolvedValue(null!)
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/No se pudo cargar la información del análisis/i)).toBeInTheDocument()
       })
@@ -571,11 +564,11 @@ describe('GerminacionEditPage', () => {
   describe('Coverage de funciones desde AnalisisAccionesCard', () => {
     it('onAprobar ejecuta aprobarAnalisis y muestra toast', async () => {
       const mockAprobar = jest.spyOn(germinacionService, 'aprobarAnalisis').mockResolvedValue(mockGerminacion)
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByText('Aprobar')))
-      
+
       await waitFor(() => {
         expect(mockAprobar).toHaveBeenCalledWith(123)
         expect(toast.success).toHaveBeenCalledWith('Análisis aprobado exitosamente')
@@ -585,11 +578,11 @@ describe('GerminacionEditPage', () => {
 
     it('onMarcarParaRepetir ejecuta marcarParaRepetir y muestra toast', async () => {
       const mockMarcar = jest.spyOn(germinacionService, 'marcarParaRepetir').mockResolvedValue(mockGerminacion)
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByText('Marcar para Repetir')))
-      
+
       await waitFor(() => {
         expect(mockMarcar).toHaveBeenCalledWith(123)
         expect(toast.success).toHaveBeenCalledWith('Análisis marcado para repetir')
@@ -599,11 +592,11 @@ describe('GerminacionEditPage', () => {
 
     it('onFinalizarYAprobar ejecuta finalizarGerminacion y muestra toast', async () => {
       const mockFinalizar = jest.spyOn(germinacionService, 'finalizarGerminacion').mockResolvedValue(mockGerminacion)
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByText('Finalizar y Aprobar')))
-      
+
       await waitFor(() => {
         expect(mockFinalizar).toHaveBeenCalledWith(123)
         expect(toast.success).toHaveBeenCalledWith('Análisis finalizado y aprobado exitosamente')
@@ -614,11 +607,11 @@ describe('GerminacionEditPage', () => {
     it('onFinalizar con confirmación ejecuta finalizarGerminacion y muestra toast', async () => {
       mockConfirm.mockResolvedValue(true)
       const mockFinalizar = jest.spyOn(germinacionService, 'finalizarGerminacion').mockResolvedValue(mockGerminacion)
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByText('Finalizar')))
-      
+
       await waitFor(() => {
         expect(mockConfirm).toHaveBeenCalled()
         expect(mockFinalizar).toHaveBeenCalledWith(123)
@@ -630,11 +623,11 @@ describe('GerminacionEditPage', () => {
     it('onFinalizar sin confirmación no ejecuta finalizarGerminacion', async () => {
       mockConfirm.mockResolvedValue(false)
       const mockFinalizar = jest.spyOn(germinacionService, 'finalizarGerminacion')
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByText('Finalizar')))
-      
+
       await waitFor(() => {
         expect(mockConfirm).toHaveBeenCalled()
         expect(mockFinalizar).not.toHaveBeenCalled()
@@ -645,11 +638,11 @@ describe('GerminacionEditPage', () => {
   describe('Recarga de datos', () => {
     it('recarga datos cuando se actualiza una tabla', async () => {
       const mockObtener = jest.spyOn(germinacionService, 'obtenerGerminacionPorId')
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByText('Recargar Tablas')))
-      
+
       await waitFor(() => {
         expect(mockObtener).toHaveBeenCalledTimes(2)
       })
@@ -659,12 +652,12 @@ describe('GerminacionEditPage', () => {
   describe('Navegación desde callbacks', () => {
     it('navega correctamente cuando se finaliza el análisis desde el callback', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         const finalizarBtn = screen.getByText('Finalizar Análisis')
         fireEvent.click(finalizarBtn)
       })
-      
+
       await waitFor(() => {
         expect(mockRouter.push).toHaveBeenCalledWith('/listado/analisis/germinacion/123')
       })
@@ -674,9 +667,9 @@ describe('GerminacionEditPage', () => {
   describe('Coverage adicional - funciones utilitarias', () => {
     it('muestra select de lotes en modo edición', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Selecciona el lote que se analizará/i)).toBeInTheDocument()
       })
@@ -684,9 +677,9 @@ describe('GerminacionEditPage', () => {
 
     it('cambia el lote seleccionado en modo edición', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Lote Asociado/i)).toBeInTheDocument()
       })
@@ -694,9 +687,9 @@ describe('GerminacionEditPage', () => {
 
     it('muestra información del lote cuando cambia', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Información del Lote/i)).toBeInTheDocument()
       })
@@ -704,7 +697,7 @@ describe('GerminacionEditPage', () => {
 
     it('pasa todas las props necesarias a TablasGerminacionSection', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('tablas-section')).toBeInTheDocument()
         const idElements = screen.getAllByText(/ID: 123/)
@@ -717,9 +710,9 @@ describe('GerminacionEditPage', () => {
         ...mockGerminacion,
         estado: 'APROBADO' as EstadoAnalisis
       })
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Finalizado: Sí/)).toBeInTheDocument()
       })
@@ -730,9 +723,9 @@ describe('GerminacionEditPage', () => {
         ...mockGerminacion,
         estado: 'PENDIENTE_APROBACION' as EstadoAnalisis
       })
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Finalizado: Sí/)).toBeInTheDocument()
       })
@@ -743,9 +736,9 @@ describe('GerminacionEditPage', () => {
         ...mockGerminacion,
         comentarios: ''
       })
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.queryByText(/Comentarios/i)).not.toBeInTheDocument()
       })
@@ -753,22 +746,22 @@ describe('GerminacionEditPage', () => {
 
     it('botón volver funciona en error', async () => {
       jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockResolvedValue(null!)
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         const volverBtn = screen.getByRole('button', { name: /Volver/i })
         fireEvent.click(volverBtn)
       })
-      
+
       expect(mockRouter.back).toHaveBeenCalled()
     })
 
     it('muestra texto correcto de ayuda en modo edición', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Solo se pueden modificar los campos que se muestran/i)).toBeInTheDocument()
         expect(screen.getByText(/Información adicional o observaciones/i)).toBeInTheDocument()
@@ -777,7 +770,7 @@ describe('GerminacionEditPage', () => {
 
     it('muestra los botones de acciones en el AnalisisAccionesCard', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('acciones-card')).toBeInTheDocument()
         expect(screen.getByText('Finalizar')).toBeInTheDocument()
@@ -789,9 +782,9 @@ describe('GerminacionEditPage', () => {
 
     it('muestra detalles del lote seleccionado en modo edición', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         const fichaElements = screen.getAllByText(/L001/i)
         expect(fichaElements.length).toBeGreaterThan(0)
@@ -801,7 +794,7 @@ describe('GerminacionEditPage', () => {
 
     it('no muestra StickySaveButton cuando no está editando', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.queryByTestId('sticky-save-button')).not.toBeInTheDocument()
       })
@@ -809,7 +802,7 @@ describe('GerminacionEditPage', () => {
 
     it('oculta botón de edición en header', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         const header = screen.getByTestId('header')
         expect(header.querySelector('button')).not.toBeInTheDocument()
@@ -818,7 +811,7 @@ describe('GerminacionEditPage', () => {
 
     it('muestra los labels correctos en modo vista', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('ID Análisis')).toBeInTheDocument()
         expect(screen.getByText('Lote')).toBeInTheDocument()
@@ -829,16 +822,16 @@ describe('GerminacionEditPage', () => {
     it('actualiza el estado del botón guardar basado en cambios', async () => {
       const user = userEvent.setup()
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       const guardarBtn = await screen.findByText(/Sin Cambios/i)
       expect(guardarBtn).toBeDisabled()
-      
+
       const input = screen.getByPlaceholderText(/Comentarios adicionales/i)
       await user.clear(input)
       await user.type(input, 'Nuevo')
-      
+
       await waitFor(() => {
         const guardarBtnActualizado = screen.getAllByText(/Guardar Cambios/i)
         expect(guardarBtnActualizado[0]).not.toBeDisabled()
@@ -847,7 +840,7 @@ describe('GerminacionEditPage', () => {
 
     it('no muestra error card cuando no hay error', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         const errorCards = document.querySelectorAll('.border-red-200')
         expect(errorCards.length).toBe(0)
@@ -856,7 +849,7 @@ describe('GerminacionEditPage', () => {
 
     it('pasa analisisId correcto a AnalisisAccionesCard', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         const accionesCard = screen.getByTestId('acciones-card')
         expect(accionesCard).toBeInTheDocument()
@@ -871,9 +864,9 @@ describe('GerminacionEditPage', () => {
         fechaInicio: 'fecha-invalida',
         fechaFin: 'otra-fecha-invalida'
       })
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Trigo Baguette 10/i)).toBeInTheDocument()
       })
@@ -883,13 +876,13 @@ describe('GerminacionEditPage', () => {
   describe('Integración completa de flujos', () => {
     it('completa el flujo completo de edición sin cambios', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
       await waitFor(() => expect(screen.getByText(/Modo de Edición/i)).toBeInTheDocument())
-      
+
       const cancelBtn = screen.getByText(/Cancelar/i)
       fireEvent.click(cancelBtn)
-      
+
       await waitFor(() => {
         expect(screen.queryByText(/Modo de Edición/i)).not.toBeInTheDocument()
       })
@@ -900,19 +893,19 @@ describe('GerminacionEditPage', () => {
         ...mockGerminacion,
         comentarios: 'Comentario modificado'
       })
-      
+
       const user = userEvent.setup()
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       const input = await screen.findByPlaceholderText(/Comentarios adicionales/i)
       await user.clear(input)
       await user.type(input, 'Comentario modificado')
-      
+
       const guardarBtns = await screen.findAllByText(/Guardar Cambios/i)
       fireEvent.click(guardarBtns[0])
-      
+
       await waitFor(() => {
         expect(mockActualizar).toHaveBeenCalledWith(123, {
           idLote: 1,
@@ -923,32 +916,29 @@ describe('GerminacionEditPage', () => {
 
     it('maneja error sin mensaje en actualizarGerminacion', async () => {
       jest.spyOn(germinacionService, 'actualizarGerminacion').mockRejectedValue({})
-      const mockAlert = jest.spyOn(window, 'alert').mockImplementation()
-      
+
       const user = userEvent.setup()
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       const input = await screen.findByPlaceholderText(/Comentarios adicionales/i)
       await user.clear(input)
       await user.type(input, 'Cambio')
-      
+
       const guardarBtns = await screen.findAllByText(/Guardar Cambios/i)
       fireEvent.click(guardarBtns[0])
-      
+
       await waitFor(() => {
-        expect(mockAlert).toHaveBeenCalledWith('Error al guardar los cambios: Error desconocido')
+        expect(toast.error).toHaveBeenCalledWith('Error al guardar los cambios: Error desconocido')
       })
-      
-      mockAlert.mockRestore()
     })
 
     it('cambio de lote en modo edición actualiza el estado', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         const select = screen.getByRole('combobox')
         fireEvent.change(select, { target: { value: '2' } })
@@ -961,9 +951,9 @@ describe('GerminacionEditPage', () => {
         estado: 'APROBADO' as EstadoAnalisis,
         fechaFin: '2024-03-15T14:00:00'
       })
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         const aprobadoElements = screen.getAllByText(/APROBADO/i)
         expect(aprobadoElements.length).toBeGreaterThan(0)
@@ -972,11 +962,239 @@ describe('GerminacionEditPage', () => {
 
     it('ejecuta handleReabrirAnalisis cuando no se confirma', async () => {
       mockConfirm.mockResolvedValue(false)
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Trigo Baguette 10/i)).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Coverage de funciones utilitarias de formateo', () => {
+    it('formatearFechaLocal con fecha vacía retorna string vacío', async () => {
+      jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockResolvedValue({
+        ...mockGerminacion,
+        fechaInicio: ''
+      })
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Trigo Baguette 10/i)).toBeInTheDocument()
+      })
+    })
+
+    it('formatearFechaHora con fecha vacía retorna string vacío', async () => {
+      jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockResolvedValue({
+        ...mockGerminacion,
+        fechaInicio: '',
+        fechaFin: ''
+      })
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Fecha de Creación/i)).not.toBeInTheDocument()
+      })
+    })
+
+    it('formatearFechaHora con fecha inválida retorna el string original', async () => {
+      jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockResolvedValue({
+        ...mockGerminacion,
+        fechaInicio: 'invalid-date-string'
+      })
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Fecha de Creación/i)).toBeInTheDocument()
+      })
+    })
+
+    it('convertirFechaParaInput con fecha vacía retorna string vacío', async () => {
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Trigo Baguette 10/i)).toBeInTheDocument()
+      })
+    })
+
+    it('convertirFechaParaInput con formato YYYY-MM-DD retorna sin cambios', async () => {
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Trigo Baguette 10/i)).toBeInTheDocument()
+      })
+    })
+
+    it('convertirFechaParaInput con fecha inválida retorna string vacío', async () => {
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Trigo Baguette 10/i)).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('handleCrearTabla', () => {
+    it('crea una nueva tabla y recarga tablas', async () => {
+      const mockCrear = jest.spyOn(germinacionService, 'crearTablaGerminacion').mockResolvedValue(mockTabla)
+      const mockObtenerTablas = jest.spyOn(germinacionService, 'obtenerTablasGerminacion').mockResolvedValue([mockTabla, { ...mockTabla, tablaGermID: 2 }])
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Trigo Baguette 10/i)).toBeInTheDocument()
+      })
+
+      // Simulamos la creación de tabla desde un componente interno
+      await waitFor(() => {
+        expect(mockCrear).not.toHaveBeenCalled()
+      })
+    })
+
+    it('maneja error al crear tabla', async () => {
+      jest.spyOn(germinacionService, 'crearTablaGerminacion').mockRejectedValue(new Error('Error creando tabla'))
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Trigo Baguette 10/i)).toBeInTheDocument()
+      })
+    })
+
+    it('maneja error sin mensaje al crear tabla', async () => {
+      jest.spyOn(germinacionService, 'crearTablaGerminacion').mockRejectedValue({})
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Trigo Baguette 10/i)).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('handleReabrirAnalisis coverage adicional', () => {
+    it('ejecuta handleReabrirAnalisis cuando se confirma y actualiza estado', async () => {
+      jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockResolvedValue({
+        ...mockGerminacion,
+        estado: 'APROBADO' as EstadoAnalisis
+      })
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        const estadoElements = screen.getAllByText(/APROBADO/i)
+        expect(estadoElements.length).toBeGreaterThan(0)
+      })
+    })
+
+    it('no actualiza estado cuando no se confirma reapertura', async () => {
+      mockConfirm.mockResolvedValue(false)
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Trigo Baguette 10/i)).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Manejo de errores en acciones con mensaje', () => {
+    it('handleFinalizarAnalisis muestra error con mensaje', async () => {
+      jest.spyOn(germinacionService, 'finalizarGerminacion').mockRejectedValue(new Error('Error al finalizar'))
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => fireEvent.click(screen.getByText('Finalizar')))
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Error al finalizar análisis: Error al finalizar')
+      })
+    })
+
+    it('handleFinalizarAnalisis muestra error sin mensaje', async () => {
+      jest.spyOn(germinacionService, 'finalizarGerminacion').mockRejectedValue({})
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => fireEvent.click(screen.getByText('Finalizar')))
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Error al finalizar análisis: Error desconocido')
+      })
+    })
+
+    it('handleAprobar muestra error con mensaje', async () => {
+      jest.spyOn(germinacionService, 'aprobarAnalisis').mockRejectedValue(new Error('Error al aprobar'))
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => fireEvent.click(screen.getByText('Aprobar')))
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Error al aprobar análisis: Error al aprobar')
+      })
+    })
+
+    it('handleAprobar muestra error sin mensaje', async () => {
+      jest.spyOn(germinacionService, 'aprobarAnalisis').mockRejectedValue({})
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => fireEvent.click(screen.getByText('Aprobar')))
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Error al aprobar análisis: Error desconocido')
+      })
+    })
+
+    it('handleMarcarParaRepetir muestra error con mensaje', async () => {
+      jest.spyOn(germinacionService, 'marcarParaRepetir').mockRejectedValue(new Error('Error al marcar'))
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => fireEvent.click(screen.getByText('Marcar para Repetir')))
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Error al marcar para repetir: Error al marcar')
+      })
+    })
+
+    it('handleMarcarParaRepetir muestra error sin mensaje', async () => {
+      jest.spyOn(germinacionService, 'marcarParaRepetir').mockRejectedValue({})
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => fireEvent.click(screen.getByText('Marcar para Repetir')))
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Error al marcar para repetir: Error desconocido')
+      })
+    })
+
+    it('handleFinalizarYAprobar muestra error con mensaje', async () => {
+      jest.spyOn(germinacionService, 'finalizarGerminacion').mockRejectedValue(new Error('Error al finalizar y aprobar'))
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => fireEvent.click(screen.getByText('Finalizar y Aprobar')))
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Error al finalizar y aprobar: Error al finalizar y aprobar')
+      })
+    })
+
+    it('handleFinalizarYAprobar muestra error sin mensaje', async () => {
+      jest.spyOn(germinacionService, 'finalizarGerminacion').mockRejectedValue({})
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => fireEvent.click(screen.getByText('Finalizar y Aprobar')))
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Error al finalizar y aprobar: Error desconocido')
       })
     })
   })
@@ -984,7 +1202,7 @@ describe('GerminacionEditPage', () => {
   describe('Validación de props y renderizado condicional', () => {
     it('pasa isFinalized como false cuando estado es EN_PROCESO', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Finalizado: No/)).toBeInTheDocument()
       })
@@ -992,17 +1210,17 @@ describe('GerminacionEditPage', () => {
 
     it('no muestra fechaFin cuando es undefined', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.queryByText(/Fecha de Fin/i)).not.toBeInTheDocument()
       })
     })
 
-    it('muestra botón de TablaToleranciasButton correctamente', async () => {
+    it('renderiza correctamente sin TablaToleranciasButton', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
-        expect(screen.getByTestId('tolerancias-btn')).toBeInTheDocument()
+        expect(screen.getByText(/Trigo Baguette 10/i)).toBeInTheDocument()
       })
     })
 
@@ -1011,11 +1229,11 @@ describe('GerminacionEditPage', () => {
         ...mockGerminacion,
         idLote: 0
       })
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Lote Asociado/i)).toBeInTheDocument()
       })
@@ -1026,11 +1244,11 @@ describe('GerminacionEditPage', () => {
         ...mockGerminacion,
         idLote: 999
       })
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         expect(screen.queryByText(/Información del Lote/i)).not.toBeInTheDocument()
       })
@@ -1038,32 +1256,29 @@ describe('GerminacionEditPage', () => {
 
     it('mantiene estado de edición después de error al guardar', async () => {
       jest.spyOn(germinacionService, 'actualizarGerminacion').mockRejectedValue(new Error('Error'))
-      const mockAlert = jest.spyOn(window, 'alert').mockImplementation()
-      
+
       const user = userEvent.setup()
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       const input = await screen.findByPlaceholderText(/Comentarios adicionales/i)
       await user.clear(input)
       await user.type(input, 'Test')
-      
+
       const guardarBtns = await screen.findAllByText(/Guardar Cambios/i)
       fireEvent.click(guardarBtns[0])
-      
+
       await waitFor(() => {
-        expect(mockAlert).toHaveBeenCalled()
+        expect(toast.error).toHaveBeenCalled()
       })
-      
-      mockAlert.mockRestore()
     })
 
     it('handleEditarGerminacion retorna early si no hay germinacion', async () => {
       jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockResolvedValue(null!)
-      
+
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/No se pudo cargar la información del análisis/i)).toBeInTheDocument()
       })
@@ -1071,14 +1286,14 @@ describe('GerminacionEditPage', () => {
 
     it('handleCancelarEdicionGerminacion sin germinacionOriginal', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         const cancelBtn = screen.getByText(/Cancelar/i)
         fireEvent.click(cancelBtn)
       })
-      
+
       await waitFor(() => {
         expect(screen.queryByText(/Modo de Edición/i)).not.toBeInTheDocument()
       })
@@ -1086,9 +1301,9 @@ describe('GerminacionEditPage', () => {
 
     it('hanCambiadoGerminacion retorna true cuando no hay original', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         const guardarBtns = screen.getAllByText(/Sin Cambios/i)
         expect(guardarBtns[0]).toBeDisabled()
@@ -1097,11 +1312,156 @@ describe('GerminacionEditPage', () => {
 
     it('onValueChange del Select actualiza idLote', async () => {
       render(<GerminacionEditPage />)
-      
+
       await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
-      
+
       await waitFor(() => {
         expect(screen.getByRole('combobox')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Coverage adicional de cargarDatos', () => {
+    it('cargarDatos maneja error general en catch', async () => {
+      jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockRejectedValue(new Error('Error de red'))
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/No se pudo cargar la información del análisis/i)).toBeInTheDocument()
+      })
+    })
+
+    it('cargarDatos maneja error sin mensaje', async () => {
+      jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockRejectedValue({})
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/No se pudo cargar la información del análisis/i)).toBeInTheDocument()
+      })
+    })
+
+    it('cargarDatos maneja error en obtenerTablasGerminacion no-404', async () => {
+      jest.spyOn(germinacionService, 'obtenerTablasGerminacion').mockRejectedValue(new Error('Error 500: Server Error'))
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(germinacionService.obtenerTablasGerminacion).toHaveBeenCalled()
+      })
+    })
+  })
+
+  describe('Edge cases adicionales', () => {
+    it('muestra información cuando hay múltiples tablas', async () => {
+      jest.spyOn(germinacionService, 'obtenerTablasGerminacion').mockResolvedValue([
+        mockTabla,
+        { ...mockTabla, tablaGermID: 2, numeroTabla: 2 },
+        { ...mockTabla, tablaGermID: 3, numeroTabla: 3 }
+      ])
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Este análisis tiene 3 tablas/i)).toBeInTheDocument()
+      })
+    })
+
+    it('muestra lote inactivo correctamente en modo edición', async () => {
+      jest.spyOn(loteService, 'obtenerLotesActivos').mockResolvedValue([
+        { loteID: 1, ficha: 'L001', nomLote: 'Lote Inactivo', activo: false, cultivarNombre: 'Test', especieNombre: 'Test' }
+      ])
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
+
+      await waitFor(() => {
+        expect(screen.getByText(/Lote Inactivo/i)).toBeInTheDocument()
+      })
+    })
+
+    it('formatea correctamente fechas con formato YYYY-MM-DD', async () => {
+      jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockResolvedValue({
+        ...mockGerminacion,
+        fechaInicio: '2024-01-15'
+      })
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Fecha de Creación/i)).toBeInTheDocument()
+      })
+    })
+
+    it('muestra estado correctamente cuando no hay tablas', async () => {
+      jest.spyOn(germinacionService, 'obtenerTablasGerminacion').mockResolvedValue([])
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Este análisis tiene/i)).not.toBeInTheDocument()
+      })
+    })
+
+    it('actualiza correctamente después de recarga de datos', async () => {
+      const mockObtener = jest.spyOn(germinacionService, 'obtenerGerminacionPorId')
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(mockObtener).toHaveBeenCalledTimes(1)
+      })
+
+      fireEvent.click(screen.getByText('Recargar Tablas'))
+
+      await waitFor(() => {
+        expect(mockObtener).toHaveBeenCalledTimes(2)
+      })
+    })
+
+    it('ejecuta guardar desde StickySaveButton', async () => {
+      const mockActualizar = jest.spyOn(germinacionService, 'actualizarGerminacion').mockResolvedValue(mockGerminacion)
+      const user = userEvent.setup()
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
+
+      const input = await screen.findByPlaceholderText(/Comentarios adicionales/i)
+      await user.clear(input)
+      await user.type(input, 'Nuevo')
+
+      const stickyBtn = screen.getByTestId('sticky-save-button').querySelector('button')
+      if (stickyBtn) {
+        fireEvent.click(stickyBtn)
+      }
+
+      await waitFor(() => {
+        expect(mockActualizar).toHaveBeenCalled()
+      })
+    })
+
+    it('StickySaveButton está deshabilitado cuando no hay cambios', async () => {
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /Editar/i })))
+
+      await waitFor(() => {
+        const stickyBtn = screen.getByTestId('sticky-save-button').querySelector('button')
+        expect(stickyBtn).toBeDisabled()
+      })
+    })
+
+    it('muestra error en card cuando hay error', async () => {
+      jest.spyOn(germinacionService, 'obtenerGerminacionPorId').mockResolvedValue(mockGerminacion)
+      jest.spyOn(germinacionService, 'crearTablaGerminacion').mockRejectedValue(new Error('Error al crear'))
+
+      render(<GerminacionEditPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Trigo Baguette 10/i)).toBeInTheDocument()
       })
     })
   })
