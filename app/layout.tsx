@@ -11,6 +11,7 @@ import { PWAInstallPrompt } from "@/components/pwa-install"
 import { NetworkStatusIndicator } from "@/components/network-status"
 import { ToastContainer } from "@/components/ui/toast-container"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { Toaster } from "sonner"
 import { Suspense } from "react"
 import "./globals.css"
 
@@ -69,7 +70,7 @@ export default function RootLayout({
         {/* PWA Meta Tags */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0066cc" />
-  <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="INIA" />
@@ -90,6 +91,7 @@ export default function RootLayout({
                   <PWAInstallPrompt />
                   <NetworkStatusIndicator />
                   <ToastContainer />
+                  <Toaster richColors position="top-right" />
                   <ConfirmDialog />
                 </NotificationProvider>
               </AuthProvider>

@@ -6,13 +6,14 @@ import { CheckCircle, RefreshCw, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { useAuth } from "@/components/auth-provider"
 import { useConfirm } from "@/lib/hooks/useConfirm"
+import { toast } from "sonner"
 
 interface AnalisisAccionesCardProps {
   // Datos del análisis
   analisisId: number
   tipoAnalisis: "tetrazolio" | "pms" | "dosn" | "pureza" | "germinacion"
   estado: string
-  
+
   // Funciones de acción
   onAprobar?: () => Promise<void>
   onMarcarParaRepetir?: () => Promise<void>
@@ -90,14 +91,14 @@ export function AnalisisAccionesCard({
     } catch (error: any) {
       console.error(`Error al ${nombreAccion}:`, error)
       const errorMessage = error?.message || `Error al ${nombreAccion}. Por favor, intente nuevamente.`
-      alert(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setEjecutandoAccion(false)
     }
   }
 
   // ========== CASOS PARA ADMINISTRADOR ==========
-  
+
   if (esAdmin) {
     // CASO 1: Admin y análisis en PENDIENTE_APROBACION
     if (estado === "PENDIENTE_APROBACION") {
@@ -113,7 +114,7 @@ export function AnalisisAccionesCard({
                 <CheckCircle className="h-4 w-4 mr-2" />
                 {ejecutandoAccion ? "Aprobando..." : "Aprobar Análisis"}
               </Button>
-              
+
               <Button
                 onClick={() => onMarcarParaRepetir && handleAccion(onMarcarParaRepetir, "marcar para repetir")}
                 disabled={ejecutandoAccion || !onMarcarParaRepetir}
@@ -128,7 +129,7 @@ export function AnalisisAccionesCard({
         </Card>
       )
     }
-    
+
     // CASO 2: Admin y análisis APROBADO (puede marcar para repetir)
     if (estado === "APROBADO") {
       return (
@@ -149,7 +150,7 @@ export function AnalisisAccionesCard({
         </Card>
       )
     }
-    
+
     // CASO 3: Admin y análisis A_REPETIR (puede aprobar con menos énfasis)
     if (estado === "A_REPETIR") {
       return (
@@ -170,7 +171,7 @@ export function AnalisisAccionesCard({
         </Card>
       )
     }
-    
+
     // CASO 4: Admin y análisis en otro estado (REGISTRADO, etc.) - Finalizar y aprobar + Marcar para repetir
     return (
       <Card>
@@ -184,7 +185,7 @@ export function AnalisisAccionesCard({
               <CheckCircle className="h-4 w-4 mr-2" />
               {ejecutandoAccion ? "Finalizando..." : "Finalizar y Aprobar"}
             </Button>
-            
+
             <Button
               onClick={() => onMarcarParaRepetir && handleAccion(onMarcarParaRepetir, "marcar para repetir")}
               disabled={ejecutandoAccion || !onMarcarParaRepetir}
@@ -201,7 +202,7 @@ export function AnalisisAccionesCard({
   }
 
   // ========== CASOS PARA ANALISTA ==========
-  
+
   if (esAnalista) {
     // Analistas solo pueden finalizar análisis que no estén en PENDIENTE_APROBACION, APROBADO o A_REPETIR
     if (estado !== "PENDIENTE_APROBACION" && estado !== "APROBADO" && estado !== "A_REPETIR") {
@@ -222,7 +223,7 @@ export function AnalisisAccionesCard({
         </Card>
       )
     }
-    
+
     // Si el analista está viendo un análisis en PENDIENTE_APROBACION, APROBADO o A_REPETIR, no mostrar acciones
     return null
   }

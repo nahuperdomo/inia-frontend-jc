@@ -49,7 +49,7 @@ export function RepeticionRow({
       callback(0)
       return
     }
-    
+
     // Si el valor actual es 0 y se está escribiendo algo diferente de '0', reemplazar completamente
     if (valorActual === 0 && valorString !== '0') {
       const numeroIngresado = parseInt(valorString) || 0
@@ -80,7 +80,7 @@ export function RepeticionRow({
   useEffect(() => {
     const totalNormales = datos.normales.reduce((sum, val) => sum + val, 0)
     const nuevoTotal = totalNormales + datos.anormales + datos.duras + datos.frescas + datos.muertas
-    
+
     if (nuevoTotal !== datos.total) {
       setDatos(prev => ({ ...prev, total: nuevoTotal }))
     }
@@ -91,7 +91,7 @@ export function RepeticionRow({
     if (!fechasConteos || fechasConteos.length === 0) return false
     const fechaActual = new Date()
     fechaActual.setHours(0, 0, 0, 0)
-    
+
     return fechasConteos.some(fechaStr => {
       const fechaConteo = new Date(fechaStr)
       fechaConteo.setHours(0, 0, 0, 0)
@@ -102,20 +102,20 @@ export function RepeticionRow({
   const handleGuardar = async () => {
     console.log(` RepeticionRow ${numeroRepeticion}: Iniciando validación para guardar`)
     console.log(" Datos actuales:", datos)
-    
+
     const limiteMaximo = Math.floor(numSemillasPRep * 1.05)
-    
+
     // Validación del máximo - siempre se aplica
     if (datos.total > limiteMaximo) {
       console.log(` Validación fallida: total ${datos.total} excede límite ${limiteMaximo}`)
-      alert(`El total (${datos.total}) excede el límite máximo permitido (${limiteMaximo} - con 5% de tolerancia sobre ${numSemillasPRep} semillas)`)
+      toast.error(`El total (${datos.total}) excede el límite máximo permitido (${limiteMaximo} - con 5% de tolerancia sobre ${numSemillasPRep} semillas)`)
       return
     }
 
     // Validación: debe haber al menos un valor mayor a 0
     if (datos.total === 0) {
       console.log(" Validación fallida: total es 0")
-      alert("Debe ingresar al menos un valor mayor a 0")
+      toast.error("Debe ingresar al menos un valor mayor a 0")
       return
     }
 
@@ -126,15 +126,15 @@ export function RepeticionRow({
     if (datos.frescas < 0) valoresNegativos.push("Frescas")
     if (datos.muertas < 0) valoresNegativos.push("Muertas")
     if (datos.normales.some(val => val < 0)) valoresNegativos.push("Normales")
-    
+
     if (valoresNegativos.length > 0) {
       console.log(" Validación fallida: valores negativos en", valoresNegativos)
-      alert(`Los siguientes campos no pueden ser negativos: ${valoresNegativos.join(", ")}`)
+      toast.error(`Los siguientes campos no pueden ser negativos: ${valoresNegativos.join(", ")}`)
       return
     }
 
     console.log(" Validaciones pasadas, llamando a onGuardar...")
-    
+
     try {
       setGuardando(true)
       await onGuardar(datos)
@@ -191,12 +191,12 @@ export function RepeticionRow({
   // Función para validar si se puede ingresar datos en un conteo específico
   const puedeIngresarConteo = (indiceConteo: number): boolean => {
     if (!fechasConteos || !fechasConteos[indiceConteo]) return true
-    
+
     const fechaConteo = new Date(fechasConteos[indiceConteo])
     const fechaActual = new Date()
     fechaActual.setHours(0, 0, 0, 0) // Resetear horas para comparar solo fechas
     fechaConteo.setHours(0, 0, 0, 0)
-    
+
     return fechaConteo <= fechaActual
   }
 
@@ -204,22 +204,22 @@ export function RepeticionRow({
   // Estos campos se cuentan en el último conteo, por lo que dependen de su fecha
   const puedeIngresarCamposUltimoConteo = (): boolean => {
     if (!fechasConteos || fechasConteos.length === 0) return true
-    
+
     const fechaUltimoConteo = fechasConteos[fechasConteos.length - 1]
     if (!fechaUltimoConteo) return true
-    
+
     const fechaConteo = new Date(fechaUltimoConteo)
     const fechaActual = new Date()
     fechaActual.setHours(0, 0, 0, 0)
     fechaConteo.setHours(0, 0, 0, 0)
-    
+
     return fechaConteo <= fechaActual
   }
 
   const limiteMinimo = Math.floor(numSemillasPRep * 0.95)
   const limiteMaximo = Math.floor(numSemillasPRep * 1.05)
   const tieneFechasFuturas = hayFechasFuturas()
-  
+
   // totalExcedido solo si excede el máximo (el mínimo solo es advertencia)
   const totalExcedido = datos.total > limiteMaximo
   const totalBajoMinimo = datos.total < limiteMinimo && datos.total > 0
@@ -240,7 +240,7 @@ export function RepeticionRow({
               </Badge>
             )}
           </div>
-          
+
           <div className="flex gap-2">
             {/* Si hay repetición guardada y no está en modo edición, mostrar botón Editar */}
             {repeticion && !modoEdicion && (
@@ -253,7 +253,7 @@ export function RepeticionRow({
                 Editar
               </Button>
             )}
-            
+
             {/* Si está en modo edición O no hay repetición creada, mostrar botones de acción */}
             {(modoEdicion || !repeticion) && (
               <>
@@ -266,7 +266,7 @@ export function RepeticionRow({
                   <X className="h-4 w-4 mr-1" />
                   Cancelar
                 </Button>
-                
+
                 <Button
                   variant="default"
                   size="sm"
@@ -304,7 +304,7 @@ export function RepeticionRow({
                       min="0"
                       max={numSemillasPRep}
                       value={modoEdicion && valor === 0 ? '' : valor}
-                      onChange={(e) => manejarCambioNumerico(e.target.value, valor, (nuevoValor) => 
+                      onChange={(e) => manejarCambioNumerico(e.target.value, valor, (nuevoValor) =>
                         actualizarNormal(indice, nuevoValor)
                       )}
                       disabled={!modoEdicion || !puedeIngresar}
@@ -337,7 +337,7 @@ export function RepeticionRow({
                 min="0"
                 max={numSemillasPRep}
                 value={modoEdicion && datos.anormales === 0 ? '' : datos.anormales}
-                onChange={(e) => manejarCambioNumerico(e.target.value, datos.anormales, (nuevoValor) => 
+                onChange={(e) => manejarCambioNumerico(e.target.value, datos.anormales, (nuevoValor) =>
                   actualizarCampo('anormales', nuevoValor)
                 )}
                 disabled={!modoEdicion || !puedeIngresarCamposUltimoConteo()}
@@ -345,7 +345,7 @@ export function RepeticionRow({
                 title={!puedeIngresarCamposUltimoConteo() ? "No se puede ingresar datos hasta la fecha del último conteo" : ""}
               />
             </div>
-            
+
             <div>
               <label className="text-sm font-medium">
                 Duras
@@ -358,7 +358,7 @@ export function RepeticionRow({
                 min="0"
                 max={numSemillasPRep}
                 value={modoEdicion && datos.duras === 0 ? '' : datos.duras}
-                onChange={(e) => manejarCambioNumerico(e.target.value, datos.duras, (nuevoValor) => 
+                onChange={(e) => manejarCambioNumerico(e.target.value, datos.duras, (nuevoValor) =>
                   actualizarCampo('duras', nuevoValor)
                 )}
                 disabled={!modoEdicion || !puedeIngresarCamposUltimoConteo()}
@@ -366,7 +366,7 @@ export function RepeticionRow({
                 title={!puedeIngresarCamposUltimoConteo() ? "No se puede ingresar datos hasta la fecha del último conteo" : ""}
               />
             </div>
-            
+
             <div>
               <label className="text-sm font-medium">
                 Frescas
@@ -379,7 +379,7 @@ export function RepeticionRow({
                 min="0"
                 max={numSemillasPRep}
                 value={modoEdicion && datos.frescas === 0 ? '' : datos.frescas}
-                onChange={(e) => manejarCambioNumerico(e.target.value, datos.frescas, (nuevoValor) => 
+                onChange={(e) => manejarCambioNumerico(e.target.value, datos.frescas, (nuevoValor) =>
                   actualizarCampo('frescas', nuevoValor)
                 )}
                 disabled={!modoEdicion || !puedeIngresarCamposUltimoConteo()}
@@ -387,7 +387,7 @@ export function RepeticionRow({
                 title={!puedeIngresarCamposUltimoConteo() ? "No se puede ingresar datos hasta la fecha del último conteo" : ""}
               />
             </div>
-            
+
             <div>
               <label className="text-sm font-medium">
                 Muertas
@@ -400,7 +400,7 @@ export function RepeticionRow({
                 min="0"
                 max={numSemillasPRep}
                 value={modoEdicion && datos.muertas === 0 ? '' : datos.muertas}
-                onChange={(e) => manejarCambioNumerico(e.target.value, datos.muertas, (nuevoValor) => 
+                onChange={(e) => manejarCambioNumerico(e.target.value, datos.muertas, (nuevoValor) =>
                   actualizarCampo('muertas', nuevoValor)
                 )}
                 disabled={!modoEdicion || !puedeIngresarCamposUltimoConteo()}

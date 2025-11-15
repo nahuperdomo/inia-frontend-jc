@@ -5,12 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { RepGermDTO, RepGermRequestDTO, TablaGermDTO } from '@/app/models/interfaces/repeticiones'
 import { RepeticionRow } from './repeticion-row'
-import { 
-  obtenerRepeticionesDeTabla, 
-  crearRepeticion, 
-  actualizarRepeticion 
+import {
+  obtenerRepeticionesDeTabla,
+  crearRepeticion,
+  actualizarRepeticion
 } from '@/app/services/germinacion-service'
 import { Users } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface RepeticionesManagerProps {
   tabla: TablaGermDTO
@@ -39,7 +40,7 @@ export function RepeticionesManager({
     try {
       setLoading(true)
       setError("")
-      
+
       console.log(` Cargando repeticiones para tabla ${tabla.tablaGermID}...`)
       const data = await obtenerRepeticionesDeTabla(germinacionId, tabla.tablaGermID)
       console.log(` Repeticiones cargadas para tabla ${tabla.tablaGermID}:`, data.length, "repeticiones")
@@ -69,22 +70,22 @@ export function RepeticionesManager({
     try {
       console.log(` Intentando guardar repetición ${numeroRep} para tabla ${tabla.tablaGermID}`)
       console.log(" Datos a guardar:", datos)
-      
+
       const repeticionExistente = repeticiones.find(r => r.numRep === numeroRep)
       let repeticionesActualizadas: RepGermDTO[]
-      
+
       if (repeticionExistente) {
         // Actualizar existente
         console.log(` Actualizando repetición existente con ID ${repeticionExistente.repGermID}`)
         const repeticionActualizada = await actualizarRepeticion(
-          germinacionId, 
-          tabla.tablaGermID, 
-          repeticionExistente.repGermID, 
+          germinacionId,
+          tabla.tablaGermID,
+          repeticionExistente.repGermID,
           datos
         )
         console.log(" Repetición actualizada exitosamente:", repeticionActualizada)
-        
-        repeticionesActualizadas = repeticiones.map(r => 
+
+        repeticionesActualizadas = repeticiones.map(r =>
           r.repGermID === repeticionExistente.repGermID ? repeticionActualizada : r
         )
         setRepeticiones(repeticionesActualizadas)
@@ -93,23 +94,23 @@ export function RepeticionesManager({
         console.log(`➕ Creando nueva repetición ${numeroRep}`)
         const nuevaRepeticion = await crearRepeticion(germinacionId, tabla.tablaGermID, datos)
         console.log(" Repetición creada exitosamente:", nuevaRepeticion)
-        
+
         repeticionesActualizadas = [...repeticiones, nuevaRepeticion]
         setRepeticiones(repeticionesActualizadas)
       }
-      
+
       console.log(` Total de repeticiones ahora: ${repeticionesActualizadas.length}`)
-      
+
       // Actualizar callback con las repeticiones realmente actualizadas
       onRepeticionesUpdated(repeticionesActualizadas)
-      
+
       console.log(" Repetición guardada y estado actualizado correctamente")
-      
+
     } catch (error: any) {
       console.error(" Error guardando repetición:", error)
       console.error(" Mensaje de error:", error?.message || error)
       console.error(" Detalles completos:", error)
-      alert(`Error al guardar la repetición: ${error?.message || 'Error desconocido'}`)
+      toast.error(`Error al guardar la repetición: ${error?.message || 'Error desconocido'}`)
       throw error
     }
   }
@@ -138,18 +139,18 @@ export function RepeticionesManager({
             {repeticionesCompletas}/{numeroRepeticiones}
           </Badge>
         </CardTitle>
-        
+
         {error && (
           <div className="text-red-600 text-sm">{error}</div>
         )}
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* Mostrar todas las repeticiones posibles */}
         {Array.from({ length: numeroRepeticiones }, (_, index) => {
           const numeroRep = index + 1
           const repeticionExistente = repeticiones.find(r => r.numRep === numeroRep)
-          
+
           return (
             <RepeticionRow
               key={repeticionExistente ? `rep-${repeticionExistente.repGermID}` : `nuevo-rep-${numeroRep}`}
@@ -171,10 +172,10 @@ export function RepeticionesManager({
             <div>• Se requieren <strong>{numeroConteos} conteos</strong> en el campo "Normales"</div>
             <div>• Total de repeticiones requeridas: <strong>{numeroRepeticiones}</strong></div>
           </div>
-          
+
           {todasCompletas && (
             <div className="mt-2 text-green-600 font-medium">
-               Todas las repeticiones están completas. Ya puede ingresar porcentajes para finalizar la tabla.
+              Todas las repeticiones están completas. Ya puede ingresar porcentajes para finalizar la tabla.
             </div>
           )}
         </div>

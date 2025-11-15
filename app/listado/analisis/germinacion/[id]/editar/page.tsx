@@ -264,7 +264,7 @@ export default function GerminacionDetailPage() {
       setGerminacionOriginal(null)
     } catch (error: any) {
       console.error(" Error guardando germinación:", error)
-      alert(`Error al guardar los cambios: ${error.message || 'Error desconocido'}`)
+      toast.error(`Error al guardar los cambios: ${error.message || 'Error desconocido'}`)
     }
   }
 
@@ -275,11 +275,11 @@ export default function GerminacionDetailPage() {
     try {
       console.log("Finalizando análisis Germinación:", germinacion.analisisID)
       await finalizarGerminacion(germinacion.analisisID)
-      alert("Análisis finalizado exitosamente")
+      toast.success("Análisis finalizado exitosamente")
       await cargarDatos()
     } catch (err: any) {
       console.error("Error finalizando análisis:", err)
-      alert(`Error al finalizar análisis: ${err?.message || "Error desconocido"}`)
+      toast.error(`Error al finalizar análisis: ${err?.message || "Error desconocido"}`)
     }
   }
 
@@ -290,11 +290,11 @@ export default function GerminacionDetailPage() {
     try {
       console.log(" Aprobando análisis Germinación:", germinacion.analisisID)
       await aprobarAnalisis(germinacion.analisisID)
-      alert("Análisis aprobado exitosamente")
+      toast.success("Análisis aprobado exitosamente")
       await cargarDatos()
     } catch (err: any) {
       console.error(" Error aprobando análisis:", err)
-      alert(`Error al aprobar análisis: ${err?.message || "Error desconocido"}`)
+      toast.error(`Error al aprobar análisis: ${err?.message || "Error desconocido"}`)
     }
   }
 
@@ -305,11 +305,11 @@ export default function GerminacionDetailPage() {
     try {
       console.log(" Marcando análisis Germinación para repetir:", germinacion.analisisID)
       await marcarParaRepetir(germinacion.analisisID)
-      alert("Análisis marcado para repetir")
+      toast.success("Análisis marcado para repetir")
       await cargarDatos()
     } catch (err: any) {
       console.error(" Error marcando para repetir:", err)
-      alert(`Error al marcar para repetir: ${err?.message || "Error desconocido"}`)
+      toast.error(`Error al marcar para repetir: ${err?.message || "Error desconocido"}`)
     }
   }
 
@@ -321,11 +321,11 @@ export default function GerminacionDetailPage() {
       console.log("Finalizando y aprobando análisis Germinación:", germinacion.analisisID)
       // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
       await finalizarGerminacion(germinacion.analisisID)
-      alert("Análisis finalizado y aprobado exitosamente")
+      toast.success("Análisis finalizado y aprobado exitosamente")
       router.push(`/listado/analisis/germinacion/${germinacion.analisisID}`)
     } catch (err: any) {
       console.error("Error finalizando y aprobando:", err)
-      alert(`Error al finalizar y aprobar: ${err?.message || "Error desconocido"}`)
+      toast.error(`Error al finalizar y aprobar: ${err?.message || "Error desconocido"}`)
     }
   }
 
