@@ -26,9 +26,7 @@ export default function DashboardPage() {
     const cargarDatos = async () => {
       // Obtener rol desde el backend usando cookies HttpOnly automáticamente
       try {
-        console.log(" Dashboard - Obteniendo perfil del usuario desde backend...")
         const perfil = await obtenerPerfil()
-        console.log(" Dashboard - Perfil obtenido del backend:", perfil)
         
         // Extraer rol soportando varias formas que el backend pueda devolver:
         // - perfil.roles: string[]
@@ -59,12 +57,10 @@ export default function DashboardPage() {
 
         // Normalizar
         if (roleFromBackend) roleFromBackend = roleFromBackend.trim()
-        console.log(' Dashboard - Rol de usuario del backend (resuelto):', roleFromBackend)
 
         // Actualizar estado React (NO guardar en localStorage/cookies client-side)
         if (roleFromBackend) {
           setUserRole(roleFromBackend)
-          console.log(' Dashboard - Rol actualizado en estado:', roleFromBackend)
         }
       } catch (error) {
         console.error(" Error al obtener perfil del backend:", error)
@@ -76,10 +72,8 @@ export default function DashboardPage() {
       // Cargar estadísticas
       try {
         const data = await obtenerEstadisticasDashboard()
-        console.log(" Dashboard - Estadísticas cargadas:", data)
         setStats(data)
       } catch (statsError) {
-        console.error(" Error al cargar estadísticas:", statsError)
         toast.error("Error al cargar estadísticas del dashboard")
       } finally {
         setLoading(false)
@@ -92,7 +86,6 @@ export default function DashboardPage() {
   // Usar useMemo para crear quickStats de forma reactiva cuando cambie userRole, loading o stats
   const quickStats = useMemo(() => {
     const isAdmin = userRole?.trim().toUpperCase() === "ADMIN"
-    console.log(" Dashboard - userRole:", userRole, "| isAdmin:", isAdmin)
     
     const stats_array: Array<{
       label: string
@@ -114,7 +107,6 @@ export default function DashboardPage() {
 
     // Solo agregar "Análisis por aprobar" si es ADMIN (segunda posición, a la izquierda)
     if (isAdmin) {
-      console.log(" Dashboard - Agregando card de Análisis por Aprobar")
       stats_array.push({
         label: "Análisis por Aprobar",
         value: loading ? "..." : stats?.analisisPorAprobar.toString() || "0",
@@ -124,7 +116,6 @@ export default function DashboardPage() {
         href: "/dashboard/analisis-por-aprobar",
       })
     } else {
-      console.log(" Dashboard - No se muestra card de Análisis por Aprobar")
     }
 
     // Agregar los no clicables al final (a la derecha)

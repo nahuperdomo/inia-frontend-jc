@@ -141,11 +141,7 @@ export default function EditarLotePage() {
           fechaCosecha: data.fechaCosecha || "",
           tiposAnalisisAsignados: data.tiposAnalisisAsignados || [],
         })
-        
-        console.log("Lote cargado para edición:", data);
-        console.log("Tipos no removibles:", Array.from(noRemovibles));
       } catch (error) {
-        console.error('Error al cargar lote:', error);
         toast.error('Error al cargar lote', {
           description: 'No se pudo cargar la información del lote',
         });

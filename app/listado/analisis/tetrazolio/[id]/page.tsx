@@ -75,17 +75,14 @@ export default function TetrazolioDetailPage() {
   const cargarDatos = async () => {
     try {
       setLoading(true)
-      console.log(" Cargando tetrazolio y repeticiones para ID:", tetrazolioId)
 
       const tetrazolioData = await obtenerTetrazolioPorId(parseInt(tetrazolioId))
-
-      console.log(" Tetrazolio cargado:", tetrazolioData)
       setTetrazolio(tetrazolioData)
 
       // Cargar repeticiones
       try {
         const repeticionesData = await obtenerRepeticionesPorTetrazolio(parseInt(tetrazolioId))
-        console.log(" Repeticiones cargadas:", repeticionesData)
+        setRepeticiones(repeticionesData)
         setRepeticiones(repeticionesData)
       } catch (repError) {
         console.warn("️ Error al cargar repeticiones:", repError)

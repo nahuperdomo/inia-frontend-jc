@@ -95,7 +95,6 @@ class NotificationWebSocket {
     return new Promise((resolve, reject) => {
       // Si ya está conectado, no reconectar
       if (this.client?.connected) {
-        console.log('✅ WebSocket ya conectado');
         resolve();
         return;
       }
@@ -104,9 +103,6 @@ class NotificationWebSocket {
       
       // URL del WebSocket (usa variable de entorno)
       const wsUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/ws/notifications`;
-      
-      console.log('🔌 Conectando a WebSocket:', wsUrl);
-
       // Crear cliente STOMP
       this.client = new Client({
         // Factory para crear la conexión WebSocket
@@ -117,14 +113,6 @@ class NotificationWebSocket {
         connectHeaders: {
           Authorization: `Bearer ${token}`,
         },
-        
-        // Debug solo en desarrollo
-        debug: (str) => {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('[WS Debug]', str);
-          }
-        },
-        
         // Configuración de reconexión automática
         reconnectDelay: this.reconnectDelay,
         
@@ -137,7 +125,6 @@ class NotificationWebSocket {
          * Callback cuando la conexión se establece exitosamente
          */
         onConnect: () => {
-          console.log('✅ WebSocket conectado exitosamente');
           this.reconnectAttempts = 0; // Reset intentos
           this.setupSubscriptions(); // Configurar canales
           resolve();
@@ -163,9 +150,6 @@ class NotificationWebSocket {
         /**
          * Callback cuando se desconecta (manual o error)
          */
-        onDisconnect: () => {
-          console.log('🔌 WebSocket desconectado');
-        },
       });
 
       // Activar el cliente (iniciar conexión)
@@ -186,16 +170,12 @@ class NotificationWebSocket {
    */
   private setupSubscriptions(): void {
     if (!this.client || !this.userId) return;
-
-    console.log('📡 Configurando suscripciones WebSocket...');
-
     // Suscripción 1: Notificaciones nuevas
     const notificationSub = this.client.subscribe(
       `/user/queue/notifications`,
       (message) => {
         try {
           const notification: NotificacionDTO = JSON.parse(message.body);
-          console.log('📩 Nueva notificación recibida:', notification.nombre);
           this.emit('notification', notification);
         } catch (error) {
           console.error('Error parseando notificación:', error);
@@ -210,10 +190,8 @@ class NotificationWebSocket {
       (message) => {
         try {
           const count: number = JSON.parse(message.body);
-          console.log('🔢 Contador actualizado:', count);
           this.emit('count', count);
         } catch (error) {
-          console.error('Error parseando contador:', error);
         }
       }
     );
@@ -225,10 +203,8 @@ class NotificationWebSocket {
       (message) => {
         try {
           const notificationId: number = JSON.parse(message.body);
-          console.log('✓ Notificación marcada como leída:', notificationId);
           this.emit('mark-read', { id: notificationId });
         } catch (error) {
-          console.error('Error parseando mark-read:', error);
         }
       }
     );
@@ -240,16 +216,12 @@ class NotificationWebSocket {
       (message) => {
         try {
           const notificationId: number = JSON.parse(message.body);
-          console.log('🗑️ Notificación eliminada:', notificationId);
           this.emit('delete', { id: notificationId });
         } catch (error) {
-          console.error('Error parseando deleted:', error);
         }
       }
     );
     this.subscriptions.set('user-deleted', deletedSub);
-
-    console.log('✅ Suscripciones configuradas:', this.subscriptions.size);
   }
 
   /**
@@ -258,9 +230,7 @@ class NotificationWebSocket {
    * Limpia todas las suscripciones y cierra la conexión
    * Útil al hacer logout o cambiar de usuario
    */
-  disconnect(): void {
-    console.log('🔌 Desconectando WebSocket...');
-    
+  disconnect(): void {    
     // Desuscribirse de todos los canales
     this.subscriptions.forEach((sub) => sub.unsubscribe());
     this.subscriptions.clear();
@@ -269,8 +239,6 @@ class NotificationWebSocket {
     this.client?.deactivate();
     this.client = null;
     this.userId = null;
-    
-    console.log('✅ WebSocket desconectado');
   }
 
   /**
@@ -337,12 +305,6 @@ class NotificationWebSocket {
     }
 
     this.reconnectAttempts++;
-    console.log(
-      `🔄 Intentando reconectar (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
-    );
-    
-    // El cliente STOMP maneja la reconexión automáticamente
-    // con el reconnectDelay configurado
   }
 
   /**

@@ -23,9 +23,7 @@ async function initializeFingerprintAgent() {
   if (!fpAgent) {
     try {
       fpAgent = await FingerprintJS.load();
-      console.log('✅ [Fingerprint] Agente inicializado');
     } catch (error) {
-      console.error('❌ [Fingerprint] Error inicializando agente:', error);
       throw error;
     }
   }
@@ -59,16 +57,10 @@ export async function getDeviceFingerprint(): Promise<string> {
     const result = await agent.get();
     
     // El visitorId es un hash estable y único para este dispositivo
-    const fingerprint = result.visitorId;
-    
-    console.log('🔐 [Fingerprint] Generado:', fingerprint);
-    
+    const fingerprint = result.visitorId;    
     return fingerprint;
-  } catch (error) {
-    console.error('❌ [Fingerprint] Error generando fingerprint:', error);
-    
+  } catch (error) {    
     // Fallback: generar un ID temporal basado en características básicas
-    // NOTA: Este fallback no es tan estable como FingerprintJS
     return generateFallbackFingerprint();
   }
 }
@@ -105,10 +97,7 @@ function generateFallbackFingerprint(): string {
   }
   
   // Convertir a string hexadecimal
-  const fingerprint = Math.abs(hash).toString(16);
-  
-  console.log('🔐 [Fingerprint] Fallback generado:', fingerprint);
-  
+  const fingerprint = Math.abs(hash).toString(16);  
   return fingerprint;
 }
 
@@ -127,9 +116,7 @@ function generateFallbackFingerprint(): string {
 export async function preloadFingerprint(): Promise<void> {
   try {
     await initializeFingerprintAgent();
-    console.log('✅ [Fingerprint] Pre-cargado exitosamente');
   } catch (error) {
-    console.warn('⚠️ [Fingerprint] Error en pre-carga (no crítico):', error);
   }
 }
 

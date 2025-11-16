@@ -123,26 +123,22 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
         
         // Callback cuando llega una notificación
         onNotification: useCallback((notification: NotificacionDTO) => {
-            console.log('📩 Notificación recibida en Provider:', notification.nombre);
             addNotification(notification);
         }, [addNotification]),
         
         // Callback cuando se actualiza el contador
         onCountUpdate: useCallback((count: number) => {
-            console.log('🔢 Contador actualizado en Provider:', count);
             updateUnreadCount(count);
         }, [updateUnreadCount]),
         
         // Callback cuando se marca como leída
         onMarkAsRead: useCallback((notificationId: number) => {
-            console.log('✓ Notificación marcada como leída:', notificationId);
             // Actualizar localmente
             updateUnreadCount(prev => Math.max(0, prev - 1));
         }, [updateUnreadCount]),
         
         // Callback cuando se elimina
         onDelete: useCallback((notificationId: number) => {
-            console.log('🗑️ Notificación eliminada:', notificationId);
             removeNotification(notificationId);
         }, [removeNotification]),
         
@@ -157,8 +153,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
     //  Auto-refresh solo si WebSocket NO está conectado (fallback)
     useEffect(() => {
         if (!autoRefresh || isWebSocketConnected) return;
-
-        console.log('⚠️ WebSocket desconectado, usando polling como fallback');
         const interval = setInterval(() => {
             refresh();
         }, autoRefreshInterval);

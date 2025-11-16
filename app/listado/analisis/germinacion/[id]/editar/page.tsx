@@ -111,29 +111,23 @@ export default function GerminacionDetailPage() {
   const cargarDatos = async () => {
     try {
       setLoading(true)
-      console.log(" Cargando germinación y tablas para ID:", germinacionId)
-
       // Cargar datos en paralelo
       const [germinacionData, lotesData] = await Promise.all([
         obtenerGerminacionPorId(parseInt(germinacionId)),
         obtenerLotesActivos()
       ])
 
-      console.log(" Germinación cargada:", germinacionData)
-      console.log(" Lotes cargados:", lotesData)
       setGerminacion(germinacionData)
       setLotes(lotesData)
 
       // Cargar tablas usando el endpoint correcto
       try {
         const tablasData = await obtenerTablasGerminacion(parseInt(germinacionId))
-        console.log(" Tablas cargadas:", tablasData)
         setTablas(tablasData)
       } catch (tablasError: any) {
         console.warn("️ No se pudieron cargar las tablas:", tablasError)
         // Si es 404, significa que no hay tablas, lo cual es normal
         if (tablasError.message && tablasError.message.includes('404')) {
-          console.log(" No hay tablas creadas todavía - esto es normal")
           setTablas([])
         } else {
           throw tablasError // Re-lanzar si es otro tipo de error
@@ -158,16 +152,13 @@ export default function GerminacionDetailPage() {
       setCreatingTable(true)
       setError("")
 
-      console.log(" Creando nueva tabla para germinación:", germinacionId)
 
       const nuevaTabla = await crearTablaGerminacion(parseInt(germinacionId))
-      console.log(" Tabla creada:", nuevaTabla)
 
       // Solo recargar las tablas en lugar de recargar todo
       const tablasData = await obtenerTablasGerminacion(parseInt(germinacionId))
       setTablas(tablasData)
     } catch (err: any) {
-      console.error(" Error creando tabla:", err)
       setError(err?.message || "Error al crear tabla")
     } finally {
       setCreatingTable(false)
@@ -190,7 +181,6 @@ export default function GerminacionDetailPage() {
     try {
       setError("")
 
-      console.log("✏️ Editando análisis:", germinacionId)
 
       // Actualizar estado local para marcar como en proceso
       if (germinacion) {
@@ -201,17 +191,13 @@ export default function GerminacionDetailPage() {
         })
       }
 
-      console.log(" Análisis habilitado para edición")
     } catch (err: any) {
-      console.error(" Error editando análisis:", err)
       setError(err?.message || "Error al editar análisis")
     }
   }
 
   const handleEditarGerminacion = () => {
     if (!germinacion) return
-
-    console.log(" Iniciando edición de germinación")
 
     // Solo preparar los campos editables
     const datosEdicion = {
@@ -245,18 +231,14 @@ export default function GerminacionDetailPage() {
     }
 
     try {
-      console.log(" Guardando cambios en germinación:", germinacionId)
-
       // Crear el DTO de edición con solo los campos permitidos
       const datosEdicion: GerminacionEditRequestDTO = {
         idLote: germinacionEditada.idLote,
         comentarios: germinacionEditada.comentarios
       }
 
-      console.log(" Datos a enviar:", JSON.stringify(datosEdicion, null, 2))
 
       const germinacionActualizada = await actualizarGerminacion(parseInt(germinacionId), datosEdicion)
-      console.log(" Germinación actualizada exitosamente")
 
       // Actualizar estado local
       setGerminacion(germinacionActualizada)
@@ -273,12 +255,10 @@ export default function GerminacionDetailPage() {
     if (!germinacion) return
 
     try {
-      console.log("Finalizando análisis Germinación:", germinacion.analisisID)
       await finalizarGerminacion(germinacion.analisisID)
       toast.success("Análisis finalizado exitosamente")
       await cargarDatos()
     } catch (err: any) {
-      console.error("Error finalizando análisis:", err)
       toast.error(`Error al finalizar análisis: ${err?.message || "Error desconocido"}`)
     }
   }
@@ -288,12 +268,10 @@ export default function GerminacionDetailPage() {
     if (!germinacion) return
 
     try {
-      console.log(" Aprobando análisis Germinación:", germinacion.analisisID)
       await aprobarAnalisis(germinacion.analisisID)
       toast.success("Análisis aprobado exitosamente")
       await cargarDatos()
     } catch (err: any) {
-      console.error(" Error aprobando análisis:", err)
       toast.error(`Error al aprobar análisis: ${err?.message || "Error desconocido"}`)
     }
   }
@@ -303,12 +281,10 @@ export default function GerminacionDetailPage() {
     if (!germinacion) return
 
     try {
-      console.log(" Marcando análisis Germinación para repetir:", germinacion.analisisID)
       await marcarParaRepetir(germinacion.analisisID)
       toast.success("Análisis marcado para repetir")
       await cargarDatos()
     } catch (err: any) {
-      console.error(" Error marcando para repetir:", err)
       toast.error(`Error al marcar para repetir: ${err?.message || "Error desconocido"}`)
     }
   }
@@ -318,7 +294,6 @@ export default function GerminacionDetailPage() {
     if (!germinacion) return
 
     try {
-      console.log("Finalizando y aprobando análisis Germinación:", germinacion.analisisID)
       // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
       await finalizarGerminacion(germinacion.analisisID)
       toast.success("Análisis finalizado y aprobado exitosamente")

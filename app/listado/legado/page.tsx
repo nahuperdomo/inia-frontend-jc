@@ -39,7 +39,6 @@ export default function ListadoLegadoPage() {
         filterEspecie
       )
 
-      console.log("DEBUG obtenerLegadosPaginadas response:", data)
 
       const pageData = extractPageMetadata<LegadoListadoDTO>(data, page)
       

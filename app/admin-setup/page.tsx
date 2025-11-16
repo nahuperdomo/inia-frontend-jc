@@ -66,7 +66,6 @@ export default function AdminSetupPage() {
       }
 
       try {
-        console.log('🎫 [AdminSetup] Obteniendo datos con token...')
         
         // Marcar como cargado ANTES de hacer la llamada
         hasLoadedRef.current = true
@@ -75,7 +74,6 @@ export default function AdminSetupPage() {
         const setupData = await getAdminSetupData(token)
         setSetupInfo(setupData)
         
-        console.log('✅ [AdminSetup] Datos de configuración cargados de forma segura')
         
         // Limpiar token de la URL por seguridad
         window.history.replaceState({}, '', '/admin-setup')
@@ -183,7 +181,6 @@ export default function AdminSetupPage() {
         throw new Error('El formato del email no es válido')
       }
 
-      console.log('🔐 [AdminSetup] Completando configuración...')
 
       const result = await completeAdminSetup({
         currentPassword: formData.currentPassword,
@@ -192,7 +189,6 @@ export default function AdminSetupPage() {
         totpCode: formData.totpCode
       })
 
-      console.log('✅ [AdminSetup] Configuración completada exitosamente')
       
       // Mostrar códigos de respaldo
       setBackupCodes(result.backupCodes)

@@ -25,10 +25,6 @@ export default function ReporteGerminacionPage() {
         fechaFin: fechaFin || undefined,
       }
       const data = await obtenerReporteGerminacion(filtros)
-      console.log('Respuesta del backend:', data)
-      console.log('mediaGerminacionPorEspecie:', data?.mediaGerminacionPorEspecie)
-      console.log('tiempoPromedioPrimerConteo:', data?.tiempoPromedioPrimerConteo)
-      console.log('tiempoPromedioUltimoConteo:', data?.tiempoPromedioUltimoConteo)
       setReporte(data)
     } catch (error) {
       console.error("Error al cargar reporte:", error)

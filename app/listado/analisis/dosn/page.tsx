@@ -79,7 +79,6 @@ export default function ListadoDOSNPage() {
         selectedStatus !== "all" ? selectedStatus : undefined,
         undefined
       )
-      console.log("DEBUG obtenerDosnPaginadas response:", data)
 
       // Extraer metadata de paginación usando helper
       const pageData = extractPageMetadata<DosnListadoDTO>(data, page)

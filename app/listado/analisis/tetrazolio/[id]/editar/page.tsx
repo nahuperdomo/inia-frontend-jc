@@ -141,16 +141,13 @@ export default function EditarTetrazolioPage() {
         setError(null)
 
         const targetId = Number.parseInt(tetrazolioId)
-        console.log("Cargando Tetrazolio con ID:", targetId)
 
         const tetrazolioData = await obtenerTetrazolioPorId(targetId)
-        console.log("Tetrazolio cargado exitosamente:", tetrazolioData)
         setTetrazolio(tetrazolioData)
 
         // Cargar repeticiones
         try {
           const repeticionesData = await obtenerRepeticionesPorTetrazolio(targetId)
-          console.log("Repeticiones cargadas:", repeticionesData)
           setRepeticiones(repeticionesData)
         } catch (repError) {
           console.warn("Error al cargar repeticiones:", repError)
@@ -304,7 +301,6 @@ export default function EditarTetrazolioPage() {
         return
       }
 
-      console.log(" Guardando porcentajes redondeados:", payload)
       const tetrazolioActualizado = await actualizarPorcentajesRedondeados(parseInt(tetrazolioId), payload)
 
       setTetrazolio(tetrazolioActualizado)
@@ -353,7 +349,6 @@ export default function EditarTetrazolioPage() {
 
     try {
       setCreatingRepeticion(true)
-      console.log("➕ Creando nueva repetición para tetrazolio:", tetrazolio.analisisID)
 
       await crearRepTetrazolioViabilidad(parseInt(tetrazolioId), nuevaRepeticion)
 
@@ -371,10 +366,7 @@ export default function EditarTetrazolioPage() {
       setShowAddRepeticion(false)
 
       toast.success("Repetición creada exitosamente")
-
-      console.log(` Repetición creada. Total: ${repeticionesActualizadas.length}/${tetrazolio.numRepeticionesEsperadas}`)
     } catch (err: any) {
-      console.error(" Error al crear repetición:", err)
       toast.error(err.message || "Error al crear repetición")
     } finally {
       setCreatingRepeticion(false)
@@ -572,12 +564,10 @@ export default function EditarTetrazolioPage() {
     if (!tetrazolio) return
 
     try {
-      console.log(" Finalizando análisis Tetrazolio:", tetrazolio.analisisID)
       await finalizarAnalisis(tetrazolio.analisisID)
       toast.success("Análisis finalizado exitosamente")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
     } catch (err: any) {
-      console.error(" Error finalizando análisis:", err)
       toast.error('Error al finalizar análisis', {
         description: err?.message || "No se pudo finalizar el análisis",
       })
@@ -589,12 +579,10 @@ export default function EditarTetrazolioPage() {
     if (!tetrazolio) return
 
     try {
-      console.log(" Aprobando análisis Tetrazolio:", tetrazolio.analisisID)
       await aprobarAnalisis(tetrazolio.analisisID)
       toast.success("Análisis aprobado exitosamente")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
     } catch (err: any) {
-      console.error(" Error aprobando análisis:", err)
       toast.error('Error al aprobar análisis', {
         description: err?.message || "No se pudo aprobar el análisis",
       })
@@ -606,12 +594,10 @@ export default function EditarTetrazolioPage() {
     if (!tetrazolio) return
 
     try {
-      console.log(" Marcando análisis Tetrazolio para repetir:", tetrazolio.analisisID)
       await marcarParaRepetir(tetrazolio.analisisID)
       toast.success("Análisis marcado para repetir")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
     } catch (err: any) {
-      console.error(" Error marcando para repetir:", err)
       toast.error('Error al marcar para repetir', {
         description: err?.message || "No se pudo marcar el análisis",
       })
@@ -623,7 +609,6 @@ export default function EditarTetrazolioPage() {
     if (!tetrazolio) return
 
     try {
-      console.log(" Finalizando y aprobando análisis Tetrazolio:", tetrazolio.analisisID)
       // Cuando el admin finaliza, el backend automáticamente lo aprueba
       // No necesitamos llamar a aprobarAnalisis por separado
       await finalizarAnalisis(tetrazolio.analisisID)

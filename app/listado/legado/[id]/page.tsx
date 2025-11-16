@@ -47,12 +47,9 @@ export default function LegadoDetailPage() {
       try {
         setLoading(true)
         const data = await legadoService.getById(Number.parseInt(legadoId))
-        console.log("Datos del legado recibidos:", data)
-        console.log("Familia:", data.familia)
         setLegado(data)
       } catch (err) {
         setError("Error al cargar los detalles del registro legado")
-        console.error("Error fetching legado:", err)
       } finally {
         setLoading(false)
       }

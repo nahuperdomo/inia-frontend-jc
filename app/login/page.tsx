@@ -47,7 +47,6 @@ export default function LoginPage() {
       try {
         const fingerprint = await getDeviceFingerprint()
         setDeviceFingerprint(fingerprint)
-        console.log('📱 [Login] Device fingerprint generado')
       } catch (error) {
         console.error('⚠️ [Login] Error generando fingerprint:', error)
         // No bloqueamos el login si falla el fingerprint
@@ -80,15 +79,12 @@ export default function LoginPage() {
 
       // Verificar si requiere setup de 2FA (OBLIGATORIO)
       if ('requires2FASetup' in result && result.requires2FASetup) {
-        console.log('⚠️ [Login] Usuario DEBE activar 2FA')
         await handleSetupInitial2FA()
         return
       }
 
       // Verificar si requiere cambio de credenciales (admin first-login)
       if ('requiresCredentialChange' in result && result.requiresCredentialChange) {
-        console.log('⚠️ [Login] Requiere cambio de credenciales (primer acceso admin)')
-        console.log('🎫 [Login] Token recibido, redirigiendo...')
 
         // Redirigir con el token en la URL (el token no es sensible, solo un ID temporal)
         window.location.href = `/admin-setup?token=${result.setupToken}`
@@ -97,7 +93,6 @@ export default function LoginPage() {
 
       // Verificar si requiere código 2FA
       if ('requires2FA' in result && result.requires2FA) {
-        console.log('🔐 [Login] Se requiere código 2FA')
         setRequires2FA(true)
         toast.info('Autenticación de dos factores', {
           description: 'Ingresa el código de Google Authenticator',
@@ -108,10 +103,6 @@ export default function LoginPage() {
 
       // Login exitoso
       const data = result as Login2FAResponse
-      console.log('✅ [Login] Login exitoso')
-      console.log('👤 [Login] Usuario:', data.usuario.nombre)
-      console.log('🔐 [Login] Tiene 2FA:', data.usuario.has2FA)
-
       // Refrescar contexto de autenticación
       await refresh()
 
@@ -169,7 +160,6 @@ export default function LoginPage() {
     try {
       const data = await setupInitial2FA(credentials.usuario, credentials.password)
 
-      console.log('✅ [Login] Setup 2FA iniciado')
       setSetupData({
         qrCodeUrl: data.data.qrCodeDataUrl,
         secret: data.data.secret,
@@ -199,10 +189,6 @@ export default function LoginPage() {
 
     try {
       const data = await verifyInitial2FA(setupData!.email, totpCode)
-
-      console.log('✅ [Login] 2FA activado y login exitoso')
-      console.log('🎫 [Login] Códigos de respaldo recibidos:', data.totalCodes)
-
       // Guardar códigos de respaldo para mostrar
       setBackupCodes(data.backupCodes)
       setShowBackupCodes(true)

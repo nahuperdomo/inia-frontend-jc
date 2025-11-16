@@ -67,9 +67,6 @@ function ResetPasswordForm() {
         totpCode,
         newPassword,
       })
-
-      console.log('✅ [ResetPassword] Contraseña actualizada')
-
       setIsSuccess(true)
 
       toast.success('Contraseña actualizada', {

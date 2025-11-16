@@ -112,32 +112,24 @@ export function useNotificationWebSocket({
 
     // Evitar múltiples intentos simultáneos
     if (isConnecting.current) {
-      console.log('⏳ Ya hay una conexión en progreso...');
       return;
     }
 
     // Si ya está conectado, no reconectar
     if (notificationWebSocket.isConnected && hasConnected.current) {
-      console.log('✅ WebSocket ya está conectado');
       setIsConnected(true);
       return;
     }
 
     try {
       isConnecting.current = true;
-      setError(null);
-
-      console.log('🔌 Iniciando conexión WebSocket...');
-      
+      setError(null);      
       // Conectar al WebSocket
       await notificationWebSocket.connect(token, userId.toString());
       
       setIsConnected(true);
       hasConnected.current = true;
-      console.log('✅ WebSocket conectado desde hook');
-
     } catch (err: any) {
-      console.error('❌ Error conectando WebSocket:', err);
       setError(err.message || 'Error de conexión');
       setIsConnected(false);
       hasConnected.current = false;
@@ -153,7 +145,6 @@ export function useNotificationWebSocket({
    * Útil para botón de "Reconectar" en la UI
    */
   const reconnect = useCallback(async () => {
-    console.log('🔄 Reconectando WebSocket...');
     notificationWebSocket.disconnect();
     hasConnected.current = false;
     await connect();
@@ -168,13 +159,6 @@ export function useNotificationWebSocket({
    */
   useEffect(() => {
     connect();
-
-    // Cleanup: Desconectar al desmontar
-    return () => {
-      console.log('🧹 Limpiando conexión WebSocket del hook');
-      // NO desconectamos aquí porque puede ser usado por otros componentes
-      // Solo el Provider principal debe desconectar
-    };
   }, [connect]);
 
   /**
@@ -186,13 +170,8 @@ export function useNotificationWebSocket({
    */
   useEffect(() => {
     if (!isConnected) return;
-
-    console.log('📡 Suscribiendo a eventos WebSocket...');
-
     // Suscripción a nuevas notificaciones
-    const unsubNotification = notificationWebSocket.on('notification', (notification: NotificacionDTO) => {
-      console.log('📩 Nueva notificación recibida:', notification.nombre);
-      
+    const unsubNotification = notificationWebSocket.on('notification', (notification: NotificacionDTO) => {      
       // Mostrar toast si está habilitado
       if (showToasts) {
         toast.success(notification.nombre, {
@@ -213,25 +192,21 @@ export function useNotificationWebSocket({
 
     // Suscripción a actualizaciones de contador
     const unsubCount = notificationWebSocket.on('count', (count: number) => {
-      console.log('🔢 Contador actualizado:', count);
       onCountUpdate?.(count);
     });
 
     // Suscripción a notificación marcada como leída
     const unsubMarkRead = notificationWebSocket.on('mark-read', (data: { id: number }) => {
-      console.log('✓ Notificación marcada como leída:', data.id);
       onMarkAsRead?.(data.id);
     });
 
     // Suscripción a notificación eliminada
     const unsubDelete = notificationWebSocket.on('delete', (data: { id: number }) => {
-      console.log('🗑️ Notificación eliminada:', data.id);
       onDelete?.(data.id);
     });
 
     // Cleanup: Desuscribirse cuando cambien las dependencias
     return () => {
-      console.log('🧹 Desuscribiendo de eventos WebSocket');
       unsubNotification();
       unsubCount();
       unsubMarkRead();

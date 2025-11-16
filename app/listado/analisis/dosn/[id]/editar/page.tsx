@@ -110,16 +110,10 @@ export default function EditarDosnPage() {
         setError(null)
 
         const targetId = Number.parseInt(dosnId)
-        console.log("Buscando DOSN con ID:", targetId)
 
         // Primero verificar que el ID existe en el listado
         try {
-          console.log("Verificando si el DOSN existe en el listado...")
           const todosDosn = await obtenerTodasDosnActivas()
-          console.log(
-            "DOSNs disponibles:",
-            todosDosn.map((d) => ({ id: d.analisisID, lote: d.lote })),
-          )
 
           const dosnExists = todosDosn.find((d) => d.analisisID === targetId)
           if (!dosnExists) {
@@ -127,7 +121,6 @@ export default function EditarDosnPage() {
               `No se encontró un análisis DOSN con ID ${targetId}. IDs disponibles: ${todosDosn.map((d) => d.analisisID).join(", ")}`,
             )
           }
-          console.log("DOSN encontrado en listado:", dosnExists)
         } catch (listError) {
           console.error("Error al verificar existencia:", listError)
           setError(`${listError}`)
@@ -135,25 +128,13 @@ export default function EditarDosnPage() {
         }
 
         // Ahora cargar los datos específicos del DOSN
-        console.log("Cargando datos detallados del DOSN...")
         const dosnData = await obtenerDosnPorId(targetId)
-        console.log("DOSN cargado exitosamente:", dosnData)
         setDosn(dosnData)
 
         // Cargar los catálogos usando el servicio correcto
         try {
-          console.log("Cargando catálogos de malezas...")
           const catalogosData = await malezasService.obtenerTodasMalezas()
-          console.log("Respuesta de catálogos:", catalogosData)
-          console.log("Tipo de respuesta:", typeof catalogosData)
-          console.log("Es array?", Array.isArray(catalogosData))
-
           if (Array.isArray(catalogosData)) {
-            console.log("Catálogos cargados correctamente:", catalogosData.length, "items")
-
-            if (catalogosData.length > 0) {
-              console.log("Primer catálogo:", catalogosData[0])
-            }
             setCatalogos(catalogosData)
           } else {
             console.warn("La respuesta no es un array:", catalogosData)
@@ -165,12 +146,9 @@ export default function EditarDosnPage() {
         }
 
         try {
-          console.log("Cargando especies...")
           const especiesData = await especiesService.obtenerTodasEspecies(true)
           setEspecies(especiesData)
-          console.log("Especies cargadas:", especiesData.length)
         } catch (error) {
-          console.error("Error cargando especies:", error)
           setEspecies([])
         }
 
@@ -226,8 +204,6 @@ export default function EditarDosnPage() {
               especieCientifico: listado.especie?.nombreCientifico || "",
             })) || [],
         }
-
-        console.log("Estableciendo datos del formulario:", formDataToSet)
         setFormData(formDataToSet)
       } catch (err) {
         console.error("Error general al cargar datos:", err)
@@ -404,11 +380,6 @@ export default function EditarDosnPage() {
         }
       }
 
-      console.log("Fechas antes del formateo:")
-      console.log("- fechaINIA:", formData.fechaINIA)
-      console.log("- fechaINASE:", formData.fechaINASE)
-      console.log("- cuscutaRegistros:", formData.cuscutaRegistros)
-
       const updateData: DosnRequestDTO = {
         idLote: dosn.idLote || 0,
         comentarios: formData.comentarios,
@@ -436,9 +407,6 @@ export default function EditarDosnPage() {
           idEspecie: listado.idEspecie || undefined,    // Para otros cultivos
         })),
       }
-
-      console.log("Datos completos a enviar al backend:", updateData)
-
       await actualizarDosn(Number.parseInt(dosnId), updateData)
       toast.success("Análisis DOSN actualizado correctamente")
       router.push(`/listado/analisis/dosn/${dosnId}`)
@@ -455,7 +423,6 @@ export default function EditarDosnPage() {
     if (!dosn) return
 
     try {
-      console.log(" Finalizando análisis DOSN:", dosn.analisisID)
       await finalizarAnalisis(dosn.analisisID)
       toast.success("Análisis finalizado exitosamente")
       router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
@@ -472,7 +439,6 @@ export default function EditarDosnPage() {
     if (!dosn) return
 
     try {
-      console.log(" Aprobando análisis DOSN:", dosn.analisisID)
       await aprobarAnalisis(dosn.analisisID)
       toast.success("Análisis aprobado exitosamente")
       // Recargar datos
@@ -491,7 +457,6 @@ export default function EditarDosnPage() {
     if (!dosn) return
 
     try {
-      console.log(" Marcando análisis DOSN para repetir:", dosn.analisisID)
       await marcarParaRepetir(dosn.analisisID)
       toast.success("Análisis marcado para repetir")
       // Recargar datos
@@ -510,7 +475,6 @@ export default function EditarDosnPage() {
     if (!dosn) return
 
     try {
-      console.log(" Finalizando y aprobando análisis DOSN:", dosn.analisisID)
       // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
       await finalizarAnalisis(dosn.analisisID)
       toast.success("Análisis finalizado y aprobado exitosamente")

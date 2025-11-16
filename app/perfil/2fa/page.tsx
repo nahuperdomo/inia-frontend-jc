@@ -77,7 +77,6 @@ export default function Configuracion2FAPage() {
 
       if (response.ok) {
         const data: Status2FAResponse = await response.json()
-        console.log('📊 Status 2FA:', data)
         setHas2FA(data.totpEnabled || false)
       } else {
         console.warn('⚠️ No se pudo verificar estado 2FA, asumiendo false')
@@ -99,9 +98,7 @@ export default function Configuracion2FAPage() {
       })
 
       if (response.ok) {
-        const data = await response.json()
-        console.log('📱 Dispositivos de confianza recibidos:', data)
-        
+        const data = await response.json()        
         // El backend devuelve { devices: [...], count: X }
         const devices = data.devices || data
         setTrustedDevices(Array.isArray(devices) ? devices : [])
@@ -135,9 +132,6 @@ export default function Configuracion2FAPage() {
   const handleSetup2FA = async () => {
     try {
       setLoading(true)
-      console.log('🔐 Iniciando setup 2FA...')
-      console.log('📡 URL:', `${API_BASE_URL}/api/v1/auth/2fa/setup`)
-      
       const response = await fetch(`${API_BASE_URL}/api/v1/auth/2fa/setup`, {
         method: 'POST',
         credentials: 'include',
@@ -145,9 +139,6 @@ export default function Configuracion2FAPage() {
           'Content-Type': 'application/json',
         },
       })
-
-      console.log('📡 Status:', response.status)
-
       if (!response.ok) {
         const errorText = await response.text()
         console.error('❌ Error response:', errorText)
@@ -163,39 +154,26 @@ export default function Configuracion2FAPage() {
         throw new Error(errorMessage)
       }
 
-      const responseText = await response.text()
-      console.log('📄 Response:', responseText)
-      
+      const responseText = await response.text()      
       if (!responseText) {
         throw new Error('Respuesta vacía del servidor')
       }
       
-      const data = JSON.parse(responseText)
-      console.log('✅ Data recibida:', data)
-      
+      const data = JSON.parse(responseText)      
       // El backend responde con { data: { secret, qrCodeDataUrl, ... }, mensaje: "..." }
       const setupData = data.data || data
       
       if (setupData.secret && setupData.qrCodeDataUrl) {
-        console.log('✅ Configurando QR y secret...')
-        console.log('QR URL length:', setupData.qrCodeDataUrl.length)
-        console.log('Secret:', setupData.secret)
-        
         setQrCodeUrl(setupData.qrCodeDataUrl)
         setSecret(setupData.secret)
         setShowSetup(true)
-        
-        console.log('✅ Estados actualizados - showSetup debería ser true')
-
         toast.success('Código QR generado', {
           description: 'Escanea el código con Google Authenticator',
         })
       } else {
-        console.error('❌ Respuesta inválida:', data)
         throw new Error('Respuesta del servidor sin QR code')
       }
     } catch (error: any) {
-      console.error('❌ Error en setup 2FA:', error)
       toast.error('Error', {
         description: error.message || 'No se pudo generar el código QR',
       })
@@ -228,7 +206,6 @@ export default function Configuracion2FAPage() {
       
       // Verificar si el backend devolvió códigos de respaldo
       if (data.backupCodes && data.backupCodes.length > 0) {
-        console.log('🎫 Códigos de respaldo recibidos:', data.backupCodes.length)
         setBackupCodes(data.backupCodes)
         setShowBackupCodes(true)
         setAvailableCodesCount(data.backupCodes.length)
@@ -389,7 +366,6 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
     )
   }
 
-  console.log('🎨 Render - showSetup:', showSetup, 'qrCodeUrl:', !!qrCodeUrl, 'has2FA:', has2FA)
 
   return (
     <>

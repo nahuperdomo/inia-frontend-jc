@@ -123,15 +123,11 @@ export default function EditarPurezaPage() {
         setError(null)
 
         const targetId = Number.parseInt(purezaId)
-        console.log("Cargando Pureza con ID:", targetId)
-
         const purezaData = await obtenerPurezaPorId(targetId)
-        console.log("Pureza cargada exitosamente:", purezaData)
         setPureza(purezaData)
 
         // Cargar catálogos
         try {
-          console.log("Cargando catálogos de malezas...")
           const catalogosData = await malezasService.obtenerTodasMalezas()
           if (Array.isArray(catalogosData)) {
             setCatalogos(catalogosData)
@@ -143,7 +139,6 @@ export default function EditarPurezaPage() {
 
         // Cargar especies
         try {
-          console.log("Cargando especies...")
           const especiesData = await obtenerTodasEspecies(true)
           if (Array.isArray(especiesData)) {
             setEspecies(especiesData)
@@ -420,12 +415,10 @@ export default function EditarPurezaPage() {
     if (!pureza) return
     
     try {
-      console.log(" Finalizando análisis Pureza:", pureza.analisisID)
       await finalizarAnalisis(pureza.analisisID)
       toast.success("Análisis finalizado exitosamente")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
     } catch (err: any) {
-      console.error(" Error finalizando análisis:", err)
       toast.error('Error al finalizar análisis', {
         description: err?.message || "No se pudo finalizar el análisis",
       })
@@ -437,12 +430,10 @@ export default function EditarPurezaPage() {
     if (!pureza) return
     
     try {
-      console.log(" Aprobando análisis Pureza:", pureza.analisisID)
       await aprobarAnalisis(pureza.analisisID)
       toast.success("Análisis aprobado exitosamente")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
     } catch (err: any) {
-      console.error(" Error aprobando análisis:", err)
       toast.error('Error al aprobar análisis', {
         description: err?.message || "No se pudo aprobar el análisis",
       })
@@ -454,12 +445,10 @@ export default function EditarPurezaPage() {
     if (!pureza) return
     
     try {
-      console.log(" Marcando análisis Pureza para repetir:", pureza.analisisID)
       await marcarParaRepetir(pureza.analisisID)
       toast.success("Análisis marcado para repetir")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
     } catch (err: any) {
-      console.error(" Error marcando para repetir:", err)
       toast.error('Error al marcar para repetir', {
         description: err?.message || "No se pudo marcar el análisis",
       })
@@ -471,7 +460,6 @@ export default function EditarPurezaPage() {
     if (!pureza) return
     
     try {
-      console.log(" Finalizando y aprobando análisis Pureza:", pureza.analisisID)
       // Cuando el admin finaliza, el backend automáticamente lo aprueba
       // No necesitamos llamar a aprobarAnalisis por separado
       await finalizarAnalisis(pureza.analisisID)

@@ -116,12 +116,6 @@ export default function ListadoGerminacionPage() {
       // Extraer metadata de paginación usando helper
       const pageData = extractPageMetadata<GerminacionListadoDTO>(data, page)
 
-      // Log para debug
-      console.log("Datos recibidos del backend:", pageData.content)
-      if (pageData.content.length > 0) {
-        console.log("Primera germinación:", pageData.content[0])
-      }
-
       setGerminaciones(pageData.content)
       setTotalPages(pageData.totalPages)
       setTotalElements(pageData.totalElements)

@@ -25,10 +25,6 @@ export default function ReporteTetrazolioPage() {
         fechaFin: fechaFin || undefined,
       }
       const data = await obtenerReporteTetrazolio(filtros)
-      console.log('Respuesta del backend Tetrazolio:', data)
-      console.log('viabilidadIniaPorEspecie:', data?.viabilidadIniaPorEspecie)
-      console.log('viabilidadInasePorEspecie:', data?.viabilidadInasePorEspecie)
-      console.log('totalTetrazolios:', data?.totalTetrazolios)
       setReporte(data)
     } catch (error) {
       console.error("Error al cargar reporte:", error)
@@ -55,8 +51,7 @@ export default function ReporteTetrazolioPage() {
       }))
     : []
 
-  console.log('dataViabilidadInia procesada:', dataViabilidadInia)
-  console.log('dataViabilidadInase procesada:', dataViabilidadInase)
+
 
   return (
     <div className="p-6 space-y-6">

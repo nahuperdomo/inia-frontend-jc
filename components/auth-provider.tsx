@@ -69,7 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         permissions: ROLE_PERMISSIONS[role],
       }
       setUser(mappedUser)
-      console.log(" Usuario cargado desde backend (profile):", mappedUser)
     } catch (e) {
       console.warn("No hay sesión iniciada o error al obtener perfil", e)
       setUser(null)

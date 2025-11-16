@@ -110,8 +110,6 @@ export default function ListadoPurezaPage() {
         selectedStatus !== "all" ? selectedStatus : undefined,
         undefined
       )
-      console.log("DEBUG obtenerPurezasPaginadas response:", data)
-
       // Extraer metadata de paginación usando helper
       const pageData = extractPageMetadata<PurezaListadoDTO>(data, page)
 

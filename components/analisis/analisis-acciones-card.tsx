@@ -34,16 +34,6 @@ export function AnalisisAccionesCard({
   const { confirm } = useConfirm()
   const [ejecutandoAccion, setEjecutandoAccion] = useState(false)
 
-  // DEBUG: Log para ver qué está pasando
-  console.log(" AnalisisAccionesCard DEBUG:", {
-    analisisId,
-    tipoAnalisis,
-    estado,
-    user,
-    userRole: user?.role,
-    isLoading
-  })
-
   // Mientras se está cargando, mostrar spinner
   if (isLoading) {
     return (

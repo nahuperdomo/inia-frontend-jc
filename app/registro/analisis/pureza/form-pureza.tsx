@@ -100,15 +100,8 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
         const malezas = parseFloat(formData.malezas_g as string) || 0;
         const malezasToleradas = parseFloat(formData.malezasToleradas_g as string) || 0;
         const malezasTolCero = parseFloat(formData.malezasTolCero_g as string) || 0;
-
-        console.log('=== DEBUG PORCENTAJES ===');
-        console.log('Peso total:', pesoTotal, 'tipo:', typeof formData.pesoTotal_g);
-        console.log('Semilla pura gramos:', semillaPura);
-        console.log('Materia inerte gramos:', materiaInerte);
-        console.log('Malezas tolerancia cero gramos:', malezasTolCero);
         
         if (pesoTotal === 0 || isNaN(pesoTotal)) {
-            console.log('Peso total es 0 o NaN, retornando 0s');
             return {
                 semillaPura: 0,
                 materiaInerte: 0,
@@ -126,10 +119,7 @@ const PurezaFields = ({ formData, handleInputChange, onChangeMalezas, onChangeCu
             malezas: (malezas / pesoTotal) * 100,
             malezasToleradas: (malezasToleradas / pesoTotal) * 100,
             malezasTolCero: (malezasTolCero / pesoTotal) * 100,
-        };
-        
-        console.log('Resultado porcentajes:', result);
-        
+        };        
         return result;
     }, [
         formData.pesoTotal_g,
