@@ -1063,18 +1063,18 @@ describe('auth-2fa-service', () => {
     it('debe detectar criterios de validación individuales', () => {
       const { validatePasswordStrength } = require('@/app/services/auth-2fa-service')
 
-      // Solo minúsculas
-      const weak1 = validatePasswordStrength('abcdefgh')
+      // Minúsculas + números (válido pero débil)
+      const weak1 = validatePasswordStrength('abcdef12')
       expect(weak1.strength).toBe('weak')
       expect(weak1.isValid).toBe(true)
 
-      // Minúsculas + Mayúsculas
-      const weak2 = validatePasswordStrength('Abcdefgh')
-      expect(weak2.strength).toBe('weak')
+      // Minúsculas + Mayúsculas + números (medium - 1 criterio bonus)
+      const weak2 = validatePasswordStrength('Abcdef12')
+      expect(weak2.strength).toBe('medium')
 
-      // Minúsculas + números
-      const weak3 = validatePasswordStrength('abcdef12')
-      expect(weak3.strength).toBe('weak')
+      // Solo minúsculas sin números (inválido)
+      const weak3 = validatePasswordStrength('abcdefgh')
+      expect(weak3.isValid).toBe(false)
     })
 
     it('debe detectar contraseña con 3 criterios (medium)', () => {

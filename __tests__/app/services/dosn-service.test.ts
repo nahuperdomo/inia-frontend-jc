@@ -713,7 +713,7 @@ describe('dosn-service', () => {
             await obtenerDosnPaginadas(0, 10, '');
 
             // No debe incluir el parámetro search si está vacío
-            expect(mockApiFetch).toHaveBeenCalledWith('/api/dosn/listado?page=0&size=10&search=');
+            expect(mockApiFetch).toHaveBeenCalledWith('/api/dosn/listado?page=0&size=10');
         });
     });
 });

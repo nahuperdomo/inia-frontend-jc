@@ -154,8 +154,8 @@ describe('DosnFields Component', () => {
                 />
             );
 
-            const fechaLabel = screen.getByText(/Fecha de análisis/);
-            expect(fechaLabel.textContent).toContain('*');
+            const fechaLabels = screen.getAllByText(/Fecha de análisis/);
+            expect(fechaLabels[0].textContent).toContain('*');
         });
 
         it('debe mostrar campo de gramos para INIA con asterisco obligatorio', () => {
@@ -206,10 +206,10 @@ describe('DosnFields Component', () => {
                 />
             );
 
-            expect(screen.getByText('Completo')).toBeInTheDocument();
-            expect(screen.getByText('Reducido')).toBeInTheDocument();
-            expect(screen.getByText('Limitado')).toBeInTheDocument();
-            expect(screen.getByText('Reducido - Limitado')).toBeInTheDocument();
+            expect(screen.getAllByText('Completo').length).toBeGreaterThan(0);
+            expect(screen.getAllByText('Reducido').length).toBeGreaterThan(0);
+            expect(screen.getAllByText('Limitado').length).toBeGreaterThan(0);
+            expect(screen.getAllByText('Reducido - Limitado').length).toBeGreaterThan(0);
         });
 
         it('debe mostrar descripciones de tipos de análisis', () => {

@@ -2,9 +2,9 @@ import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import GerminacionDetailPage from '@/app/listado/analisis/germinacion/[id]/page'
-import { 
+import {
   obtenerGerminacionPorId,
-  obtenerTablasGerminacion 
+  obtenerTablasGerminacion
 } from '@/app/services/germinacion-service'
 import { GerminacionDTO } from '@/app/models/interfaces/germinacion'
 import { TablaGermDTO, RepGermDTO } from '@/app/models/interfaces/repeticiones'
@@ -15,6 +15,15 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: jest.fn(),
     back: jest.fn()
+  })
+}))
+
+// Mock de AuthProvider
+jest.mock('@/components/auth-provider', () => ({
+  useAuth: () => ({
+    user: { id: 1, username: 'testuser', role: 'analista' },
+    isAuthenticated: true,
+    isLoading: false
   })
 }))
 
@@ -116,11 +125,11 @@ describe('GerminacionDetailPage', () => {
   // ===== LOADING STATES =====
   describe('Loading states', () => {
     it('debe mostrar loading spinner mientras carga los datos', () => {
-      mockedObtenerGerminacionPorId.mockImplementation(() => new Promise(() => {}))
-      mockedObtenerTablasGerminacion.mockImplementation(() => new Promise(() => {}))
-      
+      mockedObtenerGerminacionPorId.mockImplementation(() => new Promise(() => { }))
+      mockedObtenerTablasGerminacion.mockImplementation(() => new Promise(() => { }))
+
       render(<GerminacionDetailPage />)
-      
+
       expect(screen.getByText('Cargando análisis')).toBeInTheDocument()
       expect(screen.getByText('Obteniendo detalles de germinación...')).toBeInTheDocument()
     })
@@ -131,9 +140,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar error cuando falla obtenerGerminacionPorId', async () => {
       mockedObtenerGerminacionPorId.mockRejectedValue(new Error('Error de red'))
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('No se pudo cargar el análisis')).toBeInTheDocument()
       })
@@ -142,9 +151,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar mensaje cuando germinacion es null', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(undefined as never)
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('No se pudo cargar el análisis')).toBeInTheDocument()
         expect(screen.getByText('El análisis solicitado no existe')).toBeInTheDocument()
@@ -154,9 +163,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar botón de volver en estado de error', async () => {
       mockedObtenerGerminacionPorId.mockRejectedValue(new Error('Error'))
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         const volverButtons = screen.getAllByText('Volver al listado')
         expect(volverButtons.length).toBeGreaterThan(0)
@@ -169,9 +178,9 @@ describe('GerminacionDetailPage', () => {
     it('debe cargar y mostrar la información de germinación correctamente', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Análisis de Germinación #1/i)).toBeInTheDocument()
       })
@@ -180,9 +189,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar el estado del análisis con badge correcto', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('En Proceso')).toBeInTheDocument()
       })
@@ -191,9 +200,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar ficha y lote correctamente', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         // Ficha muestra idLote (10) o analisisID si idLote es undefined
         const fichas = screen.getAllByText('10')
@@ -206,9 +215,9 @@ describe('GerminacionDetailPage', () => {
     it('debe renderizar el componente AnalisisInfoGeneralCard', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('analisis-info-general-card')).toBeInTheDocument()
         expect(screen.getByText('Info General 1')).toBeInTheDocument()
@@ -218,9 +227,9 @@ describe('GerminacionDetailPage', () => {
     it('debe renderizar el componente AnalysisHistoryCard', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('analysis-history-card')).toBeInTheDocument()
         expect(screen.getByText('History 1')).toBeInTheDocument()
@@ -230,9 +239,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar botón de editar análisis', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('Editar análisis')).toBeInTheDocument()
       })
@@ -241,9 +250,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar TablaToleranciasButton', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('Ver Tabla de Tolerancias')).toBeInTheDocument()
       })
@@ -256,9 +265,9 @@ describe('GerminacionDetailPage', () => {
       const germinacionAprobada = { ...mockGerminacion, estado: 'APROBADO' as const }
       mockedObtenerGerminacionPorId.mockResolvedValue(germinacionAprobada)
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('Aprobado')).toBeInTheDocument()
       })
@@ -268,9 +277,9 @@ describe('GerminacionDetailPage', () => {
       const germinacionPendiente = { ...mockGerminacion, estado: 'PENDIENTE_APROBACION' as const }
       mockedObtenerGerminacionPorId.mockResolvedValue(germinacionPendiente)
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('Pendiente de Aprobación')).toBeInTheDocument()
       })
@@ -280,9 +289,9 @@ describe('GerminacionDetailPage', () => {
       const germinacionRepetir = { ...mockGerminacion, estado: 'A_REPETIR' as const }
       mockedObtenerGerminacionPorId.mockResolvedValue(germinacionRepetir)
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('A Repetir')).toBeInTheDocument()
       })
@@ -294,9 +303,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar mensaje cuando no hay tablas', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('No hay tablas de germinación registradas')).toBeInTheDocument()
       })
@@ -305,9 +314,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar el número correcto de tablas', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('1 tablas')).toBeInTheDocument()
       })
@@ -317,9 +326,9 @@ describe('GerminacionDetailPage', () => {
       const tablaFinalizada = { ...mockTabla, finalizada: true }
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([tablaFinalizada])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         const ones = screen.getAllByText('1')
         expect(ones.length).toBeGreaterThan(0)
@@ -331,9 +340,9 @@ describe('GerminacionDetailPage', () => {
       const tabla2 = { ...mockTabla, tablaGermID: 2, numeroTabla: 2 }
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla, tabla2])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('2 tablas')).toBeInTheDocument()
         expect(screen.getByText('Tabla 1')).toBeInTheDocument()
@@ -347,9 +356,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar información básica de la tabla', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('Tabla 1')).toBeInTheDocument()
         expect(screen.getByText('Sin tratamiento')).toBeInTheDocument()
@@ -361,9 +370,9 @@ describe('GerminacionDetailPage', () => {
       const tablaEnProceso = { ...mockTabla, finalizada: false }
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([tablaEnProceso])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         const enProcesoBadges = screen.getAllByText('En Proceso')
         // Debe haber al menos 2: uno en el badge del análisis y otro en el badge de la tabla
@@ -375,9 +384,9 @@ describe('GerminacionDetailPage', () => {
       const tablaFinalizada = { ...mockTabla, finalizada: true }
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([tablaFinalizada])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         const finalizadaBadges = screen.getAllByText('Finalizada')
         expect(finalizadaBadges.length).toBeGreaterThan(0)
@@ -387,9 +396,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar temperatura correctamente', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/25°C/i)).toBeInTheDocument()
       })
@@ -398,9 +407,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar número de semillas por repetición', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         const cincuenta = screen.getAllByText('50')
         expect(cincuenta.length).toBeGreaterThan(0)
@@ -411,9 +420,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar días de análisis', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/7 días/i)).toBeInTheDocument()
       })
@@ -428,9 +437,9 @@ describe('GerminacionDetailPage', () => {
       }
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([tablaConPrefrio])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         const siElements = screen.getAllByText('Sí')
         expect(siElements.length).toBeGreaterThan(0)
@@ -448,9 +457,9 @@ describe('GerminacionDetailPage', () => {
       }
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([tablaConPretratamiento])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         const siElements = screen.getAllByText('Sí')
         expect(siElements.length).toBeGreaterThan(0)
@@ -466,9 +475,9 @@ describe('GerminacionDetailPage', () => {
       }
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([tablaConProducto])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('Producto y Dosis')).toBeInTheDocument()
         expect(screen.getByText('Fungicida XYZ - 2ml/L')).toBeInTheDocument()
@@ -481,9 +490,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar cronograma de conteos', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Cronograma de Conteos \(3\)/i)).toBeInTheDocument()
       })
@@ -492,9 +501,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar el número correcto de conteos en el cronograma', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('C1')).toBeInTheDocument()
         expect(screen.getByText('C2')).toBeInTheDocument()
@@ -508,9 +517,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar información de repeticiones', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('Repeticiones de Tabla')).toBeInTheDocument()
         expect(screen.getByText('1 repeticiones')).toBeInTheDocument()
@@ -520,9 +529,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar datos de normales en las repeticiones', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         const diez = screen.getAllByText('10')
         expect(diez.length).toBeGreaterThan(0)
@@ -550,9 +559,9 @@ describe('GerminacionDetailPage', () => {
       }
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([tablaConMultiplesReps])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('2 repeticiones')).toBeInTheDocument()
       })
@@ -564,9 +573,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar promedios calculados de normales', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('Promedios Calculados (Sin Redondeo)')).toBeInTheDocument()
         expect(screen.getByText('Promedio Normales')).toBeInTheDocument()
@@ -576,9 +585,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar porcentajes calculados', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('Porcentajes Calculados (Sin Redondeo)')).toBeInTheDocument()
       })
@@ -587,9 +596,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar porcentajes con redondeo cuando existen', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('Porcentajes con Redondeo')).toBeInTheDocument()
         const noventa = screen.getAllByText('90%')
@@ -609,9 +618,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar valores de institutos cuando existen', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('Valores INIA/INASE')).toBeInTheDocument()
         expect(screen.getByText('INIA')).toBeInTheDocument()
@@ -621,9 +630,9 @@ describe('GerminacionDetailPage', () => {
     it('debe mostrar porcentajes de germinación por instituto', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([mockTabla])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         expect(screen.getByText('Germinación')).toBeInTheDocument()
       })
@@ -635,9 +644,9 @@ describe('GerminacionDetailPage', () => {
     it('debe tener link a la página de edición', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         const editButton = screen.getByText('Editar análisis')
         expect(editButton.closest('a')).toHaveAttribute('href', '/listado/analisis/germinacion/1/editar')
@@ -647,9 +656,9 @@ describe('GerminacionDetailPage', () => {
     it('debe tener botones de volver al listado', async () => {
       mockedObtenerGerminacionPorId.mockResolvedValue(mockGerminacion)
       mockedObtenerTablasGerminacion.mockResolvedValue([])
-      
+
       render(<GerminacionDetailPage />)
-      
+
       await waitFor(() => {
         const volverButtons = screen.getAllByText('Volver')
         expect(volverButtons.length).toBeGreaterThan(0)

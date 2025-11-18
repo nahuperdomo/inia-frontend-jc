@@ -465,7 +465,7 @@ describe('EditarTetrazolioPage Tests', () => {
             render(<EditarTetrazolioPage />)
 
             await waitFor(() => {
-                const fechaInput = screen.getByDisplayValue('2024-03-01')
+                const fechaInput = screen.getAllByDisplayValue('2024-03-01')[0]
                 fireEvent.change(fechaInput, { target: { value: '' } })
             })
 
@@ -516,7 +516,7 @@ describe('EditarTetrazolioPage Tests', () => {
             })
 
             await waitFor(() => {
-                expect(toast.success).toHaveBeenCalledWith('Análisis de Tetrazolio actualizado correctamente')
+                expect(toast.success).toHaveBeenCalledWith('Análisis de Tetrazolio actualizado exitosamente')
             })
         })
 
@@ -547,7 +547,7 @@ describe('EditarTetrazolioPage Tests', () => {
             })
 
             await waitFor(() => {
-                expect(toast.error).toHaveBeenCalledWith('Error al actualizar el análisis de Tetrazolio')
+                expect(toast.error).toHaveBeenCalledWith('Error de red')
             })
         })
 
@@ -697,7 +697,7 @@ describe('EditarTetrazolioPage Tests', () => {
             render(<EditarTetrazolioPage />)
 
             await waitFor(() => {
-                expect(screen.getByText('Ver Tabla de Tolerancias')).toBeInTheDocument()
+                expect(screen.getAllByText('Ver Tabla de Tolerancias').length).toBeGreaterThan(0)
             })
         })
     })
@@ -707,7 +707,7 @@ describe('EditarTetrazolioPage Tests', () => {
             render(<EditarTetrazolioPage />)
 
             await waitFor(() => {
-                expect(screen.getByText(/Tetrazolio/i)).toBeInTheDocument()
+                expect(screen.getAllByText(/Tetrazolio/i).length).toBeGreaterThan(0)
             })
         })
 

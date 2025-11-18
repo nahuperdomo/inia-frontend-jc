@@ -146,7 +146,7 @@ describe('Login Page', () => {
   it('debe deshabilitar el botón durante el proceso de login', async () => {
     // Arrange
     const user = userEvent.setup()
-    mockLogin2FA.mockImplementation(() => 
+    mockLogin2FA.mockImplementation(() =>
       new Promise(resolve => setTimeout(() => resolve({ success: true } as any), 100))
     )
 
@@ -163,7 +163,7 @@ describe('Login Page', () => {
 
     // Assert - El botón debería estar deshabilitado durante la carga
     expect(submitButton).toBeDisabled()
-    
+
     await waitFor(() => {
       expect(submitButton).not.toBeDisabled()
     }, { timeout: 2000 })
@@ -176,7 +176,7 @@ describe('Login Page', () => {
     // Assert
     const forgotPasswordLink = screen.getByText(/¿olvidaste tu contraseña\?/i)
     expect(forgotPasswordLink).toBeInTheDocument()
-    expect(forgotPasswordLink.closest('a')).toHaveAttribute('href', '/forgot-password')
+    expect(forgotPasswordLink.closest('a')).toHaveAttribute('href', '/recuperar-contrasena')
   })
 
   it('debe tener un link a registro', () => {

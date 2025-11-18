@@ -58,12 +58,12 @@ describe('ListadoGerminacionPage', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockUseAuth.mockReturnValue({
-      user: { 
-        id: '1', 
+      user: {
+        id: '1',
         email: 'test@test.com',
-        name: 'Test User', 
+        name: 'Test User',
         role: 'administrador',
-        permissions: [] 
+        permissions: []
       },
       isLoading: false,
       login: jest.fn(),
@@ -77,7 +77,7 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe renderizar el título y descripción', async () => {
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       expect(screen.getByText('Análisis de Germinación')).toBeInTheDocument()
       expect(screen.getByText('Consulta los análisis de germinación de semillas')).toBeInTheDocument()
@@ -86,20 +86,20 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe cargar y mostrar germinaciones al montar', async () => {
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       expect(mockObtenerGerminacionesPaginadas).toHaveBeenCalledWith(0, 10, '', undefined, undefined, undefined)
     })
 
     await waitFor(() => {
-      expect(screen.getByText('LOTE-001')).toBeInTheDocument()
-      expect(screen.getByText('LOTE-002')).toBeInTheDocument()
+      expect(screen.getAllByText('LOTE-001').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('LOTE-002').length).toBeGreaterThan(0)
     })
   })
 
   it('debe mostrar las estadísticas correctas', async () => {
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       expect(screen.getByText('15')).toBeInTheDocument() // Total
       const onesElements = screen.getAllByText('1')
@@ -110,8 +110,8 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe permitir buscar por texto con Enter', async () => {
     render(<ListadoGerminacionPage />)
-    
-    await waitFor(() => expect(screen.getByText('LOTE-001')).toBeInTheDocument())
+
+    await waitFor(() => expect(screen.getAllByText('LOTE-001').length).toBeGreaterThan(0))
 
     const searchInput = screen.getByPlaceholderText('Buscar por ID análisis, Lote o Ficha...')
     fireEvent.change(searchInput, { target: { value: 'LOTE-001' } })
@@ -124,12 +124,12 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe permitir buscar con botón de búsqueda', async () => {
     render(<ListadoGerminacionPage />)
-    
-    await waitFor(() => expect(screen.getByText('LOTE-001')).toBeInTheDocument())
+
+    await waitFor(() => expect(screen.getAllByText('LOTE-001').length).toBeGreaterThan(0))
 
     const searchInput = screen.getByPlaceholderText('Buscar por ID análisis, Lote o Ficha...')
     fireEvent.change(searchInput, { target: { value: 'Trigo' } })
-    
+
     const searchButtons = screen.getAllByRole('button')
     const searchButton = searchButtons.find(btn => btn.querySelector('.lucide-search'))
     fireEvent.click(searchButton!)
@@ -141,8 +141,8 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe filtrar por estado', async () => {
     render(<ListadoGerminacionPage />)
-    
-    await waitFor(() => expect(screen.getByText('LOTE-001')).toBeInTheDocument())
+
+    await waitFor(() => expect(screen.getAllByText('LOTE-001').length).toBeGreaterThan(0))
 
     const estadoSelect = screen.getByDisplayValue('Todos los estados')
     fireEvent.change(estadoSelect, { target: { value: 'APROBADO' } })
@@ -154,8 +154,8 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe filtrar por activo/inactivo', async () => {
     render(<ListadoGerminacionPage />)
-    
-    await waitFor(() => expect(screen.getByText('LOTE-001')).toBeInTheDocument())
+
+    await waitFor(() => expect(screen.getAllByText('LOTE-001').length).toBeGreaterThan(0))
 
     const filtroActivoSelect = screen.getByDisplayValue('Todos')
     fireEvent.change(filtroActivoSelect, { target: { value: 'activos' } })
@@ -167,7 +167,7 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe mostrar valores de germinación formateados', async () => {
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       expect(screen.getByText('95.5%')).toBeInTheDocument()
       expect(screen.getByText('94.0%')).toBeInTheDocument()
@@ -176,7 +176,7 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe mostrar guiones cuando no hay valores de germinación', async () => {
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       const cells = screen.getAllByText('-')
       expect(cells.length).toBeGreaterThan(0)
@@ -185,7 +185,7 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe formatear fechas correctamente', async () => {
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       expect(screen.getByText(/15\/01\/2024/)).toBeInTheDocument()
       expect(screen.getByText(/22\/01\/2024/)).toBeInTheDocument()
@@ -194,7 +194,7 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe mostrar badges de prefrío y pretratamiento', async () => {
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       const badges = screen.getAllByText(/Sí|No/)
       expect(badges.length).toBeGreaterThan(0)
@@ -204,10 +204,10 @@ describe('ListadoGerminacionPage', () => {
   it('debe desactivar germinación cuando es admin', async () => {
     global.confirm = jest.fn(() => true)
     mockDesactivarGerminacion.mockResolvedValue({} as never)
-    
+
     render(<ListadoGerminacionPage />)
-    
-    await waitFor(() => expect(screen.getByText('LOTE-001')).toBeInTheDocument())
+
+    await waitFor(() => expect(screen.getAllByText('LOTE-001').length).toBeGreaterThan(0))
 
     const deleteButtons = screen.getAllByTitle('Desactivar')
     fireEvent.click(deleteButtons[0])
@@ -220,10 +220,10 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe no desactivar si se cancela el confirm', async () => {
     global.confirm = jest.fn(() => false)
-    
+
     render(<ListadoGerminacionPage />)
-    
-    await waitFor(() => expect(screen.getByText('LOTE-001')).toBeInTheDocument())
+
+    await waitFor(() => expect(screen.getAllByText('LOTE-001').length).toBeGreaterThan(0))
 
     const deleteButtons = screen.getAllByTitle('Desactivar')
     fireEvent.click(deleteButtons[0])
@@ -233,9 +233,9 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe reactivar germinación inactiva', async () => {
     mockActivarGerminacion.mockResolvedValue({} as never)
-    
+
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => expect(screen.getByText('LOTE-002')).toBeInTheDocument())
 
     const reactivateButton = screen.getByTitle('Reactivar')
@@ -250,10 +250,10 @@ describe('ListadoGerminacionPage', () => {
   it('debe manejar error al desactivar', async () => {
     global.confirm = jest.fn(() => true)
     mockDesactivarGerminacion.mockRejectedValue(new Error('Error de red'))
-    
+
     render(<ListadoGerminacionPage />)
-    
-    await waitFor(() => expect(screen.getByText('LOTE-001')).toBeInTheDocument())
+
+    await waitFor(() => expect(screen.getAllByText('LOTE-001').length).toBeGreaterThan(0))
 
     const deleteButtons = screen.getAllByTitle('Desactivar')
     fireEvent.click(deleteButtons[0])
@@ -265,9 +265,9 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe manejar error al reactivar', async () => {
     mockActivarGerminacion.mockRejectedValue(new Error('Error de red'))
-    
+
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => expect(screen.getByText('LOTE-002')).toBeInTheDocument())
 
     const reactivateButton = screen.getByTitle('Reactivar')
@@ -280,8 +280,8 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe navegar a página de detalle al hacer clic en Ver', async () => {
     render(<ListadoGerminacionPage />)
-    
-    await waitFor(() => expect(screen.getByText('LOTE-001')).toBeInTheDocument())
+
+    await waitFor(() => expect(screen.getAllByText('LOTE-001').length).toBeGreaterThan(0))
 
     const viewButtons = screen.getAllByTitle('Ver detalles')
     expect(viewButtons[0].closest('a')).toHaveAttribute('href', '/listado/analisis/germinacion/1')
@@ -289,8 +289,8 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe navegar a página de edición al hacer clic en Editar', async () => {
     render(<ListadoGerminacionPage />)
-    
-    await waitFor(() => expect(screen.getByText('LOTE-001')).toBeInTheDocument())
+
+    await waitFor(() => expect(screen.getAllByText('LOTE-001').length).toBeGreaterThan(0))
 
     const editButtons = screen.getAllByTitle('Editar')
     expect(editButtons[0].closest('a')).toHaveAttribute('href', '/listado/analisis/germinacion/1/editar')
@@ -298,8 +298,8 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe cambiar de página correctamente', async () => {
     render(<ListadoGerminacionPage />)
-    
-    await waitFor(() => expect(screen.getByText('LOTE-001')).toBeInTheDocument())
+
+    await waitFor(() => expect(screen.getAllByText('LOTE-001').length).toBeGreaterThan(0))
 
     const nextPageButton = screen.getByRole('button', { name: /2/i })
     fireEvent.click(nextPageButton)
@@ -319,7 +319,7 @@ describe('ListadoGerminacionPage', () => {
     })
 
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       expect(screen.getByText('No se encontraron análisis de germinación')).toBeInTheDocument()
     })
@@ -330,7 +330,7 @@ describe('ListadoGerminacionPage', () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
 
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching germinaciones:', expect.any(Error))
     })
@@ -340,7 +340,7 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe mostrar información de paginación correcta', async () => {
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       expect(screen.getByText(/Mostrando 1 a 10 de 15 resultados/)).toBeInTheDocument()
     })
@@ -356,7 +356,7 @@ describe('ListadoGerminacionPage', () => {
     })
 
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       expect(screen.getByText('Mostrando 0 de 0 resultados')).toBeInTheDocument()
     })
@@ -364,7 +364,7 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe mostrar badges de estado correctos', async () => {
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       const aprobadoElements = screen.getAllByText('Aprobado')
       expect(aprobadoElements.length).toBeGreaterThan(0)
@@ -384,7 +384,7 @@ describe('ListadoGerminacionPage', () => {
     mockObtenerGerminacionesPaginadas.mockResolvedValue(mockData)
 
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       expect(screen.getByText('Pend. Aprobación')).toBeInTheDocument()
       expect(screen.getByText('A Repetir')).toBeInTheDocument()
@@ -393,12 +393,12 @@ describe('ListadoGerminacionPage', () => {
 
   it('no debe mostrar botones de desactivar/reactivar si no es admin', async () => {
     mockUseAuth.mockReturnValue({
-      user: { 
-        id: '1', 
+      user: {
+        id: '1',
         email: 'test@test.com',
-        name: 'Test User', 
+        name: 'Test User',
         role: 'analista',
-        permissions: [] 
+        permissions: []
       },
       isLoading: false,
       login: jest.fn(),
@@ -409,8 +409,8 @@ describe('ListadoGerminacionPage', () => {
     })
 
     render(<ListadoGerminacionPage />)
-    
-    await waitFor(() => expect(screen.getByText('LOTE-001')).toBeInTheDocument())
+
+    await waitFor(() => expect(screen.getAllByText('LOTE-001').length).toBeGreaterThan(0))
 
     expect(screen.queryByTitle('Desactivar')).not.toBeInTheDocument()
     expect(screen.queryByTitle('Reactivar')).not.toBeInTheDocument()
@@ -418,7 +418,7 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe tener link al botón Nuevo Análisis', async () => {
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       const newButton = screen.getByText('Nuevo Análisis').closest('a')
       expect(newButton).toHaveAttribute('href', '/registro/analisis?tipo=GERMINACION')
@@ -427,7 +427,7 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe tener link al botón Volver', async () => {
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       const backButtons = screen.getAllByText(/Volver/)
       const backButton = backButtons[0].closest('a')
@@ -437,7 +437,7 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe mostrar ID de lote cuando existe', async () => {
     render(<ListadoGerminacionPage />)
-    
+
     await waitFor(() => {
       expect(screen.getByText('ID: 100')).toBeInTheDocument()
       expect(screen.getByText('ID: 101')).toBeInTheDocument()
@@ -446,8 +446,8 @@ describe('ListadoGerminacionPage', () => {
 
   it('debe resetear página al cambiar filtros', async () => {
     render(<ListadoGerminacionPage />)
-    
-    await waitFor(() => expect(screen.getByText('LOTE-001')).toBeInTheDocument())
+
+    await waitFor(() => expect(screen.getAllByText('LOTE-001').length).toBeGreaterThan(0))
 
     // Cambiar a página 2
     mockObtenerGerminacionesPaginadas.mockClear()

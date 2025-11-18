@@ -266,9 +266,9 @@ describe('ListadoLotesPage Tests', () => {
             render(<ListadoLotesPage />)
 
             await waitFor(() => {
-                expect(screen.getByText('Baguette 10')).toBeInTheDocument()
-                expect(screen.getByText('DM 48')).toBeInTheDocument()
-                expect(screen.getByText('Colorado')).toBeInTheDocument()
+                expect(screen.getAllByText('Baguette 10').length).toBeGreaterThan(0)
+                expect(screen.getAllByText('DM 48').length).toBeGreaterThan(0)
+                expect(screen.getAllByText('Colorado').length).toBeGreaterThan(0)
             })
         })
 

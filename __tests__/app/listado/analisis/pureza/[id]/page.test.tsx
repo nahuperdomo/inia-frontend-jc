@@ -24,6 +24,15 @@ import { EstadoAnalisis } from '@/app/models/types/enums'
 // Mock de servicios
 jest.mock('@/app/services/pureza-service')
 
+// Mock de AuthProvider
+jest.mock('@/components/auth-provider', () => ({
+  useAuth: () => ({
+    user: { id: 1, username: 'testuser', role: 'analista' },
+    isAuthenticated: true,
+    isLoading: false
+  })
+}))
+
 // Mock de navegación
 const mockPush = jest.fn()
 jest.mock('next/navigation', () => ({
@@ -74,7 +83,7 @@ describe('PurezaDetailPage Tests', () => {
     fechaFin: '2024-03-15',
     comentarios: 'Análisis completo',
     cumpleEstandar: true,
-    
+
     fecha: '2024-03-01',
     pesoInicial_g: 100.000,
     semillaPura_g: 95.500,
@@ -84,7 +93,7 @@ describe('PurezaDetailPage Tests', () => {
     malezasToleradas_g: 0.300,
     malezasTolCero_g: 0.200,
     pesoTotal_g: 100.000,
-    
+
     redonSemillaPura: 95.5,
     redonMateriaInerte: 2.5,
     redonOtrosCultivos: 1.0,
@@ -92,7 +101,7 @@ describe('PurezaDetailPage Tests', () => {
     redonMalezasToleradas: 0.3,
     redonMalezasTolCero: 0.2,
     redonPesoTotal: 100.0,
-    
+
     inasePura: 95.0,
     inaseMateriaInerte: 2.8,
     inaseOtrosCultivos: 1.2,
@@ -100,7 +109,7 @@ describe('PurezaDetailPage Tests', () => {
     inaseMalezasToleradas: 0.3,
     inaseMalezasTolCero: 0.2,
     inaseFecha: '2024-03-10',
-    
+
     otrasSemillas: [
       {
         listadoID: 1,
@@ -127,7 +136,7 @@ describe('PurezaDetailPage Tests', () => {
         }
       }
     ],
-    
+
     historial: [
       {
         id: 1,
@@ -147,7 +156,7 @@ describe('PurezaDetailPage Tests', () => {
   describe('Test: Renderizado y carga de datos', () => {
     it('debe mostrar loading mientras carga los datos', () => {
       jest.spyOn(purezaService, 'obtenerPurezaPorId')
-        .mockImplementation(() => new Promise(() => {})) // Never resolves
+        .mockImplementation(() => new Promise(() => { })) // Never resolves
 
       render(<PurezaDetailPage />)
 
@@ -434,7 +443,7 @@ describe('PurezaDetailPage Tests', () => {
       await waitFor(() => {
         const iniaLabels = screen.getAllByText('INIA')
         expect(iniaLabels.length).toBeGreaterThan(0)
-        
+
         const numeros = screen.getAllByText(/^[12]$/)
         expect(numeros.length).toBeGreaterThan(0)
       })

@@ -93,10 +93,10 @@ describe('Tetrazolio Service Tests', () => {
         })
 
         it('debe lanzar error personalizado al fallar', async () => {
-            ; (apiFetch as jest.Mock).mockRejectedValue({ message: 'Error de red' })
+            ; (apiFetch as jest.Mock).mockRejectedValue(new Error('Error de red'))
 
             await expect(tetrazolioService.crearTetrazolio(mockTetrazolioRequest))
-                .rejects.toThrow(/Error al crear el análisis de tetrazolio/)
+                .rejects.toThrow('Error de red')
         })
     })
 

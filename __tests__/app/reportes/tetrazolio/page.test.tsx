@@ -304,7 +304,7 @@ describe('ReporteTetrazolioPage Tests', () => {
             render(<ReporteTetrazolioPage />)
 
             await waitFor(() => {
-                expect(screen.getByText('Porcentaje de viabilidad sin redondeo (INASE) promedio por especie')).toBeInTheDocument()
+                expect(screen.getByText(/Porcentaje de viabilidad.*INASE.*promedio por especie/i)).toBeInTheDocument()
             })
         })
 

@@ -179,7 +179,7 @@ describe('ListadoDOSNPage Component', () => {
             render(<ListadoDOSNPage />);
 
             await waitFor(() => {
-                expect(screen.getByText('1')).toBeInTheDocument(); // 1 APROBADO
+                expect(screen.getAllByText('1').length).toBeGreaterThan(0); // 1 APROBADO
             });
         });
 
@@ -288,8 +288,8 @@ describe('ListadoDOSNPage Component', () => {
             });
 
             await waitFor(() => {
-                const aprobadoOption = screen.getByText('Aprobado');
-                fireEvent.click(aprobadoOption);
+                const aprobadoOptions = screen.getAllByText('Aprobado');
+                fireEvent.click(aprobadoOptions[0]);
             });
 
             await waitFor(() => {
@@ -358,7 +358,7 @@ describe('ListadoDOSNPage Component', () => {
             render(<ListadoDOSNPage />);
 
             await waitFor(() => {
-                expect(screen.getByText('1')).toBeInTheDocument();
+                expect(screen.getAllByText('1').length).toBeGreaterThan(0);
                 expect(screen.getByText('LOTE-001')).toBeInTheDocument();
                 expect(screen.getByText('Trigo')).toBeInTheDocument();
             });

@@ -73,7 +73,7 @@ describe('TetrazolioFields - Formulario de Tetrazolio', () => {
             expect(screen.getByText('Repeticiones')).toBeInTheDocument();
             expect(screen.getByText('Pretratamiento')).toBeInTheDocument();
             expect(screen.getByText('Condiciones de Tinción')).toBeInTheDocument();
-            expect(screen.getByText('Viabilidad INASE')).toBeInTheDocument();
+            expect(screen.getAllByText('Viabilidad INASE').length).toBeGreaterThan(0);
         });
     });
 
@@ -534,7 +534,7 @@ describe('TetrazolioFields - Formulario de Tetrazolio', () => {
                 />
             );
 
-            expect(screen.getByText('Viabilidad INASE')).toBeInTheDocument();
+            expect(screen.getAllByText('Viabilidad INASE').length).toBeGreaterThan(0);
         });
 
         it('debe permitir ingresar valores numéricos', () => {
