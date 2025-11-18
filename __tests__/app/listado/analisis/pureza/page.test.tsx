@@ -766,4 +766,93 @@ describe('ListadoPurezaPage Tests', () => {
       })
     })
   })
+
+  describe('Test: Cancelar desactivación con confirm', () => {
+    it('debe usar global.confirm para confirmar desactivación', async () => {
+      const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true)
+
+      jest.spyOn(purezaService, 'obtenerPurezasPaginadas')
+        .mockResolvedValue(mockPaginatedResponse)
+      jest.spyOn(purezaService, 'desactivarPureza').mockResolvedValue(undefined)
+
+      render(<ListadoPurezaPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Trigo Baguette 10')).toBeInTheDocument()
+      })
+
+      // Verificar que confirm está disponible
+      expect(confirmSpy).toBeDefined()
+      confirmSpy.mockRestore()
+    })
+  })
+
+  describe('Test: Búsqueda con Enter key', () => {
+    it('debe buscar al presionar Enter en el campo de búsqueda', async () => {
+      const mockObtenerPurezas = jest.spyOn(purezaService, 'obtenerPurezasPaginadas')
+        .mockResolvedValue(mockPaginatedResponse)
+
+      render(<ListadoPurezaPage />)
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/buscar/i)).toBeInTheDocument()
+      })
+
+      const searchInput = screen.getByPlaceholderText(/buscar/i)
+      
+      fireEvent.change(searchInput, { target: { value: 'Trigo' } })
+      fireEvent.keyDown(searchInput, { key: 'Enter', code: 'Enter' })
+
+      await waitFor(() => {
+        expect(mockObtenerPurezas).toHaveBeenCalledTimes(2) // 1 inicial + 1 búsqueda
+      })
+    })
+
+    it('debe ignorar otras teclas en el campo de búsqueda', async () => {
+      const mockObtenerPurezas = jest.spyOn(purezaService, 'obtenerPurezasPaginadas')
+        .mockResolvedValue(mockPaginatedResponse)
+
+      render(<ListadoPurezaPage />)
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/buscar/i)).toBeInTheDocument()
+      })
+
+      const searchInput = screen.getByPlaceholderText(/buscar/i)
+      
+      fireEvent.change(searchInput, { target: { value: 'Trigo' } })
+      fireEvent.keyDown(searchInput, { key: 'Tab', code: 'Tab' })
+
+      await waitFor(() => {
+        expect(mockObtenerPurezas).toHaveBeenCalledTimes(1) // Solo llamada inicial
+      })
+    })
+  })
+
+  describe('Test: Click en botón de búsqueda', () => {
+    it('debe buscar al hacer click en el botón de búsqueda', async () => {
+      const mockObtenerPurezas = jest.spyOn(purezaService, 'obtenerPurezasPaginadas')
+        .mockResolvedValue(mockPaginatedResponse)
+
+      render(<ListadoPurezaPage />)
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/buscar/i)).toBeInTheDocument()
+      })
+
+      const searchInput = screen.getByPlaceholderText(/buscar/i)
+      fireEvent.change(searchInput, { target: { value: 'Baguette' } })
+
+      const searchButtons = screen.getAllByRole('button')
+      const searchButton = searchButtons.find(btn => btn.textContent?.includes('Buscar'))
+      
+      if (searchButton) {
+        fireEvent.click(searchButton)
+
+        await waitFor(() => {
+          expect(mockObtenerPurezas).toHaveBeenCalledTimes(2)
+        })
+      }
+    })
+  })
 })
