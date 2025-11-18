@@ -236,7 +236,7 @@ describe('ListadoGerminacionPage', () => {
 
     render(<ListadoGerminacionPage />)
 
-    await waitFor(() => expect(screen.getByText('LOTE-002')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getAllByText('LOTE-002').length).toBeGreaterThan(0))
 
     const reactivateButton = screen.getByTitle('Reactivar')
     fireEvent.click(reactivateButton)
@@ -268,7 +268,7 @@ describe('ListadoGerminacionPage', () => {
 
     render(<ListadoGerminacionPage />)
 
-    await waitFor(() => expect(screen.getByText('LOTE-002')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getAllByText('LOTE-002').length).toBeGreaterThan(0))
 
     const reactivateButton = screen.getByTitle('Reactivar')
     fireEvent.click(reactivateButton)
