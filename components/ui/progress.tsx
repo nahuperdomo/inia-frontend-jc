@@ -1,7 +1,4 @@
-/**
- * Progress Component
- * Simple progress bar component for password strength indicator
- */
+
 
 import * as React from "react"
 import { cn } from "@/lib/utils"

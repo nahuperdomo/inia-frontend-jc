@@ -1,16 +1,4 @@
-/**
- * Tests para la página de Reporte de Tetrazolio
- * 
- * Estos tests cubren:
- * - Renderizado de componentes principales (título, filtros, cards)
- * - Carga inicial de reporte sin filtros
- * - Aplicación de filtros de fecha
- * - Visualización de métricas (total de análisis)
- * - Gráficos de viabilidad INIA por especie
- * - Gráficos de viabilidad INASE por especie
- * - Manejo de estados vacíos
- * - Manejo de errores
- */
+
 
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'

@@ -12,9 +12,7 @@ interface ImportacionResponse {
     }>;
 }
 
-/**
- * Valida un archivo Excel de legados sin importarlo
- */
+
 export async function validarArchivoLegados(archivo: File): Promise<ImportacionResponse> {
     try {
         const formData = new FormData();
@@ -52,9 +50,7 @@ export async function validarArchivoLegados(archivo: File): Promise<ImportacionR
     }
 }
 
-/**
- * Importa datos desde un archivo Excel de legados
- */
+
 export async function importarLegadosDesdeExcel(archivo: File): Promise<ImportacionResponse> {
     try {
         const formData = new FormData();

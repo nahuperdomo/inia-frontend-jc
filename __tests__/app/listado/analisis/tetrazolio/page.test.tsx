@@ -1,18 +1,4 @@
-/**
- * Tests para la página de listado de análisis de Tetrazolio
- * 
- * Estos tests cubren:
- * - Renderizado de la lista de análisis de tetrazolio
- * - Búsqueda y filtrado por estado y activo
- * - Paginación de resultados
- * - Visualización de estadísticas (total, completados, en proceso, promedio viabilidad)
- * - Navegación a detalle y edición
- * - Activación/desactivación de análisis (solo admin)
- * - Formateo de fechas
- * - Manejo de estados vacíos
- * - Manejo de errores de carga
- * - Validación de repeticiones entre 2 y 8
- */
+
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';

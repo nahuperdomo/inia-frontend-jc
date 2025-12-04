@@ -30,9 +30,7 @@ const legadoService = {
   },
 }
 
-/**
- * Obtener legados paginados con filtros
- */
+
 export async function obtenerLegadosPaginadas(
   page: number = 0,
   size: number = 10,
@@ -71,9 +69,7 @@ export async function obtenerLegadosPaginadas(
   return apiFetch(`/api/legados/listado?${params.toString()}`);
 }
 
-/**
- * Obtener todas las especies únicas de legados
- */
+
 export async function obtenerEspeciesUnicas(): Promise<string[]> {
   return apiFetch('/api/legados/especies');
 }

@@ -53,12 +53,7 @@ export async function obtenerLotesElegiblesParaTipoAnalisis(tipoAnalisis: TipoAn
   return res.lotes || [];
 }
 
-/**
- * Verifica si un tipo de análisis puede ser removido de un lote
- * Un tipo puede removerse si:
- * - No tiene análisis de ese tipo
- * - Todos sus análisis están en estado "A_REPETIR"
- */
+
 export async function puedeRemoverTipoAnalisis(loteID: number, tipoAnalisis: TipoAnalisis): Promise<{ puedeRemover: boolean; razon?: string }> {
   try {
     const response = await apiFetch(`/api/lotes/${loteID}/puede-remover-tipo/${tipoAnalisis}`);
@@ -72,12 +67,7 @@ export async function puedeRemoverTipoAnalisis(loteID: number, tipoAnalisis: Tip
   }
 }
 
-/**
- * Obtiene los lotes elegibles para un tipo específico de análisis
- * Solo incluye lotes que:
- * 1. Tienen el tipo de análisis asignado en su lista de tipos
- * 2. No tienen análisis existentes de ese tipo O tienen análisis en estado "A_REPETIR"
- */
+
 export async function obtenerLotesElegibles(tipoAnalisis: TipoAnalisis): Promise<LoteSimpleDTO[]> {
   try {
     return await obtenerLotesElegiblesParaTipoAnalisis(tipoAnalisis);
@@ -87,9 +77,7 @@ export async function obtenerLotesElegibles(tipoAnalisis: TipoAnalisis): Promise
   }
 }
 
-/**
- * Valida si un lote específico es elegible para un tipo de análisis
- */
+
 export async function validarLoteElegible(loteID: number, tipoAnalisis: TipoAnalisis): Promise<boolean> {
   try {
     const lotesElegibles = await obtenerLotesElegibles(tipoAnalisis);

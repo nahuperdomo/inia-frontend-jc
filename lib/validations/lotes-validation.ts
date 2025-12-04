@@ -1,6 +1,4 @@
-/**
- * Esquemas de validación para el módulo de lotes
- */
+
 
 import { ValidationSchema } from '../hooks/useValidation';
 import { TipoAnalisis } from '@/app/models/types/enums';
@@ -15,9 +13,7 @@ import {
     compose
 } from './validation-rules';
 
-/**
- * Tipo para los datos del formulario de lotes
- */
+
 export interface LoteFormData {
     ficha: string;
     nomLote: string;
@@ -45,9 +41,7 @@ export interface LoteFormData {
     tiposAnalisisAsignados: TipoAnalisis[];
 }
 
-/**
- * Esquema de validación para el formulario de registro de lotes
- */
+
 export const loteValidationSchema: ValidationSchema<LoteFormData> = {
     // Pestaña "datos"
     ficha: minLength(2),
@@ -112,10 +106,7 @@ export const loteValidationSchema: ValidationSchema<LoteFormData> = {
     }
 };
 
-/**
- * Función de validación para el campo de datos de humedad
- * Se utiliza de forma separada ya que es un campo anidado
- */
+
 export const validateHumedadData = (data: Array<{ tipoHumedadID: number | "", valor: number | "" }>): Record<string, string> => {
     const errors: Record<string, string> = {};
 

@@ -25,9 +25,7 @@ interface FormSelectProps {
     labelKey?: string; // Propiedad para usar como etiqueta (default: "nombre")
 }
 
-/**
- * Componente de campo select con soporte para validación
- */
+
 export function FormSelect({
     label,
     id,

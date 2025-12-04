@@ -1,12 +1,6 @@
-/**
- * Utilidades para limpiar el almacenamiento de formularios
- */
 
-/**
- * Limpia todos los datos persistidos del formulario DOSN
- *  IMPORTANTE: Solo limpia los datos de REGISTROS (pestaña "Registros")
- * NO limpia datos generales (fechas, gramos, tipos de análisis)
- */
+
+
 export function clearDosnStorage() {
   if (typeof window === "undefined") return
 
@@ -25,9 +19,7 @@ export function clearDosnStorage() {
   })
 }
 
-/**
- * Limpia todos los datos persistidos del formulario Germinación
- */
+
 export function clearGerminacionStorage() {
   if (typeof window === "undefined") return
 
@@ -42,9 +34,7 @@ export function clearGerminacionStorage() {
   })
 }
 
-/**
- * Limpia todos los datos persistidos del formulario Tetrazolio
- */
+
 export function clearTetrazolioStorage() {
   if (typeof window === "undefined") return
 
@@ -59,9 +49,7 @@ export function clearTetrazolioStorage() {
   })
 }
 
-/**
- * Limpia todos los datos persistidos del formulario Pureza
- */
+
 export function clearPurezaStorage() {
   if (typeof window === "undefined") return
 
@@ -78,9 +66,7 @@ export function clearPurezaStorage() {
   })
 }
 
-/**
- * Limpia todo el storage de formularios
- */
+
 export function clearAllFormsStorage() {
   clearDosnStorage()
   clearGerminacionStorage()

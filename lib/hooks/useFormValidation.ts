@@ -8,13 +8,7 @@ type ValidationResult = {
     errors: Record<string, string>
 }
 
-/**
- * Custom hook para gestionar la validación de formularios
- * 
- * @param initialData Datos iniciales del formulario
- * @param schema Esquema de validación Zod
- * @returns Funciones y estados para manejar la validación
- */
+
 export function useFormValidation<T extends Record<string, any>>(
     initialData: T,
     schema: z.ZodType<T>
@@ -22,9 +16,7 @@ export function useFormValidation<T extends Record<string, any>>(
     const [touched, setTouched] = useState<Record<string, boolean>>({})
     const [errors, setErrors] = useState<Record<string, string>>({})
 
-    /**
-     * Validar todo el formulario
-     */
+    
     const validateForm = (data: T): ValidationResult => {
         try {
             schema.parse(data)
@@ -44,9 +36,7 @@ export function useFormValidation<T extends Record<string, any>>(
         }
     }
 
-    /**
-     * Validar un campo específico
-     */
+    
     const validateField = (fieldName: string, value: any, data: T) => {
         try {
             // Validamos solo el valor del campo dentro del contexto completo
@@ -68,39 +58,29 @@ export function useFormValidation<T extends Record<string, any>>(
         }
     }
 
-    /**
-     * Marcar un campo como "tocado" y validarlo
-     */
+    
     const handleBlur = (fieldName: string, value: any, data: T) => {
         setTouched(prev => ({ ...prev, [fieldName]: true }))
         validateField(fieldName, value, data)
     }
 
-    /**
-     * Verificar si el formulario es válido
-     */
+    
     const isValid = (data: T) => {
         const { isValid } = validateForm(data)
         return isValid
     }
 
-    /**
-     * Verificar si un campo tiene error
-     */
+    
     const hasError = (fieldName: string): boolean => {
         return Boolean(touched[fieldName] && errors[fieldName])
     }
 
-    /**
-     * Obtener mensaje de error de un campo
-     */
+    
     const getErrorMessage = (fieldName: string): string => {
         return touched[fieldName] ? errors[fieldName] || "" : ""
     }
 
-    /**
-     * Marcar todos los campos como tocados
-     */
+    
     const touchAll = (data: T) => {
         const touchedFields: Record<string, boolean> = {}
         Object.keys(data).forEach(key => {
@@ -110,9 +90,7 @@ export function useFormValidation<T extends Record<string, any>>(
         validateForm(data)
     }
 
-    /**
-     * Restablecer el estado de validación
-     */
+    
     const resetValidation = () => {
         setTouched({})
         setErrors({})

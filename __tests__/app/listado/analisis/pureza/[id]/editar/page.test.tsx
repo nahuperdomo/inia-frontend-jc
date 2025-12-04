@@ -1,18 +1,4 @@
-/**
- * Tests para la página de edición de análisis de Pureza
- * 
- * Estos tests cubren:
- * - Carga de datos existentes para edición
- * - Edición de campos de valores en gramos
- * - Edición de porcentajes con redondeo
- * - Edición de datos INASE
- * - Validaciones (peso total, suma de porcentajes)
- * - Agregar y eliminar registros de malezas y cultivos
- * - Guardar cambios (PUT)
- * - Acciones de finalizar, aprobar, marcar para repetir
- * - Cálculos automáticos al editar
- * - Manejo de errores
- */
+
 
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
@@ -1985,10 +1971,7 @@ describe('EditarPurezaPage Tests', () => {
     })
   })
 
-  /**
-   * INTEGRATION TESTS - Flujos completos de trabajo
-   * Estos tests ejecutan el JSX completo al interactuar con formularios
-   */
+  
   describe('Integration Tests: Flujos completos', () => {
     it('debe completar el flujo completo de edición: cargar → editar todos los campos → calcular → guardar', async () => {
       render(<EditarPurezaPage />)

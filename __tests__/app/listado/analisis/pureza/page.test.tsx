@@ -1,17 +1,4 @@
-/**
- * Tests para la página de listado de análisis de Pureza
- * 
- * Estos tests cubren:
- * - Renderizado de la lista de análisis de pureza
- * - Búsqueda y filtrado por estado y activo
- * - Paginación de resultados
- * - Visualización de estadísticas (total, completados, en proceso, promedio pureza)
- * - Navegación a detalle y edición
- * - Activación/desactivación de análisis (solo admin)
- * - Formateo de fechas
- * - Manejo de estados vacíos
- * - Manejo de errores de carga
- */
+
 
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'

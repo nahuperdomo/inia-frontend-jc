@@ -1,22 +1,4 @@
-/**
- * Tests para la página de edición de Lotes
- * 
- * Estos tests cubren:
- * - Carga de datos existentes para edición
- * - Edición de campos básicos (ficha, nombre, tipo, cultivar)
- * - Edición de empresa y cliente
- * - Edición de fechas (entrega, recibo, cosecha)
- * - Edición de almacenamiento (origen, depósito, estado)
- * - Edición de peso y artículo
- * - Edición de observaciones
- * - Gestión de datos de humedad (agregar, editar, eliminar)
- * - Gestión de tipos de análisis asignados
- * - Validaciones asíncronas (ficha única, nombre único)
- * - Guardar cambios (PUT)
- * - Manejo de lotes inactivos (no editable)
- * - Verificación de tipos de análisis no removibles
- * - Manejo de errores
- */
+
 
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'

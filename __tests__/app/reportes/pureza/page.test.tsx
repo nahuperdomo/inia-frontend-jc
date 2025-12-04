@@ -1,20 +1,4 @@
-/**
- * Tests para la página de Reporte de Pureza
- * 
- * Estos tests cubren:
- * - Renderizado de componentes principales (título, filtros, cards)
- * - Carga inicial de reporte sin filtros
- * - Aplicación de filtros de fecha
- * - Visualización de métricas (total de análisis)
- * - Gráficos de cumplimiento de estándares
- * - Gráficos de malezas por especie
- * - Gráficos de otras semillas por especie
- * - Selección de especie para contaminantes
- * - Carga de contaminantes específicos por especie
- * - Visualización de pie charts (general, malezas, cultivos)
- * - Manejo de estados vacíos
- * - Manejo de errores
- */
+
 
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'

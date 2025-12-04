@@ -1,17 +1,4 @@
-/**
- * Tests para la página de edición de análisis de Tetrazolio
- * 
- * Estos tests cubren:
- * - Carga de datos existentes para edición
- * - Edición de campos del ensayo (fecha, semillas por repetición, pretratamiento, concentración, tinción)
- * - Gestión de repeticiones (agregar, editar, eliminar)
- * - Validación del rango 2-8 repeticiones
- * - Cálculos automáticos de totales
- * - Guardar cambios (PUT)
- * - Acciones de finalizar, aprobar, marcar para repetir
- * - Validaciones de datos
- * - Manejo de errores
- */
+
 
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'

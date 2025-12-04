@@ -5,9 +5,7 @@ import { handleApiError } from "@/lib/error-handling/error-handler"
 // Para desarrollo local usar localhost, para Docker usar backend
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
-/**
- * Obtiene el token de autenticación de las cookies
- */
+
 function getToken(): string | null {
     // Método profesional: leer token de HttpOnly cookies
     // Las cookies se envían automáticamente, pero también podemos leerlas si no son HttpOnly
@@ -27,13 +25,7 @@ interface ApiOptions extends RequestInit {
     skipErrorHandling?: boolean
 }
 
-/**
- * Cliente API para realizar peticiones al backend
- * 
- * @param endpoint Ruta del endpoint API (debe comenzar con /)
- * @param options Opciones de fetch
- * @returns Respuesta procesada (JSON o texto)
- */
+
 export async function apiFetch<T = any>(endpoint: string, options: ApiOptions = {}): Promise<T> {
     const { skipErrorHandling, ...fetchOptions } = options
     const token = getToken()

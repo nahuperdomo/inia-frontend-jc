@@ -1,23 +1,4 @@
-/**
- * Tests para Paso de Configuración de Tablas de Germinación
- * 
- * Este componente es parte de TablasGerminacionSection y maneja el formulario de creación de nuevas tablas.
- * Permite configurar:
- * - Tratamiento, producto y dosis
- * - Número de semillas por repetición
- * - Método de germinación
- * - Temperatura
- * - Prefrío y pretratamiento
- * - Fechas: ingreso, germinación, conteos individuales y fecha final
- * - Número de repeticiones y conteos
- * 
- * Cobertura 100%:
- * - Test: Renderizar campos de configuración
- * - Test: Selección de lote
- * - Test: Selección de número de repeticiones
- * - Test: Fechas inicio y fin
- * - Test: Validaciones
- */
+
 
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -63,9 +44,7 @@ describe('Paso de Configuración de Tabla - Tests Completos', () => {
     jest.clearAllMocks()
   })
 
-  /**
-   * Test: Renderizar campos de configuración
-   */
+  
   describe('Test: Renderizar campos de configuración', () => {
     it('debe mostrar el botón "Agregar Tabla" cuando no hay tablas', () => {
       render(
@@ -203,11 +182,7 @@ describe('Paso de Configuración de Tabla - Tests Completos', () => {
     })
   })
 
-  /**
-   * Test: Selección de lote
-   * Nota: En este componente no se selecciona lote directamente,
-   * el lote se selecciona en el formulario principal de germinación
-   */
+  
   describe('Test: Selección de lote', () => {
     it('debe mostrar información del tratamiento en el formulario', async () => {
       const user = userEvent.setup()
@@ -254,9 +229,7 @@ describe('Paso de Configuración de Tabla - Tests Completos', () => {
     })
   })
 
-  /**
-   * Test: Selección de número de repeticiones
-   */
+  
   describe('Test: Selección de número de repeticiones', () => {
     it('debe mostrar campo de número de repeticiones con valor por defecto 8', async () => {
       const user = userEvent.setup()
@@ -322,9 +295,7 @@ describe('Paso de Configuración de Tabla - Tests Completos', () => {
     })
   })
 
-  /**
-   * Test: Fechas inicio y fin
-   */
+  
   describe('Test: Fechas inicio y fin', () => {
     it('debe mostrar campo de fecha de germinación', async () => {
       const user = userEvent.setup()
@@ -424,9 +395,7 @@ describe('Paso de Configuración de Tabla - Tests Completos', () => {
 
   })
 
-  /**
-   * Test: Validaciones
-   */
+  
   describe('Test: Validaciones', () => {
     it('debe validar campos requeridos al intentar crear tabla', async () => {
       const user = userEvent.setup()

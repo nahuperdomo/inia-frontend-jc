@@ -2,9 +2,7 @@
 
 import { toast } from 'sonner'
 
-/**
- * Tipos de errores en la aplicación
- */
+
 export enum ErrorType {
     VALIDATION = 'validation',
     API = 'api',
@@ -12,17 +10,13 @@ export enum ErrorType {
     UNKNOWN = 'unknown'
 }
 
-/**
- * Interfaz para mensajes de error estructurados
- */
+
 export interface ErrorMessage {
     title: string
     description: string
 }
 
-/**
- * Mapeo de errores comunes a mensajes amigables
- */
+
 const errorMessages: Record<ErrorType, ErrorMessage> = {
     [ErrorType.VALIDATION]: {
         title: 'Error de validación',
@@ -42,21 +36,14 @@ const errorMessages: Record<ErrorType, ErrorMessage> = {
     }
 }
 
-/**
- * Interfaz para errores de API
- */
+
 export interface ApiError {
     status?: number
     message?: string
     errors?: Record<string, string[]>
 }
 
-/**
- * Función para manejar errores en la aplicación
- * 
- * @param error El error capturado
- * @param type Tipo de error
- */
+
 export function handleError(error: unknown, type = ErrorType.UNKNOWN): void {
     console.error('Error:', error)
 
@@ -80,11 +67,7 @@ export function handleError(error: unknown, type = ErrorType.UNKNOWN): void {
     })
 }
 
-/**
- * Función para manejar errores de API
- * 
- * @param error Error de API
- */
+
 export function handleApiError(error: ApiError): void {
     console.error('API Error:', error)
 

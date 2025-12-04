@@ -1,15 +1,4 @@
-/**
- * Tests para el formulario de registro de análisis de Germinación
- * 
- * Estos tests cubren:
- * - Renderizado del formulario cuando se selecciona Germinación
- * - Validación de campos obligatorios (tipo de análisis y lote)
- * - Persistencia en localStorage
- * - Submit del formulario con datos válidos
- * - Manejo de errores al crear análisis
- * - Botones de navegación y cancelación
- * - Carga de lotes elegibles
- */
+
 
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'

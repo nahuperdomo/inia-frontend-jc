@@ -1,11 +1,6 @@
-/**
- * Biblioteca de reglas de validación reutilizables
- * Este archivo contiene funciones de validación para distintos tipos de datos
- */
 
-/**
- * Verifica si un valor es requerido (no está vacío)
- */
+
+
 export const required = (value: any): string | null => {
     if (value === undefined || value === null || value === '') {
         return 'Este campo es obligatorio';
@@ -13,9 +8,7 @@ export const required = (value: any): string | null => {
     return null;
 };
 
-/**
- * Verifica si un valor es un número válido
- */
+
 export const isNumber = (value: any): string | null => {
     if (value === '' || value === undefined || value === null) return null;
     if (isNaN(Number(value))) {
@@ -24,9 +17,7 @@ export const isNumber = (value: any): string | null => {
     return null;
 };
 
-/**
- * Verifica si un número es mayor que un valor mínimo
- */
+
 export const minValue = (min: number) => (value: any): string | null => {
     if (value === '' || value === undefined || value === null) return null;
     const numValue = Number(value);
@@ -36,9 +27,7 @@ export const minValue = (min: number) => (value: any): string | null => {
     return null;
 };
 
-/**
- * Verifica si un número es menor que un valor máximo
- */
+
 export const maxValue = (max: number) => (value: any): string | null => {
     if (value === '' || value === undefined || value === null) return null;
     const numValue = Number(value);
@@ -48,9 +37,7 @@ export const maxValue = (max: number) => (value: any): string | null => {
     return null;
 };
 
-/**
- * Verifica si una cadena tiene una longitud mínima
- */
+
 export const minLength = (min: number) => (value: string): string | null => {
     if (!value) return null;
     if (value.length < min) {
@@ -59,9 +46,7 @@ export const minLength = (min: number) => (value: string): string | null => {
     return null;
 };
 
-/**
- * Verifica si una cadena tiene una longitud máxima
- */
+
 export const maxLength = (max: number) => (value: string): string | null => {
     if (!value) return null;
     if (value.length > max) {
@@ -70,9 +55,7 @@ export const maxLength = (max: number) => (value: string): string | null => {
     return null;
 };
 
-/**
- * Verifica si una cadena coincide con un patrón (expresión regular)
- */
+
 export const pattern = (regex: RegExp, message: string) => (value: string): string | null => {
     if (!value) return null;
     if (!regex.test(value)) {
@@ -81,9 +64,7 @@ export const pattern = (regex: RegExp, message: string) => (value: string): stri
     return null;
 };
 
-/**
- * Verifica si una fecha es válida
- */
+
 export const isValidDate = (value: string): string | null => {
     if (!value) return null;
     const date = new Date(value);
@@ -93,10 +74,7 @@ export const isValidDate = (value: string): string | null => {
     return null;
 };
 
-/**
- * Verifica si una fecha es válida (versión que valida incluso vacío si fue tocado)
- * Para campos opcionales que necesitan mostrar error en tiempo real
- */
+
 export const isValidDateOptional = (value: string): string | null => {
     // Si está completamente vacío, es válido (campo opcional)
     if (!value || value === '') return null;
@@ -109,9 +87,7 @@ export const isValidDateOptional = (value: string): string | null => {
     return null;
 };
 
-/**
- * Verifica si una fecha no es posterior a la fecha actual
- */
+
 export const isPastOrPresent = (value: string): string | null => {
     if (!value) return null;
     const date = new Date(value);
@@ -126,9 +102,7 @@ export const isPastOrPresent = (value: string): string | null => {
     return null;
 };
 
-/**
- * Verifica si una fecha no es anterior a la fecha actual
- */
+
 export const isFutureOrPresent = (value: string): string | null => {
     if (!value) return null;
     
@@ -147,9 +121,7 @@ export const isFutureOrPresent = (value: string): string | null => {
     return null;
 };
 
-/**
- * Verifica si una fecha es posterior a otra
- */
+
 export const isAfterDate = (dateToCompare: string | Date, fieldName?: string) => (value: string): string | null => {
     if (!value || !dateToCompare) return null;
 
@@ -162,9 +134,7 @@ export const isAfterDate = (dateToCompare: string | Date, fieldName?: string) =>
     return null;
 };
 
-/**
- * Verifica si un email es válido
- */
+
 export const isEmail = (value: string): string | null => {
     if (!value) return null;
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -174,9 +144,7 @@ export const isEmail = (value: string): string | null => {
     return null;
 };
 
-/**
- * Combina múltiples validaciones en una sola
- */
+
 export const compose = (validators: Array<(value: any) => string | null>) => (value: any): string | null => {
     for (const validator of validators) {
         const error = validator(value);

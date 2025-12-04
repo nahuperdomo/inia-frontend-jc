@@ -1,11 +1,4 @@
-/**
- * Servicio de Autenticación con 2FA
- * 
- * Maneja todas las operaciones relacionadas con autenticación de dos factores:
- * - Login con soporte 2FA
- * - Recuperación de contraseña
- * - Reset de contraseña con doble verificación
- */
+
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -117,19 +110,7 @@ export interface ErrorResponse {
 
 // ===== FUNCIONES DEL SERVICIO =====
 
-/**
- * Login con soporte para autenticación de dos factores
- * 
- * Flujo:
- * 1. Si el usuario NO tiene 2FA → Login directo
- * 2. Si el usuario tiene 2FA + dispositivo de confianza → Login directo
- * 3. Si el usuario tiene 2FA + dispositivo nuevo → Requiere código TOTP
- * 4. Si es admin con credenciales temporales → Requiere cambio de credenciales
- * 
- * @param credentials Credenciales de login con datos opcionales de 2FA
- * @returns Datos del usuario o respuesta requiriendo 2FA/setup/cambio de credenciales
- * @throws Error si las credenciales son incorrectas o el código 2FA es inválido
- */
+
 export async function login2FA(
   credentials: Login2FARequest
 ): Promise<Login2FAResponse | Requires2FAResponse | Requires2FASetupResponse | RequiresCredentialChangeResponse> {
@@ -215,9 +196,7 @@ export async function login2FA(
   }
 }
 
-/**
- * Login tradicional (fallback cuando endpoint 2FA no está disponible)
- */
+
 async function loginTradicional(usuario: string, password: string): Promise<Login2FAResponse> {
 
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
@@ -264,19 +243,7 @@ async function loginTradicional(usuario: string, password: string): Promise<Logi
   };
 }
 
-/**
- * Solicita un código de recuperación de contraseña
- * 
- * El backend:
- * 1. Verifica que el email exista y tenga 2FA habilitado
- * 2. Genera un código de 8 caracteres (formato: XXXX-XXXX)
- * 3. Hashea el código con BCrypt y lo guarda en BD
- * 4. Envía el código por email (validez: 10 minutos)
- * 
- * @param email Email del usuario
- * @returns Mensaje de confirmación
- * @throws Error si el email no existe o el usuario no tiene 2FA habilitado
- */
+
 export async function forgotPassword(
   email: string
 ): Promise<ForgotPasswordResponse> {
@@ -308,26 +275,7 @@ export async function forgotPassword(
   }
 }
 
-/**
- * Resetea la contraseña usando código de recuperación + código Google Authenticator
- * 
- * Requiere:
- * - Código de recuperación enviado por email (10 min de validez)
- * - Código TOTP de Google Authenticator (6 dígitos)
- * - Nueva contraseña (mínimo 8 caracteres)
- * 
- * El backend:
- * 1. Valida el código de recuperación (BCrypt compare)
- * 2. Verifica que no haya expirado
- * 3. Valida el código TOTP
- * 4. Cambia la contraseña (BCrypt hash)
- * 5. **REVOCA TODOS los dispositivos de confianza** (seguridad)
- * 6. Limpia el código de recuperación de la BD
- * 
- * @param data Datos de reset (email, códigos, nueva password)
- * @returns Mensaje de confirmación
- * @throws Error si los códigos son inválidos, expirados o la contraseña es débil
- */
+
 export async function resetPassword(
   data: ResetPasswordRequest
 ): Promise<ResetPasswordResponse> {
@@ -363,14 +311,7 @@ export async function resetPassword(
   throw new Error(errorMessage);
 }
 
-/**
- * Setup inicial de 2FA (para usuarios sin autenticación)
- * Se usa cuando el usuario DEBE activar 2FA obligatoriamente
- * 
- * @param email Email del usuario
- * @param password Contraseña del usuario
- * @returns Datos para configurar Google Authenticator
- */
+
 export async function setupInitial2FA(
   email: string,
   password: string
@@ -417,13 +358,7 @@ export async function setupInitial2FA(
   }
 }
 
-/**
- * Verificar código TOTP inicial y activar 2FA (con login automático)
- * 
- * @param email Email del usuario
- * @param totpCode Código TOTP de 6 dígitos
- * @returns Datos de usuario autenticado + códigos de respaldo
- */
+
 export async function verifyInitial2FA(
   email: string,
   totpCode: string
@@ -472,23 +407,7 @@ export async function verifyInitial2FA(
   }
 }
 
-/**
- * Regenera los códigos de respaldo del usuario
- * 
- * Requiere:
- * - Usuario autenticado con 2FA habilitado
- * - Código TOTP válido para confirmación
- * 
- * El backend:
- * 1. Verifica código TOTP
- * 2. Invalida todos los códigos antiguos
- * 3. Genera 10 nuevos códigos de respaldo
- * 4. Retorna los códigos EN TEXTO PLANO (solo se muestran una vez)
- * 
- * @param totpCode Código TOTP para confirmar la operación
- * @returns Nuevos códigos de respaldo
- * @throws Error si el código TOTP es inválido o no tiene 2FA habilitado
- */
+
 export async function regenerateBackupCodes(
   totpCode: string
 ): Promise<BackupCodesResponse> {
@@ -525,14 +444,7 @@ export async function regenerateBackupCodes(
   }
 }
 
-/**
- * Obtiene el conteo de códigos de respaldo disponibles
- * 
- * Requiere:
- * - Usuario autenticado
- * 
- * @returns Cantidad de códigos disponibles (no usados) y advertencias
- */
+
 export async function getBackupCodesCount(): Promise<BackupCodesCountResponse> {
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/2fa/backup-codes/count`, {
     method: 'GET',
@@ -563,34 +475,19 @@ export async function getBackupCodesCount(): Promise<BackupCodesCountResponse> {
   }
 }
 
-/**
- * Valida el formato de un código TOTP (6 dígitos numéricos)
- * 
- * @param code Código a validar
- * @returns true si el formato es válido
- */
+
 export function validateTotpCodeFormat(code: string): boolean {
   return /^\d{6}$/.test(code);
 }
 
-/**
- * Valida el formato de un código de respaldo (formato: XXXX-XXXX-XXXX o 12 caracteres)
- * 
- * @param code Código a validar
- * @returns true si el formato es válido
- */
+
 export function validateBackupCodeFormat(code: string): boolean {
   // Permitir con o sin guiones
   const cleanCode = code.replace(/-/g, '');
   return /^[A-Z0-9]{12}$/i.test(cleanCode);
 }
 
-/**
- * Formatea un código de respaldo al formato XXXX-XXXX-XXXX
- * 
- * @param code Código sin formato
- * @returns Código formateado
- */
+
 export function formatBackupCode(code: string): string {
   const cleanCode = code.replace(/[^A-Z0-9]/gi, '').toUpperCase();
 
@@ -603,24 +500,14 @@ export function formatBackupCode(code: string): string {
   return cleanCode;
 }
 
-/**
- * Valida el formato de un código de recuperación (formato: XXXX-XXXX o XXXXXXXX)
- * 
- * @param code Código a validar
- * @returns true si el formato es válido
- */
+
 export function validateRecoveryCodeFormat(code: string): boolean {
   // Permitir con o sin guión
   const cleanCode = code.replace(/-/g, '');
   return /^[A-Z0-9]{8}$/i.test(cleanCode);
 }
 
-/**
- * Formatea un código de recuperación al formato XXXX-XXXX
- * 
- * @param code Código sin formato
- * @returns Código formateado
- */
+
 export function formatRecoveryCode(code: string): string {
   const cleanCode = code.replace(/[^A-Z0-9]/gi, '').toUpperCase();
 
@@ -631,17 +518,7 @@ export function formatRecoveryCode(code: string): string {
   return cleanCode;
 }
 
-/**
- * Valida fortaleza de contraseña
- * 
- * Requisitos:
- * - Mínimo 8 caracteres
- * - Al menos una mayúscula (recomendado)
- * - Al menos un número (recomendado)
- * 
- * @param password Contraseña a validar
- * @returns Objeto con validación y mensaje
- */
+
 export function validatePasswordStrength(password: string): {
   isValid: boolean;
   strength: 'weak' | 'medium' | 'strong';
@@ -702,14 +579,7 @@ export function validatePasswordStrength(password: string): {
   };
 }
 
-/**
- * Completar configuración inicial del admin
- * Permite al admin cambiar sus credenciales temporales y activar 2FA
- * 
- * @param data Datos de configuración (contraseña actual, nuevo email, nueva contraseña, código TOTP)
- * @returns Datos del usuario y códigos de respaldo
- * @throws Error si la configuración falla
- */
+
 export async function completeAdminSetup(
   data: CompleteAdminSetupRequest
 ): Promise<CompleteAdminSetupResponse> {
@@ -735,14 +605,7 @@ export async function completeAdminSetup(
   throw new Error(errorData.error || 'Error al completar configuración');
 }
 
-/**
- * Obtener datos de configuración usando token temporal
- * El token es de un solo uso y expira en 5 minutos
- * 
- * @param token Token temporal recibido del login
- * @returns Datos necesarios para la configuración (QR, secret, etc.)
- * @throws Error si el token es inválido o expirado
- */
+
 export async function getAdminSetupData(token: string): Promise<AdminSetupData> {
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/admin/setup-data/${token}`, {
     method: 'GET',

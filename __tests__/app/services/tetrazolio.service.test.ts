@@ -1,19 +1,4 @@
-/**
- * Tests para tetrazolio-service
- * 
- * Estos tests cubren:
- * - Crear nuevo análisis de tetrazolio
- * - Obtener todos los análisis
- * - Obtener análisis por ID
- * - Actualizar análisis
- * - Eliminar/desactivar análisis
- * - Activar análisis
- * - Obtener análisis por lote
- * - Finalizar, aprobar y marcar para repetir
- * - Actualizar porcentajes redondeados
- * - Obtener listado paginado con filtros
- * - Manejo de errores
- */
+
 
 import * as tetrazolioService from '@/app/services/tetrazolio-service'
 import { apiFetch } from '@/app/services/api'

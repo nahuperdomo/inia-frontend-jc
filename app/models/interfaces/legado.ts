@@ -1,8 +1,6 @@
 import { LoteDTO } from './lote'
 
-/**
- * Interfaz simple para listado de legados
- */
+
 export interface LegadoSimpleDTO {
   legadoID: number
   nomLote: string | null
@@ -13,9 +11,7 @@ export interface LegadoSimpleDTO {
   activo: boolean
 }
 
-/**
- * Interfaz para listado paginado de legados
- */
+
 export interface LegadoListadoDTO {
   legadoID: number
   ficha: string | null
@@ -28,9 +24,7 @@ export interface LegadoListadoDTO {
   puraI: number | null
 }
 
-/**
- * Interfaz completa para un registro Legado - coincide con LegadoDTO del backend
- */
+
 export interface LegadoDTO {
   legadoID: number
   lote: LoteDTO

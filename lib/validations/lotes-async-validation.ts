@@ -1,6 +1,4 @@
-/**
- * Funciones de validación asíncrona para el módulo de lotes
- */
+
 
 import { validarCamposUnicos } from "@/app/services/validaciones-service";
 

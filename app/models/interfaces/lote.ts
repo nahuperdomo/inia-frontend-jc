@@ -1,9 +1,7 @@
 import { TipoAnalisis } from '../types/enums';
 import { DatosHumedadDTO } from './common';
 
-/**
- * Interfaz completa para un Lote - coincide con LoteDTO del backend
- */
+
 export interface LoteDTO {
   loteID: number;
   ficha: string;

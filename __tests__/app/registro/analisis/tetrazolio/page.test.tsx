@@ -1,13 +1,4 @@
-/**
- * Tests para el componente de formulario de Tetrazolio
- * 
- * Estos tests cubren:
- * - Validación de repeticiones entre 2 y 8 para resultados confiables
- * - Campos obligatorios: Fecha del ensayo, Semillas por repetición, 
- *   Pretratamiento, Concentración, Tinción en grados, Tinción en horas
- * - Renderizado correcto del formulario
- * - Validaciones de campos requeridos
- */
+
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';

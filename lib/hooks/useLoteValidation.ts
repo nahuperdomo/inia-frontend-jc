@@ -1,6 +1,4 @@
-/**
- * Hook personalizado para validación de formulario de lotes
- */
+
 import { useCallback, useState } from 'react';
 import { ValidationSchema } from './useValidation';
 import { useAsyncValidation } from './useAsyncValidation';

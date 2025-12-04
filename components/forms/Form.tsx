@@ -8,9 +8,7 @@ interface FormProps {
     className?: string
 }
 
-/**
- * Componente Form genérico para manejar formularios
- */
+
 export function Form({ onSubmit, children, className = "space-y-6" }: FormProps) {
     return (
         <form onSubmit={onSubmit} className={className}>
@@ -26,9 +24,7 @@ interface FormSectionProps {
     className?: string
 }
 
-/**
- * Componente para secciones de formulario
- */
+
 export function FormSection({ title, description, children, className = "space-y-4" }: FormSectionProps) {
     return (
         <div className={className}>
@@ -46,9 +42,7 @@ interface FormActionsProps {
     className?: string
 }
 
-/**
- * Componente para acciones de formulario (botones)
- */
+
 export function FormActions({ children, className = "flex justify-end space-x-3" }: FormActionsProps) {
     return (
         <div className={className}>

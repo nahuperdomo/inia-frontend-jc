@@ -1,6 +1,4 @@
-/**
- * Hook personalizado para manejar validación de formularios
- */
+
 
 import { useState, useCallback, useMemo } from 'react';
 
@@ -9,11 +7,7 @@ export type ValidationSchema<T extends Record<string, any>> = {
     [K in keyof T]?: (value: T[K], allValues: T) => string | null;
 };
 
-/**
- * Hook que maneja la validación del formulario
- * @param initialValues - Valores iniciales del formulario
- * @param schema - Esquema de validación
- */
+
 export function useValidation<T extends Record<string, any>>(
     initialValues: T,
     validationSchema: ValidationSchema<T>

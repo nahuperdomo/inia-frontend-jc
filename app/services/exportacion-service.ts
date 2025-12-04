@@ -1,12 +1,8 @@
-/**
- * Servicio para exportación de datos a Excel
- */
+
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-/**
- * Exporta todos los lotes activos o lotes específicos a Excel
- */
+
 export async function exportarLotesExcel(loteIds?: number[]): Promise<Blob> {
   const params = loteIds && loteIds.length > 0 
     ? `?loteIds=${loteIds.join(',')}` 
@@ -25,9 +21,7 @@ export async function exportarLotesExcel(loteIds?: number[]): Promise<Blob> {
   return await response.blob();
 }
 
-/**
- * Exporta un lote específico a Excel
- */
+
 export async function exportarLoteEspecificoExcel(loteId: number): Promise<Blob> {
   const response = await fetch(`${API_BASE_URL}/api/exportaciones/excel/lote/${loteId}`, {
     method: 'GET',
@@ -42,9 +36,7 @@ export async function exportarLoteEspecificoExcel(loteId: number): Promise<Blob>
   return await response.blob();
 }
 
-/**
- * Exporta lotes con filtros avanzados
- */
+
 export async function exportarLotesConFiltros(filtros: ExportacionFiltrosDTO): Promise<Blob> {
   const response = await fetch(`${API_BASE_URL}/api/exportaciones/excel/avanzado`, {
     method: 'POST',
@@ -63,9 +55,7 @@ export async function exportarLotesConFiltros(filtros: ExportacionFiltrosDTO): P
   return await response.blob();
 }
 
-/**
- * Descarga un blob como archivo
- */
+
 export function descargarArchivo(blob: Blob, nombreArchivo: string) {
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -77,17 +67,13 @@ export function descargarArchivo(blob: Blob, nombreArchivo: string) {
   window.URL.revokeObjectURL(url);
 }
 
-/**
- * Genera un nombre de archivo con timestamp
- */
+
 export function generarNombreArchivo(prefijo: string = 'analisis'): string {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
   return `${prefijo}_${timestamp}.xlsx`;
 }
 
-/**
- * Genera un resumen de los filtros aplicados (solo frontend, sin backend)
- */
+
 export function generarResumenFiltros(filtros: ExportacionFiltrosDTO): ResumenFiltros {
   const filtrosAplicados: string[] = [];
   const advertencias: string[] = [];

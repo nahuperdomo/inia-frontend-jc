@@ -1,21 +1,4 @@
-/**
- * Tests para lote-service
- * 
- * Estos tests cubren todas las funciones del servicio de lotes:
- * - obtenerLotesActivos
- * - obtenerLotesInactivos
- * - obtenerLotePorId
- * - crearLote
- * - actualizarLote
- * - eliminarLote
- * - activarLote
- * - obtenerLotesElegiblesParaTipoAnalisis
- * - puedeRemoverTipoAnalisis
- * - obtenerLotesElegibles
- * - validarLoteElegible
- * - obtenerLotesPaginadas
- * - obtenerEstadisticasLotes
- */
+
 
 import {
     obtenerLotesActivos,

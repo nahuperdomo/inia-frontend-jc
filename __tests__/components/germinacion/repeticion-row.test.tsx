@@ -1,16 +1,4 @@
-/**
- * Tests para RepeticionRow - Tabla de Repeticiones de Germinación
- * 
- * Este componente renderiza una fila de repetición con inputs editables
- * para ingresar datos de germinación (normales, anormales, duras, frescas, muertas).
- * 
- * Cobertura:
- * - Renderizado con 8 repeticiones
- * - Inputs editables por celda
- * - Validación de valores numéricos
- * - Cálculo automático de totales
- * - Actualización del componente padre al cambiar valores
- */
+
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { RepeticionRow } from '@/components/germinacion/repeticion-row'

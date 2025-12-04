@@ -2,10 +2,7 @@ import { obtenerTiposHumedad, obtenerNumerosArticulo, obtenerOrigenes, obtenerEs
 import { obtenerTodosCultivares } from './cultivar-service';
 import { obtenerClientes, obtenerEmpresas } from './contacto-service';
 
-/**
- * Servicio para obtener todos los catálogos necesarios para el formulario de lotes.
- * Obtiene datos reales del backend sin fallbacks.
- */
+
 export async function obtenerCatalogosParaLotes() {
     const [
         cultivares,
@@ -39,9 +36,7 @@ export async function obtenerCatalogosParaLotes() {
     };
 }
 
-/**
- * Opciones fijas que no vienen del backend
- */
+
 export const tipoOptions = [
     { id: "INTERNO", nombre: "Interno" },
     { id: "OTROS_CENTROS_COSTOS", nombre: "Otros Centros de Costos" },

@@ -1,19 +1,4 @@
-/**
- * Tests para Resumen de Cálculos de Germinación
- * 
- * Este componente muestra el resumen estadístico de análisis de germinación incluyendo:
- * - Totales por campo (normales, anormales, duras, frescas, muertas)
- * - Promedios sin redondeo
- * - Porcentajes calculados con formato 4 decimales
- * 
- * Cobertura 100 porciento:
- * - Mostrar cálculos de germinación
- * - Actualizar cuando cambian datos
- * - Formatear porcentajes correctamente
- * - Mostrar alertas si fuera de tolerancia
- * 
- * NOTA: El resumen solo se muestra cuando la tabla está expandida
- */
+
 
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'

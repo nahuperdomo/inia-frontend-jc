@@ -19,9 +19,7 @@ interface FormFieldProps {
     disabled?: boolean;
 }
 
-/**
- * Componente de campo de formulario con soporte para validación
- */
+
 export function FormField({
     label,
     id,

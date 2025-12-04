@@ -29,9 +29,7 @@ interface FormSelectProps {
     helpText?: string
 }
 
-/**
- * Componente de campo select con soporte para validación
- */
+
 export function FormSelect({
     label,
     id,

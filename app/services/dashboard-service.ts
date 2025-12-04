@@ -67,13 +67,7 @@ export async function obtenerAnalisisPorAprobar(
   )
 }
 
-/**
- * Keyset pagination para análisis pendientes.
- * Más eficiente para scroll infinito / "cargar más".
- * 
- * @param cursor Base64-encoded cursor (null para primera página)
- * @param size Número de items por página
- */
+
 export async function obtenerAnalisisPendientesKeyset(
   cursor?: string | null,
   size: number = 20
@@ -86,13 +80,7 @@ export async function obtenerAnalisisPendientesKeyset(
   )
 }
 
-/**
- * Keyset pagination para análisis por aprobar.
- * Más eficiente para scroll infinito / "cargar más".
- * 
- * @param cursor Base64-encoded cursor (null para primera página)
- * @param size Número de items por página
- */
+
 export async function obtenerAnalisisPorAprobarKeyset(
   cursor?: string | null,
   size: number = 20
@@ -105,13 +93,7 @@ export async function obtenerAnalisisPorAprobarKeyset(
   )
 }
 
-/**
- * Paginación offset estándar para análisis pendientes.
- * Mejor para navegación de páginas con números.
- * 
- * @param page Número de página (base 0)
- * @param size Número de items por página
- */
+
 export async function obtenerAnalisisPendientesPaginados(
   page: number = 0,
   size: number = 10
@@ -126,13 +108,7 @@ export async function obtenerAnalisisPendientesPaginados(
   )
 }
 
-/**
- * Paginación offset estándar para análisis por aprobar.
- * Mejor para navegación de páginas con números.
- * 
- * @param page Número de página (base 0)
- * @param size Número de items por página
- */
+
 export async function obtenerAnalisisPorAprobarPaginados(
   page: number = 0,
   size: number = 10

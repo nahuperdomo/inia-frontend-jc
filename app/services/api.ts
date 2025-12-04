@@ -1,11 +1,7 @@
 // URL para desarrollo local (frontend local y backend en Docker)
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
-/**
- * Cliente API que usa cookies HttpOnly para autenticación.
- * El backend envía tokens en cookies HttpOnly (no accesibles desde JavaScript).
- * fetch() con credentials: 'include' envía automáticamente estas cookies.
- */
+
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
   const headers = {

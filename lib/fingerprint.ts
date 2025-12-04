@@ -1,24 +1,11 @@
-/**
- * Device Fingerprinting Library
- * 
- * Genera un identificador único del dispositivo basado en características
- * del navegador y sistema operativo. Este fingerprint se usa para el
- * sistema de dispositivos de confianza (2FA).
- * 
- * IMPORTANTE: El fingerprint es un hash generado en el cliente que permite
- * identificar el dispositivo de forma pseudoanónima. El backend hashea
- * este valor con SHA-256 antes de almacenarlo.
- */
+
 
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 // Instancia singleton del agente de fingerprinting
 let fpAgent: any = null;
 
-/**
- * Inicializa el agente de FingerprintJS
- * Esta función debe llamarse una sola vez al inicio de la aplicación
- */
+
 async function initializeFingerprintAgent() {
   if (!fpAgent) {
     try {
@@ -30,24 +17,7 @@ async function initializeFingerprintAgent() {
   return fpAgent;
 }
 
-/**
- * Genera un fingerprint único del dispositivo
- * 
- * Este fingerprint incluye:
- * - Canvas fingerprinting
- * - WebGL fingerprinting
- * - Audio fingerprinting
- * - Configuración de fuentes
- * - Plugins del navegador
- * - Zona horaria y idioma
- * - Características de hardware (CPU, memoria)
- * 
- * @returns {Promise<string>} Fingerprint único del dispositivo
- * 
- * @example
- * const fingerprint = await getDeviceFingerprint();
- * console.log('Device ID:', fingerprint);
- */
+
 export async function getDeviceFingerprint(): Promise<string> {
   try {
     // Asegurar que el agente esté inicializado
@@ -65,14 +35,7 @@ export async function getDeviceFingerprint(): Promise<string> {
   }
 }
 
-/**
- * Genera un fingerprint de respaldo usando características básicas del navegador
- * 
- * Esta función se usa como fallback si FingerprintJS falla.
- * NO es tan estable como el fingerprint profesional.
- * 
- * @returns {string} Fingerprint básico
- */
+
 function generateFallbackFingerprint(): string {
   console.warn(' [Fingerprint] Usando método de respaldo (menos estable)');
   
@@ -101,18 +64,7 @@ function generateFallbackFingerprint(): string {
   return fingerprint;
 }
 
-/**
- * Pre-inicializa el agente de fingerprinting en segundo plano
- * 
- * Esta función puede llamarse al cargar la aplicación para
- * reducir la latencia al generar el fingerprint posteriormente.
- * 
- * @example
- * // En _app.tsx o layout.tsx
- * useEffect(() => {
- *   preloadFingerprint();
- * }, []);
- */
+
 export async function preloadFingerprint(): Promise<void> {
   try {
     await initializeFingerprintAgent();
@@ -120,11 +72,7 @@ export async function preloadFingerprint(): Promise<void> {
   }
 }
 
-/**
- * Obtiene información adicional del dispositivo para mostrar al usuario
- * 
- * @returns {object} Información legible del dispositivo
- */
+
 export function getDeviceInfo() {
   const parser = new UAParser();
   const result = parser.getResult();
@@ -137,10 +85,7 @@ export function getDeviceInfo() {
   };
 }
 
-/**
- * Simple User-Agent Parser (implementación básica)
- * Para evitar dependencia adicional
- */
+
 class UAParser {
   private ua: string;
   

@@ -1,18 +1,4 @@
-/**
- * Tests para la página de listado de Lotes
- * 
- * Estos tests cubren:
- * - Renderizado de la lista de lotes
- * - Búsqueda y filtrado por estado y cultivar
- * - Paginación de resultados
- * - Visualización de estadísticas (total, activos, inactivos, con análisis)
- * - Navegación a detalle y edición
- * - Desactivación/reactivación de lotes (solo admin)
- * - Formateo de datos
- * - Manejo de estados vacíos
- * - Manejo de errores de carga
- * - Integración con combobox de cultivares
- */
+
 
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'

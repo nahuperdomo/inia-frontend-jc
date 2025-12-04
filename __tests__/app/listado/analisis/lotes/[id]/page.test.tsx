@@ -1,21 +1,4 @@
-/**
- * Tests para la página de detalle de Lote por ID
- * 
- * Estos tests cubren:
- * - Carga y visualización de datos del lote
- * - Información básica (ficha, nombre, tipo, cultivar, especie)
- * - Información de empresa y cliente
- * - Fechas (entrega, recibo, cosecha)
- * - Almacenamiento y estado (origen, depósito, estado)
- * - Peso y artículo (kilos limpios, número artículo)
- * - Observaciones
- * - Tipos de análisis asignados
- * - Datos de humedad
- * - Navegación a edición
- * - Manejo de estados de carga y error
- * - Acciones rápidas
- * - Permisos según rol de usuario
- */
+
 
 import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'

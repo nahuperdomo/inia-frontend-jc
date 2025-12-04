@@ -1,18 +1,4 @@
-/**
- * Tests para la página de Reporte de Lotes
- * 
- * Estos tests cubren:
- * - Renderizado de componentes principales (título, filtros, cards)
- * - Carga inicial de reporte sin filtros
- * - Aplicación de filtros de fecha y cultivar
- * - Visualización de métricas (total de lotes, activos, inactivos)
- * - Gráficos de lotes por cultivar
- * - Gráficos de lotes por tipo (INTERNO/EXTERNO)
- * - Gráficos de lotes por estado
- * - Filtro por cultivar
- * - Manejo de estados vacíos
- * - Manejo de errores
- */
+
 
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'

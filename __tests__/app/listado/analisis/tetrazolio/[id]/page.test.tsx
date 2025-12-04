@@ -1,17 +1,4 @@
-/**
- * Tests para la página de detalle de análisis de Tetrazolio
- * 
- * Estos tests cubren:
- * - Carga y visualización de datos del análisis
- * - Visualización de parámetros del ensayo (fecha, pretratamiento, concentración, tinción)
- * - Visualización de repeticiones y cálculos de viabilidad
- * - Cálculo de totales (viables, no viables, duras)
- * - Navegación a edición
- * - Manejo de estados de carga y error
- * - Visualización de información general
- * - Historial de análisis
- * - Visualización de viabilidad INIA e INASE
- */
+
 
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';

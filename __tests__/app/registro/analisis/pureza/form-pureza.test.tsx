@@ -1,17 +1,4 @@
-/**
- * Tests para el componente de formulario de Pureza
- * 
- * Estos tests cubren:
- * - Renderizado del componente con props correctas
- * - Cálculos automáticos de peso total
- * - Cálculos automáticos de porcentajes sin redondeo (4 decimales)
- * - Validación de suma de porcentajes redondeados = 100%
- * - Validación de peso total vs peso inicial
- * - Validación de pérdida de muestra > 5%
- * - Manejo de campos redondeados con "tr" para valores < 0.05
- * - Tabs entre datos generales y registros
- * - Integración con MalezaFields y OtrosCultivosFields
- */
+
 
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'

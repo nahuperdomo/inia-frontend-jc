@@ -1,21 +1,4 @@
-/**
- * Tests para el componente de Registro de Lotes
- * 
- * Estos tests cubren:
- * - Renderizado del componente con título y descripción
- * - Renderizado del formulario con todas las pestañas
- * - Validación de campos obligatorios
- * - Validación de ficha única (asíncrona)
- * - Validación de nombre de lote único (asíncrona)
- * - Creación exitosa de lote
- * - Manejo de errores al crear lote
- * - Carga y visualización de últimos lotes registrados
- * - Navegación a detalles de lote
- * - Transformación de datos del formulario a DTO
- * - Validación de datos de humedad
- * - Validación de tipos de análisis asignados
- * - Integración con el hook useValidation
- */
+
 
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'

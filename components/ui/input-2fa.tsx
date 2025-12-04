@@ -1,12 +1,4 @@
-/**
- * Input2FA Component
- * 
- * Input especializado para códigos de autenticación de dos factores.
- * - Acepta solo 6 dígitos numéricos
- * - Auto-foco y auto-advance entre dígitos
- * - Diseño visual optimizado para códigos
- * - Pegar desde clipboard
- */
+
 
 "use client";
 
@@ -202,9 +194,7 @@ export function Input2FA({
   );
 }
 
-/**
- * Input simple para código de recuperación (formato: XXXX-XXXX)
- */
+
 interface InputRecoveryCodeProps {
   value: string;
   onChange: (value: string) => void;

@@ -1,8 +1,6 @@
 import { EstadoAnalisis } from "@/app/models/types/enums"
 
-/**
- * Convierte los estados de análisis a un formato legible
- */
+
 export function formatearEstado(estado: EstadoAnalisis | string): string {
   switch (estado) {
     case "REGISTRADO":

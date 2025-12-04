@@ -1,6 +1,4 @@
-/**
- * Hook para debounce de llamadas a funciones
- */
+
 import { useCallback, useRef } from 'react';
 
 export function useDebounce<T extends (...args: any[]) => any>(

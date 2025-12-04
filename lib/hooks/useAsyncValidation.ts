@@ -1,6 +1,4 @@
-/**
- * Hook personalizado para realizar validación asíncrona con feedback de error visual
- */
+
 import { useCallback, useState, useRef } from 'react';
 import { validarFichaUnica, validarNombreLoteUnico } from '../validations/lotes-async-validation';
 

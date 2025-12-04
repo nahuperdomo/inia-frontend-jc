@@ -1,8 +1,4 @@
-/**
- * Hook reutilizable para persistir el estado de formularios
- * Guarda automáticamente en sessionStorage para mantener datos durante navegación entre tabs
- * Se limpia automáticamente al cerrar la pestaña del navegador
- */
+
 
 import { useState, useEffect, useCallback } from "react"
 

@@ -1,17 +1,4 @@
-/**
- * Tests para la página de detalle de análisis de Pureza
- * 
- * Estos tests cubren:
- * - Carga y visualización de datos del análisis
- * - Formateo de porcentajes con "tr" para valores < 0.05
- * - Visualización de datos INIA (gramos, porcentajes sin redondeo, porcentajes con redondeo)
- * - Visualización de datos INASE
- * - Visualización de otras semillas/listados
- * - Navegación a edición
- * - Manejo de estados de carga y error
- * - Visualización de información general y cumplimiento de estándar
- * - Historial de análisis
- */
+
 
 import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'

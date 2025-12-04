@@ -65,10 +65,7 @@ export interface PaginatedResponse<T> {
   empty: boolean
 }
 
-/**
- * Paginación con backend para usuarios.
- * Llama al endpoint paginado del backend con búsqueda y filtro de rol.
- */
+
 export async function listarUsuariosPaginados(
   page: number = 0,
   size: number = 10,
@@ -92,10 +89,7 @@ export async function listarUsuariosPaginados(
   return apiFetch(`/api/v1/auth/users/paginated?${params.toString()}`);
 }
 
-/**
- * Paginación con backend para solicitudes pendientes.
- * Llama al endpoint paginado del backend con búsqueda.
- */
+
 export async function listarSolicitudesPendientesPaginadas(
   page: number = 0,
   size: number = 10,
