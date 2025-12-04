@@ -186,7 +186,7 @@ export default function ListadoDOSNPage() {
             </Link>
             <div className="text-center sm:text-left flex-1">
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Análisis DOSN</h1>
-              <p className="text-sm sm:text-base text-muted-foreground">Consulta la determinación de otras semillas nocivas</p>
+              <p className="text-sm sm:text-base text-muted-foreground">Consulta la determinación de otras semillas en número</p>
             </div>
           </div>
           {user?.role !== "observador" && (

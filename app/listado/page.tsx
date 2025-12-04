@@ -65,7 +65,7 @@ const listingOptions = [
   {
     id: "dosn",
     title: "Análisis DOSN",
-    description: "Consulta la determinación de otras semillas nocivas",
+    description: "Consulta la determinación de otras semillas en número",
     icon: Activity,
     href: "/listado/analisis/dosn",
     color: "bg-red-50 border-red-200 hover:bg-red-100",

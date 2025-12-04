@@ -137,7 +137,7 @@ const analysisTypes = [
   { id: "GERMINACION" as TipoAnalisis, name: "Germinación", description: "Ensayos de germinación estándar", icon: Sprout, color: "green" },
   { id: "PMS" as TipoAnalisis, name: "Peso de Mil Semillas", description: "Determinación del peso de mil semillas", icon: Scale, color: "purple" },
   { id: "TETRAZOLIO" as TipoAnalisis, name: "Tetrazolio", description: "Ensayo de viabilidad y vigor", icon: TestTube, color: "orange" },
-  { id: "DOSN" as TipoAnalisis, name: "DOSN", description: "Determinación de otras semillas nocivas", icon: Microscope, color: "red" },
+  { id: "DOSN" as TipoAnalisis, name: "DOSN", description: "Determinación de otras semillas en número", icon: Microscope, color: "red" },
 ]
 
 export default function RegistroAnalisisPage() {

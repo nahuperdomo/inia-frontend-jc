@@ -116,7 +116,7 @@ describe('ListadoDOSNPage Component', () => {
 
             await waitFor(() => {
                 expect(screen.getByText('Análisis DOSN')).toBeInTheDocument();
-                expect(screen.getByText('Consulta la determinación de otras semillas nocivas')).toBeInTheDocument();
+                expect(screen.getByText('Consulta la determinación de otras semillas en número')).toBeInTheDocument();
             });
         });
 

@@ -6,7 +6,7 @@
 
 El proyecto INIA es una aplicación web diseñada para la gestión y análisis de calidad de semillas. 
 El sistema permite registrar lotes de semillas, realizar diferentes tipos de análisis (pureza, germinación, 
-determinación de otras semillas nocivas, etc.), y generar reportes basados en estos análisis. 
+determinación de otras semillas en número, etc.), y generar reportes basados en estos análisis. 
 Está orientado a técnicos y analistas del sector agrícola que necesitan un sistema centralizado 
 para el manejo de información relacionada con la calidad de semillas.
 
@@ -75,7 +75,7 @@ El sistema soporta varios tipos de análisis para las semillas:
    - Maneja múltiples repeticiones y conteos
    - Registra fechas de inicio, conteos intermedios y finalización
 
-3. **Determinación de Otras Semillas Nocivas (DOSN)**:
+3. **determinación de otras semillas en número (DOSN)**:
    - Detecta presencia de semillas de malezas nocivas
    - Puede ser análisis completo, reducido o limitado
    - Registra información específica sobre Cuscuta

@@ -179,7 +179,7 @@ export default function DashboardPage() {
     {
       id: "dosn",
       name: "DOSN",
-      description: "Otras semillas nocivas",
+      description: "Otras semillas en número",
       icon: Microscope,
       href: "/listado/analisis/dosn",
       color: "text-red-600",
