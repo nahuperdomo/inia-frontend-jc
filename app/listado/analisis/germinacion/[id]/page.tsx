@@ -286,17 +286,23 @@ export default function GerminacionDetailPage() {
 
                           <CardContent className="p-6">
                             {/* Información de Fechas de la Tabla */}
-                            {(tabla.fechaInicioGerm || tabla.fechaUltConteo || tabla.numDias) && (
+                            {(tabla.fechaIngreso || tabla.fechaGerminacion || tabla.fechaUltConteo || tabla.numDias) && (
                               <div className="mb-4 sm:mb-6 bg-blue-50/50 border border-blue-200 rounded-lg p-3 sm:p-4">
                                 <h4 className="text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center gap-2">
                                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 flex-shrink-0" />
                                   <span className="truncate">Fechas y Duración</span>
                                 </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                                  {tabla.fechaInicioGerm && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                                  {tabla.fechaIngreso && (
                                     <div>
-                                      <label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Fecha Inicio</label>
-                                      <p className="text-xs sm:text-sm font-medium mt-1 break-words">{formatearFechaLocal(tabla.fechaInicioGerm)}</p>
+                                      <label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Fecha Ingreso</label>
+                                      <p className="text-xs sm:text-sm font-medium mt-1 break-words">{formatearFechaLocal(tabla.fechaIngreso)}</p>
+                                    </div>
+                                  )}
+                                  {tabla.fechaGerminacion && (
+                                    <div>
+                                      <label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Inicio Germinación</label>
+                                      <p className="text-xs sm:text-sm font-medium mt-1 break-words">{formatearFechaLocal(tabla.fechaGerminacion)}</p>
                                     </div>
                                   )}
                                   {tabla.fechaUltConteo && (
@@ -374,7 +380,6 @@ export default function GerminacionDetailPage() {
                                     <>
                                       <span className="text-green-600 font-semibold">Sí</span>
                                       {tabla.descripcionPretratamiento && <span className="block text-[10px] sm:text-xs mt-1">{tabla.descripcionPretratamiento}</span>}
-                                      {tabla.diasPretratamiento > 0 && <span className="text-[10px] sm:text-xs text-muted-foreground">({tabla.diasPretratamiento} días)</span>}
                                     </>
                                   ) : (
                                     <span className="text-gray-500">No</span>
@@ -522,14 +527,9 @@ export default function GerminacionDetailPage() {
                               tabla.porcentajeFrescasConRedondeo !== undefined ||
                               tabla.porcentajeMuertasConRedondeo !== undefined) && (
                                 <div className="mb-4 sm:mb-6">
-                                  <div className="flex items-start justify-between mb-2 sm:mb-3">
-                                    <h4 className="text-xs sm:text-sm font-semibold">
-                                      Porcentajes con Redondeo
-                                    </h4>
-                                    <Button variant="outline" size="sm" className="h-7 sm:h-8 text-xs">
-                                      Editar
-                                    </Button>
-                                  </div>
+                                  <h4 className="text-xs sm:text-sm font-semibold mb-2 sm:mb-3">
+                                    Porcentajes con Redondeo
+                                  </h4>
                                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
                                     {tabla.porcentajeNormalesConRedondeo !== undefined && (
                                       <div className="bg-green-50 border border-green-200 rounded-lg p-2 sm:p-3 text-center">
@@ -568,16 +568,11 @@ export default function GerminacionDetailPage() {
                             {/* Repeticiones */}
                             {tabla.repGerm && tabla.repGerm.length > 0 && (
                               <div className="mb-4 sm:mb-6">
-                                <div className="flex items-start justify-between mb-2 sm:mb-3">
-                                  <div>
-                                    <h4 className="text-xs sm:text-sm font-semibold">
-                                      Repeticiones de Tabla
-                                    </h4>
-                                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">{tabla.repGerm.length} repeticiones</p>
-                                  </div>
-                                  <Button variant="outline" size="sm" className="h-7 sm:h-8 text-xs">
-                                    Editar
-                                  </Button>
+                                <div className="mb-2 sm:mb-3">
+                                  <h4 className="text-xs sm:text-sm font-semibold">
+                                    Repeticiones de Tabla
+                                  </h4>
+                                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">{tabla.repGerm.length} repeticiones</p>
                                 </div>
                                 <div className="overflow-x-auto -mx-3 sm:mx-0">
                                   <div className="min-w-full px-3 sm:px-0">
@@ -666,14 +661,9 @@ export default function GerminacionDetailPage() {
                             {/* Valores de Germinación por Instituto */}
                             {tabla.valoresGerm && tabla.valoresGerm.length > 0 && (
                               <div>
-                                <div className="flex items-start justify-between mb-2 sm:mb-3">
-                                  <h4 className="text-xs sm:text-sm font-semibold">
-                                    Valores INIA/INASE
-                                  </h4>
-                                  <Button variant="outline" size="sm" className="h-7 sm:h-8 text-xs">
-                                    Editar
-                                  </Button>
-                                </div>
+                                <h4 className="text-xs sm:text-sm font-semibold mb-2 sm:mb-3">
+                                  Valores INIA/INASE
+                                </h4>
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                                   {tabla.valoresGerm.map((valor, index) => (
                                     <div key={index} className="border rounded-lg p-3 sm:p-4 bg-purple-50/50 border-purple-200">

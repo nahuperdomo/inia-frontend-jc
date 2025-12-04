@@ -360,37 +360,6 @@ export default function DetalleLotePage() {
                 </CardContent>
               </Card>
             )}
-
-            {/* Acciones Rápidas */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg sm:text-xl">Acciones</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {user?.role !== "observador" && (
-                  <>
-                    <Link href={`/listado/lotes/${loteId}/editar`} className="w-full">
-                      <Button variant="outline" className="w-full justify-start">
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar Lote
-                      </Button>
-                    </Link>
-                    <Link href="/registro/analisis" className="w-full">
-                      <Button variant="outline" className="w-full justify-start">
-                        <TestTube className="h-4 w-4 mr-2" />
-                        Crear Análisis
-                      </Button>
-                    </Link>
-                  </>
-                )}
-                <Link href="/listado/lotes" className="w-full">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Package className="h-4 w-4 mr-2" />
-                    Ver Todos los Lotes
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
