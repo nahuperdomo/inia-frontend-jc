@@ -498,7 +498,7 @@ export async function regenerateBackupCodes(
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
-    credentials: 'include', // CRÍTICO: enviar cookies JWT
+    credentials: 'include', 
     body: JSON.stringify({ totpCode }),
   });
 
@@ -539,7 +539,7 @@ export async function getBackupCodesCount(): Promise<BackupCodesCountResponse> {
     headers: {
       'Accept': 'application/json',
     },
-    credentials: 'include', // CRÍTICO: enviar cookies JWT
+    credentials: 'include', 
   });
   if (response.ok) {
     const data: BackupCodesCountResponse = await response.json();

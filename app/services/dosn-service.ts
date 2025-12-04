@@ -6,7 +6,7 @@ import {
   MalezasCatalogoDTO 
 } from "../models";
 
-// DOSN functions
+
 export async function crearDosn(solicitud: DosnRequestDTO): Promise<DosnDTO> {
   return apiFetch("/api/dosn", {
     method: "POST",

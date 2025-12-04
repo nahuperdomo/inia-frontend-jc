@@ -69,7 +69,7 @@ export function LotFormTabs({
     return null;
   };
   
-  // Use React Query hook for all catalogs - centralized caching
+  
   const { data: catalogsData, isLoading: catalogsLoading, isError, refetch } = useAllCatalogs()
 
   // Refrescar catálogos cuando se cambia a la tab de empresa o datos
@@ -94,7 +94,7 @@ export function LotFormTabs({
     // Actualizar el valor
     onInputChange(field, value);
     
-    // Validar el campo (asíncrono para ficha/nomLote, síncrono para otros)
+    
     setIsValidating(true);
     await validateField(field, value);
     setIsValidating(false);
@@ -113,7 +113,7 @@ export function LotFormTabs({
     return !!getError(field as keyof LoteFormData);
   }
 
-  // Memoized options to avoid recalculating on every render
+  
   const cultivaresOptions = useMemo(() => 
     catalogsData.cultivares.map(cultivar => ({
       id: cultivar.id,
@@ -168,7 +168,7 @@ export function LotFormTabs({
       nombre: unidad.nombre
     })), [catalogsData.unidadesEmbolsado])
 
-  // Show loading state while catalogs are being fetched
+  
   if (catalogsLoading) {
     return (
       <Card>
@@ -188,7 +188,7 @@ export function LotFormTabs({
     )
   }
 
-  // Show error state if catalogs failed to load
+  
   if (isError) {
     return (
       <Card>

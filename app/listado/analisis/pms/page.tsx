@@ -47,7 +47,7 @@ export default function ListadoPMSPage() {
   useEffect(() => {
     setCurrentPage(0)
     fetchPms(0)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [filtroActivo, selectedStatus]) // Recargar cuando cambien los filtros (sin searchTerm)
 
   // Handler para búsqueda con Enter

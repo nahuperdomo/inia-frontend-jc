@@ -5,27 +5,27 @@ import { TipoDOSN, Instituto } from '../types/enums';
 export interface CuscutaRegistroDTO {
   id?: number;
   instituto?: Instituto;
-  cuscuta_g?: number; // BigDecimal as number
+  cuscuta_g?: number; 
   cuscutaNum?: number;
-  fechaCuscuta?: string; // LocalDate as string
+  fechaCuscuta?: string; 
 }
 
 export interface CuscutaRegistroRequestDTO {
   instituto?: Instituto;
-  cuscuta_g?: number; // BigDecimal as number
+  cuscuta_g?: number; 
   cuscutaNum?: number;
-  fechaCuscuta?: string; // LocalDate as string
+  fechaCuscuta?: string; 
 }
 
 export interface DosnDTO extends AnalisisDTO {
-  // DOSN specific fields
+  
   cumpleEstandar?: boolean;
-  fechaINIA?: string; // LocalDate as string
-  gramosAnalizadosINIA?: number; // BigDecimal as number
+  fechaINIA?: string; 
+  gramosAnalizadosINIA?: number; 
   tipoINIA?: TipoDOSN[];
   
-  fechaINASE?: string; // LocalDate as string
-  gramosAnalizadosINASE?: number; // BigDecimal as number
+  fechaINASE?: string; 
+  gramosAnalizadosINASE?: number; 
   tipoINASE?: TipoDOSN[];
   
   cuscutaRegistros?: CuscutaRegistroDTO[];
@@ -34,14 +34,14 @@ export interface DosnDTO extends AnalisisDTO {
 }
 
 export interface DosnRequestDTO extends AnalisisRequestDTO {
-  // DOSN specific fields
+  
   cumpleEstandar?: boolean;
-  fechaINIA?: string; // LocalDate as string
-  gramosAnalizadosINIA?: number; // BigDecimal as number
+  fechaINIA?: string; 
+  gramosAnalizadosINIA?: number; 
   tipoINIA?: TipoDOSN[];
   
-  fechaINASE?: string; // LocalDate as string
-  gramosAnalizadosINASE?: number; // BigDecimal as number
+  fechaINASE?: string; 
+  gramosAnalizadosINASE?: number; 
   tipoINASE?: TipoDOSN[];
   
   cuscutaRegistros?: CuscutaRegistroRequestDTO[];

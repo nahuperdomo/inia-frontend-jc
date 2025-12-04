@@ -8,7 +8,7 @@ export interface UsuarioDTO {
   apellido: string;
   rol: RolUsuario;
   activo: boolean;
-  fechaCreacion: string; // LocalDateTime as string
+  fechaCreacion: string; 
 }
 
 export interface UsuarioRequestDTO {
@@ -31,7 +31,7 @@ export interface AuthResponseDTO {
   expiresIn: number;
 }
 
-// Auth Service specific interfaces (different from main UsuarioDTO)
+
 export interface LoginRequest {
   usuario: string;
   password: string;
@@ -57,13 +57,13 @@ export interface AuthUsuarioDTO {
   apellidos: string;
   email: string;
   activo: boolean;
-  // Campos que vienen del backend (nombres reales)
+  
   rol: string | null;
   estado: string;
   fechaCreacion: string;
   fechaUltimaConexion: string | null;
   nombreCompleto: string;
-  // Aliases para compatibilidad con código legacy
+  
   estadoSolicitud?: string;
   fechaRegistro?: string;
   roles?: string[];
@@ -78,11 +78,11 @@ export interface RegistroUsuarioRequest {
 }
 
 export interface AprobarUsuarioRequest {
-  rol: string; // Enum Rol del backend: "ADMIN", "ANALISTA", "OBSERVADOR"
+  rol: string; 
 }
 
 export interface GestionarUsuarioRequest {
-  rol?: string; // Enum Rol del backend: "ADMIN", "ANALISTA", "OBSERVADOR"
+  rol?: string; 
   activo?: boolean;
 }
 

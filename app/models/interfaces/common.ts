@@ -13,21 +13,21 @@ export interface ListadoDTO {
   listadoTipo: TipoListado;
   listadoInsti: Instituto;
   listadoNum: number;
-  catalogo?: MalezasCatalogoDTO;  // Para malezas
-  especie?: EspecieDTO;  // Para otros cultivos
+  catalogo?: MalezasCatalogoDTO;  
+  especie?: EspecieDTO;  
 }
 
 export interface ListadoRequestDTO {
   listadoTipo: TipoListado;
   listadoInsti: Instituto;
   listadoNum: number;
-  idCatalogo?: number;  // Para malezas
-  idEspecie?: number;   // Para otros cultivos
+  idCatalogo?: number;  
+  idEspecie?: number;   
 }
 
 export interface DatosHumedadDTO {
   humedadID: number;
-  humedadNombre?: string; // Nombre del tipo de humedad
+  humedadNombre?: string; 
   porcentaje: number;
   observaciones?: string;
 }

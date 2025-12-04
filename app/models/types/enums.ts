@@ -1,4 +1,4 @@
-//Enums centralizados para todo el sistema
+
 export type EstadoAnalisis = 'REGISTRADO' | 'EN_PROCESO' | 'PENDIENTE_APROBACION' | 'APROBADO' | 'A_REPETIR';
 
 export type TipoMYCCatalogo = 'MALEZA' | 'CULTIVO';

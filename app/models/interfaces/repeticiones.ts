@@ -1,6 +1,6 @@
-// ========================
-// REPETICIONES DE GERMINACION (RepGerm)
-// ========================
+
+
+
 
 export interface RepGermDTO {
   repGermID: number;
@@ -27,9 +27,9 @@ export interface RepGermRequestDTO {
   total: number;
 }
 
-// ========================
-// REPETICIONES DE PMS (RepPms)
-// ========================
+
+
+
 
 export interface RepPmsDTO {
   repPMSID: number;
@@ -49,9 +49,9 @@ export interface RepPmsRequestDTO {
   valido: boolean;
 }
 
-// ========================
-// REPETICIONES DE TETRAZOLIO (RepTetrazolioViabilidad)
-// ========================
+
+
+
 
 export interface RepTetrazolioViabilidadDTO {
   repTetrazolioViabID: number;
@@ -71,9 +71,9 @@ export interface RepTetrazolioViabilidadRequestDTO {
   duras: number;
 }
 
-// ========================
-// TABLA DE GERMINACION (TablaGerm)
-// ========================
+
+
+
 
 export interface TablaGermDTO {
   tablaGermID: number;
@@ -90,8 +90,8 @@ export interface TablaGermDTO {
   tienePretratamiento: boolean;
   descripcionPretratamiento?: string;
   diasPrefrio: number;
-  fechaIngreso: string; // Nueva fecha de ingreso
-  fechaGerminacion: string; // Renombrado de fechaInicioGerm
+  fechaIngreso: string; 
+  fechaGerminacion: string; 
   fechaConteos: string[];
   fechaUltConteo: string;
   numDias: number;
@@ -99,7 +99,7 @@ export interface TablaGermDTO {
   numeroConteos: number;
   total: number;
   promedioSinRedondeo: number[];
-  promediosSinRedPorConteo?: number[]; // Nueva lista con promedios por conteo
+  promediosSinRedPorConteo?: number[]; 
   porcentajeNormalesConRedondeo?: number;
   porcentajeAnormalesConRedondeo?: number;
   porcentajeDurasConRedondeo?: number;
@@ -124,8 +124,8 @@ export interface TablaGermRequestDTO {
   tienePretratamiento: boolean;
   descripcionPretratamiento?: string;
   diasPrefrio: number;
-  fechaIngreso: string; // Nueva fecha de ingreso
-  fechaGerminacion: string; // Renombrado de fechaInicioGerm
+  fechaIngreso: string; 
+  fechaGerminacion: string; 
   fechaConteos: string[];
   fechaUltConteo: string;
   numDias: number;

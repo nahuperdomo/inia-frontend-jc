@@ -52,7 +52,7 @@ type Props = {
   onChangeListadosCultivos?: (list: any[]) => void
   onChangeListadosBrassicas?: (list: any[]) => void
   errors?: Record<string, string>
-  mostrarValidacion?: boolean //  NUEVO: Controla cuándo mostrar errores y cuadro de validación
+  mostrarValidacion?: boolean 
 }
 
 //  Helpers de validación

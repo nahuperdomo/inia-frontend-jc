@@ -167,7 +167,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
     const handleMarkAllAsRead = async () => {
         await actions.markAllAsRead();
         // Opcional: cerrar dropdown después de marcar todas
-        // dropdown.setOpen(false);
+        
     };
 
     const handleRefresh = async () => {

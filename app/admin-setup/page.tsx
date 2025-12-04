@@ -44,7 +44,7 @@ export default function AdminSetupPage() {
   } | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
-  // NO usar useAuth() aquí porque el usuario aún no está autenticado
+  
   
   // Usar ref para evitar doble llamada en Strict Mode (React 18)
   const hasLoadedRef = useRef(false)

@@ -29,9 +29,9 @@ export default function DashboardPage() {
         const perfil = await obtenerPerfil()
         
         // Extraer rol soportando varias formas que el backend pueda devolver:
-        // - perfil.roles: string[]
-        // - perfil.rol o perfil.role: string
-        // - perfil.usuario.roles / perfil.usuario.rol
+        
+        
+        
         let roleFromBackend: string | null = null
 
         try {

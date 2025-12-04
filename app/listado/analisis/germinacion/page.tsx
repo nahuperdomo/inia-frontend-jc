@@ -80,7 +80,7 @@ export default function ListadoGerminacionPage() {
   useEffect(() => {
     setCurrentPage(0)
     fetchGerminaciones(0)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [filtroActivo, selectedStatus]) // Recargar cuando cambien los filtros (sin searchTerm)
 
   // Handler para búsqueda con Enter
@@ -101,7 +101,7 @@ export default function ListadoGerminacionPage() {
   const fetchGerminaciones = async (page: number = 0) => {
     try {
       setLoading(true)
-      // Convert filtroActivo string to boolean
+      
       const activoFilter = filtroActivo === "todos" ? undefined : filtroActivo === "activos"
 
       const data = await obtenerGerminacionesPaginadas(
@@ -153,7 +153,7 @@ export default function ListadoGerminacionPage() {
       toast.error("Error al reactivar el análisis")
     }
   }
-  // No client-side filtering - all filtering done on backend
+  
   const filteredAnalysis = germinaciones
 
   // Calculate stats from current page data

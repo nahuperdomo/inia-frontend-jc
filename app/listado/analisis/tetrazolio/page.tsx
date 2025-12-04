@@ -126,10 +126,10 @@ export default function ListadoTetrazolioPage() {
     }
   }
 
-  // No client-side filtering - all filtering done on backend
+  
   const filteredAnalysis = tetrazolios
 
-  // Calculate stats from current page data
+  
   const totalAnalysis = totalElements
   const completedAnalysis = tetrazolios.filter(t => t.estado === "APROBADO").length
   const inProgressAnalysis = tetrazolios.filter(t => t.estado === "EN_PROCESO" || t.estado === "REGISTRADO").length

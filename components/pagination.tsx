@@ -4,10 +4,10 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 
 interface PaginationProps {
-  currentPage: number; // 0-based
+  currentPage: number; 
   totalPages: number;
   onPageChange: (page: number) => void;
-  showRange?: number; // how many page buttons to show around current
+  showRange?: number; 
   alwaysShow?: boolean;
 }
 

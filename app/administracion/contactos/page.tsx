@@ -153,20 +153,20 @@ export default function ContactosPage() {
     }
   }, [clientePagina, filtroCliente, searchTerm])
 
-  // useEffect para cargar empresas - reiniciar a página 0 al cambiar filtros/búsqueda
+  
   useEffect(() => {
     if (activeTab === "empresas") {
       fetchEmpresas(0)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [activeTab, filtroEmpresa])
 
-  // useEffect para cargar clientes - reiniciar a página 0 al cambiar filtros/búsqueda
+  
   useEffect(() => {
     if (activeTab === "clientes") {
       fetchClientes(0)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [activeTab, filtroCliente])
 
   // Handler para búsqueda con Enter

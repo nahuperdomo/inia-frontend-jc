@@ -32,14 +32,14 @@ export default function ListadoLotesPage() {
   const [totalElements, setTotalElements] = useState(0)
   const pageSize = 10
 
-  // Statistics state
+  
   const [stats, setStats] = useState({
     total: 0,
     activos: 0,
     inactivos: 0
   })
 
-  // Fetch statistics
+  
   useEffect(() => {
     const fetchStats = async () => {
       try {

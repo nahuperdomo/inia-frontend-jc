@@ -100,7 +100,7 @@ export function LotDetailsModal({
         mode={analysisMode}
         onSave={() => {
           setIsAnalysisModalOpen(false)
-          // Handle save logic here
+          
         }}
       />
     </>

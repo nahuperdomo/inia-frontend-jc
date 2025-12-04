@@ -48,7 +48,7 @@ export default function RegistroEmpresaPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API call
+    
     setTimeout(() => {
       setIsLoading(false)
       router.push("/registro")

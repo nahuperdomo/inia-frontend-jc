@@ -1,4 +1,4 @@
-// service.ts
+
 import { apiFetch } from '@/lib/api-client';
 
 interface ValidacionLoteDTO {

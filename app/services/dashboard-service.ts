@@ -21,7 +21,7 @@ export interface PaginatedResponse<T> {
 
 export interface CursorPageResponse<T> {
   items: T[]
-  nextCursor: string | null  // Base64-encoded cursor
+  nextCursor: string | null  
   hasMore: boolean
   size: number
 }

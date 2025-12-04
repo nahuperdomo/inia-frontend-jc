@@ -1,7 +1,7 @@
-// Export all types
+
 export * from './types/enums';
 
-// Export all interfaces
+
 export * from './interfaces/analisis';
 export * from './interfaces/analisis-service';
 export * from './interfaces/catalogo';

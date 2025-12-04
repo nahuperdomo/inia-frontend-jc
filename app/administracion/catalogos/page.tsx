@@ -181,8 +181,8 @@ export default function CatalogosPage() {
     if (activeTab === "catalogos") {
       fetchCatalogos(0)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, tipoSeleccionado, filtroCatalogo]) // searchTerm NO debe estar aquí
+    
+  }, [activeTab, tipoSeleccionado, filtroCatalogo]) 
 
   // Cargar especies paginadas
   useEffect(() => {
@@ -191,8 +191,8 @@ export default function CatalogosPage() {
     }
     // Cargar especies activas para el selector de cultivares
     loadEspeciesActivas()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, filtroEspecie]) // searchTerm NO debe estar aquí
+    
+  }, [activeTab, filtroEspecie]) 
 
   // Cargar cultivares paginados
   useEffect(() => {
@@ -201,16 +201,16 @@ export default function CatalogosPage() {
       // Cargar especies activas al entrar al tab de cultivares
       loadEspeciesActivas()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, filtroCultivar]) // searchTerm NO debe estar aquí
+    
+  }, [activeTab, filtroCultivar]) 
 
   // Cargar malezas paginadas
   useEffect(() => {
     if (activeTab === "malezas") {
       fetchMalezas(0)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, filtroMalezas]) // searchTerm NO debe estar aquí
+    
+  }, [activeTab, filtroMalezas]) 
 
   // Handler para búsqueda con Enter
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

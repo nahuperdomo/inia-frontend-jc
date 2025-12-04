@@ -10,7 +10,7 @@ export interface LoteDTO {
   nomLote?: string;
   cultivarID: number;
   cultivarNombre?: string;
-  especieNombre?: string; // Nombre de la especie del cultivar
+  especieNombre?: string; 
   tipo?: string;
   empresaID: number;
   empresaNombre?: string;
@@ -18,19 +18,19 @@ export interface LoteDTO {
   clienteNombre?: string;
   codigoCC?: string;
   codigoFF?: string;
-  fechaEntrega?: string; // LocalDate as string
-  fechaRecibo?: string; // LocalDate as string
+  fechaEntrega?: string; 
+  fechaRecibo?: string; 
   depositoID?: number;
   depositoValor?: string;
   unidadEmbolsado?: string;
   remitente?: string;
   observaciones?: string;
-  kilosLimpios?: number; // BigDecimal as number
+  kilosLimpios?: number; 
   
-  // Datos de humedad con información completa
+  
   datosHumedad?: DatosHumedadDTO[];
   
-  // Número de artículo con información completa
+  
   numeroArticuloID?: number;
   numeroArticuloValor?: string;
   
@@ -38,9 +38,9 @@ export interface LoteDTO {
   origenValor?: string;
   estadoID?: number;
   estadoValor?: string;
-  fechaCosecha?: string; // LocalDate as string
+  fechaCosecha?: string; 
   
-  // Lista de tipos de análisis asignados
+  
   tiposAnalisisAsignados?: TipoAnalisis[];
   
   activo?: boolean;
@@ -77,7 +77,7 @@ export interface ResponseListadoLote {
   lotes: LoteDTO[];
 }
 
-// Interfaces para los catálogos del formulario
+
 export interface CultivarOption {
   id: number;
   nombre: string;

@@ -2,8 +2,8 @@ import { AnalisisDTO, AnalisisRequestDTO } from './analisis';
 import { ListadoDTO, ListadoRequestDTO } from './common';
 
 export interface PurezaDTO extends AnalisisDTO {
-  // Pureza specific fields
-  fecha: string; // LocalDate as string
+  
+  fecha: string; 
   cumpleEstandar?: boolean;
   pesoInicial_g: number;
   semillaPura_g: number;
@@ -28,14 +28,14 @@ export interface PurezaDTO extends AnalisisDTO {
   inaseMalezas?: number;
   inaseMalezasToleradas?: number;
   inaseMalezasTolCero?: number;
-  inaseFecha?: string; // LocalDate as string
+  inaseFecha?: string; 
 
   otrasSemillas: ListadoDTO[];
 }
 
 export interface PurezaRequestDTO extends AnalisisRequestDTO {
-  // Pureza specific fields
-  fecha: string; // LocalDate as string
+  
+  fecha: string; 
   cumpleEstandar?: boolean;
   pesoInicial_g: number;
   semillaPura_g: number;
@@ -60,7 +60,7 @@ export interface PurezaRequestDTO extends AnalisisRequestDTO {
   inaseMalezas?: number;
   inaseMalezasToleradas?: number;
   inaseMalezasTolCero?: number;
-  inaseFecha?: string; // LocalDate as string
+  inaseFecha?: string; 
 
   otrasSemillas: ListadoRequestDTO[];
 }

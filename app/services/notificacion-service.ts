@@ -5,7 +5,6 @@ import type {
   PaginatedNotificaciones 
 } from "@/app/models/interfaces/notificacion";
 
-// Crear notificación manual (solo administradores)
 export async function crearNotificacion(request: NotificacionRequestDTO): Promise<NotificacionDTO> {
   return apiFetch("/api/notificaciones", {
     method: "POST",
@@ -87,7 +86,7 @@ export async function eliminarNotificacion(notificacionId: number): Promise<void
 // === FUNCIONES DEPRECADAS - USAR LOS ENDPOINTS SEGUROS ===
 // Estas funciones se mantienen por compatibilidad pero se recomienda usar los nuevos endpoints
 
-// DEPRECATED: Funciones para notificaciones automáticas (uso interno del sistema - REMOVER EN PRODUCCIÓN)
+
 export async function notificarNuevoUsuario(usuarioId: number): Promise<void> {
   return apiFetch(`/api/notificaciones/interno/nuevo-usuario/${usuarioId}`, {
     method: "POST",

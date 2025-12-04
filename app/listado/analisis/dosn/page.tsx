@@ -47,7 +47,7 @@ export default function ListadoDOSNPage() {
   useEffect(() => {
     setCurrentPage(0)
     fetchDosns(0)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [filtroActivo, selectedStatus]) // Recargar cuando cambien los filtros (sin searchTerm)
 
   // Handler para búsqueda con Enter

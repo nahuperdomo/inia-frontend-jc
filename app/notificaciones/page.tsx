@@ -47,26 +47,26 @@ export default function NotificationsPage() {
         goToPage
     } = useNotificationContext();
 
-    // Filtros locales
+    
     const [statusFilter, setStatusFilter] = useState<'all' | 'unread' | 'read'>('all');
     const [typeFilter, setTypeFilter] = useState<string>('all');
     const [sortBy, setSortBy] = useState<'date' | 'type' | 'readStatus'>('date');
 
-    // Aplicar filtros y ordenamiento
+    
     const filteredAndSortedNotifications = useMemo(() => {
         let filtered = notifications;
 
-        // Filtrar por estado de lectura
+        
         if (statusFilter !== 'all') {
             filtered = filterNotifications[statusFilter](filtered);
         }
 
-        // Filtrar por tipo
+        
         if (typeFilter !== 'all') {
             filtered = filterNotifications.byType(filtered, typeFilter as any);
         }
 
-        // Ordenar
+        
         switch (sortBy) {
             case 'date':
                 return sortNotifications.byDate(filtered, false);
@@ -79,10 +79,10 @@ export default function NotificationsPage() {
         }
     }, [notifications, statusFilter, typeFilter, sortBy]);
 
-    // Estadísticas
+    
     const stats = getNotificationStats(notifications);
 
-    // Tipos únicos para el filtro
+    
     const uniqueTypes = useMemo(() => {
         return Array.from(new Set(notifications.map(n => n.tipo)));
     }, [notifications]);

@@ -203,8 +203,8 @@ export const InteractiveNotificationIcon: React.FC<InteractiveNotificationIconPr
 }) => {
     const variant = hasUnread ? 'active' : hasNotifications ? 'default' : 'muted';
 
-    // Use a non-button root to avoid nesting a <button> inside another <button>.
-    // Expose keyboard accessibility (Enter/Space) and role/tabIndex for screen readers.
+    
+    
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (!onClick) return;
         if (e.key === 'Enter' || e.key === ' ') {
