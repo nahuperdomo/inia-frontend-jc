@@ -1318,7 +1318,7 @@ export default function DetallePMSPage() {
                       &lt;TableCell className="whitespace-nowrap"&gt;{rep.peso ? `${rep.peso.toFixed(3)}g` : "-"}&lt;/TableCell&gt;
                       &lt;TableCell className="whitespace-nowrap"&gt;
                         &lt;Badge variant={rep.valido ? "default" : rep.valido === false ? "destructive" : "secondary"}&gt;
-                          {rep.valido === true ? "✓ Válido" : rep.valido === false ? "✗ Inválido" : "Pendiente"}
+                          {rep.valido === true ? " Válido" : rep.valido === false ? " Inválido" : "Pendiente"}
                         &lt;/Badge&gt;
                       &lt;/TableCell&gt;
                     &lt;/TableRow&gt;

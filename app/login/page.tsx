@@ -48,7 +48,7 @@ export default function LoginPage() {
         const fingerprint = await getDeviceFingerprint()
         setDeviceFingerprint(fingerprint)
       } catch (error) {
-        console.error('⚠️ [Login] Error generando fingerprint:', error)
+        console.error(' [Login] Error generando fingerprint:', error)
         // No bloqueamos el login si falla el fingerprint
       }
     }
@@ -124,7 +124,7 @@ export default function LoginPage() {
       }, 100)
 
     } catch (error: any) {
-      console.error('❌ [Login] Error:', error)
+      console.error(' [Login] Error:', error)
 
       let errorMsg = 'Error de autenticación'
       let errorDescription = 'Verifica tus credenciales e intenta nuevamente'
@@ -172,7 +172,7 @@ export default function LoginPage() {
         duration: 5000,
       })
     } catch (error: any) {
-      console.error('❌ [Login] Error en setup 2FA:', error)
+      console.error(' [Login] Error en setup 2FA:', error)
       toast.error('Error', {
         description: error.message || 'No se pudo iniciar la configuración de 2FA',
       })
@@ -204,7 +204,7 @@ export default function LoginPage() {
       // Redirigir al dashboard después de que guarde los códigos
       // El usuario cerrará el modal de códigos manualmente
     } catch (error: any) {
-      console.error('❌ [Login] Error verificando código inicial:', error)
+      console.error(' [Login] Error verificando código inicial:', error)
       toast.error('Error', {
         description: error.message || 'Código de verificación inválido',
       })
@@ -542,7 +542,7 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-yellow-700">
                 <Key className="w-5 h-5" />
-                ⚠️ CÓDIGOS DE RESPALDO - GUÁRDALOS AHORA
+                 CÓDIGOS DE RESPALDO - GUÁRDALOS AHORA
               </CardTitle>
               <CardDescription className="text-red-600 font-semibold">
                 Estos códigos se muestran SOLO UNA VEZ. Guárdalos en un lugar seguro.

@@ -57,7 +57,7 @@ export default function RegistroEmpresaPage() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/registro">
@@ -78,9 +78,9 @@ export default function RegistroEmpresaPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Form */}
+          {}
           <div className="lg:col-span-2 space-y-6">
-            {/* Basic Information */}
+            {}
             <Card>
               <CardHeader>
                 <CardTitle>Información Básica</CardTitle>
@@ -139,7 +139,7 @@ export default function RegistroEmpresaPage() {
               </CardContent>
             </Card>
 
-            {/* Contact Information */}
+            {}
             <Card>
               <CardHeader>
                 <CardTitle>Información de Contacto</CardTitle>
@@ -197,7 +197,7 @@ export default function RegistroEmpresaPage() {
               </CardContent>
             </Card>
 
-            {/* Additional Information */}
+            {}
             <Card>
               <CardHeader>
                 <CardTitle>Información Adicional</CardTitle>
@@ -214,9 +214,9 @@ export default function RegistroEmpresaPage() {
             </Card>
           </div>
 
-          {/* Sidebar */}
+          {}
           <div className="space-y-6">
-            {/* Form Summary */}
+            {}
             <Card>
               <CardHeader>
                 <CardTitle>Resumen</CardTitle>
@@ -243,7 +243,7 @@ export default function RegistroEmpresaPage() {
               </CardContent>
             </Card>
 
-            {/* Actions */}
+            {}
             <Card>
               <CardHeader>
                 <CardTitle>Acciones</CardTitle>

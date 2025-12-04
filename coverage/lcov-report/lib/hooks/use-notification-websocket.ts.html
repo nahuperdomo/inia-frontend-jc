@@ -669,7 +669,7 @@ interface UseNotificationWebSocketProps {
  * 
  *   return (
  *     &lt;div&gt;
- *       {isConnected ? '🟢 Conectado' : '🔴 Desconectado'}
+ *       {isConnected ? ' Conectado' : ' Desconectado'}
  *       {error &amp;&amp; &lt;span&gt;Error: {error}&lt;/span&gt;}
  *     &lt;/div&gt;
  *   );
@@ -703,7 +703,7 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
   const connect = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
     // Validar que tenemos token y userId
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!token || !userId) {</span>
-<span class="cstat-no" title="statement not covered" >      console.warn('⚠️ No se puede conectar WebSocket: falta token o userId');</span>
+<span class="cstat-no" title="statement not covered" >      console.warn(' No se puede conectar WebSocket: falta token o userId');</span>
 <span class="cstat-no" title="statement not covered" >      return;</span>
     }
 &nbsp;
@@ -715,7 +715,7 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
 &nbsp;
     // Si ya está conectado, no reconectar
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (notificationWebSocket.isConnected &amp;&amp; hasConnected.current) {</span>
-<span class="cstat-no" title="statement not covered" >      console.log('✅ WebSocket ya está conectado');</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' WebSocket ya está conectado');</span>
 <span class="cstat-no" title="statement not covered" >      setIsConnected(true);</span>
 <span class="cstat-no" title="statement not covered" >      return;</span>
     }
@@ -724,17 +724,17 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
 <span class="cstat-no" title="statement not covered" >      isConnecting.current = true;</span>
 <span class="cstat-no" title="statement not covered" >      setError(null);</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      console.log('🔌 Iniciando conexión WebSocket...');</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' Iniciando conexión WebSocket...');</span>
       
       // Conectar al WebSocket
 <span class="cstat-no" title="statement not covered" >      await notificationWebSocket.connect(token, userId.toString());</span>
       
 <span class="cstat-no" title="statement not covered" >      setIsConnected(true);</span>
 <span class="cstat-no" title="statement not covered" >      hasConnected.current = true;</span>
-<span class="cstat-no" title="statement not covered" >      console.log('✅ WebSocket conectado desde hook');</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' WebSocket conectado desde hook');</span>
 &nbsp;
     } catch (err: any) {
-<span class="cstat-no" title="statement not covered" >      console.error('❌ Error conectando WebSocket:', err);</span>
+<span class="cstat-no" title="statement not covered" >      console.error(' Error conectando WebSocket:', err);</span>
 <span class="cstat-no" title="statement not covered" >      setError(err.message || 'Error de conexión');</span>
 <span class="cstat-no" title="statement not covered" >      setIsConnected(false);</span>
 <span class="cstat-no" title="statement not covered" >      hasConnected.current = false;</span>
@@ -750,7 +750,7 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
    * Útil para botón de "Reconectar" en la UI
    */
   const reconnect = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >    console.log('🔄 Reconectando WebSocket...');</span>
+<span class="cstat-no" title="statement not covered" >    console.log(' Reconectando WebSocket...');</span>
 <span class="cstat-no" title="statement not covered" >    notificationWebSocket.disconnect();</span>
 <span class="cstat-no" title="statement not covered" >    hasConnected.current = false;</span>
 <span class="cstat-no" title="statement not covered" >    await connect();</span>
@@ -768,7 +768,7 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
 &nbsp;
     // Cleanup: Desconectar al desmontar
 <span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >      console.log('🧹 Limpiando conexión WebSocket del hook');</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' Limpiando conexión WebSocket del hook');</span>
       // NO desconectamos aquí porque puede ser usado por otros componentes
       // Solo el Provider principal debe desconectar
     };
@@ -784,11 +784,11 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
 <span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!isConnected) <span class="cstat-no" title="statement not covered" >return;</span></span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    console.log('📡 Suscribiendo a eventos WebSocket...');</span>
+<span class="cstat-no" title="statement not covered" >    console.log(' Suscribiendo a eventos WebSocket...');</span>
 &nbsp;
     // Suscripción a nuevas notificaciones
     const unsubNotification = <span class="cstat-no" title="statement not covered" >notificationWebSocket.on('notification', <span class="fstat-no" title="function not covered" >(n</span>otification: NotificacionDTO) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      console.log('📩 Nueva notificación recibida:', notification.nombre);</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' Nueva notificación recibida:', notification.nombre);</span>
       
       // Mostrar toast si está habilitado
 <span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (showToasts) {</span>
@@ -810,25 +810,25 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
 &nbsp;
     // Suscripción a actualizaciones de contador
     const unsubCount = <span class="cstat-no" title="statement not covered" >notificationWebSocket.on('count', <span class="fstat-no" title="function not covered" >(c</span>ount: number) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      console.log('🔢 Contador actualizado:', count);</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' Contador actualizado:', count);</span>
 <span class="cstat-no" title="statement not covered" >      onCountUpdate?.(count);</span>
     });
 &nbsp;
     // Suscripción a notificación marcada como leída
     const unsubMarkRead = <span class="cstat-no" title="statement not covered" >notificationWebSocket.on('mark-read', <span class="fstat-no" title="function not covered" >(d</span>ata: { id: number }) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      console.log('✓ Notificación marcada como leída:', data.id);</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' Notificación marcada como leída:', data.id);</span>
 <span class="cstat-no" title="statement not covered" >      onMarkAsRead?.(data.id);</span>
     });
 &nbsp;
     // Suscripción a notificación eliminada
     const unsubDelete = <span class="cstat-no" title="statement not covered" >notificationWebSocket.on('delete', <span class="fstat-no" title="function not covered" >(d</span>ata: { id: number }) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      console.log('🗑️ Notificación eliminada:', data.id);</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' Notificación eliminada:', data.id);</span>
 <span class="cstat-no" title="statement not covered" >      onDelete?.(data.id);</span>
     });
 &nbsp;
     // Cleanup: Desuscribirse cuando cambien las dependencias
 <span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >      console.log('🧹 Desuscribiendo de eventos WebSocket');</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' Desuscribiendo de eventos WebSocket');</span>
 <span class="cstat-no" title="statement not covered" >      unsubNotification();</span>
 <span class="cstat-no" title="statement not covered" >      unsubCount();</span>
 <span class="cstat-no" title="statement not covered" >      unsubMarkRead();</span>
@@ -847,7 +847,7 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
 <span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (connected !== isConnected) {</span>
 <span class="cstat-no" title="statement not covered" >        setIsConnected(connected);</span>
 <span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if (!connected) {</span>
-<span class="cstat-no" title="statement not covered" >          console.warn('⚠️ WebSocket desconectado');</span>
+<span class="cstat-no" title="statement not covered" >          console.warn(' WebSocket desconectado');</span>
         }
       }
     }, 2000); // Verificar cada 2 segundos

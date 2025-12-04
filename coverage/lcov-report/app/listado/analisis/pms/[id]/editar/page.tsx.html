@@ -3226,7 +3226,7 @@ export default function EditarPMSPage() {
         console.log(`  Rep #${rep.numRep} (Tanda ${rep.numTanda}): ${rep.peso}g - Válido: ${rep.valido}`)
       })
     } catch (err) {
-<span class="cstat-no" title="statement not covered" >      console.warn("️ No se pudieron recargar los datos automáticamente:", err)</span>
+<span class="cstat-no" title="statement not covered" >      console.warn(" No se pudieron recargar los datos automáticamente:", err)</span>
     }
   }
 &nbsp;
@@ -3321,7 +3321,7 @@ export default function EditarPMSPage() {
       const nextRepNumber = getNextRepeticionNumber()
       const currentTanda = getCurrentTanda()
       
-      console.log("➕ Agregando nueva repetición #", nextRepNumber, "Tanda", currentTanda)
+      console.log(" Agregando nueva repetición #", nextRepNumber, "Tanda", currentTanda)
       
       const nuevaRep = await crearRepPms(analisis.analisisID, {
         numRep: nextRepNumber,
@@ -3459,7 +3459,7 @@ export default function EditarPMSPage() {
     }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >      console.log("️ Eliminando repetición:", rep)</span>
+<span class="cstat-no" title="statement not covered" >      console.log(" Eliminando repetición:", rep)</span>
 <span class="cstat-no" title="statement not covered" >      await eliminarRepPms(analisis.analisisID, rep.repPMSID)</span>
 <span class="cstat-no" title="statement not covered" >      setRepeticiones(<span class="fstat-no" title="function not covered" >prev =&gt; <span class="cstat-no" title="statement not covered" >p</span>rev.filter(<span class="fstat-no" title="function not covered" >(_</span>, i) =&gt; <span class="cstat-no" title="statement not covered" >i !== index))</span></span></span>
       
@@ -4290,7 +4290,7 @@ export default function EditarPMSPage() {
                                 onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >h</span>andleCancelEditRepeticion(index)}</span>
                                 className="text-gray-600 hover:text-gray-700"
                               &gt;
-                                ✕
+                                
                               &lt;/Button&gt;
                             &lt;/&gt;
                           ) : (
@@ -4525,7 +4525,7 @@ export default function EditarPMSPage() {
                                 {analisis.pmsconRedon}g
                               &lt;/div&gt;
                               &lt;span className="text-sm font-medium text-green-700"&gt;
-                                ✓ Valor Final Confirmado
+                                 Valor Final Confirmado
                               &lt;/span&gt;
                             &lt;/div&gt;
                           ) : (

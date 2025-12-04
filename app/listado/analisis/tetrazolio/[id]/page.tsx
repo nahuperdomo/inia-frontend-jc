@@ -85,7 +85,7 @@ export default function TetrazolioDetailPage() {
         setRepeticiones(repeticionesData)
         setRepeticiones(repeticionesData)
       } catch (repError) {
-        console.warn("️ Error al cargar repeticiones:", repError)
+        console.warn(" Error al cargar repeticiones:", repError)
         setRepeticiones([])
       }
 

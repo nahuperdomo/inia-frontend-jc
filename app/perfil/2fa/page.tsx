@@ -79,7 +79,7 @@ export default function Configuracion2FAPage() {
         const data: Status2FAResponse = await response.json()
         setHas2FA(data.totpEnabled || false)
       } else {
-        console.warn('⚠️ No se pudo verificar estado 2FA, asumiendo false')
+        console.warn(' No se pudo verificar estado 2FA, asumiendo false')
         setHas2FA(false)
       }
     } catch (error) {
@@ -103,7 +103,7 @@ export default function Configuracion2FAPage() {
         const devices = data.devices || data
         setTrustedDevices(Array.isArray(devices) ? devices : [])
       } else {
-        console.warn('⚠️ No se pudieron cargar dispositivos')
+        console.warn(' No se pudieron cargar dispositivos')
         setTrustedDevices([])
       }
     } catch (error) {
@@ -141,7 +141,7 @@ export default function Configuracion2FAPage() {
       })
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('❌ Error response:', errorText)
+        console.error(' Error response:', errorText)
         
         let errorMessage = 'Error al generar código QR'
         try {
@@ -489,7 +489,7 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
                     await handleSetup2FA()
                   }}
                 >
-                  🔄 Generar Nuevo QR
+                   Generar Nuevo QR
                 </Button>
               </div>
             </div>
@@ -512,7 +512,7 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-yellow-700">
                 <Key className="w-5 h-5" />
-                ⚠️ CÓDIGOS DE RESPALDO - GUÁRDALOS AHORA
+                 CÓDIGOS DE RESPALDO - GUÁRDALOS AHORA
               </CardTitle>
               <CardDescription className="text-red-600 font-semibold">
                 Estos códigos se muestran SOLO UNA VEZ. Guárdalos en un lugar seguro.
@@ -570,10 +570,10 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
               <CardDescription>
                 Tienes {availableCodesCount} códigos de respaldo disponibles.
                 {availableCodesCount <= 2 && availableCodesCount > 0 && (
-                  <span className="text-yellow-600 font-semibold"> ⚠️ Considera regenerarlos.</span>
+                  <span className="text-yellow-600 font-semibold">  Considera regenerarlos.</span>
                 )}
                 {availableCodesCount === 0 && (
-                  <span className="text-red-600 font-semibold"> ⚠️ No tienes códigos disponibles. Regenera inmediatamente.</span>
+                  <span className="text-red-600 font-semibold">  No tienes códigos disponibles. Regenera inmediatamente.</span>
                 )}
               </CardDescription>
             </CardHeader>

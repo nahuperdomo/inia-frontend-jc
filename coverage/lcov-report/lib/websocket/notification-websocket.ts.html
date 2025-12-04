@@ -906,7 +906,7 @@ class NotificationWebSocket {
 <span class="cstat-no" title="statement not covered" >    return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve, reject) =&gt; {</span>
       // Si ya está conectado, no reconectar
 <span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (this.client?.connected) {</span>
-<span class="cstat-no" title="statement not covered" >        console.log('✅ WebSocket ya conectado');</span>
+<span class="cstat-no" title="statement not covered" >        console.log(' WebSocket ya conectado');</span>
 <span class="cstat-no" title="statement not covered" >        resolve();</span>
 <span class="cstat-no" title="statement not covered" >        return;</span>
       }
@@ -916,7 +916,7 @@ class NotificationWebSocket {
       // URL del WebSocket (usa variable de entorno)
       const wsUrl = <span class="cstat-no" title="statement not covered" >`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/ws/notifications`;</span>
       
-<span class="cstat-no" title="statement not covered" >      console.log('🔌 Conectando a WebSocket:', wsUrl);</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' Conectando a WebSocket:', wsUrl);</span>
 &nbsp;
       // Crear cliente STOMP
 <span class="cstat-no" title="statement not covered" >      this.client = new Client({</span>
@@ -948,7 +948,7 @@ class NotificationWebSocket {
          * Callback cuando la conexión se establece exitosamente
          */
         onConnect: <span class="fstat-no" title="function not covered" >() =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >          console.log('✅ WebSocket conectado exitosamente');</span>
+<span class="cstat-no" title="statement not covered" >          console.log(' WebSocket conectado exitosamente');</span>
 <span class="cstat-no" title="statement not covered" >          this.reconnectAttempts = 0; /</span>/ Reset intentos
 <span class="cstat-no" title="statement not covered" >          this.setupSubscriptions(); /</span>/ Configurar canales
 <span class="cstat-no" title="statement not covered" >          resolve();</span>
@@ -958,7 +958,7 @@ class NotificationWebSocket {
          * Callback cuando hay un error STOMP
          */
         onStompError: <span class="fstat-no" title="function not covered" >(f</span>rame) =&gt; {
-<span class="cstat-no" title="statement not covered" >          console.error('❌ Error STOMP:', frame.headers['message']);</span>
+<span class="cstat-no" title="statement not covered" >          console.error(' Error STOMP:', frame.headers['message']);</span>
 <span class="cstat-no" title="statement not covered" >          console.error('Detalles:', frame.body);</span>
 <span class="cstat-no" title="statement not covered" >          reject(new Error(frame.headers['message']));</span>
         },
@@ -967,7 +967,7 @@ class NotificationWebSocket {
          * Callback cuando se cierra la conexión WebSocket
          */
         onWebSocketClose: <span class="fstat-no" title="function not covered" >() =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >          console.warn('⚠️ WebSocket cerrado');</span>
+<span class="cstat-no" title="statement not covered" >          console.warn(' WebSocket cerrado');</span>
 <span class="cstat-no" title="statement not covered" >          this.handleReconnect();</span>
         },
         
@@ -975,7 +975,7 @@ class NotificationWebSocket {
          * Callback cuando se desconecta (manual o error)
          */
         onDisconnect: <span class="fstat-no" title="function not covered" >() =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >          console.log('🔌 WebSocket desconectado');</span>
+<span class="cstat-no" title="statement not covered" >          console.log(' WebSocket desconectado');</span>
         },
       });
 &nbsp;
@@ -998,7 +998,7 @@ class NotificationWebSocket {
 <span class="fstat-no" title="function not covered" >  private setupSubscriptions(): void </span>{
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!this.client || !this.userId) <span class="cstat-no" title="statement not covered" >return;</span></span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    console.log('📡 Configurando suscripciones WebSocket...');</span>
+<span class="cstat-no" title="statement not covered" >    console.log(' Configurando suscripciones WebSocket...');</span>
 &nbsp;
     // Suscripción 1: Notificaciones nuevas
     const notificationSub = <span class="cstat-no" title="statement not covered" >this.client.subscribe(</span>
@@ -1006,7 +1006,7 @@ class NotificationWebSocket {
 <span class="fstat-no" title="function not covered" >      (m</span>essage) =&gt; {
 <span class="cstat-no" title="statement not covered" >        try {</span>
           const notification: NotificacionDTO = <span class="cstat-no" title="statement not covered" >JSON.parse(message.body);</span>
-<span class="cstat-no" title="statement not covered" >          console.log('📩 Nueva notificación recibida:', notification.nombre);</span>
+<span class="cstat-no" title="statement not covered" >          console.log(' Nueva notificación recibida:', notification.nombre);</span>
 <span class="cstat-no" title="statement not covered" >          this.emit('notification', notification);</span>
         } catch (error) {
 <span class="cstat-no" title="statement not covered" >          console.error('Error parseando notificación:', error);</span>
@@ -1021,7 +1021,7 @@ class NotificationWebSocket {
 <span class="fstat-no" title="function not covered" >      (m</span>essage) =&gt; {
 <span class="cstat-no" title="statement not covered" >        try {</span>
           const count: number = <span class="cstat-no" title="statement not covered" >JSON.parse(message.body);</span>
-<span class="cstat-no" title="statement not covered" >          console.log('🔢 Contador actualizado:', count);</span>
+<span class="cstat-no" title="statement not covered" >          console.log(' Contador actualizado:', count);</span>
 <span class="cstat-no" title="statement not covered" >          this.emit('count', count);</span>
         } catch (error) {
 <span class="cstat-no" title="statement not covered" >          console.error('Error parseando contador:', error);</span>
@@ -1036,7 +1036,7 @@ class NotificationWebSocket {
 <span class="fstat-no" title="function not covered" >      (m</span>essage) =&gt; {
 <span class="cstat-no" title="statement not covered" >        try {</span>
           const notificationId: number = <span class="cstat-no" title="statement not covered" >JSON.parse(message.body);</span>
-<span class="cstat-no" title="statement not covered" >          console.log('✓ Notificación marcada como leída:', notificationId);</span>
+<span class="cstat-no" title="statement not covered" >          console.log(' Notificación marcada como leída:', notificationId);</span>
 <span class="cstat-no" title="statement not covered" >          this.emit('mark-read', { id: notificationId });</span>
         } catch (error) {
 <span class="cstat-no" title="statement not covered" >          console.error('Error parseando mark-read:', error);</span>
@@ -1051,7 +1051,7 @@ class NotificationWebSocket {
 <span class="fstat-no" title="function not covered" >      (m</span>essage) =&gt; {
 <span class="cstat-no" title="statement not covered" >        try {</span>
           const notificationId: number = <span class="cstat-no" title="statement not covered" >JSON.parse(message.body);</span>
-<span class="cstat-no" title="statement not covered" >          console.log('🗑️ Notificación eliminada:', notificationId);</span>
+<span class="cstat-no" title="statement not covered" >          console.log(' Notificación eliminada:', notificationId);</span>
 <span class="cstat-no" title="statement not covered" >          this.emit('delete', { id: notificationId });</span>
         } catch (error) {
 <span class="cstat-no" title="statement not covered" >          console.error('Error parseando deleted:', error);</span>
@@ -1060,7 +1060,7 @@ class NotificationWebSocket {
     );
 <span class="cstat-no" title="statement not covered" >    this.subscriptions.set('user-deleted', deletedSub);</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    console.log('✅ Suscripciones configuradas:', this.subscriptions.size);</span>
+<span class="cstat-no" title="statement not covered" >    console.log(' Suscripciones configuradas:', this.subscriptions.size);</span>
   }
 &nbsp;
   /**
@@ -1070,7 +1070,7 @@ class NotificationWebSocket {
    * Útil al hacer logout o cambiar de usuario
    */
 <span class="fstat-no" title="function not covered" >  disconnect(): void {</span>
-<span class="cstat-no" title="statement not covered" >    console.log('🔌 Desconectando WebSocket...');</span>
+<span class="cstat-no" title="statement not covered" >    console.log(' Desconectando WebSocket...');</span>
     
     // Desuscribirse de todos los canales
 <span class="cstat-no" title="statement not covered" >    this.subscriptions.forEach(<span class="fstat-no" title="function not covered" >(s</span>ub) =&gt; <span class="cstat-no" title="statement not covered" >sub.unsubscribe());</span></span>
@@ -1081,7 +1081,7 @@ class NotificationWebSocket {
 <span class="cstat-no" title="statement not covered" >    this.client = null;</span>
 <span class="cstat-no" title="statement not covered" >    this.userId = null;</span>
     
-<span class="cstat-no" title="statement not covered" >    console.log('✅ WebSocket desconectado');</span>
+<span class="cstat-no" title="statement not covered" >    console.log(' WebSocket desconectado');</span>
   }
 &nbsp;
   /**
@@ -1143,13 +1143,13 @@ class NotificationWebSocket {
    */
 <span class="fstat-no" title="function not covered" >  private handleReconnect(): void </span>{
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (this.reconnectAttempts &gt;= this.maxReconnectAttempts) {</span>
-<span class="cstat-no" title="statement not covered" >      console.error('❌ Máximo de intentos de reconexión alcanzado');</span>
+<span class="cstat-no" title="statement not covered" >      console.error(' Máximo de intentos de reconexión alcanzado');</span>
 <span class="cstat-no" title="statement not covered" >      return;</span>
     }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    this.reconnectAttempts++;</span>
 <span class="cstat-no" title="statement not covered" >    console.log(</span>
-      `🔄 Intentando reconectar (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
+      ` Intentando reconectar (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
     );
     
     // El cliente STOMP maneja la reconexión automáticamente

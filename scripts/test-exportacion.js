@@ -79,7 +79,7 @@ async function testConectividad() {
     if (response.ok) {
       const health = await response.json();
     } else {
-      console.warn('️ Endpoint /actuator/health no disponible (normal si no está habilitado)');
+      console.warn(' Endpoint /actuator/health no disponible (normal si no está habilitado)');
     }
   } catch (error) {
     console.error(' Backend no responde en', API_BASE_URL);

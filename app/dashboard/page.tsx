@@ -52,7 +52,7 @@ export default function DashboardPage() {
             }
           }
         } catch (extractErr) {
-          console.warn('️ Error extrayendo rol del perfil (any-cast):', extractErr)
+          console.warn(' Error extrayendo rol del perfil (any-cast):', extractErr)
         }
 
         // Normalizar
@@ -66,7 +66,7 @@ export default function DashboardPage() {
         console.error(" Error al obtener perfil del backend:", error)
         console.error(" Detalles del error:", error)
         // Si falla la autenticación, el usuario podría necesitar login
-        console.warn("️ No se pudo obtener perfil. Usuario posiblemente no autenticado.")
+        console.warn(" No se pudo obtener perfil. Usuario posiblemente no autenticado.")
       }
 
       // Cargar estadísticas

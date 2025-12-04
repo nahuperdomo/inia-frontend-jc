@@ -55,7 +55,7 @@ export default function RegistroPage() {
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
-        {/* Header */}
+        {}
         <div>
           <h1 className="text-3xl font-bold text-balance">Centro de Registro</h1>
           <p className="text-muted-foreground text-pretty">
@@ -63,7 +63,7 @@ export default function RegistroPage() {
           </p>
         </div>
 
-      {/* Registration Options */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {registrationOptions.map((option, index) => (
           <Link key={index} href={option.href}>
@@ -88,7 +88,7 @@ export default function RegistroPage() {
         ))}
       </div>
 
-      {/* Quick Stats */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Estadísticas del Sistema</CardTitle>
@@ -120,7 +120,7 @@ export default function RegistroPage() {
         </CardContent>
       </Card>
 
-      {/* Recent Registrations */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

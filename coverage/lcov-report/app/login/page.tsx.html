@@ -1326,9 +1326,9 @@ export default function LoginPage() {
       try {
         const fingerprint = await getDeviceFingerprint()
         setDeviceFingerprint(fingerprint)
-        console.log('📱 [Login] Device fingerprint generado')
+        console.log(' [Login] Device fingerprint generado')
       } catch (error) {
-<span class="cstat-no" title="statement not covered" >        console.error('⚠️ [Login] Error generando fingerprint:', error)</span>
+<span class="cstat-no" title="statement not covered" >        console.error(' [Login] Error generando fingerprint:', error)</span>
         // No bloqueamos el login si falla el fingerprint
       }
     }
@@ -1359,15 +1359,15 @@ export default function LoginPage() {
 &nbsp;
       // Verificar si requiere setup de 2FA (OBLIGATORIO)
       <span class="missing-if-branch" title="if path not taken" >I</span>if ('requires2FASetup' in result &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >result.requires2FASetup)</span> {
-<span class="cstat-no" title="statement not covered" >        console.log('⚠️ [Login] Usuario DEBE activar 2FA')</span>
+<span class="cstat-no" title="statement not covered" >        console.log(' [Login] Usuario DEBE activar 2FA')</span>
 <span class="cstat-no" title="statement not covered" >        await handleSetupInitial2FA()</span>
 <span class="cstat-no" title="statement not covered" >        return</span>
       }
 &nbsp;
       // Verificar si requiere cambio de credenciales (admin first-login)
       <span class="missing-if-branch" title="if path not taken" >I</span>if ('requiresCredentialChange' in result &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >result.requiresCredentialChange)</span> {
-<span class="cstat-no" title="statement not covered" >        console.log('⚠️ [Login] Requiere cambio de credenciales (primer acceso admin)')</span>
-<span class="cstat-no" title="statement not covered" >        console.log('🎫 [Login] Token recibido, redirigiendo...')</span>
+<span class="cstat-no" title="statement not covered" >        console.log(' [Login] Requiere cambio de credenciales (primer acceso admin)')</span>
+<span class="cstat-no" title="statement not covered" >        console.log(' [Login] Token recibido, redirigiendo...')</span>
         
         // Redirigir con el token en la URL (el token no es sensible, solo un ID temporal)
 <span class="cstat-no" title="statement not covered" >        window.location.href = `/admin-setup?token=${result.setupToken}`</span>
@@ -1376,7 +1376,7 @@ export default function LoginPage() {
 &nbsp;
       // Verificar si requiere código 2FA
       <span class="missing-if-branch" title="if path not taken" >I</span>if ('requires2FA' in result &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >result.requires2FA)</span> {
-<span class="cstat-no" title="statement not covered" >        console.log('🔐 [Login] Se requiere código 2FA')</span>
+<span class="cstat-no" title="statement not covered" >        console.log(' [Login] Se requiere código 2FA')</span>
 <span class="cstat-no" title="statement not covered" >        setRequires2FA(true)</span>
 <span class="cstat-no" title="statement not covered" >        toast.info('Autenticación de dos factores', {</span>
           description: 'Ingresa el código de Google Authenticator',
@@ -1387,9 +1387,9 @@ export default function LoginPage() {
 &nbsp;
       // Login exitoso
       const data = result as Login2FAResponse
-      console.log('✅ [Login] Login exitoso')
-      console.log('👤 [Login] Usuario:', data.usuario.nombre)
-      console.log('🔐 [Login] Tiene 2FA:', data.usuario.has2FA)
+      console.log(' [Login] Login exitoso')
+      console.log(' [Login] Usuario:', data.usuario.nombre)
+      console.log(' [Login] Tiene 2FA:', data.usuario.has2FA)
 &nbsp;
       // Refrescar contexto de autenticación
       await refresh()
@@ -1412,7 +1412,7 @@ export default function LoginPage() {
       }, 100)
 &nbsp;
     } catch (error: any) {
-      console.error('❌ [Login] Error:', error)
+      console.error(' [Login] Error:', error)
       
       let errorMsg = 'Error de autenticación'
       let errorDescription = 'Verifica tus credenciales e intenta nuevamente'
@@ -1448,7 +1448,7 @@ export default function LoginPage() {
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const data = <span class="cstat-no" title="statement not covered" >await setupInitial2FA(credentials.usuario, credentials.password)</span>
       
-<span class="cstat-no" title="statement not covered" >      console.log('✅ [Login] Setup 2FA iniciado')</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' [Login] Setup 2FA iniciado')</span>
 <span class="cstat-no" title="statement not covered" >      setSetupData({</span>
         qrCodeUrl: data.data.qrCodeDataUrl,
         secret: data.data.secret,
@@ -1461,7 +1461,7 @@ export default function LoginPage() {
         duration: 5000,
       })
     } catch (error: any) {
-<span class="cstat-no" title="statement not covered" >      console.error('❌ [Login] Error en setup 2FA:', error)</span>
+<span class="cstat-no" title="statement not covered" >      console.error(' [Login] Error en setup 2FA:', error)</span>
 <span class="cstat-no" title="statement not covered" >      toast.error('Error', {</span>
         description: error.message || 'No se pudo iniciar la configuración de 2FA',
       })
@@ -1479,8 +1479,8 @@ export default function LoginPage() {
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const data = <span class="cstat-no" title="statement not covered" >await verifyInitial2FA(setupData!.email, totpCode)</span>
       
-<span class="cstat-no" title="statement not covered" >      console.log('✅ [Login] 2FA activado y login exitoso')</span>
-<span class="cstat-no" title="statement not covered" >      console.log('🎫 [Login] Códigos de respaldo recibidos:', data.totalCodes)</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' [Login] 2FA activado y login exitoso')</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' [Login] Códigos de respaldo recibidos:', data.totalCodes)</span>
       
       // Guardar códigos de respaldo para mostrar
 <span class="cstat-no" title="statement not covered" >      setBackupCodes(data.backupCodes)</span>
@@ -1497,7 +1497,7 @@ export default function LoginPage() {
       // Redirigir al dashboard después de que guarde los códigos
       // El usuario cerrará el modal de códigos manualmente
     } catch (error: any) {
-<span class="cstat-no" title="statement not covered" >      console.error('❌ [Login] Error verificando código inicial:', error)</span>
+<span class="cstat-no" title="statement not covered" >      console.error(' [Login] Error verificando código inicial:', error)</span>
 <span class="cstat-no" title="statement not covered" >      toast.error('Error', {</span>
         description: error.message || 'Código de verificación inválido',
       })
@@ -1835,7 +1835,7 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
             &lt;CardHeader&gt;
               &lt;CardTitle className="flex items-center gap-2 text-yellow-700"&gt;
                 &lt;Key className="w-5 h-5" /&gt;
-                ⚠️ CÓDIGOS DE RESPALDO - GUÁRDALOS AHORA
+                 CÓDIGOS DE RESPALDO - GUÁRDALOS AHORA
               &lt;/CardTitle&gt;
               &lt;CardDescription className="text-red-600 font-semibold"&gt;
                 Estos códigos se muestran SOLO UNA VEZ. Guárdalos en un lugar seguro.

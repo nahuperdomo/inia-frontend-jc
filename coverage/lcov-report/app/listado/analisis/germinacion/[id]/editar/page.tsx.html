@@ -1465,7 +1465,7 @@ export default function GerminacionDetailPage() {
         console.log(" Tablas cargadas:", tablasData)
         setTablas(tablasData)
       } catch (tablasError: any) {
-        console.warn("️ No se pudieron cargar las tablas:", tablasError)
+        console.warn(" No se pudieron cargar las tablas:", tablasError)
         // Si es 404, significa que no hay tablas, lo cual es normal
         if (tablasError.message &amp;&amp; tablasError.message.includes('404')) {
           console.log(" No hay tablas creadas todavía - esto es normal")
@@ -1525,7 +1525,7 @@ export default function GerminacionDetailPage() {
 <span class="cstat-no" title="statement not covered" >    try {</span>
 <span class="cstat-no" title="statement not covered" >      setError("")</span>
       
-<span class="cstat-no" title="statement not covered" >      console.log("✏️ Editando análisis:", germinacionId)</span>
+<span class="cstat-no" title="statement not covered" >      console.log(" Editando análisis:", germinacionId)</span>
       
       // Actualizar estado local para marcar como en proceso
 <span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (germinacion) {</span>

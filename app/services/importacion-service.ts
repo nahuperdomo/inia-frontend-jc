@@ -47,7 +47,7 @@ export async function validarArchivoLegados(archivo: File): Promise<ImportacionR
 
         return await response.json();
     } catch (error: any) {
-        console.error('❌ Error al validar archivo de legados:', error);
+        console.error(' Error al validar archivo de legados:', error);
         throw new Error(error.message || 'Error al validar el archivo. Verifique su conexión e intente nuevamente.');
     }
 }
@@ -87,7 +87,7 @@ export async function importarLegadosDesdeExcel(archivo: File): Promise<Importac
 
         return await response.json();
     } catch (error: any) {
-        console.error('❌ Error al importar archivo de legados:', error);
+        console.error(' Error al importar archivo de legados:', error);
         throw new Error(error.message || 'Error al importar el archivo. Verifique su conexión e intente nuevamente.');
     }
 }

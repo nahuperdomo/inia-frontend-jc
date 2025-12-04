@@ -80,7 +80,7 @@ function ResetPasswordForm() {
       }, 3000)
 
     } catch (error: any) {
-      console.error('❌ [ResetPassword] Error:', error)
+      console.error(' [ResetPassword] Error:', error)
 
       let errorMsg = 'Error al resetear contraseña'
 

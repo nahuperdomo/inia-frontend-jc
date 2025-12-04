@@ -4,7 +4,7 @@
 
 /**
  * Limpia todos los datos persistidos del formulario DOSN
- * ️ IMPORTANTE: Solo limpia los datos de REGISTROS (pestaña "Registros")
+ *  IMPORTANTE: Solo limpia los datos de REGISTROS (pestaña "Registros")
  * NO limpia datos generales (fechas, gramos, tipos de análisis)
  */
 export function clearDosnStorage() {

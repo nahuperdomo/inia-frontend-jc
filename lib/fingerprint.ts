@@ -74,7 +74,7 @@ export async function getDeviceFingerprint(): Promise<string> {
  * @returns {string} Fingerprint básico
  */
 function generateFallbackFingerprint(): string {
-  console.warn('⚠️ [Fingerprint] Usando método de respaldo (menos estable)');
+  console.warn(' [Fingerprint] Usando método de respaldo (menos estable)');
   
   const components = [
     navigator.userAgent,

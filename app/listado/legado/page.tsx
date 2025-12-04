@@ -109,7 +109,7 @@ export default function ListadoLegadoPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
-      {/* Header */}
+      {}
       <div className="flex flex-col gap-3 sm:gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <Link href="/listado" className="sm:self-start">
@@ -128,7 +128,7 @@ export default function ListadoLegadoPage() {
         </div>
       </div>
 
-      {/* Stats */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -168,7 +168,7 @@ export default function ListadoLegadoPage() {
         </Card>
       </div>
 
-      {/* Filters */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -212,7 +212,7 @@ export default function ListadoLegadoPage() {
         </CardContent>
       </Card>
 
-      {/* Table */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Lista de Datos Legados ({loading ? "..." : totalElements})</CardTitle>
@@ -285,7 +285,7 @@ export default function ListadoLegadoPage() {
                 </Table>
               </div>
 
-              {/* Pagination */}
+              {}
               <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-sm text-muted-foreground">
                   {totalElements === 0 ? (

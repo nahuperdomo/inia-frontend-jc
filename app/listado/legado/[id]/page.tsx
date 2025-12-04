@@ -134,7 +134,7 @@ export default function LegadoDetailPage() {
 
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Main Content */}
+          {}
           <div className="lg:col-span-2 space-y-6">
             {/* Información del Lote */}
             <Card className="overflow-hidden">

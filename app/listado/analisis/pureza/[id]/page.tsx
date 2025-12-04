@@ -158,7 +158,7 @@ export default function PurezaDetailPage() {
       } catch (err: any) {
         const errorMsg = "Error al cargar los detalles del análisis de Pureza";
         setError(errorMsg)
-        console.error("❌ Error fetching Pureza:", err)
+        console.error(" Error fetching Pureza:", err)
         toast.error(errorMsg, {
           description: err?.message || "No se pudo cargar la información del análisis. Intente recargar la página."
         });

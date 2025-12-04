@@ -452,7 +452,7 @@ export default function RegistroAnalisisPage() {
       };
       // Validación adicional para asegurar que hay datos para enviar
       if (listados.length === 0) {
-        console.warn("⚠️ WARNING: No hay listados para enviar. Esto podría ser normal si el análisis no requiere listados.");
+        console.warn(" WARNING: No hay listados para enviar. Esto podría ser normal si el análisis no requiere listados.");
       } else {      }
 
       // Validar que los datos críticos no estén vacíos o inválidos
@@ -752,7 +752,7 @@ export default function RegistroAnalisisPage() {
         }, 1500);
       }
     } catch (err: any) {
-      console.error("❌ Error al registrar análisis:", err);
+      console.error(" Error al registrar análisis:", err);
       console.error("Status del error:", err?.status);
       console.error("Mensaje completo:", err?.message || err);
 

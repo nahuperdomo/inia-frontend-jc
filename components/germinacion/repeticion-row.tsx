@@ -287,7 +287,7 @@ export function RepeticionRow({
                     <label className="text-xs text-gray-500">
                       Conteo {indice + 1}
                       {!puedeIngresar && (
-                        <span className="text-red-500 ml-1" title="Fecha futura - no disponible">️</span>
+                        <span className="text-red-500 ml-1" title="Fecha futura - no disponible"></span>
                       )}
                     </label>
                     <Input
@@ -320,7 +320,7 @@ export function RepeticionRow({
               <label className="text-sm font-medium">
                 Anormales
                 {!puedeIngresarCamposUltimoConteo() && (
-                  <span className="text-red-500 ml-1" title="Fecha del último conteo futura - no disponible">️</span>
+                  <span className="text-red-500 ml-1" title="Fecha del último conteo futura - no disponible"></span>
                 )}
               </label>
               <Input
@@ -341,7 +341,7 @@ export function RepeticionRow({
               <label className="text-sm font-medium">
                 Duras
                 {!puedeIngresarCamposUltimoConteo() && (
-                  <span className="text-red-500 ml-1" title="Fecha del último conteo futura - no disponible">️</span>
+                  <span className="text-red-500 ml-1" title="Fecha del último conteo futura - no disponible"></span>
                 )}
               </label>
               <Input
@@ -362,7 +362,7 @@ export function RepeticionRow({
               <label className="text-sm font-medium">
                 Frescas
                 {!puedeIngresarCamposUltimoConteo() && (
-                  <span className="text-red-500 ml-1" title="Fecha del último conteo futura - no disponible">️</span>
+                  <span className="text-red-500 ml-1" title="Fecha del último conteo futura - no disponible"></span>
                 )}
               </label>
               <Input
@@ -383,7 +383,7 @@ export function RepeticionRow({
               <label className="text-sm font-medium">
                 Muertas
                 {!puedeIngresarCamposUltimoConteo() && (
-                  <span className="text-red-500 ml-1" title="Fecha del último conteo futura - no disponible">️</span>
+                  <span className="text-red-500 ml-1" title="Fecha del último conteo futura - no disponible"></span>
                 )}
               </label>
               <Input
@@ -406,7 +406,7 @@ export function RepeticionRow({
             <div className={`text-sm font-medium ${totalExcedido ? 'text-red-600' : totalBajoMinimo ? 'text-orange-600' : 'text-green-600'}`}>
               Total: {datos.total}/{numSemillasPRep} semillas (rango permitido: {limiteMinimo}-{limiteMaximo})
               {datos.total > limiteMaximo && '  Excede el límite máximo'}
-              {totalBajoMinimo && !tieneFechasFuturas && ' ️ Menor al mínimo (se perdió más del 5% - bloqueará la finalización de la tabla)'}
+              {totalBajoMinimo && !tieneFechasFuturas && '  Menor al mínimo (se perdió más del 5% - bloqueará la finalización de la tabla)'}
               {totalBajoMinimo && tieneFechasFuturas && ' ⏳ Aún hay fechas futuras pendientes (puede seguir ingresando datos)'}
               {puedeGuardar && datos.total >= limiteMinimo && datos.total <= limiteMaximo && '  Dentro del rango'}
             </div>

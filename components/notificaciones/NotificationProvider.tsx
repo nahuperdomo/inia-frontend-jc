@@ -231,7 +231,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
         autoRefresh,
         setAutoRefresh,
         
-        // ✨ NUEVO: Estado WebSocket
+        //  NUEVO: Estado WebSocket
         isWebSocketConnected,
         webSocketError,
         reconnectWebSocket,
@@ -272,7 +272,7 @@ export const useNotificationDropdown = () => {
         refreshNotifications,
         isDropdownOpen,
         setDropdownOpen,
-        // ✨ NUEVO: WebSocket
+        //  NUEVO: WebSocket
         isWebSocketConnected,
         webSocketError,
         reconnectWebSocket
@@ -298,7 +298,7 @@ export const useNotificationDropdown = () => {
             setOpen: setDropdownOpen,
             toggle: () => setDropdownOpen(!isDropdownOpen)
         },
-        // ✨ NUEVO: Estado WebSocket
+        //  NUEVO: Estado WebSocket
         websocket: {
             isConnected: isWebSocketConnected,
             error: webSocketError,

@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
       }, 2000)
 
     } catch (error: any) {
-      console.error('❌ [ForgotPassword] Error:', error)
+      console.error(' [ForgotPassword] Error:', error)
 
       let errorMsg = 'Error al solicitar código'
 

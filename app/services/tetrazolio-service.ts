@@ -14,7 +14,7 @@ export async function crearTetrazolio(solicitud: TetrazolioRequestDTO): Promise<
     });
     return result;
   } catch (error: any) {
-    console.error('❌ Error al crear tetrazolio:', error);
+    console.error(' Error al crear tetrazolio:', error);
     throw new Error(error.message || 'Error al crear el análisis de tetrazolio. Verifique los datos e intente nuevamente.');
   }
 }

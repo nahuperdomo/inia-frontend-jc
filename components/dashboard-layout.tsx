@@ -96,7 +96,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         />
       )}
 
-      {/* Sidebar Desktop (> 800px) */}
+      {}
       <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
         <div className="flex flex-col flex-grow pt-5 bg-card border-r overflow-y-auto h-full">
           <div className="flex items-center flex-shrink-0 px-4">
@@ -146,7 +146,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </div>
 
-      {/* Sidebar Mobile (< 800px) - Menú hamburguesa */}
+      {}
       <div
         className={cn(
           "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r transform transition-transform duration-300 ease-in-out lg:hidden",

@@ -277,7 +277,7 @@ export default function ListadoLotesPage() {
           </Card>
         </div>
 
-        {/* Filters and Search */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

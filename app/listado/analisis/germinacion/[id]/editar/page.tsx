@@ -125,7 +125,7 @@ export default function GerminacionDetailPage() {
         const tablasData = await obtenerTablasGerminacion(parseInt(germinacionId))
         setTablas(tablasData)
       } catch (tablasError: any) {
-        console.warn("️ No se pudieron cargar las tablas:", tablasError)
+        console.warn(" No se pudieron cargar las tablas:", tablasError)
         // Si es 404, significa que no hay tablas, lo cual es normal
         if (tablasError.message && tablasError.message.includes('404')) {
           setTablas([])

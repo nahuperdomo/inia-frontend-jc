@@ -13,7 +13,7 @@ export async function crearPms(solicitud: PmsRequestDTO): Promise<PmsDTO> {
     });
     return result;
   } catch (error: any) {
-    console.error('❌ Error al crear PMS:', error);
+    console.error(' Error al crear PMS:', error);
     throw new Error(error.message || 'Error al crear el análisis de PMS. Verifique los datos e intente nuevamente.');
   }
 }

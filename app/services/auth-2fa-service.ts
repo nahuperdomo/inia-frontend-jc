@@ -187,7 +187,7 @@ export async function login2FA(
 
     // Si es 404, el endpoint no existe, usar fallback
     if (response.status === 404) {
-      console.warn('⚠️ [Auth2FA] Endpoint /api/v1/auth/login-2fa no encontrado, usando login tradicional');
+      console.warn(' [Auth2FA] Endpoint /api/v1/auth/login-2fa no encontrado, usando login tradicional');
       return await loginTradicional(credentials.usuario, credentials.password);
     }
 
@@ -199,16 +199,16 @@ export async function login2FA(
 
     try {
       const errorData: ErrorResponse = JSON.parse(responseText);
-      console.error('❌ [Auth2FA] Error:', errorData.error);
+      console.error(' [Auth2FA] Error:', errorData.error);
       throw new Error(errorData.error || 'Error de autenticación');
     } catch (parseError) {
-      console.error('❌ [Auth2FA] Error parseando respuesta:', parseError);
+      console.error(' [Auth2FA] Error parseando respuesta:', parseError);
       throw new Error(responseText || 'Error de autenticación');
     }
   } catch (error: any) {
     // Si es error de red o endpoint no disponible, usar login tradicional
     if (error.message?.includes('fetch') || error.message?.includes('NetworkError')) {
-      console.warn('⚠️ [Auth2FA] Error de red, intentando login tradicional');
+      console.warn(' [Auth2FA] Error de red, intentando login tradicional');
       return await loginTradicional(credentials.usuario, credentials.password);
     }
     throw error;
@@ -409,10 +409,10 @@ export async function setupInitial2FA(
 
   try {
     const errorData: ErrorResponse = JSON.parse(responseText);
-    console.error('❌ [Auth2FA] Error:', errorData.error);
+    console.error(' [Auth2FA] Error:', errorData.error);
     throw new Error(errorData.error || 'Error al iniciar setup 2FA');
   } catch (parseError) {
-    console.error('❌ [Auth2FA] Error parseando respuesta:', parseError);
+    console.error(' [Auth2FA] Error parseando respuesta:', parseError);
     throw new Error(responseText || 'Error al iniciar setup 2FA');
   }
 }
@@ -464,10 +464,10 @@ export async function verifyInitial2FA(
 
   try {
     const errorData: ErrorResponse = JSON.parse(responseText);
-    console.error('❌ [Auth2FA] Error:', errorData.error);
+    console.error(' [Auth2FA] Error:', errorData.error);
     throw new Error(errorData.error || 'Error al verificar código');
   } catch (parseError) {
-    console.error('❌ [Auth2FA] Error parseando respuesta:', parseError);
+    console.error(' [Auth2FA] Error parseando respuesta:', parseError);
     throw new Error(responseText || 'Error al verificar código');
   }
 }
@@ -517,10 +517,10 @@ export async function regenerateBackupCodes(
 
   try {
     const errorData: ErrorResponse = JSON.parse(responseText);
-    console.error('❌ [Auth2FA] Error:', errorData.error);
+    console.error(' [Auth2FA] Error:', errorData.error);
     throw new Error(errorData.error || 'Error al regenerar códigos de respaldo');
   } catch (parseError) {
-    console.error('❌ [Auth2FA] Error parseando respuesta:', parseError);
+    console.error(' [Auth2FA] Error parseando respuesta:', parseError);
     throw new Error(responseText || 'Error al regenerar códigos de respaldo');
   }
 }
@@ -544,7 +544,7 @@ export async function getBackupCodesCount(): Promise<BackupCodesCountResponse> {
   if (response.ok) {
     const data: BackupCodesCountResponse = await response.json();
     if (data.warning) {
-      console.warn('⚠️ [Auth2FA]', data.warning);
+      console.warn(' [Auth2FA]', data.warning);
     }
     return data;
   }
@@ -731,7 +731,7 @@ export async function completeAdminSetup(
 
   // Error
   const errorData: ErrorResponse = await response.json();
-  console.error('❌ [Auth2FA] Error:', errorData.error);
+  console.error(' [Auth2FA] Error:', errorData.error);
   throw new Error(errorData.error || 'Error al completar configuración');
 }
 
@@ -759,6 +759,6 @@ export async function getAdminSetupData(token: string): Promise<AdminSetupData> 
 
   // Error
   const errorData: ErrorResponse = await response.json();
-  console.error('❌ [Auth2FA] Error:', errorData.error);
+  console.error(' [Auth2FA] Error:', errorData.error);
   throw new Error(errorData.error || 'Token inválido o expirado');
 }

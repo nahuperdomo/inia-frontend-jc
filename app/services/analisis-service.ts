@@ -36,7 +36,7 @@ export async function registrarAnalisis(payload: any, tipo: string) {
     });
     return result;
   } catch (error: any) {
-    console.error(`❌ Error al registrar análisis de ${tipo}:`, error);
+    console.error(` Error al registrar análisis de ${tipo}:`, error);
     // Re-lanzar el error con un mensaje más descriptivo
     throw new Error(error.message || `Error al registrar el análisis de ${tipo}. Verifique los datos e intente nuevamente.`);
   }

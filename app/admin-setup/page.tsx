@@ -60,7 +60,7 @@ export default function AdminSetupPage() {
       const token = searchParams.get('token')
       
       if (!token) {
-        console.error('❌ [AdminSetup] No se encontró token')
+        console.error(' [AdminSetup] No se encontró token')
         router.push('/login')
         return
       }
@@ -78,7 +78,7 @@ export default function AdminSetupPage() {
         // Limpiar token de la URL por seguridad
         window.history.replaceState({}, '', '/admin-setup')
       } catch (error: any) {
-        console.error('❌ [AdminSetup] Error obteniendo datos:', error)
+        console.error(' [AdminSetup] Error obteniendo datos:', error)
         toast.error('Error', {
           description: error.message || 'Token inválido o expirado',
           duration: 5000,
@@ -200,7 +200,7 @@ export default function AdminSetupPage() {
       })
 
     } catch (error: any) {
-      console.error('❌ [AdminSetup] Error:', error)
+      console.error(' [AdminSetup] Error:', error)
       
       const errorMsg = error.message || 'Error al completar configuración'
       
@@ -216,7 +216,7 @@ export default function AdminSetupPage() {
   const downloadBackupCodes = () => {
     const text = backupCodes.map((code, i) => `${i + 1}. ${formatBackupCode(code)}`).join('\n')
     const blob = new Blob([
-      '🔐 CÓDIGOS DE RESPALDO - INIA\n\n',
+      ' CÓDIGOS DE RESPALDO - INIA\n\n',
       'IMPORTANTE: Guarda estos códigos en un lugar seguro.\n',
       'Cada código solo puede usarse UNA vez.\n\n',
       text,

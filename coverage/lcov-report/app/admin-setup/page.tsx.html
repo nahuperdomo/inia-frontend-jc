@@ -1265,13 +1265,13 @@ export default function <span class="cstat-no" title="statement not covered" ><s
       const token = <span class="cstat-no" title="statement not covered" >searchParams.get('token')</span>
       
 <span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (!token) {</span>
-<span class="cstat-no" title="statement not covered" >        console.error('❌ [AdminSetup] No se encontró token')</span>
+<span class="cstat-no" title="statement not covered" >        console.error(' [AdminSetup] No se encontró token')</span>
 <span class="cstat-no" title="statement not covered" >        router.push('/login')</span>
 <span class="cstat-no" title="statement not covered" >        return</span>
       }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      try {</span>
-<span class="cstat-no" title="statement not covered" >        console.log('🎫 [AdminSetup] Obteniendo datos con token...')</span>
+<span class="cstat-no" title="statement not covered" >        console.log(' [AdminSetup] Obteniendo datos con token...')</span>
         
         // Marcar como cargado ANTES de hacer la llamada
 <span class="cstat-no" title="statement not covered" >        hasLoadedRef.current = true</span>
@@ -1280,12 +1280,12 @@ export default function <span class="cstat-no" title="statement not covered" ><s
         const setupData = <span class="cstat-no" title="statement not covered" >await getAdminSetupData(token)</span>
 <span class="cstat-no" title="statement not covered" >        setSetupInfo(setupData)</span>
         
-<span class="cstat-no" title="statement not covered" >        console.log('✅ [AdminSetup] Datos de configuración cargados de forma segura')</span>
+<span class="cstat-no" title="statement not covered" >        console.log(' [AdminSetup] Datos de configuración cargados de forma segura')</span>
         
         // Limpiar token de la URL por seguridad
 <span class="cstat-no" title="statement not covered" >        window.history.replaceState({}, '', '/admin-setup')</span>
       } catch (error: any) {
-<span class="cstat-no" title="statement not covered" >        console.error('❌ [AdminSetup] Error obteniendo datos:', error)</span>
+<span class="cstat-no" title="statement not covered" >        console.error(' [AdminSetup] Error obteniendo datos:', error)</span>
 <span class="cstat-no" title="statement not covered" >        toast.error('Error', {</span>
           description: error.message || 'Token inválido o expirado',
           duration: 5000,
@@ -1388,7 +1388,7 @@ export default function <span class="cstat-no" title="statement not covered" ><s
 <span class="cstat-no" title="statement not covered" >        throw new Error('El formato del email no es válido')</span>
       }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      console.log('🔐 [AdminSetup] Completando configuración...')</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' [AdminSetup] Completando configuración...')</span>
 &nbsp;
       const result = <span class="cstat-no" title="statement not covered" >await completeAdminSetup({</span>
         currentPassword: formData.currentPassword,
@@ -1397,7 +1397,7 @@ export default function <span class="cstat-no" title="statement not covered" ><s
         totpCode: formData.totpCode
       })
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      console.log('✅ [AdminSetup] Configuración completada exitosamente')</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' [AdminSetup] Configuración completada exitosamente')</span>
       
       // Mostrar códigos de respaldo
 <span class="cstat-no" title="statement not covered" >      setBackupCodes(result.backupCodes)</span>
@@ -1409,7 +1409,7 @@ export default function <span class="cstat-no" title="statement not covered" ><s
       })
 &nbsp;
     } catch (error: any) {
-<span class="cstat-no" title="statement not covered" >      console.error('❌ [AdminSetup] Error:', error)</span>
+<span class="cstat-no" title="statement not covered" >      console.error(' [AdminSetup] Error:', error)</span>
       
       const errorMsg = <span class="cstat-no" title="statement not covered" >error.message || 'Error al completar configuración'</span>
       
@@ -1425,7 +1425,7 @@ export default function <span class="cstat-no" title="statement not covered" ><s
   const downloadBackupCodes = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
     const text = <span class="cstat-no" title="statement not covered" >backupCodes.map(<span class="fstat-no" title="function not covered" >(c</span>ode, i) =&gt; <span class="cstat-no" title="statement not covered" >`${i + 1}. ${formatBackupCode(code)}`)</span>.join('\n')</span>
     const blob = <span class="cstat-no" title="statement not covered" >new Blob([</span>
-      '🔐 CÓDIGOS DE RESPALDO - INIA\n\n',
+      ' CÓDIGOS DE RESPALDO - INIA\n\n',
       'IMPORTANTE: Guarda estos códigos en un lugar seguro.\n',
       'Cada código solo puede usarse UNA vez.\n\n',
       text,

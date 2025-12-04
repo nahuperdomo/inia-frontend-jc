@@ -1528,10 +1528,10 @@ export default function <span class="cstat-no" title="statement not covered" ><s
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      if (response.ok) {</span>
         const data: Status2FAResponse = <span class="cstat-no" title="statement not covered" >await response.json()</span>
-<span class="cstat-no" title="statement not covered" >        console.log('📊 Status 2FA:', data)</span>
+<span class="cstat-no" title="statement not covered" >        console.log(' Status 2FA:', data)</span>
 <span class="cstat-no" title="statement not covered" >        setHas2FA(data.totpEnabled || false)</span>
       } else {
-<span class="cstat-no" title="statement not covered" >        console.warn('⚠️ No se pudo verificar estado 2FA, asumiendo false')</span>
+<span class="cstat-no" title="statement not covered" >        console.warn(' No se pudo verificar estado 2FA, asumiendo false')</span>
 <span class="cstat-no" title="statement not covered" >        setHas2FA(false)</span>
       }
     } catch (error) {
@@ -1551,13 +1551,13 @@ export default function <span class="cstat-no" title="statement not covered" ><s
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      if (response.ok) {</span>
         const data = <span class="cstat-no" title="statement not covered" >await response.json()</span>
-<span class="cstat-no" title="statement not covered" >        console.log('📱 Dispositivos de confianza recibidos:', data)</span>
+<span class="cstat-no" title="statement not covered" >        console.log(' Dispositivos de confianza recibidos:', data)</span>
         
         // El backend devuelve { devices: [...], count: X }
         const devices = <span class="cstat-no" title="statement not covered" >data.devices || data</span>
 <span class="cstat-no" title="statement not covered" >        setTrustedDevices(Array.isArray(devices) ? devices : [])</span>
       } else {
-<span class="cstat-no" title="statement not covered" >        console.warn('⚠️ No se pudieron cargar dispositivos')</span>
+<span class="cstat-no" title="statement not covered" >        console.warn(' No se pudieron cargar dispositivos')</span>
 <span class="cstat-no" title="statement not covered" >        setTrustedDevices([])</span>
       }
     } catch (error) {
@@ -1586,8 +1586,8 @@ export default function <span class="cstat-no" title="statement not covered" ><s
   const handleSetup2FA = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
 <span class="cstat-no" title="statement not covered" >      setLoading(true)</span>
-<span class="cstat-no" title="statement not covered" >      console.log('🔐 Iniciando setup 2FA...')</span>
-<span class="cstat-no" title="statement not covered" >      console.log('📡 URL:', `${API_BASE_URL}/api/v1/auth/2fa/setup`)</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' Iniciando setup 2FA...')</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' URL:', `${API_BASE_URL}/api/v1/auth/2fa/setup`)</span>
       
       const response = <span class="cstat-no" title="statement not covered" >await fetch(`${API_BASE_URL}/api/v1/auth/2fa/setup`, {</span>
         method: 'POST',
@@ -1597,11 +1597,11 @@ export default function <span class="cstat-no" title="statement not covered" ><s
         },
       })
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      console.log('📡 Status:', response.status)</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' Status:', response.status)</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (!response.ok) {</span>
         const errorText = <span class="cstat-no" title="statement not covered" >await response.text()</span>
-<span class="cstat-no" title="statement not covered" >        console.error('❌ Error response:', errorText)</span>
+<span class="cstat-no" title="statement not covered" >        console.error(' Error response:', errorText)</span>
         
         let errorMessage = <span class="cstat-no" title="statement not covered" >'Error al generar código QR'</span>
 <span class="cstat-no" title="statement not covered" >        try {</span>
@@ -1615,20 +1615,20 @@ export default function <span class="cstat-no" title="statement not covered" ><s
       }
 &nbsp;
       const responseText = <span class="cstat-no" title="statement not covered" >await response.text()</span>
-<span class="cstat-no" title="statement not covered" >      console.log('📄 Response:', responseText)</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' Response:', responseText)</span>
       
 <span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (!responseText) {</span>
 <span class="cstat-no" title="statement not covered" >        throw new Error('Respuesta vacía del servidor')</span>
       }
       
       const data = <span class="cstat-no" title="statement not covered" >JSON.parse(responseText)</span>
-<span class="cstat-no" title="statement not covered" >      console.log('✅ Data recibida:', data)</span>
+<span class="cstat-no" title="statement not covered" >      console.log(' Data recibida:', data)</span>
       
       // El backend responde con { data: { secret, qrCodeDataUrl, ... }, mensaje: "..." }
       const setupData = <span class="cstat-no" title="statement not covered" >data.data || data</span>
       
 <span class="cstat-no" title="statement not covered" >      if (setupData.secret &amp;&amp; setupData.qrCodeDataUrl) {</span>
-<span class="cstat-no" title="statement not covered" >        console.log('✅ Configurando QR y secret...')</span>
+<span class="cstat-no" title="statement not covered" >        console.log(' Configurando QR y secret...')</span>
 <span class="cstat-no" title="statement not covered" >        console.log('QR URL length:', setupData.qrCodeDataUrl.length)</span>
 <span class="cstat-no" title="statement not covered" >        console.log('Secret:', setupData.secret)</span>
         
@@ -1636,17 +1636,17 @@ export default function <span class="cstat-no" title="statement not covered" ><s
 <span class="cstat-no" title="statement not covered" >        setSecret(setupData.secret)</span>
 <span class="cstat-no" title="statement not covered" >        setShowSetup(true)</span>
         
-<span class="cstat-no" title="statement not covered" >        console.log('✅ Estados actualizados - showSetup debería ser true')</span>
+<span class="cstat-no" title="statement not covered" >        console.log(' Estados actualizados - showSetup debería ser true')</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >        toast.success('Código QR generado', {</span>
           description: 'Escanea el código con Google Authenticator',
         })
       } else {
-<span class="cstat-no" title="statement not covered" >        console.error('❌ Respuesta inválida:', data)</span>
+<span class="cstat-no" title="statement not covered" >        console.error(' Respuesta inválida:', data)</span>
 <span class="cstat-no" title="statement not covered" >        throw new Error('Respuesta del servidor sin QR code')</span>
       }
     } catch (error: any) {
-<span class="cstat-no" title="statement not covered" >      console.error('❌ Error en setup 2FA:', error)</span>
+<span class="cstat-no" title="statement not covered" >      console.error(' Error en setup 2FA:', error)</span>
 <span class="cstat-no" title="statement not covered" >      toast.error('Error', {</span>
         description: error.message || 'No se pudo generar el código QR',
       })
@@ -1679,7 +1679,7 @@ export default function <span class="cstat-no" title="statement not covered" ><s
       
       // Verificar si el backend devolvió códigos de respaldo
 <span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (data.backupCodes &amp;&amp; data.backupCodes.length &gt; 0) {</span>
-<span class="cstat-no" title="statement not covered" >        console.log('🎫 Códigos de respaldo recibidos:', data.backupCodes.length)</span>
+<span class="cstat-no" title="statement not covered" >        console.log(' Códigos de respaldo recibidos:', data.backupCodes.length)</span>
 <span class="cstat-no" title="statement not covered" >        setBackupCodes(data.backupCodes)</span>
 <span class="cstat-no" title="statement not covered" >        setShowBackupCodes(true)</span>
 <span class="cstat-no" title="statement not covered" >        setAvailableCodesCount(data.backupCodes.length)</span>
@@ -1840,7 +1840,7 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
     )
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  console.log('🎨 Render - showSetup:', showSetup, 'qrCodeUrl:', !!qrCodeUrl, 'has2FA:', has2FA)</span>
+<span class="cstat-no" title="statement not covered" >  console.log(' Render - showSetup:', showSetup, 'qrCodeUrl:', !!qrCodeUrl, 'has2FA:', has2FA)</span>
 &nbsp;
   return (
     &lt;&gt;
@@ -1964,7 +1964,7 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
 <span class="cstat-no" title="statement not covered" >                    await handleSetup2FA()</span>
                   }}
                 &gt;
-                  🔄 Generar Nuevo QR
+                   Generar Nuevo QR
                 &lt;/Button&gt;
               &lt;/div&gt;
             &lt;/div&gt;
@@ -1987,7 +1987,7 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
             &lt;CardHeader&gt;
               &lt;CardTitle className="flex items-center gap-2 text-yellow-700"&gt;
                 &lt;Key className="w-5 h-5" /&gt;
-                ⚠️ CÓDIGOS DE RESPALDO - GUÁRDALOS AHORA
+                 CÓDIGOS DE RESPALDO - GUÁRDALOS AHORA
               &lt;/CardTitle&gt;
               &lt;CardDescription className="text-red-600 font-semibold"&gt;
                 Estos códigos se muestran SOLO UNA VEZ. Guárdalos en un lugar seguro.
@@ -2045,10 +2045,10 @@ NO COMPARTAS ESTOS CÓDIGOS CON NADIE.
               &lt;CardDescription&gt;
                 Tienes {availableCodesCount} códigos de respaldo disponibles.
                 {availableCodesCount &lt;= 2 &amp;&amp; availableCodesCount &gt; 0 &amp;&amp; (
-                  &lt;span className="text-yellow-600 font-semibold"&gt; ⚠️ Considera regenerarlos.&lt;/span&gt;
+                  &lt;span className="text-yellow-600 font-semibold"&gt;  Considera regenerarlos.&lt;/span&gt;
                 )}
                 {<span class="branch-0 cbranch-no" title="branch not covered" >availableCodesCount === 0 &amp;&amp; (</span>
-                  &lt;span className="text-red-600 font-semibold"&gt; ⚠️ No tienes códigos disponibles. Regenera inmediatamente.&lt;/span&gt;
+                  &lt;span className="text-red-600 font-semibold"&gt;  No tienes códigos disponibles. Regenera inmediatamente.&lt;/span&gt;
                 )}
               &lt;/CardDescription&gt;
             &lt;/CardHeader&gt;

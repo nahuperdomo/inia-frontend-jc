@@ -72,7 +72,7 @@ interface UseNotificationWebSocketProps {
  * 
  *   return (
  *     <div>
- *       {isConnected ? '🟢 Conectado' : '🔴 Desconectado'}
+ *       {isConnected ? ' Conectado' : ' Desconectado'}
  *       {error && <span>Error: {error}</span>}
  *     </div>
  *   );
@@ -106,7 +106,7 @@ export function useNotificationWebSocket({
   const connect = useCallback(async () => {
     // Validar que tenemos token y userId
     if (!token || !userId) {
-      console.warn('⚠️ No se puede conectar WebSocket: falta token o userId');
+      console.warn(' No se puede conectar WebSocket: falta token o userId');
       return;
     }
 
@@ -225,7 +225,7 @@ export function useNotificationWebSocket({
       if (connected !== isConnected) {
         setIsConnected(connected);
         if (!connected) {
-          console.warn('⚠️ WebSocket desconectado');
+          console.warn(' WebSocket desconectado');
         }
       }
     }, 2000); // Verificar cada 2 segundos

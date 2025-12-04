@@ -134,7 +134,7 @@ class NotificationWebSocket {
          * Callback cuando hay un error STOMP
          */
         onStompError: (frame) => {
-          console.error('❌ Error STOMP:', frame.headers['message']);
+          console.error(' Error STOMP:', frame.headers['message']);
           console.error('Detalles:', frame.body);
           reject(new Error(frame.headers['message']));
         },
@@ -143,7 +143,7 @@ class NotificationWebSocket {
          * Callback cuando se cierra la conexión WebSocket
          */
         onWebSocketClose: () => {
-          console.warn('⚠️ WebSocket cerrado');
+          console.warn(' WebSocket cerrado');
           this.handleReconnect();
         },
         
@@ -300,7 +300,7 @@ class NotificationWebSocket {
    */
   private handleReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('❌ Máximo de intentos de reconexión alcanzado');
+      console.error(' Máximo de intentos de reconexión alcanzado');
       return;
     }
 

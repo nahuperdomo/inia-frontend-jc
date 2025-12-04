@@ -23,7 +23,7 @@ export async function crearGerminacion(solicitud: GerminacionRequestDTO): Promis
     });
     return result;
   } catch (error: any) {
-    console.error('❌ Error al crear germinación:', error);
+    console.error(' Error al crear germinación:', error);
     throw new Error(error.message || 'Error al crear el análisis de germinación. Verifique los datos e intente nuevamente.');
   }
 }

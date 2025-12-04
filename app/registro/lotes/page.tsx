@@ -207,7 +207,7 @@ export default function RegistroLotesPage() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <Link href="/registro">
@@ -236,7 +236,7 @@ export default function RegistroLotesPage() {
             isLoading={isLoading}
           />
 
-          {/* Submit Button */}
+          {}
           <div className="flex justify-end">
             <Button type="submit" disabled={isLoading} className="min-w-[200px]">
               {isLoading ? "Registrando..." : "Registrar Lote"}

@@ -245,7 +245,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                                     {unreadCount} nuevas
                                 </span>
                             )}
-                            {/* ✨ NUEVO: Indicador de WebSocket */}
+                            {}
                             {websocket.isConnected && (
                                 <span 
                                     className="flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-medium bg-green-100 text-green-700 rounded-full"
