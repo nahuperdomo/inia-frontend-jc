@@ -76,8 +76,12 @@ const convertirFechaParaInput = (fechaString: string): string => {
   const fecha = new Date(fechaString)
   if (isNaN(fecha.getTime())) return '' // Fecha inválida
 
-  // Formatear como YYYY-MM-DD
-  return fecha.toISOString().split('T')[0]
+  // Formatear como YYYY-MM-DD usando métodos locales para evitar conversión UTC
+  const year = fecha.getFullYear()
+  const month = String(fecha.getMonth() + 1).padStart(2, '0')
+  const day = String(fecha.getDate()).padStart(2, '0')
+  
+  return `${year}-${month}-${day}`
 }
 
 export default function GerminacionDetailPage() {
