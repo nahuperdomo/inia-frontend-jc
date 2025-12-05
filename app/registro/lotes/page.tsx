@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Package, AlertCircle } from "lucide-react"
 import { validarFichaUnica, validarNombreLoteUnico } from "@/lib/validations/lotes-async-validation"
 import Link from "next/link"
-import { Toaster, toast } from 'sonner'
+import { toast } from 'sonner'
 
 import { LotFormTabs } from "@/components/lotes/lot-form-tabs"
 import { LotList } from "@/components/lotes/lot-list"
@@ -82,29 +82,8 @@ export default function RegistroLotesPage() {
     }
   };
 
-  const handleInputChange = useCallback(async (field: keyof LoteFormData, value: any) => {
+  const handleInputChange = useCallback((field: keyof LoteFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-
-    // Validar ficha y nombre de lote cuando cambian (validaciones asíncronas únicas)
-    if (field === 'ficha' && value) {
-      const esValido = await validarFichaUnica(value);
-      if (!esValido) {
-        toast.error('Esta ficha ya está registrada', {
-          description: 'Por favor, utiliza una ficha diferente',
-          icon: <AlertCircle className="h-5 w-5" />,
-        });
-      }
-    }
-
-    if (field === 'nomLote' && value) {
-      const esValido = await validarNombreLoteUnico(value);
-      if (!esValido) {
-        toast.error('Este nombre de lote ya está registrado', {
-          description: 'Por favor, utiliza un nombre diferente',
-          icon: <AlertCircle className="h-5 w-5" />,
-        });
-      }
-    }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -244,8 +223,6 @@ export default function RegistroLotesPage() {
           </div>
         </div>
       </form>
-
-      <Toaster richColors />
 
       <div>
         <h2 className="text-xl font-semibold mb-4">Últimos lotes registrados</h2>

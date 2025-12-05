@@ -717,10 +717,8 @@ export default function PerfilPage() {
                             )}
                         </CardContent>
                     </Card>
-                )}
+                )}  
             </div>
-
-            <Toaster richColors />
         </>
     )
 }

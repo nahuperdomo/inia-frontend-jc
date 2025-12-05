@@ -260,7 +260,6 @@ export default function GerminacionDetailPage() {
 
     try {
       await finalizarGerminacion(germinacion.analisisID)
-      toast.success("Análisis finalizado exitosamente")
       await cargarDatos()
     } catch (err: any) {
       toast.error(`Error al finalizar análisis: ${err?.message || "Error desconocido"}`)
@@ -273,7 +272,6 @@ export default function GerminacionDetailPage() {
 
     try {
       await aprobarAnalisis(germinacion.analisisID)
-      toast.success("Análisis aprobado exitosamente")
       await cargarDatos()
     } catch (err: any) {
       toast.error(`Error al aprobar análisis: ${err?.message || "Error desconocido"}`)
@@ -286,7 +284,6 @@ export default function GerminacionDetailPage() {
 
     try {
       await marcarParaRepetir(germinacion.analisisID)
-      toast.success("Análisis marcado para repetir")
       await cargarDatos()
     } catch (err: any) {
       toast.error(`Error al marcar para repetir: ${err?.message || "Error desconocido"}`)
@@ -300,7 +297,6 @@ export default function GerminacionDetailPage() {
     try {
       // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
       await finalizarGerminacion(germinacion.analisisID)
-      toast.success("Análisis finalizado y aprobado exitosamente")
       router.push(`/listado/analisis/germinacion/${germinacion.analisisID}`)
     } catch (err: any) {
       console.error("Error finalizando y aprobando:", err)
@@ -555,18 +551,15 @@ export default function GerminacionDetailPage() {
         estado={germinacion.estado || ""}
         onAprobar={async () => {
           await aprobarAnalisis(germinacion.analisisID)
-          toast.success("Análisis aprobado exitosamente")
           router.push(`/listado/analisis/germinacion/${germinacion.analisisID}`)
         }}
         onMarcarParaRepetir={async () => {
           await marcarParaRepetir(germinacion.analisisID)
-          toast.success("Análisis marcado para repetir")
           router.push(`/listado/analisis/germinacion/${germinacion.analisisID}`)
         }}
         onFinalizarYAprobar={async () => {
           // Cuando el admin finaliza, el backend automáticamente lo aprueba
           await finalizarGerminacion(germinacion.analisisID)
-          toast.success("Análisis finalizado y aprobado exitosamente")
           router.push(`/listado/analisis/germinacion/${germinacion.analisisID}`)
         }}
         onFinalizar={async () => {
@@ -582,7 +575,6 @@ export default function GerminacionDetailPage() {
             return
           }
           await finalizarGerminacion(parseInt(germinacionId))
-          toast.success("Análisis finalizado exitosamente")
           router.push(`/listado/analisis/germinacion/${germinacionId}`)
         }}
       />

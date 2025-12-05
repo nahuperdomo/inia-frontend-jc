@@ -173,7 +173,6 @@ export default function ListadoDOSNPage() {
   return (
     <div className="w-full max-w-full overflow-x-hidden">
       <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto">
-        <Toaster position="top-right" richColors closeButton />
         {/* Header */}
         <div className="flex flex-col gap-3 sm:gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">

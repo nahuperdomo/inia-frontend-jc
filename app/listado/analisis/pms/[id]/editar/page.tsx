@@ -712,8 +712,6 @@ export default function EditarPMSPage() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <Toaster position="top-right" richColors closeButton />
-
       {/* Header Universal */}
       <AnalisisHeaderBar
         tipoAnalisis="PMS"
@@ -1425,22 +1423,9 @@ export default function EditarPMSPage() {
           analisisId={analisis.analisisID}
           tipoAnalisis="pms"
           estado={analisis.estado || ""}
-          onAprobar={async () => {
-            await aprobarAnalisis(analisis.analisisID)
-            toast.success("Análisis aprobado exitosamente")
-            router.push(`/listado/analisis/pms/${analisis.analisisID}`)
-          }}
-          onMarcarParaRepetir={async () => {
-            await marcarParaRepetir(analisis.analisisID)
-            toast.success("Análisis marcado para repetir")
-            router.push(`/listado/analisis/pms/${analisis.analisisID}`)
-          }}
-          onFinalizarYAprobar={async () => {
-            // Cuando el admin finaliza, el backend automáticamente lo aprueba
-            await finalizarAnalisis(analisis.analisisID)
-            toast.success("Análisis finalizado y aprobado exitosamente")
-            router.push(`/listado/analisis/pms/${analisis.analisisID}`)
-          }}
+          onAprobar={handleAprobar}
+          onMarcarParaRepetir={handleMarcarParaRepetir}
+          onFinalizarYAprobar={handleFinalizarYAprobar}
           onFinalizar={handleFinalizarAnalisis}
         />
 

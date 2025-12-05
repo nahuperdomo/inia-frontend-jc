@@ -392,8 +392,6 @@ export default function ContactosPage() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <Toaster position="top-right" richColors closeButton />
-      
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background border-b">
         <div className="container max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">

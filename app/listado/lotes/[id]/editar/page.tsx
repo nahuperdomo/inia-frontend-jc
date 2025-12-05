@@ -349,8 +349,6 @@ export default function EditarLotePage() {
         label="Actualizar Lote"
         loadingLabel="Actualizando..."
       />
-
-      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
     ArrowLeft,
     Upload,
@@ -16,7 +17,7 @@ import {
     Info
 } from "lucide-react"
 import Link from "next/link"
-import { toast, Toaster } from "sonner"
+import { toast } from "sonner"
 import { importarLegadosDesdeExcel, validarArchivoLegados } from "@/app/services/importacion-service"
 
 interface ResultadoImportacion {
@@ -37,6 +38,7 @@ export default function ImportarLegadosPage() {
     const [importando, setImportando] = useState(false)
     const [resultadoValidacion, setResultadoValidacion] = useState<ResultadoImportacion | null>(null)
     const [resultadoImportacion, setResultadoImportacion] = useState<ResultadoImportacion | null>(null)
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,7 +46,7 @@ export default function ImportarLegadosPage() {
         if (file) {
             // Validar tipo de archivo
             if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
-                toast.error('Archivo invÃ¡lido', {
+                toast.error('Archivo inválido', {
                     description: 'Por favor seleccione un archivo Excel (.xlsx o .xls)'
                 })
                 return
@@ -75,8 +77,8 @@ export default function ImportarLegadosPage() {
             setResultadoValidacion(resultado)
 
             if (resultado.exitoso) {
-                toast.success('ValidaciÃ³n exitosa', {
-                    description: 'El archivo es vÃ¡lido y estÃ¡ listo para importar'
+                toast.success('Validación exitosa', {
+                    description: 'El archivo es válido y está listo para importar'
                 })
             } else {
                 toast.warning('Archivo con errores', {
@@ -85,7 +87,7 @@ export default function ImportarLegadosPage() {
             }
         } catch (error: any) {
             console.error('Error al validar archivo:', error)
-            toast.error('Error en validaciÃ³n', {
+            toast.error('Error en validación', {
                 description: error.message || 'No se pudo validar el archivo'
             })
         } finally {
@@ -93,21 +95,18 @@ export default function ImportarLegadosPage() {
         }
     }
 
-    const handleImportar = async () => {
+    const handleImportarClick = () => {
         if (!archivo) {
             toast.error('Sin archivo', {
                 description: 'Por favor seleccione un archivo primero'
             })
             return
         }
+        setShowConfirmDialog(true)
+    }
 
-        // Confirmar antes de importar
-        const confirmar = window.confirm(
-            'Â¿EstÃ¡ seguro de que desea importar estos datos?\n\n' +
-            'Esta acciÃ³n crearÃ¡ registros en la base de datos y no se puede deshacer fÃ¡cilmente.'
-        )
-
-        if (!confirmar) return
+    const handleImportar = async () => {
+        if (!archivo) return
 
         setImportando(true)
         setResultadoImportacion(null)
@@ -117,23 +116,24 @@ export default function ImportarLegadosPage() {
             setResultadoImportacion(resultado)
 
             if (resultado.exitoso) {
-                toast.success('ImportaciÃ³n exitosa', {
+                toast.success('Importación exitosa', {
                     description: `Se importaron ${resultado.filasImportadas || 0} registros correctamente`,
                     duration: 5000
                 })
             } else {
-                toast.warning('ImportaciÃ³n con errores', {
+                toast.warning('Importación con errores', {
                     description: `${resultado.filasImportadas || 0} importados, ${resultado.filasConErrores || 0} con errores`,
                     duration: 5000
                 })
             }
         } catch (error: any) {
             console.error('Error al importar archivo:', error)
-            toast.error('Error en importaciÃ³n', {
+            toast.error('Error en importación', {
                 description: error.message || 'No se pudo importar el archivo'
             })
         } finally {
             setImportando(false)
+            setShowConfirmDialog(false)
         }
     }
 
@@ -148,7 +148,6 @@ export default function ImportarLegadosPage() {
 
     return (
         <div className="min-h-screen bg-background">
-            <Toaster position="top-right" richColors closeButton />
             {/* Header */}
             <header className="border-b bg-card sticky top-0 z-10">
                 <div className="flex h-16 items-center px-4 md:px-6">
@@ -165,7 +164,7 @@ export default function ImportarLegadosPage() {
                         <div>
                             <h1 className="text-lg md:text-xl font-bold">Importar Datos Legados</h1>
                             <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
-                                Importar datos histÃ³ricos desde archivos Excel
+                                Importar datos históricos desde archivos Excel
                             </p>
                         </div>
                     </div>
@@ -178,12 +177,12 @@ export default function ImportarLegadosPage() {
                     <Info className="h-4 w-4" />
                     <AlertDescription>
                         <div className="space-y-2">
-                            <p className="font-medium">InformaciÃ³n importante:</p>
+                            <p className="font-medium">Información importante:</p>
                             <ul className="text-sm space-y-1 ml-4">
-                                <li>â€¢ El archivo debe ser formato Excel (.xlsx o .xls)</li>
-                                <li>â€¢ Primero valide el archivo para verificar que no tenga errores</li>
-                                <li>â€¢ Solo usuarios ADMIN pueden importar datos</li>
-                                <li>â€¢ La importaciÃ³n crearÃ¡ registros nuevos en la base de datos</li>
+                                <li>• El archivo debe ser formato Excel (.xlsx o .xls)</li>
+                                <li>• Primero valide el archivo para verificar que no tenga errores</li>
+                                <li>• Solo usuarios ADMIN pueden importar datos</li>
+                                <li>• La importación creará registros nuevos en la base de datos</li>
                             </ul>
                         </div>
                     </AlertDescription>
@@ -239,7 +238,7 @@ export default function ImportarLegadosPage() {
                                         <div className="flex-1">
                                             <p className="font-medium text-sm">{archivo.name}</p>
                                             <p className="text-xs text-muted-foreground">
-                                                TamaÃ±o: {(archivo.size / 1024).toFixed(2)} KB
+                                                Tamaño: {(archivo.size / 1024).toFixed(2)} KB
                                             </p>
                                         </div>
                                     </div>
@@ -269,7 +268,7 @@ export default function ImportarLegadosPage() {
                                 </Button>
 
                                 <Button
-                                    onClick={handleImportar}
+                                    onClick={handleImportarClick}
                                     disabled={validando || importando || Boolean(resultadoValidacion && !resultadoValidacion.exitoso)}
                                     className="flex-1"
                                 >
@@ -290,7 +289,7 @@ export default function ImportarLegadosPage() {
                     </CardContent>
                 </Card>
 
-                {/* Resultado de ValidaciÃ³n */}
+                {/* Resultado de Validación */}
                 {resultadoValidacion && (
                     <Card>
                         <CardHeader>
@@ -300,7 +299,7 @@ export default function ImportarLegadosPage() {
                                 ) : (
                                     <AlertCircle className="h-5 w-5 text-amber-600" />
                                 )}
-                                Resultado de ValidaciÃ³n
+                                Resultado de Validación
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -332,7 +331,7 @@ export default function ImportarLegadosPage() {
                     </Card>
                 )}
 
-                {/* Resultado de ImportaciÃ³n */}
+                {/* Resultado de Importación */}
                 {resultadoImportacion && (
                     <Card>
                         <CardHeader>
@@ -342,7 +341,7 @@ export default function ImportarLegadosPage() {
                                 ) : (
                                     <AlertCircle className="h-5 w-5 text-amber-600" />
                                 )}
-                                Resultado de ImportaciÃ³n
+                                Resultado de Importación
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -387,8 +386,70 @@ export default function ImportarLegadosPage() {
                             </div>
                         </CardContent>
                     </Card>
-                )}
+                )}  
             </div>
+
+            {/* Diálogo de Confirmación */}
+            <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/20 mb-2">
+                            <AlertCircle className="h-6 w-6 text-amber-600" />
+                        </div>
+                        <DialogTitle className="text-center text-xl">Confirmar Importación</DialogTitle>
+                        <DialogDescription className="text-center">
+                            ¿Está seguro de que desea importar estos datos?
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="rounded-lg border p-3 bg-muted/50">
+                        <div className="flex items-start gap-2">
+                            <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <div className="text-sm text-muted-foreground">
+                                <p className="font-medium mb-1">Esta acción creará registros en la base de datos.</p>
+                                <p>Los datos se importarán de forma permanente y no se pueden deshacer fácilmente.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {archivo && (
+                        <div className="rounded-lg border p-3 bg-muted/50">
+                            <p className="text-sm">
+                                <strong>Archivo:</strong> {archivo.name}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                Tamaño: {(archivo.size / 1024).toFixed(2)} KB
+                            </p>
+                        </div>
+                    )}
+
+                    <DialogFooter className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowConfirmDialog(false)}
+                            disabled={importando}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleImportar}
+                            disabled={importando}
+                        >
+                            {importando ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Importando...
+                                </>
+                            ) : (
+                                <>
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Confirmar Importación
+                                </>
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

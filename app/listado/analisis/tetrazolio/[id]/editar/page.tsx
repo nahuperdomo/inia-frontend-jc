@@ -565,7 +565,6 @@ export default function EditarTetrazolioPage() {
 
     try {
       await finalizarAnalisis(tetrazolio.analisisID)
-      toast.success("Análisis finalizado exitosamente")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
     } catch (err: any) {
       toast.error('Error al finalizar análisis', {
@@ -580,7 +579,6 @@ export default function EditarTetrazolioPage() {
 
     try {
       await aprobarAnalisis(tetrazolio.analisisID)
-      toast.success("Análisis aprobado exitosamente")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
     } catch (err: any) {
       toast.error('Error al aprobar análisis', {
@@ -595,7 +593,6 @@ export default function EditarTetrazolioPage() {
 
     try {
       await marcarParaRepetir(tetrazolio.analisisID)
-      toast.success("Análisis marcado para repetir")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
     } catch (err: any) {
       toast.error('Error al marcar para repetir', {
@@ -612,10 +609,9 @@ export default function EditarTetrazolioPage() {
       // Cuando el admin finaliza, el backend automáticamente lo aprueba
       // No necesitamos llamar a aprobarAnalisis por separado
       await finalizarAnalisis(tetrazolio.analisisID)
-      toast.success("Análisis finalizado y aprobado exitosamente")
       router.push(`/listado/analisis/tetrazolio/${tetrazolio.analisisID}`)
     } catch (err: any) {
-      console.error(" Error finalizando y aprobando:", err)
+      console.error("Error finalizando y aprobando:", err)
       toast.error('Error al finalizar y aprobar', {
         description: err?.message || "No se pudo completar la acción",
       })

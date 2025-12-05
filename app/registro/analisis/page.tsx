@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Search, TestTube, Sprout, Scale, Microscope } from "lucide-react"
-import { Toaster, toast } from "sonner"
+import { toast } from "sonner"
 
 import Link from "next/link"
 
@@ -914,7 +914,6 @@ export default function RegistroAnalisisPage() {
 
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
-      <Toaster position="top-right" richColors closeButton />
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
         <Link href="/registro" className="sm:self-start">
           <Button variant="ghost" size="sm" className="w-fit">

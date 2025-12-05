@@ -62,7 +62,7 @@ export function AnalisisAccionesCard({
     return null
   }
 
-  const handleAccion = async (accion: () => Promise<void>, nombreAccion: string) => {
+  const handleAccion = async (accion: () => Promise<void>, nombreAccion: string, mensajeExito?: string) => {
     const confirmed = await confirm({
       title: "Confirmar acción",
       message: `¿Está seguro que desea ${nombreAccion}?`,
@@ -78,6 +78,9 @@ export function AnalisisAccionesCard({
     try {
       setEjecutandoAccion(true)
       await accion()
+      if (mensajeExito) {
+        toast.success(mensajeExito)
+      }
     } catch (error: any) {
       console.error(`Error al ${nombreAccion}:`, error)
       const errorMessage = error?.message || `Error al ${nombreAccion}. Por favor, intente nuevamente.`
@@ -97,7 +100,7 @@ export function AnalisisAccionesCard({
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
-                onClick={() => onAprobar && handleAccion(onAprobar, "aprobar el análisis")}
+                onClick={() => onAprobar && handleAccion(onAprobar, "aprobar el análisis", "Análisis aprobado exitosamente")}
                 disabled={ejecutandoAccion || !onAprobar}
                 className="flex-1"
               >
@@ -106,7 +109,7 @@ export function AnalisisAccionesCard({
               </Button>
 
               <Button
-                onClick={() => onMarcarParaRepetir && handleAccion(onMarcarParaRepetir, "marcar para repetir")}
+                onClick={() => onMarcarParaRepetir && handleAccion(onMarcarParaRepetir, "marcar para repetir", "Análisis marcado para repetir")}
                 disabled={ejecutandoAccion || !onMarcarParaRepetir}
                 variant="destructive"
                 className="flex-1"
@@ -127,7 +130,7 @@ export function AnalisisAccionesCard({
           <CardContent className="p-4">
             <div className="flex justify-center">
               <Button
-                onClick={() => onMarcarParaRepetir && handleAccion(onMarcarParaRepetir, "marcar para repetir")}
+                onClick={() => onMarcarParaRepetir && handleAccion(onMarcarParaRepetir, "marcar para repetir", "Análisis marcado para repetir")}
                 disabled={ejecutandoAccion || !onMarcarParaRepetir}
                 variant="outline"
                 className="border-orange-300 text-orange-700 hover:bg-orange-50"
@@ -148,7 +151,7 @@ export function AnalisisAccionesCard({
           <CardContent className="p-4">
             <div className="flex justify-center">
               <Button
-                onClick={() => onAprobar && handleAccion(onAprobar, "aprobar el análisis marcado para repetir")}
+                onClick={() => onAprobar && handleAccion(onAprobar, "aprobar el análisis marcado para repetir", "Análisis aprobado exitosamente")}
                 disabled={ejecutandoAccion || !onAprobar}
                 variant="outline"
                 className="border-green-300 text-green-700 hover:bg-green-50"
@@ -168,7 +171,7 @@ export function AnalisisAccionesCard({
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
-              onClick={() => onFinalizarYAprobar && handleAccion(onFinalizarYAprobar, "finalizar y aprobar")}
+              onClick={() => onFinalizarYAprobar && handleAccion(onFinalizarYAprobar, "finalizar y aprobar", "Análisis finalizado y aprobado exitosamente")}
               disabled={ejecutandoAccion || !onFinalizarYAprobar}
               className="flex-1"
             >
@@ -177,7 +180,7 @@ export function AnalisisAccionesCard({
             </Button>
 
             <Button
-              onClick={() => onMarcarParaRepetir && handleAccion(onMarcarParaRepetir, "marcar para repetir")}
+              onClick={() => onMarcarParaRepetir && handleAccion(onMarcarParaRepetir, "marcar para repetir", "Análisis marcado para repetir")}
               disabled={ejecutandoAccion || !onMarcarParaRepetir}
               variant="destructive"
               className="flex-1"
@@ -201,7 +204,7 @@ export function AnalisisAccionesCard({
           <CardContent className="p-4">
             <div className="flex justify-center">
               <Button
-                onClick={() => onFinalizar && handleAccion(onFinalizar, "finalizar el análisis")}
+                onClick={() => onFinalizar && handleAccion(onFinalizar, "finalizar el análisis", "Análisis finalizado exitosamente")}
                 disabled={ejecutandoAccion || !onFinalizar}
                 className="w-full sm:w-auto"
               >

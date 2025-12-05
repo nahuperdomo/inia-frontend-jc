@@ -440,12 +440,11 @@ export default function EditarDosnPage() {
 
     try {
       await aprobarAnalisis(dosn.analisisID)
-      toast.success("Análisis aprobado exitosamente")
       // Recargar datos
       const dosnData = await obtenerDosnPorId(Number.parseInt(dosnId))
       setDosn(dosnData)
     } catch (err: any) {
-      console.error(" Error aprobando análisis:", err)
+      console.error("Error aprobando análisis:", err)
       toast.error('Error al aprobar análisis', {
         description: err?.message || "No se pudo aprobar el análisis",
       })
@@ -458,12 +457,11 @@ export default function EditarDosnPage() {
 
     try {
       await marcarParaRepetir(dosn.analisisID)
-      toast.success("Análisis marcado para repetir")
       // Recargar datos
       const dosnData = await obtenerDosnPorId(Number.parseInt(dosnId))
       setDosn(dosnData)
     } catch (err: any) {
-      console.error(" Error marcando para repetir:", err)
+      console.error("Error marcando para repetir:", err)
       toast.error('Error al marcar para repetir', {
         description: err?.message || "No se pudo marcar el análisis",
       })
@@ -477,10 +475,9 @@ export default function EditarDosnPage() {
     try {
       // Cuando el admin finaliza, el backend ya lo aprueba automáticamente
       await finalizarAnalisis(dosn.analisisID)
-      toast.success("Análisis finalizado y aprobado exitosamente")
       router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
     } catch (err: any) {
-      console.error(" Error finalizando y aprobando:", err)
+      console.error("Error finalizando y aprobando:", err)
       toast.error('Error al finalizar y aprobar', {
         description: err?.message || "No se pudo completar la acción",
       })
@@ -1259,26 +1256,18 @@ export default function EditarDosnPage() {
           analisisId={dosn.analisisID}
           tipoAnalisis="dosn"
           estado={dosn.estado || ""}
-          onAprobar={async () => {
-            await aprobarAnalisis(dosn.analisisID)
-            toast.success("Análisis aprobado exitosamente")
-            router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
-          }}
-          onMarcarParaRepetir={async () => {
-            await marcarParaRepetir(dosn.analisisID)
-            toast.success("Análisis marcado para repetir")
-            router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
-          }}
-          onFinalizarYAprobar={async () => {
-            // Cuando el admin finaliza, el backend automáticamente lo aprueba
-            await finalizarAnalisis(dosn.analisisID)
-            toast.success("Análisis finalizado y aprobado exitosamente")
-            router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
-          }}
+          onAprobar={handleAprobar}
+          onMarcarParaRepetir={handleMarcarParaRepetir}
+          onFinalizarYAprobar={handleFinalizarYAprobar}
           onFinalizar={async () => {
-            await finalizarAnalisis(dosn.analisisID)
-            toast.success("Análisis finalizado exitosamente")
-            router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
+            try {
+              await finalizarAnalisis(dosn.analisisID)
+              router.push(`/listado/analisis/dosn/${dosn.analisisID}`)
+            } catch (err: any) {
+              toast.error('Error al finalizar análisis', {
+                description: err?.message || "No se pudo finalizar el análisis",
+              })
+            }
           }}
         />
 

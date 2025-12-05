@@ -216,8 +216,6 @@ export default function DetallePMSPage() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <Toaster position="top-right" richColors closeButton />
-
       <div className="bg-background border-b sticky top-0 z-10">
         <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
           <div className="flex flex-col gap-3">

@@ -446,7 +446,6 @@ export default function EditarPurezaPage() {
     
     try {
       await marcarParaRepetir(pureza.analisisID)
-      toast.success("Análisis marcado para repetir")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
     } catch (err: any) {
       toast.error('Error al marcar para repetir', {
@@ -463,10 +462,9 @@ export default function EditarPurezaPage() {
       // Cuando el admin finaliza, el backend automáticamente lo aprueba
       // No necesitamos llamar a aprobarAnalisis por separado
       await finalizarAnalisis(pureza.analisisID)
-      toast.success("Análisis finalizado y aprobado exitosamente")
       router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
     } catch (err: any) {
-      console.error(" Error finalizando y aprobando:", err)
+      console.error("Error finalizando y aprobando:", err)
       toast.error('Error al finalizar y aprobar', {
         description: err?.message || "No se pudo completar la acción",
       })
@@ -1461,25 +1459,18 @@ export default function EditarPurezaPage() {
           analisisId={pureza.analisisID}
           tipoAnalisis="pureza"
           estado={pureza.estado || ""}
-          onAprobar={async () => {
-            await aprobarAnalisis(pureza.analisisID)
-            toast.success("Análisis aprobado exitosamente")
-            router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
-          }}
-          onMarcarParaRepetir={async () => {
-            await marcarParaRepetir(pureza.analisisID)
-            toast.success("Análisis marcado para repetir")
-            router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
-          }}
-          onFinalizarYAprobar={async () => {
-            await finalizarAnalisis(pureza.analisisID)
-            toast.success("Análisis finalizado y aprobado")
-            router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
-          }}
+          onAprobar={handleAprobar}
+          onMarcarParaRepetir={handleMarcarParaRepetir}
+          onFinalizarYAprobar={handleFinalizarYAprobar}
           onFinalizar={async () => {
-            await finalizarAnalisis(pureza.analisisID)
-            toast.success("Análisis finalizado exitosamente")
-            router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
+            try {
+              await finalizarAnalisis(pureza.analisisID)
+              router.push(`/listado/analisis/pureza/${pureza.analisisID}`)
+            } catch (err: any) {
+              toast.error('Error al finalizar análisis', {
+                description: err?.message || "No se pudo finalizar el análisis",
+              })
+            }
           }}
         />
 

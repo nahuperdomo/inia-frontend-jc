@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { toast , Toaster } from "sonner"
+import { toast } from "sonner"
 import { useState, useEffect } from "react"
 import {
     Dialog,
@@ -1008,8 +1008,6 @@ export default function UsuarioValidacionPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-
-            <Toaster richColors />
         </div>
     )
 }
